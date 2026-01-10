@@ -1,0 +1,284 @@
+<?php
+
+/**
+ * @file
+ * BoxTasks Notification module.
+ *
+ * Provides notification functionality for BoxTasks.
+ */
+
+use Drupal\boxtasks_notification\NotificationService;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for node entities.
+ *
+ * Creates notifications for relevant entity creations.
+ */
+function boxtasks_notification_node_insert(NodeInterface $node): void {
+  $notifier = \Drupal::service('boxtasks_notification.notifier');
+
+  switch ($node->bundle()) {
+    case 'card_comment':
+      _boxtasks_notification_handle_comment($node, $notifier);
+      break;
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for node entities.
+ *
+ * Creates notifications for relevant entity updates.
+ */
+function boxtasks_notification_node_update(NodeInterface $node): void {
+  // Only process cards.
+  if ($node->bundle() !== 'card') {
+    return;
+  }
+
+  $notifier = \Drupal::service('boxtasks_notification.notifier');
+  $original = $node->original;
+
+  // Check for member assignment changes.
+  _boxtasks_notification_check_member_changes($node, $original, $notifier);
+
+  // Check for card completion.
+  $current_completed = (bool) $node->get('field_card_completed')->value;
+  $original_completed = (bool) $original->get('field_card_completed')->value;
+  if ($current_completed && !$original_completed) {
+    $notifier->notifyCardMembers($node, NotificationService::TYPE_CARD_COMPLETED);
+  }
+
+  // Check for card moved to different list.
+  $current_list = $node->get('field_card_list')->target_id;
+  $original_list = $original->get('field_card_list')->target_id;
+  if ($current_list !== $original_list) {
+    $notifier->notifyCardMembers($node, NotificationService::TYPE_CARD_MOVED);
+  }
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Processes due date reminders and cleans up old notifications.
+ */
+function boxtasks_notification_cron(): void {
+  _boxtasks_notification_check_due_dates();
+  _boxtasks_notification_cleanup();
+}
+
+/**
+ * Handles comment notifications.
+ *
+ * @param \Drupal\node\NodeInterface $comment
+ *   The comment entity.
+ * @param \Drupal\boxtasks_notification\NotificationService $notifier
+ *   The notification service.
+ */
+function _boxtasks_notification_handle_comment(NodeInterface $comment, NotificationService $notifier): void {
+  // Get the card.
+  $card_id = $comment->get('field_comment_card')->target_id;
+  if (!$card_id) {
+    return;
+  }
+
+  $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
+  if (!$card) {
+    return;
+  }
+
+  // Notify card members about the comment.
+  $notifier->notifyCardMembers($card, NotificationService::TYPE_COMMENT_ADDED);
+
+  // Check for @mentions in comment body.
+  $body = '';
+  if ($comment->hasField('body') && !$comment->get('body')->isEmpty()) {
+    $body = $comment->get('body')->value;
+  }
+  elseif ($comment->hasField('field_comment_body') && !$comment->get('field_comment_body')->isEmpty()) {
+    $body = $comment->get('field_comment_body')->value;
+  }
+
+  if ($body) {
+    $mentioned_users = _boxtasks_notification_extract_mentions($body);
+    if (!empty($mentioned_users)) {
+      $notifier->notifyMentions($comment, $card, $mentioned_users);
+    }
+  }
+}
+
+/**
+ * Checks for member assignment changes and sends notifications.
+ *
+ * @param \Drupal\node\NodeInterface $node
+ *   The card entity.
+ * @param \Drupal\node\NodeInterface $original
+ *   The original card entity.
+ * @param \Drupal\boxtasks_notification\NotificationService $notifier
+ *   The notification service.
+ */
+function _boxtasks_notification_check_member_changes(NodeInterface $node, NodeInterface $original, NotificationService $notifier): void {
+  // Get current and original members.
+  $current_members = [];
+  $original_members = [];
+
+  if ($node->hasField('field_card_members')) {
+    foreach ($node->get('field_card_members') as $item) {
+      $current_members[] = (int) $item->target_id;
+    }
+  }
+
+  if ($original->hasField('field_card_members')) {
+    foreach ($original->get('field_card_members') as $item) {
+      $original_members[] = (int) $item->target_id;
+    }
+  }
+
+  // Find added and removed members.
+  $added = array_diff($current_members, $original_members);
+  $removed = array_diff($original_members, $current_members);
+
+  // Notify newly assigned members.
+  foreach ($added as $user_id) {
+    $notifier->notifyUser($user_id, $node, NotificationService::TYPE_MEMBER_ASSIGNED);
+  }
+
+  // Notify removed members.
+  foreach ($removed as $user_id) {
+    $notifier->notifyUser($user_id, $node, NotificationService::TYPE_MEMBER_REMOVED);
+  }
+}
+
+/**
+ * Extracts @mentioned user IDs from text.
+ *
+ * @param string $text
+ *   The text to scan for mentions.
+ *
+ * @return array
+ *   Array of user IDs that were mentioned.
+ */
+function _boxtasks_notification_extract_mentions(string $text): array {
+  // Match @username patterns.
+  preg_match_all('/@(\w+)/', $text, $matches);
+
+  if (empty($matches[1])) {
+    return [];
+  }
+
+  $user_ids = [];
+  $user_storage = \Drupal::entityTypeManager()->getStorage('user');
+
+  foreach ($matches[1] as $username) {
+    // Try to find user by username.
+    $users = $user_storage->loadByProperties(['name' => $username]);
+    if (!empty($users)) {
+      $user = reset($users);
+      $user_ids[] = (int) $user->id();
+    }
+  }
+
+  return array_unique($user_ids);
+}
+
+/**
+ * Checks for due dates and sends reminder notifications.
+ */
+function _boxtasks_notification_check_due_dates(): void {
+  $state = \Drupal::state();
+  $last_check = $state->get('boxtasks_notification.last_due_date_check', 0);
+  $now = \Drupal::time()->getRequestTime();
+
+  // Only check once per hour.
+  if ($now - $last_check < 3600) {
+    return;
+  }
+
+  $state->set('boxtasks_notification.last_due_date_check', $now);
+
+  $notifier = \Drupal::service('boxtasks_notification.notifier');
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+
+  // Find cards due in the next 24 hours that haven't been notified.
+  $tomorrow = $now + 86400;
+  $tomorrow_date = date('Y-m-d', $tomorrow);
+
+  $query = $storage->getQuery()
+    ->condition('type', 'card')
+    ->condition('field_card_due_date', $tomorrow_date, '<=')
+    ->condition('field_card_due_date', date('Y-m-d'), '>=')
+    ->condition('field_card_completed', FALSE)
+    ->condition('field_card_archived', FALSE)
+    ->accessCheck(FALSE);
+
+  $card_ids = $query->execute();
+
+  if (empty($card_ids)) {
+    return;
+  }
+
+  $cards = $storage->loadMultiple($card_ids);
+  $notified_cards = $state->get('boxtasks_notification.notified_due_cards', []);
+
+  foreach ($cards as $card) {
+    // Check if we already notified about this card today.
+    $card_key = $card->id() . '_' . date('Y-m-d');
+    if (in_array($card_key, $notified_cards)) {
+      continue;
+    }
+
+    $due_date = $card->get('field_card_due_date')->value;
+    $due_timestamp = strtotime($due_date);
+
+    // Determine timeframe.
+    if ($due_timestamp <= $now) {
+      $timeframe = 'now overdue';
+    }
+    elseif ($due_timestamp <= $now + 3600) {
+      $timeframe = 'in less than 1 hour';
+    }
+    elseif ($due_timestamp <= $now + 43200) {
+      $timeframe = 'in a few hours';
+    }
+    else {
+      $timeframe = 'tomorrow';
+    }
+
+    $notifier->notifyDueDateApproaching($card, $timeframe);
+    $notified_cards[] = $card_key;
+  }
+
+  // Keep only recent notification records (last 7 days worth).
+  $cutoff = date('Y-m-d', strtotime('-7 days'));
+  $notified_cards = array_filter($notified_cards, function ($key) use ($cutoff) {
+    $parts = explode('_', $key);
+    return isset($parts[1]) && $parts[1] >= $cutoff;
+  });
+
+  $state->set('boxtasks_notification.notified_due_cards', array_values($notified_cards));
+}
+
+/**
+ * Cleans up old read notifications.
+ */
+function _boxtasks_notification_cleanup(): void {
+  $state = \Drupal::state();
+  $last_cleanup = $state->get('boxtasks_notification.last_cleanup', 0);
+  $now = \Drupal::time()->getRequestTime();
+
+  // Only cleanup once per day.
+  if ($now - $last_cleanup < 86400) {
+    return;
+  }
+
+  $state->set('boxtasks_notification.last_cleanup', $now);
+
+  $notifier = \Drupal::service('boxtasks_notification.notifier');
+  $deleted = $notifier->cleanupOldNotifications(30);
+
+  if ($deleted > 0) {
+    \Drupal::logger('boxtasks_notification')->info('Cleaned up @count old notifications.', [
+      '@count' => $deleted,
+    ]);
+  }
+}

@@ -1,0 +1,6 @@
+services:
+  boxtasks_notification.notifier:
+    class: Drupal\boxtasks_notification\NotificationService
+    arguments:
+      - '@entity_type.manager'
+      - '@current_user'

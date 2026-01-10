@@ -2,7 +2,17 @@ import { getAccessToken } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
-export type NotificationType = 'member_assigned' | 'member_removed' | 'card_due' | 'comment_added' | 'mentioned';
+export type NotificationType =
+  | 'member_assigned'
+  | 'member_removed'
+  | 'card_due'
+  | 'comment_added'
+  | 'mentioned'
+  | 'card_moved'
+  | 'card_completed'
+  | 'checklist_completed'
+  | 'due_date_approaching'
+  | 'label_added';
 
 export interface Notification {
   id: string;
@@ -207,4 +217,21 @@ export async function deleteNotification(id: string): Promise<void> {
   if (!response.ok && response.status !== 204) {
     throw new Error('Failed to delete notification');
   }
+}
+
+// Get icon and label for notification type
+export function getNotificationDisplay(type: NotificationType): { icon: string; label: string; color: string } {
+  const displays: Record<NotificationType, { icon: string; label: string; color: string }> = {
+    member_assigned: { icon: '👤', label: 'Assigned to you', color: 'text-blue-600' },
+    member_removed: { icon: '👤', label: 'Removed from card', color: 'text-gray-600' },
+    card_due: { icon: '⏰', label: 'Card is due', color: 'text-red-600' },
+    comment_added: { icon: '💬', label: 'New comment', color: 'text-green-600' },
+    mentioned: { icon: '@', label: 'Mentioned you', color: 'text-purple-600' },
+    card_moved: { icon: '↔️', label: 'Card moved', color: 'text-gray-600' },
+    card_completed: { icon: '✅', label: 'Card completed', color: 'text-green-600' },
+    checklist_completed: { icon: '☑️', label: 'Checklist item completed', color: 'text-green-500' },
+    due_date_approaching: { icon: '📅', label: 'Due date approaching', color: 'text-orange-600' },
+    label_added: { icon: '🏷️', label: 'Label added', color: 'text-blue-500' },
+  };
+  return displays[type] || { icon: '🔔', label: 'Notification', color: 'text-gray-600' };
 }

@@ -1160,7 +1160,7 @@
       "id": 144,
       "name": "Create Notification entity",
       "test": "Notifications created for events",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "activity-notifications"
     },
