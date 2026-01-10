@@ -1,0 +1,32 @@
+uuid: e7cd3468-6e5f-4a7b-9a73-8725522ef536
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: u-NyDOPUCCo4NSHmXV3dH7tFhA-F_Cnzw1pj39DS198
+id: node.field_workspace_visibility
+field_name: field_workspace_visibility
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: private
+      label: Private
+    -
+      value: team
+      label: Team
+    -
+      value: public
+      label: Public
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

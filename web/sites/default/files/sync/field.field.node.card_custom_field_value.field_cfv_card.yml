@@ -1,0 +1,29 @@
+uuid: 8679b2d3-b954-423a-ace9-b3389cb13b1e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cfv_card
+    - node.type.card
+    - node.type.card_custom_field_value
+id: node.card_custom_field_value.field_cfv_card
+field_name: field_cfv_card
+entity_type: node
+bundle: card_custom_field_value
+label: Card
+description: 'The card this custom field value belongs to'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      card: card
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

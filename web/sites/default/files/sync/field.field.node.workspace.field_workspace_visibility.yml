@@ -1,0 +1,25 @@
+uuid: 87422a02-1740-42f2-a372-cef147945f52
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_workspace_visibility
+    - node.type.workspace
+  module:
+    - options
+_core:
+  default_config_hash: G7NUbn6YoIzax24dUuSZnv_U3JMIkiEcj_OnPy-L3Ow
+id: node.workspace.field_workspace_visibility
+field_name: field_workspace_visibility
+entity_type: node
+bundle: workspace
+label: Visibility
+description: 'Who can see this workspace.'
+required: true
+translatable: false
+default_value:
+  -
+    value: private
+default_value_callback: ''
+settings: {  }
+field_type: list_string

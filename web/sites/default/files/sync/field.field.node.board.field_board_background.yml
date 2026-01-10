@@ -1,0 +1,23 @@
+uuid: ad099b81-8578-46b8-86e4-40d39f9241fc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_board_background
+    - node.type.board
+_core:
+  default_config_hash: TT8tl4zk4zeNGJ22AWgpktKJslaJu-ujtyIOs6kFQnk
+id: node.board.field_board_background
+field_name: field_board_background
+entity_type: node
+bundle: board
+label: Background
+description: 'Board background color or image URL'
+required: false
+translatable: true
+default_value:
+  -
+    value: '#0079BF'
+default_value_callback: ''
+settings: {  }
+field_type: string

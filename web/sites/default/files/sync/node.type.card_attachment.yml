@@ -1,0 +1,13 @@
+uuid: 435bc110-f189-43c5-9889-29f924f4e12d
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: xinwEBoYa70vJIgN2XDaRUgROqdpC_1o_yLVRYBdsGI
+name: 'Card Attachment'
+type: card_attachment
+description: 'An attachment on a card in BoxTasks'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: true

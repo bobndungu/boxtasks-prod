@@ -1,0 +1,24 @@
+uuid: 4600e36d-1af3-4743-a2d7-357639c6c50e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_board_description
+    - node.type.board
+  module:
+    - text
+_core:
+  default_config_hash: 875V2LDFjYG83NJDDU7ZG68Hx5eKA-TfUw_gC-FCeM8
+id: node.board.field_board_description
+field_name: field_board_description
+entity_type: node
+bundle: board
+label: Description
+description: 'Board description'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

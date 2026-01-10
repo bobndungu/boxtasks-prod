@@ -1,0 +1,25 @@
+uuid: 18a44371-925c-4f66-bc59-0571c26964ee
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_view_shared
+    - node.type.board_view
+_core:
+  default_config_hash: VdPZQTNRwidmIdZIWo1ovvQjuEXJpDAF2s6xtVfA7K8
+id: node.board_view.field_view_shared
+field_name: field_view_shared
+entity_type: node
+bundle: board_view
+label: Shared
+description: 'Whether this view is shared with all board members'
+required: false
+translatable: false
+default_value:
+  -
+    value: false
+default_value_callback: ''
+settings:
+  on_label: Shared
+  off_label: Private
+field_type: boolean

@@ -1,0 +1,25 @@
+uuid: 20943971-f96e-4847-b9c3-3ec194285717
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_customfield_position
+    - node.type.custom_field_definition
+id: node.custom_field_definition.field_customfield_position
+field_name: field_customfield_position
+entity_type: node
+bundle: custom_field_definition
+label: Position
+description: 'Display order of the custom field'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

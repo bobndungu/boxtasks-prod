@@ -1,0 +1,19 @@
+uuid: 504c7edf-3a96-4e2b-a1c9-afacf619bf93
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+_core:
+  default_config_hash: pmLmgd1v5wZQHK5itrQMHHPauT2JuNfZENI_qv6B3fw
+name: 'Card Template'
+type: card_template
+description: 'A template for creating cards'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

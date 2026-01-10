@@ -1,0 +1,29 @@
+uuid: 73ee68cc-1d5f-4469-a2a3-0d6d69b98a27
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attachment_file
+    - node.type.card_attachment
+  module:
+    - file
+_core:
+  default_config_hash: AenjWQIOhD5Ka9cPqvWUW5kaCo2hOoSnaoywWfbOU7s
+id: node.card_attachment.field_attachment_file
+field_name: field_attachment_file
+entity_type: node
+bundle: card_attachment
+label: 'Attachment File'
+description: 'The uploaded file'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  file_directory: 'card-attachments/[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'txt pdf doc docx xls xlsx ppt pptx png jpg jpeg gif svg zip rar 7z'
+  max_filesize: '10 MB'
+  description_field: true
+  handler: 'default:file'
+  handler_settings: {  }
+field_type: file

@@ -1,0 +1,11 @@
+uuid: 31386c55-606d-415d-acd2-5fcb6a503f08
+langcode: en
+status: true
+dependencies: {  }
+name: Notification
+type: notification
+description: 'User notifications for various events'
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true

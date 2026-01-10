@@ -1,0 +1,20 @@
+uuid: 09898151-551a-4b11-b221-68a0c6d30c48
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - user
+id: node.field_notification_user
+field_name: field_notification_user
+entity_type: node
+type: entity_reference
+settings:
+  target_type: user
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

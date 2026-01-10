@@ -1,0 +1,23 @@
+uuid: 4fd2ed19-1041-4739-924c-b01b8a4ed5bf
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_archived
+    - node.type.card
+id: node.card.field_card_archived
+field_name: field_card_archived
+entity_type: node
+bundle: card
+label: Archived
+description: 'Whether the card is archived'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: Archived
+  off_label: Active
+field_type: boolean

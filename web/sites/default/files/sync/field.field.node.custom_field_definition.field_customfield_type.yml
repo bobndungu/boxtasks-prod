@@ -1,0 +1,23 @@
+uuid: 312f6f1a-e1d4-4025-870e-052b20ec18f9
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_customfield_type
+    - node.type.custom_field_definition
+  module:
+    - options
+id: node.custom_field_definition.field_customfield_type
+field_name: field_customfield_type
+entity_type: node
+bundle: custom_field_definition
+label: 'Field Type'
+description: 'The type of custom field (text, number, date, dropdown, checkbox)'
+required: true
+translatable: false
+default_value:
+  -
+    value: text
+default_value_callback: ''
+settings: {  }
+field_type: list_string

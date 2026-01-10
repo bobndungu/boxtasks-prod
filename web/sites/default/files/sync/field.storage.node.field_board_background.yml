@@ -1,0 +1,23 @@
+uuid: 1ccf819e-1575-4ff2-906f-845a8958e55b
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: gnJ0xn7WFDJC6zFwAhBapD2bLd7gsICPSaah575bfLU
+id: node.field_board_background
+field_name: field_board_background
+entity_type: node
+type: string
+settings:
+  max_length: 255
+  is_ascii: false
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

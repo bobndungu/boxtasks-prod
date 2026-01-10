@@ -1,0 +1,21 @@
+uuid: b1806fbc-2414-42b8-a45e-78dbab8e2750
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_activity_type
+    - node.type.activity
+_core:
+  default_config_hash: w0ED9apl-DSzjtfJACXVQt0HBYMclmb6Y_s8v2SMwVw
+id: node.activity.field_activity_type
+field_name: field_activity_type
+entity_type: node
+bundle: activity
+label: 'Activity Type'
+description: 'Type of activity (created, updated, moved, etc.)'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

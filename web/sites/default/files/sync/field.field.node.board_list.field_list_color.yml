@@ -1,0 +1,19 @@
+uuid: 0de437f9-f659-474e-9caf-33d4ebfe1a95
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_list_color
+    - node.type.board_list
+id: node.board_list.field_list_color
+field_name: field_list_color
+entity_type: node
+bundle: board_list
+label: Color
+description: 'Color coding for this list header'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

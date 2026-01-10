@@ -81,6 +81,11 @@ import { useAuthStore } from '../lib/stores/auth';
 import { toast } from '../lib/stores/toast';
 import { CustomFieldsManager } from '../components/CustomFieldsManager';
 import { fetchCustomFieldsByBoard, fetchCardCustomFieldValues, setCardCustomFieldValue, type CustomFieldDefinition, type CustomFieldValue } from '../lib/api/customFields';
+import { ViewSelector, type ViewType } from '../components/ViewSelector';
+import CalendarView from '../components/CalendarView';
+import TimelineView from '../components/TimelineView';
+import TableView from '../components/TableView';
+import DashboardView from '../components/DashboardView';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
   green: '#61bd4f',
@@ -158,6 +163,9 @@ export default function BoardView() {
   }
   const [customFieldFilter, setCustomFieldFilter] = useState<CustomFieldFilterItem[]>([]);
   const [showCustomFieldFilter, setShowCustomFieldFilter] = useState(false);
+
+  // View switching state
+  const [currentView, setCurrentView] = useState<ViewType>('kanban');
 
   // Optimistic UI updates
   const cardOptimistic = useOptimistic<Map<string, Card[]>>();
@@ -427,6 +435,11 @@ export default function BoardView() {
 
     return filtered;
   }, [cardsByList, searchQuery, labelFilter, memberFilter, customFieldFilter, customFieldValues, customFieldDefs]);
+
+  // Flat array of all filtered cards for alternative views
+  const allFilteredCards = useMemo(() => {
+    return Array.from(filteredCardsByList.values()).flat();
+  }, [filteredCardsByList]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -1517,6 +1530,10 @@ export default function BoardView() {
                 onReconnect={mercureConnection.reconnect}
                 className="text-white/80 p-1.5"
               />
+              <ViewSelector
+                currentView={currentView}
+                onViewChange={setCurrentView}
+              />
               <button
                 onClick={() => setShowCustomFields(true)}
                 className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded flex items-center gap-1"
@@ -1643,10 +1660,12 @@ export default function BoardView() {
         </div>
       )}
 
-      {/* Board Content with Drag and Drop */}
+      {/* Board Content */}
       <div className="flex-1 flex overflow-hidden">
-        <main className="flex-1 overflow-x-auto overflow-y-hidden p-4">
-        <DndContext
+        <main className="flex-1 overflow-hidden">
+          {currentView === 'kanban' ? (
+            <div className="h-full overflow-x-auto overflow-y-hidden p-4">
+              <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
           onDragStart={handleDragStart}
@@ -1731,9 +1750,19 @@ export default function BoardView() {
             {activeId && activeType === 'list' && (
               <ListDragOverlay list={getActiveItem() as BoardList | null} cards={cardsByList.get(activeId) || []} />
             )}
-          </DragOverlay>
-        </DndContext>
-      </main>
+              </DragOverlay>
+              </DndContext>
+            </div>
+          ) : currentView === 'calendar' ? (
+            <CalendarView cards={allFilteredCards} onCardClick={handleCardClick} />
+          ) : currentView === 'timeline' ? (
+            <TimelineView cards={allFilteredCards} onCardClick={handleCardClick} />
+          ) : currentView === 'table' ? (
+            <TableView cards={allFilteredCards} lists={lists} onCardClick={handleCardClick} />
+          ) : currentView === 'dashboard' ? (
+            <DashboardView cards={allFilteredCards} lists={lists} onCardClick={handleCardClick} />
+          ) : null}
+        </main>
 
       {/* Activity Sidebar */}
       {showActivitySidebar && (

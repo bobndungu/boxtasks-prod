@@ -1,0 +1,13 @@
+uuid: e6517c60-c6c3-4f42-a49a-c878eb6fe98a
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: oOACjVV-8Dq4rppBbxY7BVxT7kXCSiIeHFy1lSqmZDc
+name: 'Checklist Item'
+type: checklist_item
+description: 'An item in a checklist in BoxTasks'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: true

@@ -1,0 +1,19 @@
+uuid: e8185062-6cb9-4010-9c23-299b8339f660
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_comment_reactions
+    - node.type.card_comment
+id: node.card_comment.field_comment_reactions
+field_name: field_comment_reactions
+entity_type: node
+bundle: card_comment
+label: Reactions
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

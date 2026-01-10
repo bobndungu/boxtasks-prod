@@ -1,0 +1,31 @@
+uuid: bbb0c66e-9976-4deb-a1d9-a35f8e572577
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_board_workspace
+    - node.type.board
+    - node.type.workspace
+_core:
+  default_config_hash: Hw2EXLaLNarThVDhiN_0_SechwtFdSyAp_0mV41iMvU
+id: node.board.field_board_workspace
+field_name: field_board_workspace
+entity_type: node
+bundle: board
+label: Workspace
+description: 'The workspace this board belongs to'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      workspace: workspace
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

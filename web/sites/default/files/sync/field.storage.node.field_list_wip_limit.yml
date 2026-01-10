@@ -1,0 +1,20 @@
+uuid: 75305fe8-6d18-444c-80b1-c33b62a997de
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_list_wip_limit
+field_name: field_list_wip_limit
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,21 @@
+uuid: 53c3bf6f-32bd-4791-8e26-5f9bc9cfbba5
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: Lp6F9ks5301BXm1uv3GgOXbWtUsp4xqEYXD7Eyy1imo
+id: node.field_attachment_card
+field_name: field_attachment_card
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

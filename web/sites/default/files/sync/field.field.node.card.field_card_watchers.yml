@@ -1,0 +1,29 @@
+uuid: 53a03872-a381-43f1-a064-7acf86d2bb19
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_watchers
+    - node.type.card
+  module:
+    - user
+id: node.card.field_card_watchers
+field_name: field_card_watchers
+entity_type: node
+bundle: card
+label: 'Card Watchers'
+description: 'Users who are watching this card for changes'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings:
+    sort:
+      field: _none
+    auto_create: false
+    filter:
+      type: _none
+    include_anonymous: false
+field_type: entity_reference

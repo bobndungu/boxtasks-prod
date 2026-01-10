@@ -1,0 +1,23 @@
+uuid: 7d8f73a4-d578-4cc6-8226-3e322fa2f892
+langcode: en
+status: true
+dependencies:
+  module:
+    - user
+_core:
+  default_config_hash: dw6AViE9R1u5e_kNsm4PsQ7LlAuXPZsQ1YmHpaXrmdg
+id: user.field_timezone
+field_name: field_timezone
+entity_type: user
+type: string
+settings:
+  max_length: 64
+  is_ascii: true
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

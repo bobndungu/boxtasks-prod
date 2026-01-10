@@ -1,0 +1,19 @@
+uuid: df69c520-2c56-49a8-8e64-956a511bac80
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - text
+id: node.field_cfv_value
+field_name: field_cfv_value
+entity_type: node
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

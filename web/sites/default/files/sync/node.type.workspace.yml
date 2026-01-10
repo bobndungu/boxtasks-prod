@@ -1,0 +1,13 @@
+uuid: ab87fdd3-37dd-40d1-97b5-b048dde4845e
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: hA-PXlWP6W0ST9ufLYHmi2JEhJaVKHZGOma93KUSHrA
+name: Workspace
+type: workspace
+description: 'A workspace that contains boards and members.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

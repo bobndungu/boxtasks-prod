@@ -1,0 +1,27 @@
+uuid: 33dd96fa-23b9-405d-9fb7-e62e7c582aef
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_item_position
+    - node.type.checklist_item
+_core:
+  default_config_hash: pEiUnR8bdKLKJENmWmM2IaRdEqEPd11kbzKMCtDzf7Q
+id: node.checklist_item.field_item_position
+field_name: field_item_position
+entity_type: node
+bundle: checklist_item
+label: Position
+description: 'Order position of this item'
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: ''
+  max: ''
+  prefix: ''
+  suffix: ''
+field_type: integer

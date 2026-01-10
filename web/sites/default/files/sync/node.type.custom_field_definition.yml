@@ -1,0 +1,13 @@
+uuid: 0a89cdc3-7611-4f6c-95d7-dbc580a043f5
+langcode: en
+status: true
+dependencies:
+  module:
+    - boxtasks_customfield
+name: 'Custom Field Definition'
+type: custom_field_definition
+description: 'Defines custom fields that can be added to cards within a board'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

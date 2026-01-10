@@ -1,0 +1,25 @@
+uuid: 6c592bde-92a3-49db-a1ac-436948fcdb42
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_view_default
+    - node.type.board_view
+_core:
+  default_config_hash: ksZRxWKP-KtwHFFi8xN5EDpbmCpFQxx3Jbd3eCmst9o
+id: node.board_view.field_view_default
+field_name: field_view_default
+entity_type: node
+bundle: board_view
+label: 'Default View'
+description: 'Whether this is the default view for the board'
+required: false
+translatable: false
+default_value:
+  -
+    value: false
+default_value_callback: ''
+settings:
+  on_label: Default
+  off_label: 'Not default'
+field_type: boolean

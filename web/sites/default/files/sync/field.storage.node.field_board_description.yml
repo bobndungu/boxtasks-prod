@@ -1,0 +1,21 @@
+uuid: b65df2ba-7b45-4f05-862f-0be762ca8b3d
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - text
+_core:
+  default_config_hash: EsX2K4M97uABmHD5-Nu4xk_zOs7BooZ99jyMJm1Kqh4
+id: node.field_board_description
+field_name: field_board_description
+entity_type: node
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

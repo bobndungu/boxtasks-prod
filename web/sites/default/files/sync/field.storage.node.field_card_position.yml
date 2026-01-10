@@ -1,0 +1,20 @@
+uuid: 0a490416-69d2-4fa0-aa27-f2e44651d64a
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_card_position
+field_name: field_card_position
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

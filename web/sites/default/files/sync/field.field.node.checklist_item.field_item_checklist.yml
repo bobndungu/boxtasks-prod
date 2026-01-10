@@ -1,0 +1,29 @@
+uuid: 2709c390-6208-4990-afe8-b9a6385526a5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_item_checklist
+    - node.type.checklist
+    - node.type.checklist_item
+_core:
+  default_config_hash: 6zrB5TmzmnCLWRnaGrR3W8rdeBatcqqO4YkUCmammGg
+id: node.checklist_item.field_item_checklist
+field_name: field_item_checklist
+entity_type: node
+bundle: checklist_item
+label: Checklist
+description: 'The checklist this item belongs to'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      checklist: checklist
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

@@ -1,0 +1,25 @@
+uuid: 44591b3f-c5a0-4f0c-8781-90d3e08d4110
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_board_starred
+    - node.type.board
+_core:
+  default_config_hash: q9Y5eYUy-rOOP8-LPlkywVjGlatZPdX4wRGzmG7iI_k
+id: node.board.field_board_starred
+field_name: field_board_starred
+entity_type: node
+bundle: board
+label: Starred
+description: 'Whether the board is starred by the owner'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: Starred
+  off_label: 'Not Starred'
+field_type: boolean

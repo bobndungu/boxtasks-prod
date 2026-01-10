@@ -1,0 +1,23 @@
+uuid: 21afaaed-9106-429e-87b6-a07a979bf971
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_workspace_color
+    - node.type.workspace
+_core:
+  default_config_hash: Mj62atsroedJ2KdMWJ5bS2j2OfyDjFMPnnFj_OofJU8
+id: node.workspace.field_workspace_color
+field_name: field_workspace_color
+entity_type: node
+bundle: workspace
+label: Color
+description: 'Hex color code for the workspace (e.g., #3B82F6).'
+required: false
+translatable: false
+default_value:
+  -
+    value: '#3B82F6'
+default_value_callback: ''
+settings: {  }
+field_type: string

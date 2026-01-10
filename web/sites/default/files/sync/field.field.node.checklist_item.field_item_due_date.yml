@@ -1,0 +1,21 @@
+uuid: 103ced1d-6330-4166-9713-3f058180d5a1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_item_due_date
+    - node.type.checklist_item
+  module:
+    - datetime
+id: node.checklist_item.field_item_due_date
+field_name: field_item_due_date
+entity_type: node
+bundle: checklist_item
+label: 'Due Date'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

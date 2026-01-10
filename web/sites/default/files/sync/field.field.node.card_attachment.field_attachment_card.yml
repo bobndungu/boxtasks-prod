@@ -1,0 +1,29 @@
+uuid: 4015212f-d20e-44c8-b111-358008e83ed6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attachment_card
+    - node.type.card
+    - node.type.card_attachment
+_core:
+  default_config_hash: 8aL-Q4JaZQuuy4PEAEsuHG4MF9YL3_61p24cB4F8aPk
+id: node.card_attachment.field_attachment_card
+field_name: field_attachment_card
+entity_type: node
+bundle: card_attachment
+label: Card
+description: 'The card this attachment belongs to'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      card: card
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

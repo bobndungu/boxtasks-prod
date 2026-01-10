@@ -1,0 +1,11 @@
+uuid: 861e939a-05e1-479d-88d6-c0b8817a417e
+langcode: en
+status: true
+dependencies: {  }
+name: 'Board List'
+type: board_list
+description: 'A list (column) within a board'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

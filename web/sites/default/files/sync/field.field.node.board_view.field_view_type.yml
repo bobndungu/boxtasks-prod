@@ -1,0 +1,23 @@
+uuid: 66916e21-552c-4f59-8089-56703714b4bc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_view_type
+    - node.type.board_view
+_core:
+  default_config_hash: 7tfGYQN_0wauvRbVTzTj8L7H94b5gdA025Tw6Lok5LY
+id: node.board_view.field_view_type
+field_name: field_view_type
+entity_type: node
+bundle: board_view
+label: 'View Type'
+description: 'The type of view (kanban, calendar, timeline, table, dashboard)'
+required: true
+translatable: false
+default_value:
+  -
+    value: kanban
+default_value_callback: ''
+settings: {  }
+field_type: string

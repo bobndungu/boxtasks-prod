@@ -1,0 +1,19 @@
+uuid: 7d5d5a76-0ed1-4c69-86cf-a6efb46503a4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_notification_message
+    - node.type.notification
+id: node.notification.field_notification_message
+field_name: field_notification_message
+entity_type: node
+bundle: notification
+label: Message
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

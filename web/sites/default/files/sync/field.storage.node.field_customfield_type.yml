@@ -1,0 +1,36 @@
+uuid: 1f529e0e-d426-4a29-88e1-08bdc7400e6d
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_customfield_type
+field_name: field_customfield_type
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: text
+      label: Text
+    -
+      value: number
+      label: Number
+    -
+      value: date
+      label: Date
+    -
+      value: dropdown
+      label: Dropdown
+    -
+      value: checkbox
+      label: Checkbox
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

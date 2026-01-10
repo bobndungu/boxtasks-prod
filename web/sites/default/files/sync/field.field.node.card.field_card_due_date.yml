@@ -1,0 +1,21 @@
+uuid: 4ca54325-9dc7-4e9e-9f0b-ac7df895bb44
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_due_date
+    - node.type.card
+  module:
+    - datetime
+id: node.card.field_card_due_date
+field_name: field_card_due_date
+entity_type: node
+bundle: card
+label: 'Due Date'
+description: 'When this card is due'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

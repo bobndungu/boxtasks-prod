@@ -1,0 +1,23 @@
+uuid: 4ad1fe69-eefd-4845-812e-b36954a584d8
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: G2AKvRtlALXzmr6mpqb0hRgqxA-Fesb0fmowRv4yp9Q
+id: node.field_workspace_color
+field_name: field_workspace_color
+entity_type: node
+type: string
+settings:
+  max_length: 7
+  is_ascii: true
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

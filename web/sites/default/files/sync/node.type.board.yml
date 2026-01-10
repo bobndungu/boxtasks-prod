@@ -1,0 +1,13 @@
+uuid: 5d692d9d-774c-4c80-a945-fb811e83c899
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: ZamKgUVMt-sd-4aFTZ5-cmmzF2INnqZDNgfCTz7dJ9Q
+name: Board
+type: board
+description: 'A board within a workspace containing lists and cards'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

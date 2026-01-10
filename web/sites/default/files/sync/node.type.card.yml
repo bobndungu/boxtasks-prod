@@ -1,0 +1,11 @@
+uuid: badbcd3b-2074-431f-ae8f-b9d780bbdd80
+langcode: en
+status: true
+dependencies: {  }
+name: Card
+type: card
+description: 'A task card within a board list'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false
