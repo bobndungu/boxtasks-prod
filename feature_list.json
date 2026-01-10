@@ -1328,7 +1328,7 @@
       "id": 165,
       "name": "Implement error boundaries",
       "test": "Errors don't crash entire app",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "performance-polish"
     },

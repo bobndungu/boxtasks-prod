@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './lib/stores/auth';
 import ToastContainer from './components/Toast';
+import { ErrorBoundary, BoardErrorBoundary } from './components/ErrorBoundary';
 
 // Pages
 import Home from './pages/Home';
@@ -69,10 +70,11 @@ function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ToastContainer />
-        <Routes>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <ToastContainer />
+          <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<AuthRedirect><Login /></AuthRedirect>} />
@@ -124,7 +126,9 @@ function App() {
             path="/board/:id"
             element={
               <ProtectedRoute>
-                <BoardView />
+                <BoardErrorBoundary>
+                  <BoardView />
+                </BoardErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -132,8 +136,9 @@ function App() {
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
