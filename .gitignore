@@ -3,3 +3,60 @@ keys/
 
 # Drupal generated files
 web/sites/default/files/
+
+# Environment files - NEVER COMMIT
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.production.local
+frontend/.env.local
+frontend/.env.*.local
+
+# Credentials and secrets
+credentials.json
+secrets.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Private file storage
+private/
+
+# Logs
+logs/
+*.log
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules (frontend)
+frontend/node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/build/
+
+# Test coverage
+frontend/coverage/
+
+# Composer cache
+.composer/
+
+# PHP error logs
+php_errors.log
+
+# Backup files
+*.bak
+*.backup
+*.sql
+*.sql.gz

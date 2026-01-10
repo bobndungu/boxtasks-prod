@@ -897,3 +897,14 @@ if (getenv('IS_DDEV_PROJECT') == 'true' && file_exists(__DIR__ . '/settings.ddev
 if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
   include $app_root . '/' . $site_path . '/settings.local.php';
 }
+
+/**
+ * Production environment configuration.
+ *
+ * Load production settings when DRUPAL_ENV=production or when
+ * not in DDEV and not loading local settings.
+ */
+$env = getenv('DRUPAL_ENV') ?: 'development';
+if ($env === 'production' && file_exists($app_root . '/' . $site_path . '/settings.production.php')) {
+  include $app_root . '/' . $site_path . '/settings.production.php';
+}
