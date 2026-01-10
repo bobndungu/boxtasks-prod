@@ -1320,7 +1320,7 @@
       "id": 164,
       "name": "Add loading states and skeletons",
       "test": "Loading states show appropriately",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "performance-polish"
     },

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { useBoardStore } from '../lib/stores/board';
+import { BoardGridSkeleton, PageLoading } from '../components/BoardSkeleton';
 import { fetchWorkspace } from '../lib/api/workspaces';
 import { fetchBoardsByWorkspace, createBoard, toggleBoardStar, type Board, type CreateBoardData } from '../lib/api/boards';
 
@@ -86,8 +87,8 @@ export default function WorkspaceView() {
 
   if (isLoading && !currentWorkspace) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-gray-50">
+        <PageLoading message="Loading workspace..." />
       </div>
     );
   }
@@ -167,9 +168,7 @@ export default function WorkspaceView() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Boards</h2>
 
           {isLoading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            </div>
+            <BoardGridSkeleton />
           ) : boards.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
               <Layout className="h-12 w-12 text-gray-300 mx-auto mb-4" />

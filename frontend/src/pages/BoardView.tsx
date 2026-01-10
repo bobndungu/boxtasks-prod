@@ -92,6 +92,7 @@ import TableView from '../components/TableView';
 import DashboardView from '../components/DashboardView';
 import { AutomationRules } from '../components/AutomationRules';
 import { AdvancedFilters, DEFAULT_FILTER_STATE, matchesFilters, type FilterState } from '../components/AdvancedFilters';
+import { BoardSkeleton } from '../components/BoardSkeleton';
 import { highlightText } from '../lib/utils/highlight';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
@@ -1268,10 +1269,10 @@ export default function BoardView() {
   if (isLoading) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center"
+        className="min-h-screen"
         style={{ backgroundColor: currentBoard?.background || '#0079BF' }}
       >
-        <Loader2 className="h-8 w-8 animate-spin text-white" />
+        <BoardSkeleton />
       </div>
     );
   }
