@@ -912,7 +912,7 @@
       "id": 113,
       "name": "Implement real-time comment updates",
       "test": "New comments appear instantly",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "realtime"
     },
