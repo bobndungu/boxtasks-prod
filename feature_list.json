@@ -952,7 +952,7 @@
       "id": 118,
       "name": "Build offline queue for actions",
       "test": "Actions queued when offline",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "realtime"
     },
