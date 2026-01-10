@@ -83,6 +83,7 @@ import { CustomFieldsManager } from '../components/CustomFieldsManager';
 import { fetchCustomFieldsByBoard, fetchCardCustomFieldValues, setCardCustomFieldValue, type CustomFieldDefinition, type CustomFieldValue } from '../lib/api/customFields';
 import { ViewSelector, type ViewType } from '../components/ViewSelector';
 import { ViewSettings, DEFAULT_VIEW_SETTINGS, type ViewSettingsData } from '../components/ViewSettings';
+import { SavedViews, type SavedView } from '../components/SavedViews';
 import CalendarView from '../components/CalendarView';
 import TimelineView from '../components/TimelineView';
 import TableView from '../components/TableView';
@@ -168,6 +169,110 @@ export default function BoardView() {
   // View switching state
   const [currentView, setCurrentView] = useState<ViewType>('kanban');
   const [viewSettings, setViewSettings] = useState<ViewSettingsData>(DEFAULT_VIEW_SETTINGS);
+  const [savedViews, setSavedViews] = useState<SavedView[]>([]);
+
+  // Load saved views from localStorage and parse URL params
+  useEffect(() => {
+    if (!id) return;
+
+    // Load saved views from localStorage
+    const savedViewsKey = `boxtasks_saved_views_${id}`;
+    const storedViews = localStorage.getItem(savedViewsKey);
+    if (storedViews) {
+      try {
+        const views = JSON.parse(storedViews) as SavedView[];
+        setSavedViews(views);
+
+        // Apply default view if exists and no URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        if (!urlParams.has('view')) {
+          const defaultView = views.find((v) => v.isDefault);
+          if (defaultView) {
+            setCurrentView(defaultView.viewType);
+            setViewSettings(defaultView.settings);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse saved views:', e);
+      }
+    }
+
+    // Parse URL params for shared view
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewParam = urlParams.get('view') as ViewType | null;
+    const settingsParam = urlParams.get('settings');
+
+    if (viewParam && ['kanban', 'calendar', 'timeline', 'table', 'dashboard'].includes(viewParam)) {
+      setCurrentView(viewParam);
+
+      if (settingsParam) {
+        try {
+          const decodedSettings = JSON.parse(atob(settingsParam)) as ViewSettingsData;
+          setViewSettings(decodedSettings);
+        } catch (e) {
+          console.error('Failed to parse view settings from URL:', e);
+        }
+      }
+
+      // Clean URL params after applying
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [id]);
+
+  // Save views to localStorage when changed
+  useEffect(() => {
+    if (!id || savedViews.length === 0) return;
+    const savedViewsKey = `boxtasks_saved_views_${id}`;
+    localStorage.setItem(savedViewsKey, JSON.stringify(savedViews));
+  }, [id, savedViews]);
+
+  // Handlers for saved views
+  const handleSaveView = (name: string, isDefault: boolean) => {
+    const newView: SavedView = {
+      id: crypto.randomUUID(),
+      name,
+      viewType: currentView,
+      settings: viewSettings,
+      isDefault,
+      createdAt: new Date().toISOString(),
+    };
+
+    setSavedViews((prev) => {
+      // If setting as default, remove default from others
+      const updated = isDefault
+        ? prev.map((v) => ({ ...v, isDefault: false }))
+        : prev;
+      return [...updated, newView];
+    });
+
+    toast.success(`View "${name}" saved`);
+  };
+
+  const handleLoadView = (view: SavedView) => {
+    setCurrentView(view.viewType);
+    setViewSettings(view.settings);
+    toast.success(`Loaded view "${view.name}"`);
+  };
+
+  const handleDeleteView = (viewId: string) => {
+    setSavedViews((prev) => prev.filter((v) => v.id !== viewId));
+    toast.success('View deleted');
+  };
+
+  const handleSetDefaultView = (viewId: string | null) => {
+    setSavedViews((prev) =>
+      prev.map((v) => ({
+        ...v,
+        isDefault: v.id === viewId,
+      }))
+    );
+    if (viewId) {
+      const view = savedViews.find((v) => v.id === viewId);
+      toast.success(`"${view?.name}" set as default view`);
+    } else {
+      toast.success('Default view removed');
+    }
+  };
 
   // Optimistic UI updates
   const cardOptimistic = useOptimistic<Map<string, Card[]>>();
@@ -1540,6 +1645,16 @@ export default function BoardView() {
                 currentView={currentView}
                 settings={viewSettings}
                 onSettingsChange={setViewSettings}
+              />
+              <SavedViews
+                boardId={id || ''}
+                currentView={currentView}
+                currentSettings={viewSettings}
+                savedViews={savedViews}
+                onSaveView={handleSaveView}
+                onLoadView={handleLoadView}
+                onDeleteView={handleDeleteView}
+                onSetDefault={handleSetDefaultView}
               />
               <button
                 onClick={() => setShowCustomFields(true)}

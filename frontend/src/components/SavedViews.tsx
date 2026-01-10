@@ -1,0 +1,280 @@
+import { useState, useRef, useEffect } from 'react';
+import { Bookmark, Plus, Trash2, Check, Copy, ExternalLink } from 'lucide-react';
+import type { ViewType } from './ViewSelector';
+import type { ViewSettingsData } from './ViewSettings';
+
+export interface SavedView {
+  id: string;
+  name: string;
+  viewType: ViewType;
+  settings: ViewSettingsData;
+  isDefault?: boolean;
+  createdAt: string;
+}
+
+interface SavedViewsProps {
+  boardId: string;
+  currentView: ViewType;
+  currentSettings: ViewSettingsData;
+  savedViews: SavedView[];
+  onSaveView: (name: string, isDefault: boolean) => void;
+  onLoadView: (view: SavedView) => void;
+  onDeleteView: (viewId: string) => void;
+  onSetDefault: (viewId: string | null) => void;
+}
+
+export function SavedViews({
+  // boardId reserved for future API integration
+  currentView,
+  currentSettings,
+  savedViews,
+  onSaveView,
+  onLoadView,
+  onDeleteView,
+  onSetDefault,
+}: SavedViewsProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showSaveForm, setShowSaveForm] = useState(false);
+  const [newViewName, setNewViewName] = useState('');
+  const [makeDefault, setMakeDefault] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        setShowSaveForm(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Focus input when showing save form
+  useEffect(() => {
+    if (showSaveForm && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [showSaveForm]);
+
+  const handleSaveView = () => {
+    if (newViewName.trim()) {
+      onSaveView(newViewName.trim(), makeDefault);
+      setNewViewName('');
+      setMakeDefault(false);
+      setShowSaveForm(false);
+    }
+  };
+
+  const generateShareUrl = (): string => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', currentView);
+    // Encode settings as base64 for sharing
+    const settingsStr = btoa(JSON.stringify(currentSettings));
+    url.searchParams.set('settings', settingsStr);
+    return url.toString();
+  };
+
+  const handleCopyUrl = async () => {
+    const url = generateShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy URL:', err);
+    }
+  };
+
+  const handleOpenInNewTab = () => {
+    const url = generateShareUrl();
+    window.open(url, '_blank');
+  };
+
+  const defaultView = savedViews.find((v) => v.isDefault);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded flex items-center gap-1"
+        title="Saved Views"
+      >
+        <Bookmark className="h-4 w-4" />
+        <span className="text-sm hidden sm:inline">Views</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-lg shadow-lg border z-50">
+          {/* Header */}
+          <div className="px-3 py-2 border-b bg-gray-50 rounded-t-lg">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase">Saved Views</h3>
+          </div>
+
+          {/* Share Current View Section */}
+          <div className="p-3 border-b">
+            <div className="text-xs font-medium text-gray-700 mb-2">Share Current View</div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleCopyUrl}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded text-sm text-gray-700 transition-colors"
+              >
+                {copiedUrl ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-green-600" />
+                    <span className="text-green-600">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" />
+                    <span>Copy Link</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={handleOpenInNewTab}
+                className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded text-sm text-gray-700 transition-colors"
+                title="Open in new tab"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Saved Views List */}
+          <div className="max-h-60 overflow-y-auto">
+            {savedViews.length === 0 ? (
+              <div className="px-3 py-4 text-center text-sm text-gray-500">
+                No saved views yet
+              </div>
+            ) : (
+              <div className="py-1">
+                {savedViews.map((view) => (
+                  <div
+                    key={view.id}
+                    className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 group"
+                  >
+                    <button
+                      onClick={() => {
+                        onLoadView(view);
+                        setIsOpen(false);
+                      }}
+                      className="flex-1 flex items-center gap-2 text-left"
+                    >
+                      <span className="text-sm text-gray-700">{view.name}</span>
+                      <span className="text-xs text-gray-400 capitalize">({view.viewType})</span>
+                      {view.isDefault && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                          Default
+                        </span>
+                      )}
+                    </button>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSetDefault(view.isDefault ? null : view.id);
+                        }}
+                        className={`p-1 rounded transition-colors ${
+                          view.isDefault
+                            ? 'text-blue-600 hover:bg-blue-50'
+                            : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                        }`}
+                        title={view.isDefault ? 'Remove as default' : 'Set as default'}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteView(view.id);
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Delete view"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Save Current View Section */}
+          <div className="border-t p-3">
+            {showSaveForm ? (
+              <div className="space-y-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={newViewName}
+                  onChange={(e) => setNewViewName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveView();
+                    if (e.key === 'Escape') setShowSaveForm(false);
+                  }}
+                  placeholder="View name..."
+                  className="w-full px-2 py-1.5 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={makeDefault}
+                      onChange={(e) => setMakeDefault(e.target.checked)}
+                      className="rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    Set as default view
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveView}
+                    disabled={!newViewName.trim()}
+                    className="flex-1 px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSaveForm(false);
+                      setNewViewName('');
+                      setMakeDefault(false);
+                    }}
+                    className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowSaveForm(true)}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Save Current View
+              </button>
+            )}
+          </div>
+
+          {/* Default View Info */}
+          {defaultView && (
+            <div className="px-3 py-2 border-t bg-gray-50 rounded-b-lg">
+              <div className="text-xs text-gray-500">
+                Default view: <span className="font-medium text-gray-700">{defaultView.name}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default SavedViews;
