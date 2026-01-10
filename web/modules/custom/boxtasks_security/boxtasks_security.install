@@ -1,0 +1,111 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the BoxTasks Security module.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_schema().
+ */
+function boxtasks_security_schema(): array {
+  $schema['boxtasks_audit_log'] = [
+    'description' => 'Stores security audit log entries.',
+    'fields' => [
+      'id' => [
+        'description' => 'Primary key.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'event_type' => [
+        'description' => 'Type of security event.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ],
+      'severity' => [
+        'description' => 'Event severity level.',
+        'type' => 'varchar',
+        'length' => 16,
+        'not null' => TRUE,
+        'default' => 'info',
+      ],
+      'message' => [
+        'description' => 'Event message.',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => TRUE,
+      ],
+      'context' => [
+        'description' => 'Additional context data (JSON).',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => FALSE,
+      ],
+      'ip_address' => [
+        'description' => 'Client IP address.',
+        'type' => 'varchar',
+        'length' => 45,
+        'not null' => FALSE,
+      ],
+      'user_agent' => [
+        'description' => 'Client user agent.',
+        'type' => 'varchar',
+        'length' => 512,
+        'not null' => FALSE,
+      ],
+      'request_uri' => [
+        'description' => 'Request URI.',
+        'type' => 'varchar',
+        'length' => 2048,
+        'not null' => FALSE,
+      ],
+      'request_method' => [
+        'description' => 'HTTP request method.',
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => FALSE,
+      ],
+      'uid' => [
+        'description' => 'User ID if authenticated.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ],
+      'created' => [
+        'description' => 'Unix timestamp when the event occurred.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'event_type' => ['event_type'],
+      'severity' => ['severity'],
+      'ip_address' => ['ip_address'],
+      'uid' => ['uid'],
+      'created' => ['created'],
+      'event_created' => ['event_type', 'created'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function boxtasks_security_install(): void {
+  \Drupal::messenger()->addStatus(t('BoxTasks Security module installed. Audit logging is now active.'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function boxtasks_security_uninstall(): void {
+  // Clean up any configuration if needed.
+}

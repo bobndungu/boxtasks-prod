@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\boxtasks_security\EventSubscriber;
 
+use Drupal\boxtasks_security\Service\AuditLogger;
 use Drupal\boxtasks_security\Service\InputSanitizer;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Psr\Log\LoggerInterface;
@@ -28,14 +29,21 @@ class InputValidationSubscriber implements EventSubscriberInterface {
   protected LoggerInterface $logger;
 
   /**
+   * The audit logger.
+   */
+  protected AuditLogger $auditLogger;
+
+  /**
    * Constructs an InputValidationSubscriber object.
    */
   public function __construct(
     InputSanitizer $sanitizer,
-    LoggerChannelFactoryInterface $loggerFactory
+    LoggerChannelFactoryInterface $loggerFactory,
+    AuditLogger $auditLogger
   ) {
     $this->sanitizer = $sanitizer;
     $this->logger = $loggerFactory->get('boxtasks_security');
+    $this->auditLogger = $auditLogger;
   }
 
   /**
@@ -91,6 +99,7 @@ class InputValidationSubscriber implements EventSubscriberInterface {
         '@ip' => $request->getClientIp(),
         '@content' => substr($contentString, 0, 500),
       ]);
+      $this->auditLogger->logSqlInjectionAttempt($contentString);
       $event->setResponse($this->createErrorResponse(
         'Invalid Input',
         'The request contains potentially malicious content.',
@@ -104,6 +113,7 @@ class InputValidationSubscriber implements EventSubscriberInterface {
         '@ip' => $request->getClientIp(),
         '@content' => substr($contentString, 0, 500),
       ]);
+      $this->auditLogger->logXssAttempt($contentString);
       $event->setResponse($this->createErrorResponse(
         'Invalid Input',
         'The request contains potentially malicious content.',

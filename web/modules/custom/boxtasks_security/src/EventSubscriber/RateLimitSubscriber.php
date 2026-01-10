@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\boxtasks_security\EventSubscriber;
 
+use Drupal\boxtasks_security\Service\AuditLogger;
 use Drupal\boxtasks_security\Service\RateLimiter;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,10 +22,16 @@ class RateLimitSubscriber implements EventSubscriberInterface {
   protected RateLimiter $rateLimiter;
 
   /**
+   * The audit logger service.
+   */
+  protected AuditLogger $auditLogger;
+
+  /**
    * Constructs a RateLimitSubscriber object.
    */
-  public function __construct(RateLimiter $rateLimiter) {
+  public function __construct(RateLimiter $rateLimiter, AuditLogger $auditLogger) {
     $this->rateLimiter = $rateLimiter;
+    $this->auditLogger = $auditLogger;
   }
 
   /**
@@ -58,6 +65,9 @@ class RateLimitSubscriber implements EventSubscriberInterface {
 
     // Check if request is allowed
     if (!$this->rateLimiter->checkAndRegister($type)) {
+      // Log rate limit exceeded
+      $this->auditLogger->logRateLimitExceeded($type, $request->getClientIp());
+
       // Rate limit exceeded - return 429 response
       $response = new JsonResponse([
         'errors' => [
