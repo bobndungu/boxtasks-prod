@@ -1,0 +1,8 @@
+name: 'BoxTasks Board View'
+type: module
+description: 'Provides board view configurations (kanban, calendar, timeline, table, dashboard) for BoxTasks'
+package: BoxTasks
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:node
+  - drupal:jsonapi

@@ -1,0 +1,12 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_view_shared
+field_name: field_view_shared
+entity_type: node
+type: boolean
+settings: {}
+cardinality: 1
+translatable: false

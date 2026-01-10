@@ -1,0 +1,29 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_view_board
+    - node.type.board_view
+    - node.type.board
+  module:
+    - node
+id: node.board_view.field_view_board
+field_name: field_view_board
+entity_type: node
+bundle: board_view
+label: Board
+description: 'The board this view configuration belongs to'
+required: true
+translatable: false
+default_value: {}
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      board: board
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+field_type: entity_reference

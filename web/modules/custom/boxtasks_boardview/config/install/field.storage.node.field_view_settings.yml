@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - text
+id: node.field_view_settings
+field_name: field_view_settings
+entity_type: node
+type: text_long
+settings: {}
+cardinality: 1
+translatable: false

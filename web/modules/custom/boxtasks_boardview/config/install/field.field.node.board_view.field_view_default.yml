@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_view_default
+    - node.type.board_view
+id: node.board_view.field_view_default
+field_name: field_view_default
+entity_type: node
+bundle: board_view
+label: 'Default View'
+description: 'Whether this is the default view for the board'
+required: false
+translatable: false
+default_value:
+  - value: false
+default_value_callback: ''
+settings:
+  on_label: 'Default'
+  off_label: 'Not default'
+field_type: boolean

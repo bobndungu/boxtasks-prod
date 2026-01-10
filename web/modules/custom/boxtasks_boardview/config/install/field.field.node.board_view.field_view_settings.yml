@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_view_settings
+    - node.type.board_view
+  module:
+    - text
+id: node.board_view.field_view_settings
+field_name: field_view_settings
+entity_type: node
+bundle: board_view
+label: 'View Settings'
+description: 'JSON configuration for view-specific settings (columns, filters, sort order, etc.)'
+required: false
+translatable: false
+default_value: {}
+default_value_callback: ''
+settings: {}
+field_type: text_long

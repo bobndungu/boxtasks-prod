@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_view_board
+field_name: field_view_board
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+cardinality: 1
+translatable: false

@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_view_type
+field_name: field_view_type
+entity_type: node
+type: string
+settings:
+  max_length: 32
+cardinality: 1
+translatable: false
