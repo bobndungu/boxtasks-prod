@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_start_date
+    - node.type.card
+  module:
+    - datetime
+id: node.card.field_card_start_date
+field_name: field_card_start_date
+entity_type: node
+bundle: card
+label: 'Start Date'
+description: 'When work on this card begins'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

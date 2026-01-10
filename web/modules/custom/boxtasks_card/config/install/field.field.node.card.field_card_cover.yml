@@ -1,0 +1,31 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_cover
+    - node.type.card
+  module:
+    - image
+id: node.card.field_card_cover
+field_name: field_card_cover
+entity_type: node
+bundle: card
+label: 'Cover Image'
+description: 'Cover image displayed at the top of the card'
+required: false
+translatable: true
+default_value: {}
+default_value_callback: ''
+settings:
+  file_directory: 'card-covers/[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'png jpg jpeg gif webp'
+  max_filesize: '5 MB'
+  max_resolution: '2000x2000'
+  min_resolution: ''
+  alt_field: false
+  alt_field_required: false
+  title_field: false
+  title_field_required: false
+  handler: 'default:file'
+  handler_settings: {}
+field_type: image

@@ -1,0 +1,11 @@
+langcode: en
+status: true
+dependencies: {  }
+third_party_settings: {  }
+name: 'Board List'
+type: board_list
+description: 'A list (column) within a board'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

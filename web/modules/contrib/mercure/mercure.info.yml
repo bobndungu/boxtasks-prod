@@ -1,0 +1,10 @@
+name: Mercure
+type: module
+description: Integrates the Mercure Component with Drupal.
+core_version_requirement: ^9.5 || ^10 || ^11
+dependencies: []
+
+# Information added by Drupal.org packaging script on 2025-02-12
+version: '1.0.5'
+project: 'mercure'
+datestamp: 1739369102

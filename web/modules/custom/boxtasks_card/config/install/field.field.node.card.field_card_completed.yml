@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_completed
+    - node.type.card
+id: node.card.field_card_completed
+field_name: field_card_completed
+entity_type: node
+bundle: card
+label: Completed
+description: 'Whether this card is marked as completed'
+required: false
+translatable: true
+default_value:
+  - value: 0
+default_value_callback: ''
+settings: {}
+field_type: boolean

@@ -1,0 +1,8 @@
+name: BoxTasks Real-time
+description: Publishes real-time updates via Mercure when cards, lists, and comments are modified.
+type: module
+core_version_requirement: ^10 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - mercure:mercure

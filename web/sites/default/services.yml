@@ -11,6 +11,7 @@ parameters:
       - accept-language
       - content-language
       - content-type
+      - content-disposition
       - authorization
       - x-csrf-token
       - x-requested-with

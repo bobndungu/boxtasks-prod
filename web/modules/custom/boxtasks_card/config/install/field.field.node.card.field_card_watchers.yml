@@ -1,0 +1,28 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_watchers
+    - node.type.card
+  module:
+    - user
+id: node.card.field_card_watchers
+field_name: field_card_watchers
+entity_type: node
+bundle: card
+label: 'Card Watchers'
+description: 'Users who are watching this card for changes'
+required: false
+translatable: false
+default_value: {}
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings:
+    include_anonymous: false
+    filter:
+      type: _none
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

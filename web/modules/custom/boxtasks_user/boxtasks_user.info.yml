@@ -1,0 +1,10 @@
+name: 'BoxTasks User'
+type: module
+description: 'User profile customizations for BoxTasks'
+package: BoxTasks
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:user
+  - drupal:field
+  - drupal:text
+  - drupal:image

@@ -1,0 +1,32 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_card_labels
+field_name: field_card_labels
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    - label: Green
+      value: green
+    - label: Yellow
+      value: yellow
+    - label: Orange
+      value: orange
+    - label: Red
+      value: red
+    - label: Purple
+      value: purple
+    - label: Blue
+      value: blue
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

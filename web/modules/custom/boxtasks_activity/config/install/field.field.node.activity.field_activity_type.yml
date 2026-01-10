@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_activity_type
+    - node.type.activity
+id: node.activity.field_activity_type
+field_name: field_activity_type
+entity_type: node
+bundle: activity
+label: 'Activity Type'
+description: 'Type of activity (created, updated, moved, etc.)'
+required: true
+translatable: false
+default_value: {}
+default_value_callback: ''
+settings: {}
+field_type: string

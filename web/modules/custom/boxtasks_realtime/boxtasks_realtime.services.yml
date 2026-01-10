@@ -1,0 +1,8 @@
+services:
+  boxtasks_realtime.mercure_publisher:
+    class: Drupal\boxtasks_realtime\Service\MercurePublisher
+    arguments:
+      - '@entity_type.manager'
+      - '@config.factory'
+      - '@current_user'
+      - '@logger.factory'

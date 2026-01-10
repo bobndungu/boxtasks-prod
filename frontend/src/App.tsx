@@ -1,9 +1,20 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './lib/stores/auth';
+import ToastContainer from './components/Toast';
 
-// Pages (to be created)
+// Pages
 import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import ForgotPassword from './pages/ForgotPassword';
+import Workspaces from './pages/Workspaces';
+import WorkspaceView from './pages/WorkspaceView';
+import WorkspaceSettings from './pages/WorkspaceSettings';
+import BoardView from './pages/BoardView';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -34,22 +45,78 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AuthRedirect({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuthStore();
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <>{children}</>;
+}
+
 function App() {
+  const { checkAuth, isLoading } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <ToastContainer />
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<div className="p-8">Login Page (Coming Soon)</div>} />
-          <Route path="/register" element={<div className="p-8">Register Page (Coming Soon)</div>} />
+          <Route path="/login" element={<AuthRedirect><Login /></AuthRedirect>} />
+          <Route path="/register" element={<AuthRedirect><Register /></AuthRedirect>} />
+          <Route path="/forgot-password" element={<AuthRedirect><ForgotPassword /></AuthRedirect>} />
 
           {/* Protected routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/workspaces"
             element={
               <ProtectedRoute>
-                <div className="p-8">Workspaces (Coming Soon)</div>
+                <Workspaces />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/workspace/:id"
+            element={
+              <ProtectedRoute>
+                <WorkspaceView />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/workspace/:id/settings"
+            element={
+              <ProtectedRoute>
+                <WorkspaceSettings />
               </ProtectedRoute>
             }
           />
@@ -57,7 +124,7 @@ function App() {
             path="/board/:id"
             element={
               <ProtectedRoute>
-                <div className="p-8">Board View (Coming Soon)</div>
+                <BoardView />
               </ProtectedRoute>
             }
           />

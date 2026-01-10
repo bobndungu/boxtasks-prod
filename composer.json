@@ -22,9 +22,12 @@
         "drupal/core-recipe-unpack": "^11.3",
         "drupal/core-recommended": "^11.3",
         "drupal/jsonapi_extras": "^3.28",
+        "drupal/mercure": "^1.0",
         "drupal/restui": "^1.22",
         "drupal/simple_oauth": "^6.1",
-        "drush/drush": "^13.7"
+        "drupal/simple_oauth_password_grant": "^2.1",
+        "drush/drush": "^13.7",
+        "firebase/php-jwt": "^7.0"
     },
     "conflict": {
         "drupal/drupal": "*"

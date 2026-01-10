@@ -1,0 +1,8 @@
+name: 'BoxTasks Checklist'
+type: module
+description: 'Provides card checklist functionality for BoxTasks'
+core_version_requirement: ^10 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - jsonapi:jsonapi

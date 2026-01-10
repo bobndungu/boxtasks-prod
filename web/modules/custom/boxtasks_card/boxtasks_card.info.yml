@@ -1,0 +1,11 @@
+name: 'BoxTasks Card'
+type: module
+description: 'Provides Card content type for BoxTasks boards'
+core_version_requirement: ^10.3 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - drupal:field
+  - drupal:text
+  - drupal:options
+  - boxtasks_list:boxtasks_list

@@ -1,0 +1,26 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_template_labels
+field_name: field_template_labels
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    - { value: green, label: Green }
+    - { value: yellow, label: Yellow }
+    - { value: orange, label: Orange }
+    - { value: red, label: Red }
+    - { value: purple, label: Purple }
+    - { value: blue, label: Blue }
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: -1
+translatable: false
+indexes: {}
+persist_with_no_fields: false
+custom_storage: false

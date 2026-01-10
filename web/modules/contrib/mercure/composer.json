@@ -1,0 +1,13 @@
+{
+    "name": "drupal/mercure",
+    "type": "drupal-module",
+    "description": "Integrates the Mercure Component with Drupal.",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "drupal/core": "^9.5 || ^10.0 || ^11.0",
+        "symfony/mercure-bundle": "0.3.8"
+    },
+    "require-dev": {
+        "composer-runtime-api": "^2.0"
+    }
+}

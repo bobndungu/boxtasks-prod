@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_labels
+    - node.type.card
+  module:
+    - options
+id: node.card.field_card_labels
+field_name: field_card_labels
+entity_type: node
+bundle: card
+label: Labels
+description: 'Color labels for this card'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

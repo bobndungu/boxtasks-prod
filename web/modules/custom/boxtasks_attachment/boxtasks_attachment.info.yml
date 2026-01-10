@@ -1,0 +1,9 @@
+name: 'BoxTasks Attachment'
+type: module
+description: 'Provides card attachment functionality for BoxTasks'
+core_version_requirement: ^10 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - drupal:file
+  - jsonapi:jsonapi

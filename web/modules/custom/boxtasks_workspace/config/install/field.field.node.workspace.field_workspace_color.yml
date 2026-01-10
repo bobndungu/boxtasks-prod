@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_workspace_color
+    - node.type.workspace
+id: node.workspace.field_workspace_color
+field_name: field_workspace_color
+entity_type: node
+bundle: workspace
+label: Color
+description: 'Hex color code for the workspace (e.g., #3B82F6).'
+required: false
+translatable: false
+default_value:
+  - value: '#3B82F6'
+default_value_callback: ''
+settings: {  }
+field_type: string

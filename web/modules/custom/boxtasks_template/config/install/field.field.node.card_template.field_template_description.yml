@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_template_description
+    - node.type.card_template
+  module:
+    - text
+id: node.card_template.field_template_description
+field_name: field_template_description
+entity_type: node
+bundle: card_template
+label: 'Template Description'
+description: 'Description text to use when creating cards from this template'
+required: false
+translatable: false
+default_value: []
+default_value_callback: ''
+settings: {}
+field_type: text_long

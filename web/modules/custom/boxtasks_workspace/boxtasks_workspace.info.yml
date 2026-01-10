@@ -1,0 +1,12 @@
+name: 'BoxTasks Workspace'
+type: module
+description: 'Workspace functionality for BoxTasks'
+package: BoxTasks
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:node
+  - drupal:field
+  - drupal:text
+  - drupal:image
+  - drupal:user
+  - drupal:options

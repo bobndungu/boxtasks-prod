@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_timezone
+  module:
+    - user
+id: user.user.field_timezone
+field_name: field_timezone
+entity_type: user
+bundle: user
+label: 'Timezone'
+description: 'Your preferred timezone for displaying dates and times.'
+required: false
+translatable: false
+default_value:
+  - value: UTC
+default_value_callback: ''
+settings: {  }
+field_type: string

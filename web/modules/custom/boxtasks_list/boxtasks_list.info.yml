@@ -1,0 +1,10 @@
+name: 'BoxTasks List'
+type: module
+description: 'Provides List content type for BoxTasks boards'
+core_version_requirement: ^10.3 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - drupal:field
+  - drupal:text
+  - boxtasks_board:boxtasks_board

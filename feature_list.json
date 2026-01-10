@@ -12,186 +12,1446 @@
     }
   },
   "features": [
-    {"id": 1, "name": "Initialize DDEV project for Drupal 11", "test": "ddev describe shows running Drupal site", "status": "completed", "type": "drupal", "phase": "infrastructure"},
-    {"id": 2, "name": "Install Drupal 11 with standard profile", "test": "Visit https://boxtasks2.ddev.site shows Drupal welcome", "status": "completed", "type": "drupal", "phase": "infrastructure"},
-    {"id": 3, "name": "Configure Drupal for decoupled/headless mode", "test": "/jsonapi endpoint returns valid JSON", "status": "completed", "type": "drupal", "phase": "infrastructure"},
-    {"id": 4, "name": "Set up Mercure module/integration", "test": "Mercure hub responds at /.well-known/mercure", "status": "pending", "type": "drupal", "phase": "infrastructure"},
-    {"id": 5, "name": "Initialize React frontend with Vite + TypeScript", "test": "npm run dev shows React app at localhost:5173", "status": "completed", "type": "react", "phase": "infrastructure"},
-    {"id": 6, "name": "Install and configure Tailwind CSS + shadcn/ui", "test": "Tailwind classes work, shadcn Button component renders", "status": "completed", "type": "react", "phase": "infrastructure"},
-    {"id": 7, "name": "Set up API client for Drupal JSON:API", "test": "Frontend can fetch /jsonapi endpoint", "status": "completed", "type": "react", "phase": "infrastructure"},
-    {"id": 8, "name": "Configure CORS for decoupled setup", "test": "Frontend can make API calls without CORS errors", "status": "completed", "type": "drupal", "phase": "infrastructure"},
-    {"id": 9, "name": "Set up authentication flow (Drupal Simple OAuth)", "test": "Can obtain JWT token via login", "status": "pending", "type": "both", "phase": "infrastructure"},
-    {"id": 10, "name": "Create base layout and routing in React", "test": "Navigation between pages works", "status": "completed", "type": "react", "phase": "infrastructure"},
-    {"id": 11, "name": "Create User profile fields in Drupal", "test": "User entity has custom fields in JSON:API", "status": "pending", "type": "drupal", "phase": "user-system"},
-    {"id": 12, "name": "Build Login page in React", "test": "Can log in and receive token", "status": "pending", "type": "react", "phase": "user-system"},
-    {"id": 13, "name": "Build Registration page in React", "test": "Can create new account", "status": "pending", "type": "react", "phase": "user-system"},
-    {"id": 14, "name": "Implement token storage and refresh", "test": "Token persists across page refreshes", "status": "pending", "type": "react", "phase": "user-system"},
-    {"id": 15, "name": "Build user profile page", "test": "Can view/edit own profile", "status": "pending", "type": "react", "phase": "user-system"},
-    {"id": 16, "name": "Implement logout functionality", "test": "Logout clears session, redirects to login", "status": "pending", "type": "react", "phase": "user-system"},
-    {"id": 17, "name": "Add password reset flow", "test": "Can request and complete password reset", "status": "pending", "type": "both", "phase": "user-system"},
-    {"id": 18, "name": "Implement session management", "test": "Expired tokens trigger re-authentication", "status": "pending", "type": "react", "phase": "user-system"},
-    {"id": 19, "name": "Add user preferences storage", "test": "Preferences persist and load correctly", "status": "pending", "type": "both", "phase": "user-system"},
-    {"id": 20, "name": "Build auth-protected route wrapper", "test": "Unauthenticated users redirected to login", "status": "pending", "type": "react", "phase": "user-system"},
-    {"id": 21, "name": "Create Workspace content type in Drupal", "test": "Workspace appears in JSON:API", "status": "pending", "type": "drupal", "phase": "workspace-system"},
-    {"id": 22, "name": "Create Workspace Membership entity", "test": "Memberships tracked in database", "status": "pending", "type": "drupal", "phase": "workspace-system"},
-    {"id": 23, "name": "Build workspace list page", "test": "Shows user's workspaces", "status": "pending", "type": "react", "phase": "workspace-system"},
-    {"id": 24, "name": "Build create workspace modal", "test": "Can create new workspace", "status": "pending", "type": "react", "phase": "workspace-system"},
-    {"id": 25, "name": "Build workspace settings page", "test": "Can edit workspace name/description", "status": "pending", "type": "react", "phase": "workspace-system"},
-    {"id": 26, "name": "Implement workspace member management", "test": "Can add/remove members", "status": "pending", "type": "both", "phase": "workspace-system"},
-    {"id": 27, "name": "Build workspace member invitation flow", "test": "Can invite users by email", "status": "pending", "type": "both", "phase": "workspace-system"},
-    {"id": 28, "name": "Implement workspace role permissions", "test": "Only admins can manage settings", "status": "pending", "type": "both", "phase": "workspace-system"},
-    {"id": 29, "name": "Build workspace deletion with confirmation", "test": "Can archive/delete workspace", "status": "pending", "type": "both", "phase": "workspace-system"},
-    {"id": 30, "name": "Implement workspace switching in UI", "test": "Can switch between workspaces smoothly", "status": "pending", "type": "react", "phase": "workspace-system"},
-    {"id": 31, "name": "Create Board content type in Drupal", "test": "Board appears in JSON:API", "status": "pending", "type": "drupal", "phase": "board-system"},
-    {"id": 32, "name": "Create Board Membership entity", "test": "Board permissions tracked", "status": "pending", "type": "drupal", "phase": "board-system"},
-    {"id": 33, "name": "Build board list within workspace", "test": "Shows workspace boards", "status": "pending", "type": "react", "phase": "board-system"},
-    {"id": 34, "name": "Build create board modal", "test": "Can create new board", "status": "pending", "type": "react", "phase": "board-system"},
-    {"id": 35, "name": "Build board header component", "test": "Shows board name, can edit inline", "status": "pending", "type": "react", "phase": "board-system"},
-    {"id": 36, "name": "Implement board background customization", "test": "Background changes persist", "status": "pending", "type": "both", "phase": "board-system"},
-    {"id": 37, "name": "Build board settings panel", "test": "Can modify board settings", "status": "pending", "type": "react", "phase": "board-system"},
-    {"id": 38, "name": "Implement board visibility levels", "test": "Visibility controls access", "status": "pending", "type": "both", "phase": "board-system"},
-    {"id": 39, "name": "Build board member management", "test": "Can manage board-specific members", "status": "pending", "type": "both", "phase": "board-system"},
-    {"id": 40, "name": "Implement board archiving/restore", "test": "Can archive and restore boards", "status": "pending", "type": "both", "phase": "board-system"},
-    {"id": 41, "name": "Build board deletion flow", "test": "Deleted boards removed from view", "status": "pending", "type": "both", "phase": "board-system"},
-    {"id": 42, "name": "Implement board favorites/starring", "test": "Starred boards appear in favorites", "status": "pending", "type": "both", "phase": "board-system"},
-    {"id": 43, "name": "Build board templates feature", "test": "Can create board from template", "status": "pending", "type": "both", "phase": "board-system"},
-    {"id": 44, "name": "Implement board copy functionality", "test": "Can duplicate a board", "status": "pending", "type": "both", "phase": "board-system"},
-    {"id": 45, "name": "Build recent boards section", "test": "Recently viewed boards tracked", "status": "pending", "type": "both", "phase": "board-system"},
-    {"id": 46, "name": "Create List content type in Drupal", "test": "List appears in JSON:API", "status": "pending", "type": "drupal", "phase": "list-system"},
-    {"id": 47, "name": "Build list column component", "test": "Lists display as columns on board", "status": "pending", "type": "react", "phase": "list-system"},
-    {"id": 48, "name": "Implement add list functionality", "test": "Can add new list to board", "status": "pending", "type": "both", "phase": "list-system"},
-    {"id": 49, "name": "Build list header with inline editing", "test": "Can rename list inline", "status": "pending", "type": "react", "phase": "list-system"},
-    {"id": 50, "name": "Implement list drag-and-drop reordering", "test": "Can reorder lists by dragging", "status": "pending", "type": "react", "phase": "list-system"},
-    {"id": 51, "name": "Build list menu with actions", "test": "Menu shows copy, move, archive options", "status": "pending", "type": "react", "phase": "list-system"},
-    {"id": 52, "name": "Implement list archiving", "test": "Archived lists hidden from view", "status": "pending", "type": "both", "phase": "list-system"},
-    {"id": 53, "name": "Build WIP limit feature", "test": "WIP limit warning displays", "status": "pending", "type": "both", "phase": "list-system"},
-    {"id": 54, "name": "Implement list color coding", "test": "List header shows selected color", "status": "pending", "type": "both", "phase": "list-system"},
-    {"id": 55, "name": "Build list collapse/expand toggle", "test": "Can collapse lists to save space", "status": "pending", "type": "react", "phase": "list-system"},
-    {"id": 56, "name": "Create Card content type in Drupal", "test": "Card appears in JSON:API", "status": "pending", "type": "drupal", "phase": "card-system"},
-    {"id": 57, "name": "Build card item component", "test": "Cards display in lists", "status": "pending", "type": "react", "phase": "card-system"},
-    {"id": 58, "name": "Implement add card functionality", "test": "Can add new card to list", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 59, "name": "Build card modal with full details", "test": "Click card opens detail modal", "status": "pending", "type": "react", "phase": "card-system"},
-    {"id": 60, "name": "Implement card title inline editing", "test": "Can edit card title", "status": "pending", "type": "react", "phase": "card-system"},
-    {"id": 61, "name": "Build card description editor", "test": "Description saves correctly", "status": "pending", "type": "react", "phase": "card-system"},
-    {"id": 62, "name": "Implement card drag-and-drop within list", "test": "Can reorder cards in same list", "status": "pending", "type": "react", "phase": "card-system"},
-    {"id": 63, "name": "Implement card drag-and-drop between lists", "test": "Can move cards to different lists", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 64, "name": "Build card cover image feature", "test": "Cover image displays on card", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 65, "name": "Implement card due dates", "test": "Due date shows on card, can set/edit", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 66, "name": "Build card start date feature", "test": "Start date tracks when work begins", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 67, "name": "Implement card completion toggle", "test": "Can mark card complete", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 68, "name": "Build card quick actions menu", "test": "Quick actions work", "status": "pending", "type": "react", "phase": "card-system"},
-    {"id": 69, "name": "Implement card archiving", "test": "Archived cards hidden from list", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 70, "name": "Build card copying functionality", "test": "Can duplicate card", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 71, "name": "Implement card moving between boards", "test": "Can move card to another board", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 72, "name": "Build card activity log", "test": "Activity shows changes history", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 73, "name": "Implement card watching/notifications", "test": "Watchers notified of changes", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 74, "name": "Build card template functionality", "test": "Can create card from template", "status": "pending", "type": "both", "phase": "card-system"},
-    {"id": 75, "name": "Implement card search within board", "test": "Search filters visible cards", "status": "pending", "type": "react", "phase": "card-system"},
-    {"id": 76, "name": "Create Label content type in Drupal", "test": "Label appears in JSON:API", "status": "pending", "type": "drupal", "phase": "labels-system"},
-    {"id": 77, "name": "Create Card-Label relationship entity", "test": "Cards can have multiple labels", "status": "pending", "type": "drupal", "phase": "labels-system"},
-    {"id": 78, "name": "Build label management modal", "test": "Can create/edit/delete labels", "status": "pending", "type": "react", "phase": "labels-system"},
-    {"id": 79, "name": "Implement label picker in card modal", "test": "Can add/remove labels from card", "status": "pending", "type": "react", "phase": "labels-system"},
-    {"id": 80, "name": "Build label display on card item", "test": "Labels show as colored bars/chips", "status": "pending", "type": "react", "phase": "labels-system"},
-    {"id": 81, "name": "Implement label filtering on board", "test": "Filter shows only cards with label", "status": "pending", "type": "react", "phase": "labels-system"},
-    {"id": 82, "name": "Build label color palette selector", "test": "Can choose from color options", "status": "pending", "type": "react", "phase": "labels-system"},
-    {"id": 83, "name": "Create Card-Member relationship entity", "test": "Cards can have assigned members", "status": "pending", "type": "drupal", "phase": "members-system"},
-    {"id": 84, "name": "Build member picker in card modal", "test": "Can assign/unassign members", "status": "pending", "type": "react", "phase": "members-system"},
-    {"id": 85, "name": "Implement member avatars on card", "test": "Assigned member avatars display", "status": "pending", "type": "react", "phase": "members-system"},
-    {"id": 86, "name": "Build member filtering on board", "test": "Filter shows member's cards", "status": "pending", "type": "react", "phase": "members-system"},
-    {"id": 87, "name": "Implement member assignment notifications", "test": "Member notified when assigned", "status": "pending", "type": "both", "phase": "members-system"},
-    {"id": 88, "name": "Build My Cards filter view", "test": "Shows current user's assigned cards", "status": "pending", "type": "react", "phase": "members-system"},
-    {"id": 89, "name": "Create Checklist content type in Drupal", "test": "Checklist appears in JSON:API", "status": "pending", "type": "drupal", "phase": "checklist-system"},
-    {"id": 90, "name": "Create Checklist Item entity", "test": "Items tracked per checklist", "status": "pending", "type": "drupal", "phase": "checklist-system"},
-    {"id": 91, "name": "Build checklist section in card modal", "test": "Checklists display with items", "status": "pending", "type": "react", "phase": "checklist-system"},
-    {"id": 92, "name": "Implement add checklist functionality", "test": "Can add new checklist to card", "status": "pending", "type": "both", "phase": "checklist-system"},
-    {"id": 93, "name": "Build checklist item add/edit/delete", "test": "Can manage checklist items", "status": "pending", "type": "both", "phase": "checklist-system"},
-    {"id": 94, "name": "Implement checklist item toggle", "test": "Can mark items complete", "status": "pending", "type": "both", "phase": "checklist-system"},
-    {"id": 95, "name": "Build checklist progress bar", "test": "Progress shows completed percentage", "status": "pending", "type": "react", "phase": "checklist-system"},
-    {"id": 96, "name": "Implement checklist item due dates", "test": "Items can have due dates", "status": "pending", "type": "both", "phase": "checklist-system"},
-    {"id": 97, "name": "Create Comment content type in Drupal", "test": "Comment appears in JSON:API", "status": "pending", "type": "drupal", "phase": "comments-system"},
-    {"id": 98, "name": "Build comments section in card modal", "test": "Comments display chronologically", "status": "pending", "type": "react", "phase": "comments-system"},
-    {"id": 99, "name": "Implement add comment functionality", "test": "Can post new comment", "status": "pending", "type": "both", "phase": "comments-system"},
-    {"id": 100, "name": "Build comment edit/delete", "test": "Can edit/delete own comments", "status": "pending", "type": "both", "phase": "comments-system"},
-    {"id": 101, "name": "Implement @mention functionality", "test": "@mentions notify users", "status": "pending", "type": "both", "phase": "comments-system"},
-    {"id": 102, "name": "Build comment reactions", "test": "Can react to comments", "status": "pending", "type": "both", "phase": "comments-system"},
-    {"id": 103, "name": "Create Attachment media type in Drupal", "test": "Files upload and store correctly", "status": "pending", "type": "drupal", "phase": "attachments-system"},
-    {"id": 104, "name": "Build attachment section in card modal", "test": "Attachments display with previews", "status": "pending", "type": "react", "phase": "attachments-system"},
-    {"id": 105, "name": "Implement file upload functionality", "test": "Can upload files up to limit", "status": "pending", "type": "both", "phase": "attachments-system"},
-    {"id": 106, "name": "Build attachment preview/download", "test": "Can preview images, download files", "status": "pending", "type": "react", "phase": "attachments-system"},
-    {"id": 107, "name": "Implement attachment deletion", "test": "Can remove attachments", "status": "pending", "type": "both", "phase": "attachments-system"},
-    {"id": 108, "name": "Build drag-drop file upload", "test": "Can drag files to upload", "status": "pending", "type": "react", "phase": "attachments-system"},
-    {"id": 109, "name": "Set up Mercure client in React", "test": "Can subscribe to Mercure topics", "status": "pending", "type": "react", "phase": "realtime"},
-    {"id": 110, "name": "Implement real-time card updates", "test": "Card changes appear without refresh", "status": "pending", "type": "both", "phase": "realtime"},
-    {"id": 111, "name": "Implement real-time list updates", "test": "List changes sync across users", "status": "pending", "type": "both", "phase": "realtime"},
-    {"id": 112, "name": "Build user presence indicators", "test": "Shows who's viewing board", "status": "pending", "type": "both", "phase": "realtime"},
-    {"id": 113, "name": "Implement real-time comment updates", "test": "New comments appear instantly", "status": "pending", "type": "both", "phase": "realtime"},
-    {"id": 114, "name": "Build optimistic UI updates", "test": "Actions feel instant with rollback", "status": "pending", "type": "react", "phase": "realtime"},
-    {"id": 115, "name": "Implement real-time drag-and-drop sync", "test": "Dragging syncs to other users", "status": "pending", "type": "both", "phase": "realtime"},
-    {"id": 116, "name": "Build connection status indicator", "test": "Shows connected/disconnected state", "status": "pending", "type": "react", "phase": "realtime"},
-    {"id": 117, "name": "Implement reconnection logic", "test": "Auto-reconnects after disconnect", "status": "pending", "type": "react", "phase": "realtime"},
-    {"id": 118, "name": "Build offline queue for actions", "test": "Actions queued when offline", "status": "pending", "type": "react", "phase": "realtime"},
-    {"id": 119, "name": "Create Custom Field definition entity", "test": "Field definitions stored per board", "status": "pending", "type": "drupal", "phase": "custom-fields"},
-    {"id": 120, "name": "Create Card Custom Field Values entity", "test": "Values stored per card", "status": "pending", "type": "drupal", "phase": "custom-fields"},
-    {"id": 121, "name": "Build custom field management UI", "test": "Can create/edit field definitions", "status": "pending", "type": "react", "phase": "custom-fields"},
-    {"id": 122, "name": "Implement custom field display on cards", "test": "Fields show on card front", "status": "pending", "type": "react", "phase": "custom-fields"},
-    {"id": 123, "name": "Build custom field editing in modal", "test": "Can set/edit field values", "status": "pending", "type": "react", "phase": "custom-fields"},
-    {"id": 124, "name": "Implement dropdown option management", "test": "Can define dropdown options", "status": "pending", "type": "both", "phase": "custom-fields"},
-    {"id": 125, "name": "Build custom field filtering", "test": "Can filter by custom field values", "status": "pending", "type": "react", "phase": "custom-fields"},
-    {"id": 126, "name": "Create Board View entity", "test": "View configurations saved", "status": "pending", "type": "drupal", "phase": "views-system"},
-    {"id": 127, "name": "Build calendar view component", "test": "Cards display on calendar by due date", "status": "pending", "type": "react", "phase": "views-system"},
-    {"id": 128, "name": "Build timeline/Gantt view component", "test": "Cards show as timeline bars", "status": "pending", "type": "react", "phase": "views-system"},
-    {"id": 129, "name": "Build table view component", "test": "Cards in sortable table format", "status": "pending", "type": "react", "phase": "views-system"},
-    {"id": 130, "name": "Build dashboard view with charts", "test": "Shows board statistics", "status": "pending", "type": "react", "phase": "views-system"},
-    {"id": 131, "name": "Implement view switching UI", "test": "Can switch between views", "status": "pending", "type": "react", "phase": "views-system"},
-    {"id": 132, "name": "Build view customization options", "test": "Views can be configured", "status": "pending", "type": "react", "phase": "views-system"},
-    {"id": 133, "name": "Implement view sharing", "test": "Views can be shared with team", "status": "pending", "type": "both", "phase": "views-system"},
-    {"id": 134, "name": "Create Automation Rule entity", "test": "Rules stored and retrieved", "status": "pending", "type": "drupal", "phase": "automation"},
-    {"id": 135, "name": "Build automation rules management UI", "test": "Can create/edit/delete rules", "status": "pending", "type": "react", "phase": "automation"},
-    {"id": 136, "name": "Implement trigger types", "test": "Triggers fire correctly", "status": "pending", "type": "drupal", "phase": "automation"},
-    {"id": 137, "name": "Build action types", "test": "Actions execute correctly", "status": "pending", "type": "drupal", "phase": "automation"},
-    {"id": 138, "name": "Implement condition evaluation", "test": "Conditions filter trigger events", "status": "pending", "type": "drupal", "phase": "automation"},
-    {"id": 139, "name": "Build automation log/history", "test": "Rule executions logged", "status": "pending", "type": "both", "phase": "automation"},
-    {"id": 140, "name": "Implement scheduled automations", "test": "Time-based rules execute", "status": "pending", "type": "drupal", "phase": "automation"},
-    {"id": 141, "name": "Create Activity entity in Drupal", "test": "Activities logged for all actions", "status": "pending", "type": "drupal", "phase": "activity-notifications"},
-    {"id": 142, "name": "Build activity feed in card modal", "test": "Card history displays", "status": "pending", "type": "react", "phase": "activity-notifications"},
-    {"id": 143, "name": "Build board activity feed", "test": "Board-wide activity visible", "status": "pending", "type": "react", "phase": "activity-notifications"},
-    {"id": 144, "name": "Create Notification entity", "test": "Notifications created for events", "status": "pending", "type": "drupal", "phase": "activity-notifications"},
-    {"id": 145, "name": "Build notification dropdown in header", "test": "Shows unread notifications", "status": "pending", "type": "react", "phase": "activity-notifications"},
-    {"id": 146, "name": "Implement notification preferences", "test": "Users can control notifications", "status": "pending", "type": "both", "phase": "activity-notifications"},
-    {"id": 147, "name": "Build email notification system", "test": "Emails sent for key events", "status": "pending", "type": "drupal", "phase": "activity-notifications"},
-    {"id": 148, "name": "Implement push notifications", "test": "Browser push notifications work", "status": "pending", "type": "both", "phase": "activity-notifications"},
-    {"id": 149, "name": "Implement board search functionality", "test": "Can search cards on board", "status": "pending", "type": "react", "phase": "search-filtering"},
-    {"id": 150, "name": "Build global search across workspaces", "test": "Search finds cards anywhere", "status": "pending", "type": "both", "phase": "search-filtering"},
-    {"id": 151, "name": "Implement advanced filters", "test": "Multiple filters combine correctly", "status": "pending", "type": "react", "phase": "search-filtering"},
-    {"id": 152, "name": "Build saved filter/view feature", "test": "Filters can be saved", "status": "pending", "type": "both", "phase": "search-filtering"},
-    {"id": 153, "name": "Implement search result highlighting", "test": "Matches highlighted in results", "status": "pending", "type": "react", "phase": "search-filtering"},
-    {"id": 154, "name": "Build keyboard shortcuts for search", "test": "Ctrl/Cmd+K opens search", "status": "pending", "type": "react", "phase": "search-filtering"},
-    {"id": 155, "name": "Map existing schema to Drupal entities", "test": "Mapping document complete", "status": "pending", "type": "drupal", "phase": "data-migration"},
-    {"id": 156, "name": "Create migration scripts for users", "test": "Users imported correctly", "status": "pending", "type": "drupal", "phase": "data-migration"},
-    {"id": 157, "name": "Create migration for workspaces", "test": "Workspaces with members imported", "status": "pending", "type": "drupal", "phase": "data-migration"},
-    {"id": 158, "name": "Create migration for boards and lists", "test": "Board structure imported", "status": "pending", "type": "drupal", "phase": "data-migration"},
-    {"id": 159, "name": "Create migration for cards with relationships", "test": "Cards with labels, members imported", "status": "pending", "type": "drupal", "phase": "data-migration"},
-    {"id": 160, "name": "Create migration for checklists and items", "test": "Checklists fully imported", "status": "pending", "type": "drupal", "phase": "data-migration"},
-    {"id": 161, "name": "Create migration for comments and activities", "test": "Comment history preserved", "status": "pending", "type": "drupal", "phase": "data-migration"},
-    {"id": 162, "name": "Create migration for attachments", "test": "Files migrated to new storage", "status": "pending", "type": "drupal", "phase": "data-migration"},
-    {"id": 163, "name": "Implement virtual scrolling for large boards", "test": "1000+ cards scroll smoothly", "status": "pending", "type": "react", "phase": "performance-polish"},
-    {"id": 164, "name": "Add loading states and skeletons", "test": "Loading states show appropriately", "status": "pending", "type": "react", "phase": "performance-polish"},
-    {"id": 165, "name": "Implement error boundaries", "test": "Errors don't crash entire app", "status": "pending", "type": "react", "phase": "performance-polish"},
-    {"id": 166, "name": "Add keyboard navigation", "test": "Can navigate with keyboard", "status": "pending", "type": "react", "phase": "performance-polish"},
-    {"id": 167, "name": "Implement accessibility (WCAG)", "test": "Screen reader compatible", "status": "pending", "type": "react", "phase": "performance-polish"},
-    {"id": 168, "name": "Add responsive design for mobile", "test": "Works on phone screens", "status": "pending", "type": "react", "phase": "performance-polish"},
-    {"id": 169, "name": "Implement dark mode", "test": "Dark theme toggles correctly", "status": "pending", "type": "react", "phase": "performance-polish"},
-    {"id": 170, "name": "Add PWA support", "test": "Can install as app", "status": "pending", "type": "react", "phase": "performance-polish"},
-    {"id": 171, "name": "Optimize bundle size", "test": "Lighthouse performance >90", "status": "pending", "type": "react", "phase": "performance-polish"},
-    {"id": 172, "name": "Add comprehensive error handling", "test": "Errors show helpful messages", "status": "pending", "type": "both", "phase": "performance-polish"},
-    {"id": 173, "name": "Implement rate limiting", "test": "Excessive requests blocked", "status": "pending", "type": "drupal", "phase": "security-production"},
-    {"id": 174, "name": "Add input validation and sanitization", "test": "XSS attempts blocked", "status": "pending", "type": "both", "phase": "security-production"},
-    {"id": 175, "name": "Implement CSRF protection", "test": "CSRF tokens validated", "status": "pending", "type": "drupal", "phase": "security-production"},
-    {"id": 176, "name": "Add audit logging", "test": "Security events logged", "status": "pending", "type": "drupal", "phase": "security-production"},
-    {"id": 177, "name": "Set up production environment config", "test": "Environment variables work", "status": "pending", "type": "both", "phase": "security-production"},
-    {"id": 178, "name": "Create deployment documentation", "test": "Can deploy to production", "status": "pending", "type": "both", "phase": "security-production"},
-    {"id": 179, "name": "Set up monitoring and health checks", "test": "Health endpoint responds", "status": "pending", "type": "both", "phase": "security-production"},
-    {"id": 180, "name": "Final testing and bug fixes", "test": "All features work end-to-end", "status": "pending", "type": "both", "phase": "security-production"}
+    {
+      "id": 1,
+      "name": "Initialize DDEV project for Drupal 11",
+      "test": "ddev describe shows running Drupal site",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "infrastructure"
+    },
+    {
+      "id": 2,
+      "name": "Install Drupal 11 with standard profile",
+      "test": "Visit https://boxtasks2.ddev.site shows Drupal welcome",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "infrastructure"
+    },
+    {
+      "id": 3,
+      "name": "Configure Drupal for decoupled/headless mode",
+      "test": "/jsonapi endpoint returns valid JSON",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "infrastructure"
+    },
+    {
+      "id": 4,
+      "name": "Set up Mercure module/integration",
+      "test": "Mercure hub responds at /.well-known/mercure",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "infrastructure"
+    },
+    {
+      "id": 5,
+      "name": "Initialize React frontend with Vite + TypeScript",
+      "test": "npm run dev shows React app at localhost:5173",
+      "status": "completed",
+      "type": "react",
+      "phase": "infrastructure"
+    },
+    {
+      "id": 6,
+      "name": "Install and configure Tailwind CSS + shadcn/ui",
+      "test": "Tailwind classes work, shadcn Button component renders",
+      "status": "completed",
+      "type": "react",
+      "phase": "infrastructure"
+    },
+    {
+      "id": 7,
+      "name": "Set up API client for Drupal JSON:API",
+      "test": "Frontend can fetch /jsonapi endpoint",
+      "status": "completed",
+      "type": "react",
+      "phase": "infrastructure"
+    },
+    {
+      "id": 8,
+      "name": "Configure CORS for decoupled setup",
+      "test": "Frontend can make API calls without CORS errors",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "infrastructure"
+    },
+    {
+      "id": 9,
+      "name": "Set up authentication flow (Drupal Simple OAuth)",
+      "test": "Can obtain JWT token via login",
+      "status": "completed",
+      "type": "both",
+      "phase": "infrastructure"
+    },
+    {
+      "id": 10,
+      "name": "Create base layout and routing in React",
+      "test": "Navigation between pages works",
+      "status": "completed",
+      "type": "react",
+      "phase": "infrastructure"
+    },
+    {
+      "id": 11,
+      "name": "Create User profile fields in Drupal",
+      "test": "User entity has custom fields in JSON:API",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "user-system"
+    },
+    {
+      "id": 12,
+      "name": "Build Login page in React",
+      "test": "Can log in and receive token",
+      "status": "completed",
+      "type": "react",
+      "phase": "user-system"
+    },
+    {
+      "id": 13,
+      "name": "Build Registration page in React",
+      "test": "Can create new account",
+      "status": "completed",
+      "type": "react",
+      "phase": "user-system"
+    },
+    {
+      "id": 14,
+      "name": "Implement token storage and refresh",
+      "test": "Token persists across page refreshes",
+      "status": "completed",
+      "type": "react",
+      "phase": "user-system"
+    },
+    {
+      "id": 15,
+      "name": "Build user profile page",
+      "test": "Can view/edit own profile",
+      "status": "completed",
+      "type": "react",
+      "phase": "user-system"
+    },
+    {
+      "id": 16,
+      "name": "Implement logout functionality",
+      "test": "Logout clears session, redirects to login",
+      "status": "completed",
+      "type": "react",
+      "phase": "user-system"
+    },
+    {
+      "id": 17,
+      "name": "Add password reset flow",
+      "test": "Can request and complete password reset",
+      "status": "completed",
+      "type": "both",
+      "phase": "user-system"
+    },
+    {
+      "id": 18,
+      "name": "Implement session management",
+      "test": "Expired tokens trigger re-authentication",
+      "status": "completed",
+      "type": "react",
+      "phase": "user-system"
+    },
+    {
+      "id": 19,
+      "name": "Add user preferences storage",
+      "test": "Preferences persist and load correctly",
+      "status": "completed",
+      "type": "both",
+      "phase": "user-system"
+    },
+    {
+      "id": 20,
+      "name": "Build auth-protected route wrapper",
+      "test": "Unauthenticated users redirected to login",
+      "status": "completed",
+      "type": "react",
+      "phase": "user-system"
+    },
+    {
+      "id": 21,
+      "name": "Create Workspace content type in Drupal",
+      "test": "Workspace appears in JSON:API",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "workspace-system"
+    },
+    {
+      "id": 22,
+      "name": "Create Workspace Membership entity",
+      "test": "Memberships tracked in database",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "workspace-system"
+    },
+    {
+      "id": 23,
+      "name": "Build workspace list page",
+      "test": "Shows user's workspaces",
+      "status": "completed",
+      "type": "react",
+      "phase": "workspace-system"
+    },
+    {
+      "id": 24,
+      "name": "Build create workspace modal",
+      "test": "Can create new workspace",
+      "status": "completed",
+      "type": "react",
+      "phase": "workspace-system"
+    },
+    {
+      "id": 25,
+      "name": "Build workspace settings page",
+      "test": "Can edit workspace name/description",
+      "status": "completed",
+      "type": "react",
+      "phase": "workspace-system"
+    },
+    {
+      "id": 26,
+      "name": "Implement workspace member management",
+      "test": "Can add/remove members",
+      "status": "completed",
+      "type": "both",
+      "phase": "workspace-system"
+    },
+    {
+      "id": 27,
+      "name": "Build workspace member invitation flow",
+      "test": "Can invite users by email",
+      "status": "completed",
+      "type": "both",
+      "phase": "workspace-system"
+    },
+    {
+      "id": 28,
+      "name": "Implement workspace role permissions",
+      "test": "Only admins can manage settings",
+      "status": "completed",
+      "type": "both",
+      "phase": "workspace-system"
+    },
+    {
+      "id": 29,
+      "name": "Build workspace deletion with confirmation",
+      "test": "Can archive/delete workspace",
+      "status": "completed",
+      "type": "both",
+      "phase": "workspace-system"
+    },
+    {
+      "id": 30,
+      "name": "Implement workspace switching in UI",
+      "test": "Can switch between workspaces smoothly",
+      "status": "completed",
+      "type": "react",
+      "phase": "workspace-system"
+    },
+    {
+      "id": 31,
+      "name": "Create Board content type in Drupal",
+      "test": "Board appears in JSON:API",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "board-system"
+    },
+    {
+      "id": 32,
+      "name": "Create Board Membership entity",
+      "test": "Board permissions tracked",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "board-system"
+    },
+    {
+      "id": 33,
+      "name": "Build board list within workspace",
+      "test": "Shows workspace boards",
+      "status": "completed",
+      "type": "react",
+      "phase": "board-system"
+    },
+    {
+      "id": 34,
+      "name": "Build create board modal",
+      "test": "Can create new board",
+      "status": "completed",
+      "type": "react",
+      "phase": "board-system"
+    },
+    {
+      "id": 35,
+      "name": "Build board header component",
+      "test": "Shows board name, can edit inline",
+      "status": "completed",
+      "type": "react",
+      "phase": "board-system"
+    },
+    {
+      "id": 36,
+      "name": "Implement board background customization",
+      "test": "Background changes persist",
+      "status": "completed",
+      "type": "both",
+      "phase": "board-system"
+    },
+    {
+      "id": 37,
+      "name": "Build board settings panel",
+      "test": "Can modify board settings",
+      "status": "completed",
+      "type": "react",
+      "phase": "board-system"
+    },
+    {
+      "id": 38,
+      "name": "Implement board visibility levels",
+      "test": "Visibility controls access",
+      "status": "completed",
+      "type": "both",
+      "phase": "board-system"
+    },
+    {
+      "id": 39,
+      "name": "Build board member management",
+      "test": "Can manage board-specific members",
+      "status": "completed",
+      "type": "both",
+      "phase": "board-system"
+    },
+    {
+      "id": 40,
+      "name": "Implement board archiving/restore",
+      "test": "Can archive and restore boards",
+      "status": "completed",
+      "type": "both",
+      "phase": "board-system"
+    },
+    {
+      "id": 41,
+      "name": "Build board deletion flow",
+      "test": "Deleted boards removed from view",
+      "status": "completed",
+      "type": "both",
+      "phase": "board-system"
+    },
+    {
+      "id": 42,
+      "name": "Implement board favorites/starring",
+      "test": "Starred boards appear in favorites",
+      "status": "completed",
+      "type": "both",
+      "phase": "board-system"
+    },
+    {
+      "id": 43,
+      "name": "Build board templates feature",
+      "test": "Can create board from template",
+      "status": "completed",
+      "type": "both",
+      "phase": "board-system"
+    },
+    {
+      "id": 44,
+      "name": "Implement board copy functionality",
+      "test": "Can duplicate a board",
+      "status": "completed",
+      "type": "both",
+      "phase": "board-system"
+    },
+    {
+      "id": 45,
+      "name": "Build recent boards section",
+      "test": "Recently viewed boards tracked",
+      "status": "completed",
+      "type": "both",
+      "phase": "board-system"
+    },
+    {
+      "id": 46,
+      "name": "Create List content type in Drupal",
+      "test": "List appears in JSON:API",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "list-system"
+    },
+    {
+      "id": 47,
+      "name": "Build list column component",
+      "test": "Lists display as columns on board",
+      "status": "completed",
+      "type": "react",
+      "phase": "list-system"
+    },
+    {
+      "id": 48,
+      "name": "Implement add list functionality",
+      "test": "Can add new list to board",
+      "status": "completed",
+      "type": "both",
+      "phase": "list-system"
+    },
+    {
+      "id": 49,
+      "name": "Build list header with inline editing",
+      "test": "Can rename list inline",
+      "status": "completed",
+      "type": "react",
+      "phase": "list-system"
+    },
+    {
+      "id": 50,
+      "name": "Implement list drag-and-drop reordering",
+      "test": "Can reorder lists by dragging",
+      "status": "completed",
+      "type": "react",
+      "phase": "list-system"
+    },
+    {
+      "id": 51,
+      "name": "Build list menu with actions",
+      "test": "Menu shows copy, move, archive options",
+      "status": "completed",
+      "type": "react",
+      "phase": "list-system"
+    },
+    {
+      "id": 52,
+      "name": "Implement list archiving",
+      "test": "Archived lists hidden from view",
+      "status": "completed",
+      "type": "both",
+      "phase": "list-system"
+    },
+    {
+      "id": 53,
+      "name": "Build WIP limit feature",
+      "test": "WIP limit warning displays",
+      "status": "completed",
+      "type": "both",
+      "phase": "list-system"
+    },
+    {
+      "id": 54,
+      "name": "Implement list color coding",
+      "test": "List header shows selected color",
+      "status": "completed",
+      "type": "both",
+      "phase": "list-system"
+    },
+    {
+      "id": 55,
+      "name": "Build list collapse/expand toggle",
+      "test": "Can collapse lists to save space",
+      "status": "completed",
+      "type": "react",
+      "phase": "list-system"
+    },
+    {
+      "id": 56,
+      "name": "Create Card content type in Drupal",
+      "test": "Card appears in JSON:API",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "card-system"
+    },
+    {
+      "id": 57,
+      "name": "Build card item component",
+      "test": "Cards display in lists",
+      "status": "completed",
+      "type": "react",
+      "phase": "card-system"
+    },
+    {
+      "id": 58,
+      "name": "Implement add card functionality",
+      "test": "Can add new card to list",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 59,
+      "name": "Build card modal with full details",
+      "test": "Click card opens detail modal",
+      "status": "completed",
+      "type": "react",
+      "phase": "card-system"
+    },
+    {
+      "id": 60,
+      "name": "Implement card title inline editing",
+      "test": "Can edit card title",
+      "status": "completed",
+      "type": "react",
+      "phase": "card-system"
+    },
+    {
+      "id": 61,
+      "name": "Build card description editor",
+      "test": "Description saves correctly",
+      "status": "completed",
+      "type": "react",
+      "phase": "card-system"
+    },
+    {
+      "id": 62,
+      "name": "Implement card drag-and-drop within list",
+      "test": "Can reorder cards in same list",
+      "status": "completed",
+      "type": "react",
+      "phase": "card-system"
+    },
+    {
+      "id": 63,
+      "name": "Implement card drag-and-drop between lists",
+      "test": "Can move cards to different lists",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 64,
+      "name": "Build card cover image feature",
+      "test": "Cover image displays on card",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 65,
+      "name": "Implement card due dates",
+      "test": "Due date shows on card, can set/edit",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 66,
+      "name": "Build card start date feature",
+      "test": "Start date tracks when work begins",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 67,
+      "name": "Implement card completion toggle",
+      "test": "Can mark card complete",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 68,
+      "name": "Build card quick actions menu",
+      "test": "Quick actions work",
+      "status": "completed",
+      "type": "react",
+      "phase": "card-system"
+    },
+    {
+      "id": 69,
+      "name": "Implement card archiving",
+      "test": "Archived cards hidden from list",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 70,
+      "name": "Build card copying functionality",
+      "test": "Can duplicate card",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 71,
+      "name": "Implement card moving between boards",
+      "test": "Can move card to another board",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 72,
+      "name": "Build card activity log",
+      "test": "Activity shows changes history",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 73,
+      "name": "Implement card watching/notifications",
+      "test": "Watchers notified of changes",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 74,
+      "name": "Build card template functionality",
+      "test": "Can create card from template",
+      "status": "completed",
+      "type": "both",
+      "phase": "card-system"
+    },
+    {
+      "id": 75,
+      "name": "Implement card search within board",
+      "test": "Search filters visible cards",
+      "status": "completed",
+      "type": "react",
+      "phase": "card-system"
+    },
+    {
+      "id": 76,
+      "name": "Create Label content type in Drupal",
+      "test": "Label appears in JSON:API",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "labels-system"
+    },
+    {
+      "id": 77,
+      "name": "Create Card-Label relationship entity",
+      "test": "Cards can have multiple labels",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "labels-system"
+    },
+    {
+      "id": 78,
+      "name": "Build label management modal",
+      "test": "Can create/edit/delete labels",
+      "status": "completed",
+      "type": "react",
+      "phase": "labels-system"
+    },
+    {
+      "id": 79,
+      "name": "Implement label picker in card modal",
+      "test": "Can add/remove labels from card",
+      "status": "completed",
+      "type": "react",
+      "phase": "labels-system"
+    },
+    {
+      "id": 80,
+      "name": "Build label display on card item",
+      "test": "Labels show as colored bars/chips",
+      "status": "completed",
+      "type": "react",
+      "phase": "labels-system"
+    },
+    {
+      "id": 81,
+      "name": "Implement label filtering on board",
+      "test": "Filter shows only cards with label",
+      "status": "completed",
+      "type": "react",
+      "phase": "labels-system"
+    },
+    {
+      "id": 82,
+      "name": "Build label color palette selector",
+      "test": "Can choose from color options",
+      "status": "completed",
+      "type": "react",
+      "phase": "labels-system"
+    },
+    {
+      "id": 83,
+      "name": "Create Card-Member relationship entity",
+      "test": "Cards can have assigned members",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "members-system"
+    },
+    {
+      "id": 84,
+      "name": "Build member picker in card modal",
+      "test": "Can assign/unassign members",
+      "status": "completed",
+      "type": "react",
+      "phase": "members-system"
+    },
+    {
+      "id": 85,
+      "name": "Implement member avatars on card",
+      "test": "Assigned member avatars display",
+      "status": "completed",
+      "type": "react",
+      "phase": "members-system"
+    },
+    {
+      "id": 86,
+      "name": "Build member filtering on board",
+      "test": "Filter shows member's cards",
+      "status": "completed",
+      "type": "react",
+      "phase": "members-system"
+    },
+    {
+      "id": 87,
+      "name": "Implement member assignment notifications",
+      "test": "Member notified when assigned",
+      "status": "completed",
+      "type": "both",
+      "phase": "members-system"
+    },
+    {
+      "id": 88,
+      "name": "Build My Cards filter view",
+      "test": "Shows current user's assigned cards",
+      "status": "completed",
+      "type": "react",
+      "phase": "members-system"
+    },
+    {
+      "id": 89,
+      "name": "Create Checklist content type in Drupal",
+      "test": "Checklist appears in JSON:API",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "checklist-system"
+    },
+    {
+      "id": 90,
+      "name": "Create Checklist Item entity",
+      "test": "Items tracked per checklist",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "checklist-system"
+    },
+    {
+      "id": 91,
+      "name": "Build checklist section in card modal",
+      "test": "Checklists display with items",
+      "status": "completed",
+      "type": "react",
+      "phase": "checklist-system"
+    },
+    {
+      "id": 92,
+      "name": "Implement add checklist functionality",
+      "test": "Can add new checklist to card",
+      "status": "completed",
+      "type": "both",
+      "phase": "checklist-system"
+    },
+    {
+      "id": 93,
+      "name": "Build checklist item add/edit/delete",
+      "test": "Can manage checklist items",
+      "status": "completed",
+      "type": "both",
+      "phase": "checklist-system"
+    },
+    {
+      "id": 94,
+      "name": "Implement checklist item toggle",
+      "test": "Can mark items complete",
+      "status": "completed",
+      "type": "both",
+      "phase": "checklist-system"
+    },
+    {
+      "id": 95,
+      "name": "Build checklist progress bar",
+      "test": "Progress shows completed percentage",
+      "status": "completed",
+      "type": "react",
+      "phase": "checklist-system"
+    },
+    {
+      "id": 96,
+      "name": "Implement checklist item due dates",
+      "test": "Items can have due dates",
+      "status": "completed",
+      "type": "both",
+      "phase": "checklist-system"
+    },
+    {
+      "id": 97,
+      "name": "Create Comment content type in Drupal",
+      "test": "Comment appears in JSON:API",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "comments-system"
+    },
+    {
+      "id": 98,
+      "name": "Build comments section in card modal",
+      "test": "Comments display chronologically",
+      "status": "completed",
+      "type": "react",
+      "phase": "comments-system"
+    },
+    {
+      "id": 99,
+      "name": "Implement add comment functionality",
+      "test": "Can post new comment",
+      "status": "completed",
+      "type": "both",
+      "phase": "comments-system"
+    },
+    {
+      "id": 100,
+      "name": "Build comment edit/delete",
+      "test": "Can edit/delete own comments",
+      "status": "completed",
+      "type": "both",
+      "phase": "comments-system"
+    },
+    {
+      "id": 101,
+      "name": "Implement @mention functionality",
+      "test": "@mentions notify users",
+      "status": "completed",
+      "type": "both",
+      "phase": "comments-system"
+    },
+    {
+      "id": 102,
+      "name": "Build comment reactions",
+      "test": "Can react to comments",
+      "status": "completed",
+      "type": "both",
+      "phase": "comments-system"
+    },
+    {
+      "id": 103,
+      "name": "Create Attachment media type in Drupal",
+      "test": "Files upload and store correctly",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "attachments-system"
+    },
+    {
+      "id": 104,
+      "name": "Build attachment section in card modal",
+      "test": "Attachments display with previews",
+      "status": "completed",
+      "type": "react",
+      "phase": "attachments-system"
+    },
+    {
+      "id": 105,
+      "name": "Implement file upload functionality",
+      "test": "Can upload files up to limit",
+      "status": "completed",
+      "type": "both",
+      "phase": "attachments-system"
+    },
+    {
+      "id": 106,
+      "name": "Build attachment preview/download",
+      "test": "Can preview images, download files",
+      "status": "completed",
+      "type": "react",
+      "phase": "attachments-system"
+    },
+    {
+      "id": 107,
+      "name": "Implement attachment deletion",
+      "test": "Can remove attachments",
+      "status": "completed",
+      "type": "both",
+      "phase": "attachments-system"
+    },
+    {
+      "id": 108,
+      "name": "Build drag-drop file upload",
+      "test": "Can drag files to upload",
+      "status": "completed",
+      "type": "react",
+      "phase": "attachments-system"
+    },
+    {
+      "id": 109,
+      "name": "Set up Mercure client in React",
+      "test": "Can subscribe to Mercure topics",
+      "status": "completed",
+      "type": "react",
+      "phase": "realtime"
+    },
+    {
+      "id": 110,
+      "name": "Implement real-time card updates",
+      "test": "Card changes appear without refresh",
+      "status": "completed",
+      "type": "both",
+      "phase": "realtime"
+    },
+    {
+      "id": 111,
+      "name": "Implement real-time list updates",
+      "test": "List changes sync across users",
+      "status": "pending",
+      "type": "both",
+      "phase": "realtime"
+    },
+    {
+      "id": 112,
+      "name": "Build user presence indicators",
+      "test": "Shows who's viewing board",
+      "status": "pending",
+      "type": "both",
+      "phase": "realtime"
+    },
+    {
+      "id": 113,
+      "name": "Implement real-time comment updates",
+      "test": "New comments appear instantly",
+      "status": "pending",
+      "type": "both",
+      "phase": "realtime"
+    },
+    {
+      "id": 114,
+      "name": "Build optimistic UI updates",
+      "test": "Actions feel instant with rollback",
+      "status": "pending",
+      "type": "react",
+      "phase": "realtime"
+    },
+    {
+      "id": 115,
+      "name": "Implement real-time drag-and-drop sync",
+      "test": "Dragging syncs to other users",
+      "status": "pending",
+      "type": "both",
+      "phase": "realtime"
+    },
+    {
+      "id": 116,
+      "name": "Build connection status indicator",
+      "test": "Shows connected/disconnected state",
+      "status": "completed",
+      "type": "react",
+      "phase": "realtime"
+    },
+    {
+      "id": 117,
+      "name": "Implement reconnection logic",
+      "test": "Auto-reconnects after disconnect",
+      "status": "completed",
+      "type": "react",
+      "phase": "realtime"
+    },
+    {
+      "id": 118,
+      "name": "Build offline queue for actions",
+      "test": "Actions queued when offline",
+      "status": "pending",
+      "type": "react",
+      "phase": "realtime"
+    },
+    {
+      "id": 119,
+      "name": "Create Custom Field definition entity",
+      "test": "Field definitions stored per board",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "custom-fields"
+    },
+    {
+      "id": 120,
+      "name": "Create Card Custom Field Values entity",
+      "test": "Values stored per card",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "custom-fields"
+    },
+    {
+      "id": 121,
+      "name": "Build custom field management UI",
+      "test": "Can create/edit field definitions",
+      "status": "pending",
+      "type": "react",
+      "phase": "custom-fields"
+    },
+    {
+      "id": 122,
+      "name": "Implement custom field display on cards",
+      "test": "Fields show on card front",
+      "status": "pending",
+      "type": "react",
+      "phase": "custom-fields"
+    },
+    {
+      "id": 123,
+      "name": "Build custom field editing in modal",
+      "test": "Can set/edit field values",
+      "status": "pending",
+      "type": "react",
+      "phase": "custom-fields"
+    },
+    {
+      "id": 124,
+      "name": "Implement dropdown option management",
+      "test": "Can define dropdown options",
+      "status": "pending",
+      "type": "both",
+      "phase": "custom-fields"
+    },
+    {
+      "id": 125,
+      "name": "Build custom field filtering",
+      "test": "Can filter by custom field values",
+      "status": "pending",
+      "type": "react",
+      "phase": "custom-fields"
+    },
+    {
+      "id": 126,
+      "name": "Create Board View entity",
+      "test": "View configurations saved",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "views-system"
+    },
+    {
+      "id": 127,
+      "name": "Build calendar view component",
+      "test": "Cards display on calendar by due date",
+      "status": "pending",
+      "type": "react",
+      "phase": "views-system"
+    },
+    {
+      "id": 128,
+      "name": "Build timeline/Gantt view component",
+      "test": "Cards show as timeline bars",
+      "status": "pending",
+      "type": "react",
+      "phase": "views-system"
+    },
+    {
+      "id": 129,
+      "name": "Build table view component",
+      "test": "Cards in sortable table format",
+      "status": "pending",
+      "type": "react",
+      "phase": "views-system"
+    },
+    {
+      "id": 130,
+      "name": "Build dashboard view with charts",
+      "test": "Shows board statistics",
+      "status": "pending",
+      "type": "react",
+      "phase": "views-system"
+    },
+    {
+      "id": 131,
+      "name": "Implement view switching UI",
+      "test": "Can switch between views",
+      "status": "pending",
+      "type": "react",
+      "phase": "views-system"
+    },
+    {
+      "id": 132,
+      "name": "Build view customization options",
+      "test": "Views can be configured",
+      "status": "pending",
+      "type": "react",
+      "phase": "views-system"
+    },
+    {
+      "id": 133,
+      "name": "Implement view sharing",
+      "test": "Views can be shared with team",
+      "status": "pending",
+      "type": "both",
+      "phase": "views-system"
+    },
+    {
+      "id": 134,
+      "name": "Create Automation Rule entity",
+      "test": "Rules stored and retrieved",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "automation"
+    },
+    {
+      "id": 135,
+      "name": "Build automation rules management UI",
+      "test": "Can create/edit/delete rules",
+      "status": "pending",
+      "type": "react",
+      "phase": "automation"
+    },
+    {
+      "id": 136,
+      "name": "Implement trigger types",
+      "test": "Triggers fire correctly",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "automation"
+    },
+    {
+      "id": 137,
+      "name": "Build action types",
+      "test": "Actions execute correctly",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "automation"
+    },
+    {
+      "id": 138,
+      "name": "Implement condition evaluation",
+      "test": "Conditions filter trigger events",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "automation"
+    },
+    {
+      "id": 139,
+      "name": "Build automation log/history",
+      "test": "Rule executions logged",
+      "status": "pending",
+      "type": "both",
+      "phase": "automation"
+    },
+    {
+      "id": 140,
+      "name": "Implement scheduled automations",
+      "test": "Time-based rules execute",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "automation"
+    },
+    {
+      "id": 141,
+      "name": "Create Activity entity in Drupal",
+      "test": "Activities logged for all actions",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "activity-notifications"
+    },
+    {
+      "id": 142,
+      "name": "Build activity feed in card modal",
+      "test": "Card history displays",
+      "status": "pending",
+      "type": "react",
+      "phase": "activity-notifications"
+    },
+    {
+      "id": 143,
+      "name": "Build board activity feed",
+      "test": "Board-wide activity visible",
+      "status": "pending",
+      "type": "react",
+      "phase": "activity-notifications"
+    },
+    {
+      "id": 144,
+      "name": "Create Notification entity",
+      "test": "Notifications created for events",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "activity-notifications"
+    },
+    {
+      "id": 145,
+      "name": "Build notification dropdown in header",
+      "test": "Shows unread notifications",
+      "status": "pending",
+      "type": "react",
+      "phase": "activity-notifications"
+    },
+    {
+      "id": 146,
+      "name": "Implement notification preferences",
+      "test": "Users can control notifications",
+      "status": "pending",
+      "type": "both",
+      "phase": "activity-notifications"
+    },
+    {
+      "id": 147,
+      "name": "Build email notification system",
+      "test": "Emails sent for key events",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "activity-notifications"
+    },
+    {
+      "id": 148,
+      "name": "Implement push notifications",
+      "test": "Browser push notifications work",
+      "status": "pending",
+      "type": "both",
+      "phase": "activity-notifications"
+    },
+    {
+      "id": 149,
+      "name": "Implement board search functionality",
+      "test": "Can search cards on board",
+      "status": "completed",
+      "type": "react",
+      "phase": "search-filtering"
+    },
+    {
+      "id": 150,
+      "name": "Build global search across workspaces",
+      "test": "Search finds cards anywhere",
+      "status": "pending",
+      "type": "both",
+      "phase": "search-filtering"
+    },
+    {
+      "id": 151,
+      "name": "Implement advanced filters",
+      "test": "Multiple filters combine correctly",
+      "status": "pending",
+      "type": "react",
+      "phase": "search-filtering"
+    },
+    {
+      "id": 152,
+      "name": "Build saved filter/view feature",
+      "test": "Filters can be saved",
+      "status": "pending",
+      "type": "both",
+      "phase": "search-filtering"
+    },
+    {
+      "id": 153,
+      "name": "Implement search result highlighting",
+      "test": "Matches highlighted in results",
+      "status": "pending",
+      "type": "react",
+      "phase": "search-filtering"
+    },
+    {
+      "id": 154,
+      "name": "Build keyboard shortcuts for search",
+      "test": "Ctrl/Cmd+K opens search",
+      "status": "completed",
+      "type": "react",
+      "phase": "search-filtering"
+    },
+    {
+      "id": 155,
+      "name": "Map existing schema to Drupal entities",
+      "test": "Mapping document complete",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "data-migration"
+    },
+    {
+      "id": 156,
+      "name": "Create migration scripts for users",
+      "test": "Users imported correctly",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "data-migration"
+    },
+    {
+      "id": 157,
+      "name": "Create migration for workspaces",
+      "test": "Workspaces with members imported",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "data-migration"
+    },
+    {
+      "id": 158,
+      "name": "Create migration for boards and lists",
+      "test": "Board structure imported",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "data-migration"
+    },
+    {
+      "id": 159,
+      "name": "Create migration for cards with relationships",
+      "test": "Cards with labels, members imported",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "data-migration"
+    },
+    {
+      "id": 160,
+      "name": "Create migration for checklists and items",
+      "test": "Checklists fully imported",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "data-migration"
+    },
+    {
+      "id": 161,
+      "name": "Create migration for comments and activities",
+      "test": "Comment history preserved",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "data-migration"
+    },
+    {
+      "id": 162,
+      "name": "Create migration for attachments",
+      "test": "Files migrated to new storage",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "data-migration"
+    },
+    {
+      "id": 163,
+      "name": "Implement virtual scrolling for large boards",
+      "test": "1000+ cards scroll smoothly",
+      "status": "pending",
+      "type": "react",
+      "phase": "performance-polish"
+    },
+    {
+      "id": 164,
+      "name": "Add loading states and skeletons",
+      "test": "Loading states show appropriately",
+      "status": "pending",
+      "type": "react",
+      "phase": "performance-polish"
+    },
+    {
+      "id": 165,
+      "name": "Implement error boundaries",
+      "test": "Errors don't crash entire app",
+      "status": "pending",
+      "type": "react",
+      "phase": "performance-polish"
+    },
+    {
+      "id": 166,
+      "name": "Add keyboard navigation",
+      "test": "Can navigate with keyboard",
+      "status": "pending",
+      "type": "react",
+      "phase": "performance-polish"
+    },
+    {
+      "id": 167,
+      "name": "Implement accessibility (WCAG)",
+      "test": "Screen reader compatible",
+      "status": "pending",
+      "type": "react",
+      "phase": "performance-polish"
+    },
+    {
+      "id": 168,
+      "name": "Add responsive design for mobile",
+      "test": "Works on phone screens",
+      "status": "pending",
+      "type": "react",
+      "phase": "performance-polish"
+    },
+    {
+      "id": 169,
+      "name": "Implement dark mode",
+      "test": "Dark theme toggles correctly",
+      "status": "pending",
+      "type": "react",
+      "phase": "performance-polish"
+    },
+    {
+      "id": 170,
+      "name": "Add PWA support",
+      "test": "Can install as app",
+      "status": "pending",
+      "type": "react",
+      "phase": "performance-polish"
+    },
+    {
+      "id": 171,
+      "name": "Optimize bundle size",
+      "test": "Lighthouse performance >90",
+      "status": "pending",
+      "type": "react",
+      "phase": "performance-polish"
+    },
+    {
+      "id": 172,
+      "name": "Add comprehensive error handling",
+      "test": "Errors show helpful messages",
+      "status": "pending",
+      "type": "both",
+      "phase": "performance-polish"
+    },
+    {
+      "id": 173,
+      "name": "Implement rate limiting",
+      "test": "Excessive requests blocked",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "security-production"
+    },
+    {
+      "id": 174,
+      "name": "Add input validation and sanitization",
+      "test": "XSS attempts blocked",
+      "status": "pending",
+      "type": "both",
+      "phase": "security-production"
+    },
+    {
+      "id": 175,
+      "name": "Implement CSRF protection",
+      "test": "CSRF tokens validated",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "security-production"
+    },
+    {
+      "id": 176,
+      "name": "Add audit logging",
+      "test": "Security events logged",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "security-production"
+    },
+    {
+      "id": 177,
+      "name": "Set up production environment config",
+      "test": "Environment variables work",
+      "status": "pending",
+      "type": "both",
+      "phase": "security-production"
+    },
+    {
+      "id": 178,
+      "name": "Create deployment documentation",
+      "test": "Can deploy to production",
+      "status": "pending",
+      "type": "both",
+      "phase": "security-production"
+    },
+    {
+      "id": 179,
+      "name": "Set up monitoring and health checks",
+      "test": "Health endpoint responds",
+      "status": "pending",
+      "type": "both",
+      "phase": "security-production"
+    },
+    {
+      "id": 180,
+      "name": "Final testing and bug fixes",
+      "test": "All features work end-to-end",
+      "status": "pending",
+      "type": "both",
+      "phase": "security-production"
+    }
   ],
   "current_feature": null,
   "browser_retries": 0,

@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies: {}
+name: 'Checklist Item'
+type: checklist_item
+description: 'An item in a checklist in BoxTasks'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: true

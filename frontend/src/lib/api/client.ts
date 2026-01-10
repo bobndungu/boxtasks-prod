@@ -1,7 +1,12 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import axios from 'axios';
+import type { AxiosError, AxiosRequestConfig } from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 const API_BASE_PATH = import.meta.env.VITE_API_BASE_PATH || '/jsonapi';
+
+// OAuth configuration
+const OAUTH_CLIENT_ID = import.meta.env.VITE_OAUTH_CLIENT_ID || 'boxtasks-frontend';
+const OAUTH_CLIENT_SECRET = import.meta.env.VITE_OAUTH_CLIENT_SECRET || 'boxtasks-secret';
 
 // Create axios instance for JSON:API
 export const apiClient = axios.create({
@@ -30,6 +35,91 @@ export const getAccessToken = (): string | null => {
   return localStorage.getItem('access_token');
 };
 
+export const getRefreshToken = (): string | null => {
+  return localStorage.getItem('refresh_token');
+};
+
+export const setRefreshToken = (token: string | null) => {
+  if (token) {
+    localStorage.setItem('refresh_token', token);
+  } else {
+    localStorage.removeItem('refresh_token');
+  }
+};
+
+// OAuth token response interface
+interface OAuthTokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+}
+
+// Login with username and password
+export async function login(username: string, password: string): Promise<OAuthTokenResponse> {
+  const response = await axios.post<OAuthTokenResponse>(
+    `${API_URL}/oauth/token`,
+    new URLSearchParams({
+      grant_type: 'password',
+      client_id: OAUTH_CLIENT_ID,
+      client_secret: OAUTH_CLIENT_SECRET,
+      username,
+      password,
+    }),
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  );
+
+  const { access_token, refresh_token } = response.data;
+  setAccessToken(access_token);
+  setRefreshToken(refresh_token);
+
+  return response.data;
+}
+
+// Refresh the access token
+export async function refreshAccessToken(): Promise<OAuthTokenResponse | null> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return null;
+
+  try {
+    const response = await axios.post<OAuthTokenResponse>(
+      `${API_URL}/oauth/token`,
+      new URLSearchParams({
+        grant_type: 'refresh_token',
+        client_id: OAUTH_CLIENT_ID,
+        client_secret: OAUTH_CLIENT_SECRET,
+        refresh_token: refreshToken,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
+
+    const { access_token, refresh_token: newRefreshToken } = response.data;
+    setAccessToken(access_token);
+    setRefreshToken(newRefreshToken);
+
+    return response.data;
+  } catch {
+    // Refresh token is invalid, clear tokens
+    setAccessToken(null);
+    setRefreshToken(null);
+    return null;
+  }
+}
+
+// Logout - clear all tokens
+export function logout(): void {
+  setAccessToken(null);
+  setRefreshToken(null);
+}
+
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config) => {
@@ -42,13 +132,25 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling with token refresh
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Token expired, try to refresh or redirect to login
-      setAccessToken(null);
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      // Try to refresh the token
+      const newTokens = await refreshAccessToken();
+      if (newTokens) {
+        // Retry the original request with new token
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${newTokens.access_token}`;
+        return apiClient(originalRequest);
+      }
+
+      // Refresh failed, redirect to login
       window.location.href = '/login';
     }
     return Promise.reject(error);

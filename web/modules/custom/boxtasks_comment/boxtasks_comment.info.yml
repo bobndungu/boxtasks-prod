@@ -1,0 +1,8 @@
+name: 'BoxTasks Comment'
+type: module
+description: 'Provides card comment functionality for BoxTasks'
+core_version_requirement: ^10 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - jsonapi:jsonapi

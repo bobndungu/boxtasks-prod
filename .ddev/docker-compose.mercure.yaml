@@ -1,0 +1,26 @@
+version: '3.6'
+
+services:
+  mercure:
+    image: dunglas/mercure:latest
+    container_name: ddev-${DDEV_SITENAME}-mercure
+    restart: "no"
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: $DDEV_APPROOT
+    environment:
+      # Mercure configuration
+      SERVER_NAME: ':80'
+      MERCURE_PUBLISHER_JWT_KEY: 'boxtasks2-mercure-publisher-secret-key-change-in-production'
+      MERCURE_SUBSCRIBER_JWT_KEY: 'boxtasks2-mercure-subscriber-secret-key-change-in-production'
+      MERCURE_EXTRA_DIRECTIVES: |
+        cors_origins http://localhost:5173 http://localhost:5174 http://localhost:5175 https://boxtasks2.ddev.site
+        anonymous
+        subscriptions
+    ports:
+      - "3000:80"
+    expose:
+      - "80"
+    networks:
+      - default
+      - ddev_default

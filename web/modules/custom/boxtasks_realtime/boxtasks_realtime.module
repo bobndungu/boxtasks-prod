@@ -1,0 +1,119 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for BoxTasks Real-time module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_entity_insert().
+ */
+function boxtasks_realtime_entity_insert(EntityInterface $entity) {
+  if (!$entity instanceof NodeInterface) {
+    return;
+  }
+
+  $publisher = \Drupal::service('boxtasks_realtime.mercure_publisher');
+
+  switch ($entity->bundle()) {
+    case 'card':
+      $publisher->publishCardEvent($entity, 'card.created');
+      break;
+
+    case 'board_list':
+      $publisher->publishListEvent($entity, 'list.created');
+      break;
+
+    case 'card_comment':
+      $publisher->publishCommentEvent($entity, 'comment.created');
+      break;
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function boxtasks_realtime_entity_update(EntityInterface $entity) {
+  if (!$entity instanceof NodeInterface) {
+    return;
+  }
+
+  $publisher = \Drupal::service('boxtasks_realtime.mercure_publisher');
+
+  switch ($entity->bundle()) {
+    case 'card':
+      // Check if card was moved (list changed)
+      $original = $entity->original ?? NULL;
+      if ($original) {
+        $oldListId = $original->hasField('field_card_list') && !$original->get('field_card_list')->isEmpty()
+          ? $original->get('field_card_list')->entity?->uuid()
+          : NULL;
+        $newListId = $entity->hasField('field_card_list') && !$entity->get('field_card_list')->isEmpty()
+          ? $entity->get('field_card_list')->entity?->uuid()
+          : NULL;
+
+        if ($oldListId && $newListId && $oldListId !== $newListId) {
+          $position = $entity->hasField('field_card_position')
+            ? (int) $entity->get('field_card_position')->value
+            : 0;
+          $publisher->publishCardMoved($entity, $oldListId, $newListId, $position);
+          return;
+        }
+      }
+      $publisher->publishCardEvent($entity, 'card.updated');
+      break;
+
+    case 'board_list':
+      $publisher->publishListEvent($entity, 'list.updated');
+      break;
+
+    case 'card_comment':
+      $publisher->publishCommentEvent($entity, 'comment.updated');
+      break;
+  }
+}
+
+/**
+ * Implements hook_entity_predelete().
+ */
+function boxtasks_realtime_entity_predelete(EntityInterface $entity) {
+  if (!$entity instanceof NodeInterface) {
+    return;
+  }
+
+  $publisher = \Drupal::service('boxtasks_realtime.mercure_publisher');
+
+  switch ($entity->bundle()) {
+    case 'card':
+      // Get board ID before deletion
+      $boardId = NULL;
+      if ($entity->hasField('field_card_list') && !$entity->get('field_card_list')->isEmpty()) {
+        $list = $entity->get('field_card_list')->entity;
+        if ($list && $list->hasField('field_list_board') && !$list->get('field_list_board')->isEmpty()) {
+          $boardId = $list->get('field_list_board')->entity?->uuid();
+        }
+      }
+      if ($boardId) {
+        $publisher->publishCardDeleted($entity->uuid(), $boardId);
+      }
+      break;
+
+    case 'board_list':
+      // Get board ID before deletion
+      $boardId = NULL;
+      if ($entity->hasField('field_list_board') && !$entity->get('field_list_board')->isEmpty()) {
+        $boardId = $entity->get('field_list_board')->entity?->uuid();
+      }
+      if ($boardId) {
+        $publisher->publishListDeleted($entity->uuid(), $boardId);
+      }
+      break;
+
+    case 'card_comment':
+      $publisher->publishCommentEvent($entity, 'comment.deleted');
+      break;
+  }
+}
