@@ -1032,7 +1032,7 @@
       "id": 128,
       "name": "Build timeline/Gantt view component",
       "test": "Cards show as timeline bars",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "views-system"
     },
