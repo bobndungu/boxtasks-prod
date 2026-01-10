@@ -94,23 +94,23 @@ export function DefaultErrorFallback({
   showDetails = false,
 }: DefaultErrorFallbackProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[300px] p-8 text-center">
-      <div className="bg-red-50 rounded-full p-4 mb-4">
-        <AlertTriangle className="h-12 w-12 text-red-500" />
+    <div className="flex flex-col items-center justify-center min-h-[300px] p-8 text-center bg-gray-50 dark:bg-gray-900">
+      <div className="bg-red-50 dark:bg-red-900/20 rounded-full p-4 mb-4">
+        <AlertTriangle className="h-12 w-12 text-red-500 dark:text-red-400" />
       </div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
         Something went wrong
       </h2>
-      <p className="text-gray-600 mb-6 max-w-md">
+      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
         We encountered an unexpected error. Please try again or refresh the page.
       </p>
 
       {showDetails && error && (
         <details className="mb-6 w-full max-w-md text-left">
-          <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+          <summary className="cursor-pointer text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
             Error details
           </summary>
-          <pre className="mt-2 p-4 bg-gray-100 rounded-lg text-xs text-gray-700 overflow-auto">
+          <pre className="mt-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs text-gray-700 dark:text-gray-300 overflow-auto">
             {error.message}
             {'\n\n'}
             {error.stack}
@@ -130,7 +130,7 @@ export function DefaultErrorFallback({
         )}
         <a
           href="/dashboard"
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
         >
           <Home className="h-4 w-4" />
           Go to Dashboard
@@ -194,15 +194,15 @@ export class BoardErrorBoundary extends Component<BoardErrorBoundaryProps, Board
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-          <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
-            <div className="bg-red-50 rounded-full p-4 w-fit mx-auto mb-4">
-              <AlertTriangle className="h-10 w-10 text-red-500" />
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-900/50 p-8 max-w-md w-full text-center">
+            <div className="bg-red-50 dark:bg-red-900/20 rounded-full p-4 w-fit mx-auto mb-4">
+              <AlertTriangle className="h-10 w-10 text-red-500 dark:text-red-400" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               Board Loading Error
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               {this.state.error?.message || 'Failed to load the board. Please try again.'}
             </p>
 
@@ -215,14 +215,14 @@ export class BoardErrorBoundary extends Component<BoardErrorBoundaryProps, Board
                 Retry ({3 - this.state.retryCount} attempts left)
               </button>
             ) : (
-              <p className="text-sm text-red-600 mb-3">
+              <p className="text-sm text-red-600 dark:text-red-400 mb-3">
                 Maximum retry attempts reached.
               </p>
             )}
 
             <a
               href="/dashboard"
-              className="block w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              className="block w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               Return to Dashboard
             </a>
@@ -278,18 +278,18 @@ export class CardErrorBoundary extends Component<CardErrorBoundaryProps, CardErr
     if (this.state.hasError) {
       return (
         <div className="p-6 text-center">
-          <div className="bg-red-50 rounded-full p-3 w-fit mx-auto mb-4">
-            <AlertTriangle className="h-8 w-8 text-red-500" />
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-full p-3 w-fit mx-auto mb-4">
+            <AlertTriangle className="h-8 w-8 text-red-500 dark:text-red-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Error Loading Card
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             {this.state.error?.message || 'Failed to load card details.'}
           </p>
           <button
             onClick={this.props.onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
           >
             Close
           </button>
