@@ -20,6 +20,27 @@ export const apiClient = axios.create({
 
 // Token management
 let accessToken: string | null = null;
+let csrfToken: string | null = null;
+
+// CSRF token management for session-based authentication
+export const getCsrfToken = async (): Promise<string | null> => {
+  if (csrfToken) return csrfToken;
+
+  try {
+    const response = await axios.get(`${API_URL}/session/token`, {
+      withCredentials: true,
+    });
+    csrfToken = response.data;
+    return csrfToken;
+  } catch {
+    console.warn('Failed to fetch CSRF token');
+    return null;
+  }
+};
+
+export const clearCsrfToken = (): void => {
+  csrfToken = null;
+};
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
@@ -118,15 +139,26 @@ export async function refreshAccessToken(): Promise<OAuthTokenResponse | null> {
 export function logout(): void {
   setAccessToken(null);
   setRefreshToken(null);
+  clearCsrfToken();
 }
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and CSRF token
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Add CSRF token for state-changing requests
+    const method = config.method?.toUpperCase();
+    if (method && ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
+      const csrf = await getCsrfToken();
+      if (csrf) {
+        config.headers['X-CSRF-Token'] = csrf;
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -136,8 +168,25 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean; _csrfRetry?: boolean };
 
+    // Handle CSRF token errors (403 with CSRF message)
+    if (error.response?.status === 403 && !originalRequest._csrfRetry) {
+      const errorData = error.response.data as { message?: string } | undefined;
+      if (errorData?.message?.toLowerCase().includes('csrf')) {
+        originalRequest._csrfRetry = true;
+        clearCsrfToken();
+
+        // Get fresh CSRF token and retry
+        const freshCsrf = await getCsrfToken();
+        if (freshCsrf && originalRequest.headers) {
+          originalRequest.headers['X-CSRF-Token'] = freshCsrf;
+          return apiClient(originalRequest);
+        }
+      }
+    }
+
+    // Handle authentication errors
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 

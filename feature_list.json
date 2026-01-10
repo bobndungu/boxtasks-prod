@@ -1400,7 +1400,7 @@
       "id": 174,
       "name": "Add input validation and sanitization",
       "test": "XSS attempts blocked",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "security-production"
     },
