@@ -1064,7 +1064,7 @@
       "id": 132,
       "name": "Build view customization options",
       "test": "Views can be configured",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "views-system"
     },
