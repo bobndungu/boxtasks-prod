@@ -1,0 +1,11 @@
+name: 'BoxTasks Custom Fields'
+type: module
+description: 'Provides Custom Field definitions for BoxTasks boards'
+core_version_requirement: ^10.3 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - drupal:field
+  - drupal:text
+  - drupal:options
+  - boxtasks_board:boxtasks_board

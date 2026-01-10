@@ -1,0 +1,28 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_customfield_board
+    - node.type.board
+    - node.type.custom_field_definition
+id: node.custom_field_definition.field_customfield_board
+field_name: field_customfield_board
+entity_type: node
+bundle: custom_field_definition
+label: Board
+description: 'The board this custom field belongs to'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      board: board
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

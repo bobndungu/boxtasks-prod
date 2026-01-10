@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - boxtasks_customfield
+third_party_settings: {  }
+name: 'Custom Field Definition'
+type: custom_field_definition
+description: 'Defines custom fields that can be added to cards within a board'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false
