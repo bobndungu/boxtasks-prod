@@ -16,11 +16,14 @@ import { useWorkspaceStore } from '../lib/stores/workspace';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
 import SearchModal from '../components/SearchModal';
 import NotificationDropdown from '../components/NotificationDropdown';
+import MobileNav, { MobileBottomNav } from '../components/MobileNav';
+import { useIsMobile } from '../lib/hooks/useMediaQuery';
 
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
   const { workspaces } = useWorkspaceStore();
   const [showSearch, setShowSearch] = useState(false);
+  const isMobile = useIsMobile();
 
   // Keyboard shortcut for search (Cmd+K or Ctrl+K)
   useEffect(() => {
@@ -39,9 +42,12 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50 pb-16 md:pb-0">
+      {/* Mobile Navigation */}
+      {isMobile && <MobileNav onSearchClick={() => setShowSearch(true)} />}
+
+      {/* Desktop Header */}
+      <header className="hidden md:block bg-white border-b border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo & Navigation */}
@@ -110,7 +116,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main id="main-content" className="container mx-auto px-4 py-8" role="main" aria-label="Dashboard content">
+      <main id="main-content" className="container mx-auto px-4 py-4 md:py-8" role="main" aria-label="Dashboard content">
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-1">
@@ -119,7 +125,7 @@ export default function Dashboard() {
           <p className="text-gray-500">Here's what's happening in your workspaces</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {/* Left Column - Boards */}
           <div className="lg:col-span-2 space-y-6">
             {/* Starred Boards */}
@@ -249,6 +255,9 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      {isMobile && <MobileBottomNav />}
 
       {/* Search Modal */}
       <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
