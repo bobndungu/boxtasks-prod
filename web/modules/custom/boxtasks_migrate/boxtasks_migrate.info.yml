@@ -1,0 +1,9 @@
+name: 'BoxTasks Migration'
+type: module
+description: 'Migration scripts for importing data from BoxTasks PostgreSQL database'
+core_version_requirement: ^10 || ^11
+package: BoxTasks
+dependencies:
+  - migrate
+  - migrate_plus
+  - migrate_tools

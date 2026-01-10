@@ -1,0 +1,93 @@
+id: boxtasks_users
+label: 'BoxTasks Users'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - users
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      id,
+      email,
+      email_verified,
+      name,
+      avatar_url,
+      password_hash,
+      is_premium,
+      created_at,
+      updated_at
+    FROM users
+    ORDER BY created_at ASC
+  ids:
+    id:
+      type: string
+
+process:
+  # Store original UUID for reference
+  field_original_uuid: id
+
+  # Email becomes username (sanitized) and mail
+  name:
+    plugin: callback
+    callable: 'Drupal\boxtasks_migrate\Plugin\migrate\process\EmailToUsername::transform'
+    source: email
+  mail: email
+
+  # Display name
+  field_display_name:
+    plugin: default_value
+    default_value: ''
+    source: name
+
+  # Email verified status
+  field_email_verified:
+    plugin: default_value
+    default_value: 0
+    source: email_verified
+
+  # Premium status
+  field_is_premium:
+    plugin: default_value
+    default_value: 0
+    source: is_premium
+
+  # Password - migrate hash or set random
+  pass:
+    plugin: callback
+    callable: 'Drupal\boxtasks_migrate\Plugin\migrate\process\PasswordMigrate::transform'
+    source: password_hash
+
+  # Avatar URL to user picture (if needed)
+  # user_picture:
+  #   plugin: file_import
+  #   source: avatar_url
+
+  # Status - all users are active
+  status:
+    plugin: default_value
+    default_value: 1
+
+  # Timestamps
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+
+destination:
+  plugin: entity:user
+  # Preserve email uniqueness
+  overwrite_properties:
+    - mail
+    - field_display_name
+    - field_email_verified
+    - field_is_premium
+
+migration_dependencies: {}

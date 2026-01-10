@@ -1,0 +1,10 @@
+id: boxtasks
+label: BoxTasks Migration
+description: 'Import data from BoxTasks PostgreSQL database'
+source_type: PostgreSQL Database
+module: boxtasks_migrate
+shared_configuration:
+  source:
+    # Database connection - uses 'migrate' key from settings.php
+    key: migrate
+    target: default

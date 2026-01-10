@@ -1256,7 +1256,7 @@
       "id": 156,
       "name": "Create migration scripts for users",
       "test": "Users imported correctly",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "data-migration"
     },

@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * BoxTasks Migration module.
+ *
+ * Provides migration scripts for importing data from BoxTasks PostgreSQL database.
+ */
+
+use Drupal\migrate\MigrateExecutableInterface;
+use Drupal\migrate\Plugin\MigrationInterface;
+
+/**
+ * Implements hook_migrate_prepare_row().
+ */
+function boxtasks_migrate_migrate_prepare_row($row, MigrateSourceInterface $source, MigrationInterface $migration) {
+  // Add any row-level transformations here
+  if ($migration->id() === 'boxtasks_users') {
+    // Log migration progress for debugging
+    $email = $row->getSourceProperty('email');
+    \Drupal::logger('boxtasks_migrate')->info('Migrating user: @email', ['@email' => $email]);
+  }
+}

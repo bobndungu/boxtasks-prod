@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_is_premium
+  module:
+    - user
+id: user.user.field_is_premium
+field_name: field_is_premium
+entity_type: user
+bundle: user
+label: 'Premium User'
+description: 'Whether this user has a premium subscription.'
+required: false
+translatable: false
+default_value:
+  - value: false
+default_value_callback: ''
+settings:
+  on_label: 'Premium'
+  off_label: 'Free'
+field_type: boolean
