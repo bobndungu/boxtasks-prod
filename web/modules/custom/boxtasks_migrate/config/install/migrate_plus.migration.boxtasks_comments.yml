@@ -1,0 +1,82 @@
+id: boxtasks_comments
+label: 'BoxTasks Comments'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - comments
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      c.id,
+      c.card_id,
+      c.user_id,
+      c.content,
+      c.mentions,
+      c.created_at,
+      c.updated_at
+    FROM comments c
+    INNER JOIN cards ca ON c.card_id = ca.id
+    INNER JOIN boards b ON ca.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY c.created_at ASC
+  ids:
+    id:
+      type: string
+
+process:
+  type:
+    plugin: default_value
+    default_value: card_comment
+
+  # Store original UUID
+  field_original_uuid: id
+
+  # Card reference
+  field_comment_card:
+    plugin: migration_lookup
+    migration: boxtasks_cards
+    source: card_id
+
+  # Comment text content
+  field_comment_text: content
+
+  # Mentions JSON data (stored as string)
+  field_comment_mentions:
+    plugin: callback
+    callable: json_encode
+    source: mentions
+    unpack_source: false
+
+  # Author (uid)
+  uid:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: user_id
+    no_stub: true
+
+  # Status - published
+  status:
+    plugin: default_value
+    default_value: 1
+
+  # Timestamps
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+
+destination:
+  plugin: entity:node
+
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_cards

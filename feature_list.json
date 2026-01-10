@@ -1296,7 +1296,7 @@
       "id": 161,
       "name": "Create migration for comments and activities",
       "test": "Comment history preserved",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "data-migration"
     },

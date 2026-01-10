@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_comment_mentions
+    - node.type.card_comment
+id: node.card_comment.field_comment_mentions
+field_name: field_comment_mentions
+entity_type: node
+bundle: card_comment
+label: 'Mentions'
+description: 'JSON array of mentioned user IDs.'
+required: false
+translatable: false
+default_value: []
+default_value_callback: ''
+settings: {}
+field_type: string_long
