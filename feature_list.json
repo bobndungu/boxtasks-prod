@@ -1016,7 +1016,7 @@
       "id": 126,
       "name": "Create Board View entity",
       "test": "View configurations saved",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "views-system"
     },
