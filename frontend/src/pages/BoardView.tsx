@@ -80,6 +80,7 @@ import { ActiveUsers } from '../components/ActiveUsers';
 import { useAuthStore } from '../lib/stores/auth';
 import { toast } from '../lib/stores/toast';
 import { CustomFieldsManager } from '../components/CustomFieldsManager';
+import { fetchCustomFieldsByBoard, fetchCardCustomFieldValues, type CustomFieldDefinition, type CustomFieldValue } from '../lib/api/customFields';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
   green: '#61bd4f',
@@ -145,6 +146,10 @@ export default function BoardView() {
 
   // Custom fields manager state
   const [showCustomFields, setShowCustomFields] = useState(false);
+
+  // Custom field data for cards display
+  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
+  const [customFieldValues, setCustomFieldValues] = useState<Map<string, CustomFieldValue[]>>(new Map());
 
   // Optimistic UI updates
   const cardOptimistic = useOptimistic<Map<string, Card[]>>();
@@ -451,6 +456,27 @@ export default function BoardView() {
         cardsMap.set(list.id, cards);
       }
       setCardsByList(cardsMap);
+
+      // Load custom field definitions for the board
+      try {
+        const fieldDefs = await fetchCustomFieldsByBoard(id);
+        setCustomFieldDefs(fieldDefs);
+
+        // Load custom field values for all cards
+        if (fieldDefs.length > 0) {
+          const allCards = Array.from(cardsMap.values()).flat();
+          const valuesMap = new Map<string, CustomFieldValue[]>();
+          for (const card of allCards) {
+            const values = await fetchCardCustomFieldValues(card.id);
+            if (values.length > 0) {
+              valuesMap.set(card.id, values);
+            }
+          }
+          setCustomFieldValues(valuesMap);
+        }
+      } catch (cfErr) {
+        console.error('Failed to load custom fields:', cfErr);
+      }
 
       // Load workspace members for @mentions
       if (board.workspaceId) {
@@ -1474,6 +1500,8 @@ export default function BoardView() {
                   onOpenTemplatePicker={handleOpenTemplatePicker}
                   collapsedLists={collapsedLists}
                   toggleCollapse={toggleListCollapse}
+                  customFieldDefs={customFieldDefs}
+                  customFieldValues={customFieldValues}
                 />
               ))}
             </SortableContext>
@@ -1787,6 +1815,8 @@ function SortableList({
   onOpenTemplatePicker,
   collapsedLists,
   toggleCollapse,
+  customFieldDefs,
+  customFieldValues,
 }: {
   list: BoardList;
   cards: Card[];
@@ -1804,6 +1834,8 @@ function SortableList({
   onOpenTemplatePicker: (listId: string) => void;
   collapsedLists: Set<string>;
   toggleCollapse: (listId: string) => void;
+  customFieldDefs: CustomFieldDefinition[];
+  customFieldValues: Map<string, CustomFieldValue[]>;
 }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(list.title);
@@ -2082,6 +2114,8 @@ function SortableList({
                   e.stopPropagation();
                   onCardClick(card);
                 }}
+                customFieldDefs={customFieldDefs}
+                cardCustomFieldValues={customFieldValues.get(card.id) || []}
               />
             ))}
           </SortableContext>
@@ -2159,12 +2193,16 @@ function SortableCard({
   onQuickComplete,
   onQuickArchive,
   onQuickEdit,
+  customFieldDefs,
+  cardCustomFieldValues,
 }: {
   card: Card;
   onClick: () => void;
   onQuickComplete: (e: React.MouseEvent) => void;
   onQuickArchive: (e: React.MouseEvent) => void;
   onQuickEdit: (e: React.MouseEvent) => void;
+  customFieldDefs: CustomFieldDefinition[];
+  cardCustomFieldValues: CustomFieldValue[];
 }) {
   const [showQuickActions, setShowQuickActions] = useState(false);
 
@@ -2294,6 +2332,35 @@ function SortableCard({
             {card.members.length > 3 && (
               <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs font-medium">
                 +{card.members.length - 3}
+              </div>
+            )}
+          </div>
+        )}
+        {/* Custom Fields */}
+        {cardCustomFieldValues.length > 0 && customFieldDefs.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {cardCustomFieldValues.slice(0, 2).map((cfv) => {
+              const fieldDef = customFieldDefs.find((d) => d.id === cfv.definitionId);
+              if (!fieldDef || !cfv.value) return null;
+
+              // Format value based on type
+              let displayValue = cfv.value;
+              if (fieldDef.type === 'date' && cfv.value) {
+                displayValue = new Date(cfv.value).toLocaleDateString();
+              } else if (fieldDef.type === 'checkbox') {
+                displayValue = cfv.value === 'true' ? 'Yes' : 'No';
+              }
+
+              return (
+                <div key={cfv.id} className="flex items-center text-xs text-gray-500">
+                  <span className="font-medium text-gray-600 truncate max-w-[60px]">{fieldDef.title}:</span>
+                  <span className="ml-1 truncate">{displayValue}</span>
+                </div>
+              );
+            })}
+            {cardCustomFieldValues.length > 2 && (
+              <div className="text-xs text-gray-400">
+                +{cardCustomFieldValues.length - 2} more fields
               </div>
             )}
           </div>
