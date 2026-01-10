@@ -1208,7 +1208,7 @@
       "id": 150,
       "name": "Build global search across workspaces",
       "test": "Search finds cards anywhere",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "search-filtering"
     },
