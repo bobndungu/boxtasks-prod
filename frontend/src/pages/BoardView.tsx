@@ -151,6 +151,14 @@ export default function BoardView() {
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<Map<string, CustomFieldValue[]>>(new Map());
 
+  // Custom field filter state
+  interface CustomFieldFilterItem {
+    definitionId: string;
+    value: string;
+  }
+  const [customFieldFilter, setCustomFieldFilter] = useState<CustomFieldFilterItem[]>([]);
+  const [showCustomFieldFilter, setShowCustomFieldFilter] = useState(false);
+
   // Optimistic UI updates
   const cardOptimistic = useOptimistic<Map<string, Card[]>>();
   const listOptimistic = useOptimistic<BoardList[]>();
@@ -368,13 +376,14 @@ export default function BoardView() {
   // User presence tracking
   const { activeUsers, handlePresenceUpdate } = usePresence({ boardId: id, enabled: !!id });
 
-  // Filter cards based on search query, label filter, and member filter
+  // Filter cards based on search query, label filter, member filter, and custom field filter
   const filteredCardsByList = useMemo(() => {
     const hasSearchQuery = searchQuery.trim().length > 0;
     const hasLabelFilter = labelFilter.length > 0;
     const hasMemberFilter = memberFilter.length > 0;
+    const hasCustomFieldFilter = customFieldFilter.length > 0;
 
-    if (!hasSearchQuery && !hasLabelFilter && !hasMemberFilter) return cardsByList;
+    if (!hasSearchQuery && !hasLabelFilter && !hasMemberFilter && !hasCustomFieldFilter) return cardsByList;
 
     const query = searchQuery.toLowerCase();
     const filtered = new Map<string, Card[]>();
@@ -394,13 +403,30 @@ export default function BoardView() {
         const matchesMember = !hasMemberFilter ||
           memberFilter.some((memberId) => card.memberIds?.includes(memberId));
 
-        return matchesSearch && matchesLabel && matchesMember;
+        // Check custom field filter (all filter conditions must match)
+        let matchesCustomField = true;
+        if (hasCustomFieldFilter) {
+          const cardCfValues = customFieldValues.get(card.id) || [];
+          matchesCustomField = customFieldFilter.every((filterItem) => {
+            const cardValue = cardCfValues.find((v) => v.definitionId === filterItem.definitionId);
+            if (!cardValue) return false;
+            // For checkbox fields, compare boolean string
+            const fieldDef = customFieldDefs.find((d) => d.id === filterItem.definitionId);
+            if (fieldDef?.type === 'checkbox') {
+              return cardValue.value === filterItem.value;
+            }
+            // For other fields, case-insensitive contains match
+            return cardValue.value.toLowerCase().includes(filterItem.value.toLowerCase());
+          });
+        }
+
+        return matchesSearch && matchesLabel && matchesMember && matchesCustomField;
       });
       filtered.set(listId, matchingCards);
     }
 
     return filtered;
-  }, [cardsByList, searchQuery, labelFilter, memberFilter]);
+  }, [cardsByList, searchQuery, labelFilter, memberFilter, customFieldFilter, customFieldValues, customFieldDefs]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -1361,6 +1387,113 @@ export default function BoardView() {
                   </div>
                 )}
               </div>
+              {/* Custom Field Filter */}
+              {customFieldDefs.length > 0 && (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowCustomFieldFilter(!showCustomFieldFilter)}
+                    className={`px-3 py-1.5 rounded flex items-center text-sm ${
+                      customFieldFilter.length > 0 ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Custom
+                    {customFieldFilter.length > 0 && (
+                      <span className="ml-1 bg-white/30 rounded-full px-1.5 text-xs">
+                        {customFieldFilter.length}
+                      </span>
+                    )}
+                  </button>
+                  {showCustomFieldFilter && (
+                    <div className="absolute top-full right-0 mt-1 w-72 bg-white rounded-lg shadow-lg py-2 z-50">
+                      <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase">
+                        Filter by Custom Fields
+                      </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {customFieldDefs.map((fieldDef) => {
+                          const existingFilter = customFieldFilter.find((f) => f.definitionId === fieldDef.id);
+                          return (
+                            <div key={fieldDef.id} className="px-3 py-2 border-b border-gray-100 last:border-b-0">
+                              <div className="text-sm font-medium text-gray-700 mb-1">{fieldDef.title}</div>
+                              {fieldDef.type === 'dropdown' ? (
+                                <select
+                                  value={existingFilter?.value || ''}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === '') {
+                                      setCustomFieldFilter(customFieldFilter.filter((f) => f.definitionId !== fieldDef.id));
+                                    } else {
+                                      const newFilter = customFieldFilter.filter((f) => f.definitionId !== fieldDef.id);
+                                      newFilter.push({ definitionId: fieldDef.id, value });
+                                      setCustomFieldFilter(newFilter);
+                                    }
+                                  }}
+                                  className="w-full px-2 py-1.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="">All</option>
+                                  {fieldDef.options.map((opt) => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                  ))}
+                                </select>
+                              ) : fieldDef.type === 'checkbox' ? (
+                                <select
+                                  value={existingFilter?.value || ''}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === '') {
+                                      setCustomFieldFilter(customFieldFilter.filter((f) => f.definitionId !== fieldDef.id));
+                                    } else {
+                                      const newFilter = customFieldFilter.filter((f) => f.definitionId !== fieldDef.id);
+                                      newFilter.push({ definitionId: fieldDef.id, value });
+                                      setCustomFieldFilter(newFilter);
+                                    }
+                                  }}
+                                  className="w-full px-2 py-1.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="">All</option>
+                                  <option value="true">Yes</option>
+                                  <option value="false">No</option>
+                                </select>
+                              ) : (
+                                <input
+                                  type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'}
+                                  value={existingFilter?.value || ''}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === '') {
+                                      setCustomFieldFilter(customFieldFilter.filter((f) => f.definitionId !== fieldDef.id));
+                                    } else {
+                                      const newFilter = customFieldFilter.filter((f) => f.definitionId !== fieldDef.id);
+                                      newFilter.push({ definitionId: fieldDef.id, value });
+                                      setCustomFieldFilter(newFilter);
+                                    }
+                                  }}
+                                  placeholder={`Filter by ${fieldDef.title.toLowerCase()}...`}
+                                  className="w-full px-2 py-1.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {customFieldFilter.length > 0 && (
+                        <>
+                          <div className="border-t my-1" />
+                          <button
+                            onClick={() => {
+                              setCustomFieldFilter([]);
+                              setShowCustomFieldFilter(false);
+                            }}
+                            className="w-full px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 text-left"
+                          >
+                            Clear all filters
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
               <button className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded flex items-center text-sm">
                 <Users className="h-4 w-4 mr-2" />
                 Share
@@ -1463,6 +1596,47 @@ export default function BoardView() {
           <button
             onClick={() => setLabelFilter([])}
             className="text-blue-800 hover:text-blue-900 underline"
+          >
+            Clear filter
+          </button>
+        </div>
+      )}
+
+      {/* Custom Field Filter Banner */}
+      {customFieldFilter.length > 0 && (
+        <div className="bg-purple-100 text-purple-800 px-4 py-2 text-sm flex items-center justify-between">
+          <div className="flex items-center flex-wrap gap-2">
+            <Settings className="h-4 w-4 mr-1" />
+            <span>Filtering by custom fields: </span>
+            {customFieldFilter.map((filter) => {
+              const fieldDef = customFieldDefs.find((d) => d.id === filter.definitionId);
+              if (!fieldDef) return null;
+              let displayValue = filter.value;
+              if (fieldDef.type === 'checkbox') {
+                displayValue = filter.value === 'true' ? 'Yes' : 'No';
+              }
+              return (
+                <span
+                  key={filter.definitionId}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-200 rounded text-xs"
+                >
+                  <strong>{fieldDef.title}:</strong> {displayValue}
+                  <button
+                    onClick={() => setCustomFieldFilter(customFieldFilter.filter((f) => f.definitionId !== filter.definitionId))}
+                    className="text-purple-600 hover:text-purple-800"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              );
+            })}
+            <span className="ml-2">
+              — {Array.from(filteredCardsByList.values()).reduce((sum, cards) => sum + cards.length, 0)} cards
+            </span>
+          </div>
+          <button
+            onClick={() => setCustomFieldFilter([])}
+            className="text-purple-800 hover:text-purple-900 underline"
           >
             Clear filter
           </button>
