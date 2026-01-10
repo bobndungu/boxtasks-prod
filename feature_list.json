@@ -976,7 +976,7 @@
       "id": 121,
       "name": "Build custom field management UI",
       "test": "Can create/edit field definitions",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "custom-fields"
     },
@@ -984,7 +984,7 @@
       "id": 122,
       "name": "Implement custom field display on cards",
       "test": "Fields show on card front",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "custom-fields"
     },
@@ -992,7 +992,7 @@
       "id": 123,
       "name": "Build custom field editing in modal",
       "test": "Can set/edit field values",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "custom-fields"
     },
@@ -1000,7 +1000,7 @@
       "id": 124,
       "name": "Implement dropdown option management",
       "test": "Can define dropdown options",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "custom-fields"
     },
