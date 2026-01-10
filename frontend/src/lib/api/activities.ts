@@ -4,14 +4,31 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
 export type ActivityType =
   | 'card_created'
-  | 'card_moved'
   | 'card_updated'
-  | 'description_updated'
-  | 'due_date_updated'
+  | 'card_moved'
+  | 'card_completed'
+  | 'card_archived'
+  | 'card_restored'
+  | 'card_deleted'
+  | 'list_created'
+  | 'list_updated'
+  | 'list_archived'
   | 'comment_added'
-  | 'attachment_added'
+  | 'comment_updated'
+  | 'comment_deleted'
+  | 'member_added'
+  | 'member_removed'
+  | 'label_added'
+  | 'label_removed'
+  | 'due_date_set'
+  | 'due_date_removed'
   | 'checklist_added'
-  | 'checklist_item_completed';
+  | 'checklist_item_completed'
+  | 'checklist_item_uncompleted'
+  | 'attachment_added'
+  | 'attachment_removed'
+  | 'description_updated'
+  | 'due_date_updated';
 
 export interface Activity {
   id: string;
@@ -56,14 +73,31 @@ function transformActivity(data: Record<string, unknown>, included?: Record<stri
 export function getActivityDisplay(type: ActivityType): { icon: string; label: string } {
   const displays: Record<ActivityType, { icon: string; label: string }> = {
     card_created: { icon: '📝', label: 'created this card' },
-    card_moved: { icon: '↔️', label: 'moved this card' },
     card_updated: { icon: '✏️', label: 'updated this card' },
-    description_updated: { icon: '📄', label: 'updated the description' },
-    due_date_updated: { icon: '📅', label: 'changed the due date' },
+    card_moved: { icon: '↔️', label: 'moved this card' },
+    card_completed: { icon: '✅', label: 'marked this card complete' },
+    card_archived: { icon: '📦', label: 'archived this card' },
+    card_restored: { icon: '♻️', label: 'restored this card' },
+    card_deleted: { icon: '🗑️', label: 'deleted this card' },
+    list_created: { icon: '📋', label: 'created this list' },
+    list_updated: { icon: '✏️', label: 'updated this list' },
+    list_archived: { icon: '📦', label: 'archived this list' },
     comment_added: { icon: '💬', label: 'added a comment' },
-    attachment_added: { icon: '📎', label: 'added an attachment' },
+    comment_updated: { icon: '💬', label: 'updated a comment' },
+    comment_deleted: { icon: '💬', label: 'deleted a comment' },
+    member_added: { icon: '👤', label: 'added a member' },
+    member_removed: { icon: '👤', label: 'removed a member' },
+    label_added: { icon: '🏷️', label: 'added a label' },
+    label_removed: { icon: '🏷️', label: 'removed a label' },
+    due_date_set: { icon: '📅', label: 'set the due date' },
+    due_date_removed: { icon: '📅', label: 'removed the due date' },
+    due_date_updated: { icon: '📅', label: 'changed the due date' },
+    description_updated: { icon: '📄', label: 'updated the description' },
     checklist_added: { icon: '☑️', label: 'added a checklist' },
     checklist_item_completed: { icon: '✅', label: 'completed a checklist item' },
+    checklist_item_uncompleted: { icon: '⬜', label: 'uncompleted a checklist item' },
+    attachment_added: { icon: '📎', label: 'added an attachment' },
+    attachment_removed: { icon: '📎', label: 'removed an attachment' },
   };
   return displays[type] || { icon: '•', label: 'performed an action' };
 }

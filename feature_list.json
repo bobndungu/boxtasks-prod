@@ -1144,7 +1144,7 @@
       "id": 142,
       "name": "Build activity feed in card modal",
       "test": "Card history displays",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "activity-notifications"
     },
@@ -1152,7 +1152,7 @@
       "id": 143,
       "name": "Build board activity feed",
       "test": "Board-wide activity visible",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "activity-notifications"
     },
