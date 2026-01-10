@@ -1,0 +1,8 @@
+name: BoxTasks Security
+type: module
+description: 'Security features including rate limiting, input validation, and audit logging for BoxTasks.'
+core_version_requirement: ^10.3 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:jsonapi
+  - drupal:user

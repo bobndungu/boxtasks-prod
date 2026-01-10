@@ -1,0 +1,14 @@
+services:
+  boxtasks_security.rate_limiter:
+    class: Drupal\boxtasks_security\Service\RateLimiter
+    arguments: ['@flood', '@current_user', '@config.factory']
+
+  boxtasks_security.rate_limit_subscriber:
+    class: Drupal\boxtasks_security\EventSubscriber\RateLimitSubscriber
+    arguments: ['@boxtasks_security.rate_limiter']
+    tags:
+      - { name: event_subscriber }
+
+  boxtasks_security.audit_logger:
+    class: Drupal\boxtasks_security\Service\AuditLogger
+    arguments: ['@database', '@current_user', '@datetime.time']
