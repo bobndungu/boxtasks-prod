@@ -82,6 +82,7 @@ import { toast } from '../lib/stores/toast';
 import { CustomFieldsManager } from '../components/CustomFieldsManager';
 import { fetchCustomFieldsByBoard, fetchCardCustomFieldValues, setCardCustomFieldValue, type CustomFieldDefinition, type CustomFieldValue } from '../lib/api/customFields';
 import { ViewSelector, type ViewType } from '../components/ViewSelector';
+import { ViewSettings, DEFAULT_VIEW_SETTINGS, type ViewSettingsData } from '../components/ViewSettings';
 import CalendarView from '../components/CalendarView';
 import TimelineView from '../components/TimelineView';
 import TableView from '../components/TableView';
@@ -166,6 +167,7 @@ export default function BoardView() {
 
   // View switching state
   const [currentView, setCurrentView] = useState<ViewType>('kanban');
+  const [viewSettings, setViewSettings] = useState<ViewSettingsData>(DEFAULT_VIEW_SETTINGS);
 
   // Optimistic UI updates
   const cardOptimistic = useOptimistic<Map<string, Card[]>>();
@@ -1534,6 +1536,11 @@ export default function BoardView() {
                 currentView={currentView}
                 onViewChange={setCurrentView}
               />
+              <ViewSettings
+                currentView={currentView}
+                settings={viewSettings}
+                onSettingsChange={setViewSettings}
+              />
               <button
                 onClick={() => setShowCustomFields(true)}
                 className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded flex items-center gap-1"
@@ -1754,13 +1761,13 @@ export default function BoardView() {
               </DndContext>
             </div>
           ) : currentView === 'calendar' ? (
-            <CalendarView cards={allFilteredCards} onCardClick={handleCardClick} />
+            <CalendarView cards={allFilteredCards} onCardClick={handleCardClick} settings={viewSettings.calendar} />
           ) : currentView === 'timeline' ? (
-            <TimelineView cards={allFilteredCards} onCardClick={handleCardClick} />
+            <TimelineView cards={allFilteredCards} onCardClick={handleCardClick} settings={viewSettings.timeline} />
           ) : currentView === 'table' ? (
-            <TableView cards={allFilteredCards} lists={lists} onCardClick={handleCardClick} />
+            <TableView cards={allFilteredCards} lists={lists} onCardClick={handleCardClick} settings={viewSettings.table} />
           ) : currentView === 'dashboard' ? (
-            <DashboardView cards={allFilteredCards} lists={lists} onCardClick={handleCardClick} />
+            <DashboardView cards={allFilteredCards} lists={lists} onCardClick={handleCardClick} settings={viewSettings.dashboard} />
           ) : null}
         </main>
 

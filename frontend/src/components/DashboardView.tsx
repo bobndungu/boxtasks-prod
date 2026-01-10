@@ -7,15 +7,22 @@ import {
   List as ListIcon,
   TrendingUp,
   Tag,
-  Users,
 } from 'lucide-react';
 import type { Card, CardLabel } from '../lib/api/cards';
 import type { BoardList } from '../lib/api/lists';
+
+interface DashboardSettings {
+  showCardsPerList: boolean;
+  showCardsPerLabel: boolean;
+  showOverdueCards: boolean;
+  showDueSoonCards: boolean;
+}
 
 interface DashboardViewProps {
   cards: Card[];
   lists: BoardList[];
   onCardClick: (card: Card) => void;
+  settings?: DashboardSettings;
 }
 
 const LABEL_COLORS: Record<CardLabel, { bg: string; bar: string }> = {
@@ -27,7 +34,14 @@ const LABEL_COLORS: Record<CardLabel, { bg: string; bar: string }> = {
   blue: { bg: 'bg-blue-100', bar: 'bg-blue-500' },
 };
 
-export function DashboardView({ cards, lists, onCardClick }: DashboardViewProps) {
+const DEFAULT_SETTINGS: DashboardSettings = {
+  showCardsPerList: true,
+  showCardsPerLabel: true,
+  showOverdueCards: true,
+  showDueSoonCards: true,
+};
+
+export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SETTINGS }: DashboardViewProps) {
   // Calculate statistics
   const stats = useMemo(() => {
     const total = cards.length;
@@ -184,124 +198,136 @@ export function DashboardView({ cards, lists, onCardClick }: DashboardViewProps)
         </div>
 
         {/* Charts Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* Cards per List */}
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="h-5 w-5 text-gray-500" />
-              <h3 className="font-medium text-gray-900">Cards per List</h3>
-            </div>
-            <div className="space-y-3">
-              {cardsPerList.slice(0, 6).map(({ list, count }) => (
-                <div key={list.id}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-700 truncate max-w-[200px]">{list.title}</span>
-                    <span className="text-gray-500">{count}</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                      style={{ width: `${(count / maxListCount) * 100}%` }}
-                    />
-                  </div>
+        {(settings.showCardsPerList || settings.showCardsPerLabel) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Cards per List */}
+            {settings.showCardsPerList && (
+              <div className="bg-white rounded-lg shadow p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <TrendingUp className="h-5 w-5 text-gray-500" />
+                  <h3 className="font-medium text-gray-900">Cards per List</h3>
                 </div>
-              ))}
-              {cardsPerList.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">No lists yet</p>
-              )}
-            </div>
-          </div>
+                <div className="space-y-3">
+                  {cardsPerList.slice(0, 6).map(({ list, count }) => (
+                    <div key={list.id}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-gray-700 truncate max-w-[200px]">{list.title}</span>
+                        <span className="text-gray-500">{count}</span>
+                      </div>
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                          style={{ width: `${(count / maxListCount) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {cardsPerList.length === 0 && (
+                    <p className="text-sm text-gray-500 text-center py-4">No lists yet</p>
+                  )}
+                </div>
+              </div>
+            )}
 
-          {/* Cards per Label */}
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Tag className="h-5 w-5 text-gray-500" />
-              <h3 className="font-medium text-gray-900">Cards per Label</h3>
-            </div>
-            <div className="space-y-3">
-              {cardsPerLabel.slice(0, 6).map(([label, count]) => (
-                <div key={label}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className={`capitalize ${LABEL_COLORS[label].bg} px-2 py-0.5 rounded text-xs font-medium`}>
-                      {label}
-                    </span>
-                    <span className="text-gray-500">{count}</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${LABEL_COLORS[label].bar}`}
-                      style={{ width: `${(count / maxLabelCount) * 100}%` }}
-                    />
-                  </div>
+            {/* Cards per Label */}
+            {settings.showCardsPerLabel && (
+              <div className="bg-white rounded-lg shadow p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Tag className="h-5 w-5 text-gray-500" />
+                  <h3 className="font-medium text-gray-900">Cards per Label</h3>
                 </div>
-              ))}
-              {cardsPerLabel.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">No labels used yet</p>
-              )}
-            </div>
+                <div className="space-y-3">
+                  {cardsPerLabel.slice(0, 6).map(([label, count]) => (
+                    <div key={label}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className={`capitalize ${LABEL_COLORS[label].bg} px-2 py-0.5 rounded text-xs font-medium`}>
+                          {label}
+                        </span>
+                        <span className="text-gray-500">{count}</span>
+                      </div>
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${LABEL_COLORS[label].bar}`}
+                          style={{ width: `${(count / maxLabelCount) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {cardsPerLabel.length === 0 && (
+                    <p className="text-sm text-gray-500 text-center py-4">No labels used yet</p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Card Lists Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Overdue Cards */}
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-              <h3 className="font-medium text-gray-900">Overdue Cards</h3>
-            </div>
-            <div className="space-y-2">
-              {overdueCards.map((card) => (
-                <button
-                  key={card.id}
-                  onClick={() => onCardClick(card)}
-                  className="w-full text-left p-2 rounded-md hover:bg-red-50 transition-colors group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-900 group-hover:text-red-700 truncate max-w-[200px]">
-                      {card.title}
-                    </span>
-                    <span className="text-xs text-red-600 font-medium">
-                      {formatDate(card.dueDate!)}
-                    </span>
-                  </div>
-                </button>
-              ))}
-              {overdueCards.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">No overdue cards</p>
-              )}
-            </div>
-          </div>
+        {(settings.showOverdueCards || settings.showDueSoonCards) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Overdue Cards */}
+            {settings.showOverdueCards && (
+              <div className="bg-white rounded-lg shadow p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                  <h3 className="font-medium text-gray-900">Overdue Cards</h3>
+                </div>
+                <div className="space-y-2">
+                  {overdueCards.map((card) => (
+                    <button
+                      key={card.id}
+                      onClick={() => onCardClick(card)}
+                      className="w-full text-left p-2 rounded-md hover:bg-red-50 transition-colors group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-900 group-hover:text-red-700 truncate max-w-[200px]">
+                          {card.title}
+                        </span>
+                        <span className="text-xs text-red-600 font-medium">
+                          {formatDate(card.dueDate!)}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                  {overdueCards.length === 0 && (
+                    <p className="text-sm text-gray-500 text-center py-4">No overdue cards</p>
+                  )}
+                </div>
+              </div>
+            )}
 
-          {/* Due Soon Cards */}
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Clock className="h-5 w-5 text-yellow-500" />
-              <h3 className="font-medium text-gray-900">Due in Next 3 Days</h3>
-            </div>
-            <div className="space-y-2">
-              {dueSoonCards.map((card) => (
-                <button
-                  key={card.id}
-                  onClick={() => onCardClick(card)}
-                  className="w-full text-left p-2 rounded-md hover:bg-yellow-50 transition-colors group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-900 group-hover:text-yellow-700 truncate max-w-[200px]">
-                      {card.title}
-                    </span>
-                    <span className="text-xs text-yellow-600 font-medium">
-                      {formatDate(card.dueDate!)}
-                    </span>
-                  </div>
-                </button>
-              ))}
-              {dueSoonCards.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">No upcoming due dates</p>
-              )}
-            </div>
+            {/* Due Soon Cards */}
+            {settings.showDueSoonCards && (
+              <div className="bg-white rounded-lg shadow p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="h-5 w-5 text-yellow-500" />
+                  <h3 className="font-medium text-gray-900">Due in Next 3 Days</h3>
+                </div>
+                <div className="space-y-2">
+                  {dueSoonCards.map((card) => (
+                    <button
+                      key={card.id}
+                      onClick={() => onCardClick(card)}
+                      className="w-full text-left p-2 rounded-md hover:bg-yellow-50 transition-colors group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-900 group-hover:text-yellow-700 truncate max-w-[200px]">
+                          {card.title}
+                        </span>
+                        <span className="text-xs text-yellow-600 font-medium">
+                          {formatDate(card.dueDate!)}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                  {dueSoonCards.length === 0 && (
+                    <p className="text-sm text-gray-500 text-center py-4">No upcoming due dates</p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Footer Stats */}
         <div className="mt-6 bg-white rounded-lg shadow p-4">

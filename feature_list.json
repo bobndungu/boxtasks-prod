@@ -1056,7 +1056,7 @@
       "id": 131,
       "name": "Implement view switching UI",
       "test": "Can switch between views",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "views-system"
     },

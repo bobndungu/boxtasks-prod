@@ -7,9 +7,15 @@ import {
 } from 'lucide-react';
 import type { Card, CardLabel } from '../lib/api/cards';
 
+interface CalendarSettings {
+  dateField: 'dueDate' | 'startDate';
+  showCompleted: boolean;
+}
+
 interface CalendarViewProps {
   cards: Card[];
   onCardClick: (card: Card) => void;
+  settings?: CalendarSettings;
 }
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -27,8 +33,14 @@ const LABEL_COLORS: Record<CardLabel, string> = {
   blue: 'bg-blue-500',
 };
 
-export function CalendarView({ cards, onCardClick }: CalendarViewProps) {
+const DEFAULT_SETTINGS: CalendarSettings = {
+  dateField: 'dueDate',
+  showCompleted: true,
+};
+
+export function CalendarView({ cards, onCardClick, settings = DEFAULT_SETTINGS }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const { dateField, showCompleted } = settings;
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -71,13 +83,18 @@ export function CalendarView({ cards, onCardClick }: CalendarViewProps) {
     return days;
   }, [year, month]);
 
-  // Group cards by due date
+  // Group cards by selected date field
   const cardsByDate = useMemo(() => {
     const map = new Map<string, Card[]>();
 
     cards.forEach((card) => {
-      if (card.dueDate) {
-        const dateKey = card.dueDate.split('T')[0]; // YYYY-MM-DD
+      // Skip completed cards if setting says so
+      if (!showCompleted && card.completed) return;
+
+      // Use the selected date field (dueDate or startDate)
+      const dateValue = dateField === 'startDate' ? card.startDate : card.dueDate;
+      if (dateValue) {
+        const dateKey = dateValue.split('T')[0]; // YYYY-MM-DD
         const existing = map.get(dateKey) || [];
         existing.push(card);
         map.set(dateKey, existing);
@@ -85,7 +102,7 @@ export function CalendarView({ cards, onCardClick }: CalendarViewProps) {
     });
 
     return map;
-  }, [cards]);
+  }, [cards, dateField, showCompleted]);
 
   const goToPreviousMonth = () => {
     setCurrentDate(new Date(year, month - 1, 1));
@@ -236,7 +253,10 @@ export function CalendarView({ cards, onCardClick }: CalendarViewProps) {
       <div className="px-4 py-2 border-t bg-gray-50 flex items-center gap-4 text-xs text-gray-600">
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
-          <span>{cards.filter((c) => c.dueDate).length} cards with due dates</span>
+          <span>
+            {cards.filter((c) => (dateField === 'startDate' ? c.startDate : c.dueDate) && (showCompleted || !c.completed)).length} cards
+            {' '}(by {dateField === 'startDate' ? 'start date' : 'due date'})
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <span className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white rounded-full text-[10px]">

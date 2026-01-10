@@ -11,14 +11,21 @@ import {
 import type { Card, CardLabel } from '../lib/api/cards';
 import type { BoardList } from '../lib/api/lists';
 
+type SortField = 'title' | 'list' | 'dueDate' | 'completed' | 'labels';
+type SortDirection = 'asc' | 'desc';
+
+interface TableSettings {
+  visibleColumns: string[];
+  defaultSort: SortField;
+  sortDirection: SortDirection;
+}
+
 interface TableViewProps {
   cards: Card[];
   lists: BoardList[];
   onCardClick: (card: Card) => void;
+  settings?: TableSettings;
 }
-
-type SortField = 'title' | 'list' | 'dueDate' | 'completed' | 'labels';
-type SortDirection = 'asc' | 'desc';
 
 const LABEL_COLORS: Record<CardLabel, { bg: string; text: string }> = {
   green: { bg: 'bg-green-100', text: 'text-green-700' },
@@ -29,9 +36,16 @@ const LABEL_COLORS: Record<CardLabel, { bg: string; text: string }> = {
   blue: { bg: 'bg-blue-100', text: 'text-blue-700' },
 };
 
-export function TableView({ cards, lists, onCardClick }: TableViewProps) {
-  const [sortField, setSortField] = useState<SortField>('title');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+const DEFAULT_SETTINGS: TableSettings = {
+  visibleColumns: ['status', 'title', 'list', 'labels', 'dueDate', 'members'],
+  defaultSort: 'title',
+  sortDirection: 'asc',
+};
+
+export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTINGS }: TableViewProps) {
+  const [sortField, setSortField] = useState<SortField>(settings.defaultSort);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(settings.sortDirection);
+  const visibleColumns = settings.visibleColumns;
 
   // Create list lookup map
   const listMap = useMemo(() => {
@@ -86,7 +100,7 @@ export function TableView({ cards, lists, onCardClick }: TableViewProps) {
     }
   };
 
-  const formatDate = (dateString: string | null): string => {
+  const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -96,7 +110,7 @@ export function TableView({ cards, lists, onCardClick }: TableViewProps) {
     });
   };
 
-  const isOverdue = (dueDate: string | null, completed: boolean): boolean => {
+  const isOverdue = (dueDate: string | null | undefined, completed: boolean): boolean => {
     if (!dueDate || completed) return false;
     return new Date(dueDate) < new Date();
   };
@@ -119,54 +133,66 @@ export function TableView({ cards, lists, onCardClick }: TableViewProps) {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50 sticky top-0">
             <tr>
-              <th
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                onClick={() => handleSort('completed')}
-              >
-                <div className="flex items-center gap-1">
-                  <span>Status</span>
-                  <SortIcon field="completed" />
-                </div>
-              </th>
-              <th
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                onClick={() => handleSort('title')}
-              >
-                <div className="flex items-center gap-1">
-                  <span>Title</span>
-                  <SortIcon field="title" />
-                </div>
-              </th>
-              <th
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                onClick={() => handleSort('list')}
-              >
-                <div className="flex items-center gap-1">
-                  <span>List</span>
-                  <SortIcon field="list" />
-                </div>
-              </th>
-              <th
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                onClick={() => handleSort('labels')}
-              >
-                <div className="flex items-center gap-1">
-                  <span>Labels</span>
-                  <SortIcon field="labels" />
-                </div>
-              </th>
-              <th
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                onClick={() => handleSort('dueDate')}
-              >
-                <div className="flex items-center gap-1">
-                  <span>Due Date</span>
-                  <SortIcon field="dueDate" />
-                </div>
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Members
-              </th>
+              {visibleColumns.includes('status') && (
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('completed')}
+                >
+                  <div className="flex items-center gap-1">
+                    <span>Status</span>
+                    <SortIcon field="completed" />
+                  </div>
+                </th>
+              )}
+              {visibleColumns.includes('title') && (
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('title')}
+                >
+                  <div className="flex items-center gap-1">
+                    <span>Title</span>
+                    <SortIcon field="title" />
+                  </div>
+                </th>
+              )}
+              {visibleColumns.includes('list') && (
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('list')}
+                >
+                  <div className="flex items-center gap-1">
+                    <span>List</span>
+                    <SortIcon field="list" />
+                  </div>
+                </th>
+              )}
+              {visibleColumns.includes('labels') && (
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('labels')}
+                >
+                  <div className="flex items-center gap-1">
+                    <span>Labels</span>
+                    <SortIcon field="labels" />
+                  </div>
+                </th>
+              )}
+              {visibleColumns.includes('dueDate') && (
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('dueDate')}
+                >
+                  <div className="flex items-center gap-1">
+                    <span>Due Date</span>
+                    <SortIcon field="dueDate" />
+                  </div>
+                </th>
+              )}
+              {visibleColumns.includes('members') && (
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Members
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -181,78 +207,90 @@ export function TableView({ cards, lists, onCardClick }: TableViewProps) {
                   onClick={() => onCardClick(card)}
                 >
                   {/* Status */}
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {card.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <Circle className="h-5 w-5 text-gray-300" />
-                    )}
-                  </td>
+                  {visibleColumns.includes('status') && (
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {card.completed ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <Circle className="h-5 w-5 text-gray-300" />
+                      )}
+                    </td>
+                  )}
 
                   {/* Title */}
-                  <td className="px-4 py-3">
-                    <div className={`text-sm font-medium ${card.completed ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-                      {card.title}
-                    </div>
-                    {card.description && (
-                      <div className="text-xs text-gray-500 truncate max-w-xs">
-                        {card.description.substring(0, 50)}
-                        {card.description.length > 50 && '...'}
+                  {visibleColumns.includes('title') && (
+                    <td className="px-4 py-3">
+                      <div className={`text-sm font-medium ${card.completed ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                        {card.title}
                       </div>
-                    )}
-                  </td>
+                      {card.description && (
+                        <div className="text-xs text-gray-500 truncate max-w-xs">
+                          {card.description.substring(0, 50)}
+                          {card.description.length > 50 && '...'}
+                        </div>
+                      )}
+                    </td>
+                  )}
 
                   {/* List */}
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
-                      <List className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        {list?.title || 'Unknown'}
-                      </span>
-                    </div>
-                  </td>
+                  {visibleColumns.includes('list') && (
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <List className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          {list?.title || 'Unknown'}
+                        </span>
+                      </div>
+                    </td>
+                  )}
 
                   {/* Labels */}
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {card.labels.length > 0 ? (
-                        card.labels.map((label) => (
-                          <span
-                            key={label}
-                            className={`px-2 py-0.5 rounded text-xs font-medium capitalize ${LABEL_COLORS[label].bg} ${LABEL_COLORS[label].text}`}
-                          >
-                            {label}
+                  {visibleColumns.includes('labels') && (
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {card.labels.length > 0 ? (
+                          card.labels.map((label) => (
+                            <span
+                              key={label}
+                              className={`px-2 py-0.5 rounded text-xs font-medium capitalize ${LABEL_COLORS[label].bg} ${LABEL_COLORS[label].text}`}
+                            >
+                              {label}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </div>
+                    </td>
+                  )}
+
+                  {/* Due Date */}
+                  {visibleColumns.includes('dueDate') && (
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className={`flex items-center gap-1.5 text-sm ${
+                        overdue ? 'text-red-600 font-medium' : 'text-gray-600'
+                      }`}>
+                        {card.dueDate && <Clock className={`h-4 w-4 ${overdue ? 'text-red-500' : 'text-gray-400'}`} />}
+                        <span>{formatDate(card.dueDate)}</span>
+                      </div>
+                    </td>
+                  )}
+
+                  {/* Members */}
+                  {visibleColumns.includes('members') && (
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {card.memberIds && card.memberIds.length > 0 ? (
+                        <div className="flex items-center gap-1">
+                          <User className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-600">
+                            {card.memberIds.length}
                           </span>
-                        ))
+                        </div>
                       ) : (
                         <span className="text-xs text-gray-400">-</span>
                       )}
-                    </div>
-                  </td>
-
-                  {/* Due Date */}
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className={`flex items-center gap-1.5 text-sm ${
-                      overdue ? 'text-red-600 font-medium' : 'text-gray-600'
-                    }`}>
-                      {card.dueDate && <Clock className={`h-4 w-4 ${overdue ? 'text-red-500' : 'text-gray-400'}`} />}
-                      <span>{formatDate(card.dueDate)}</span>
-                    </div>
-                  </td>
-
-                  {/* Members */}
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {card.memberIds && card.memberIds.length > 0 ? (
-                      <div className="flex items-center gap-1">
-                        <User className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">
-                          {card.memberIds.length}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-gray-400">-</span>
-                    )}
-                  </td>
+                    </td>
+                  )}
                 </tr>
               );
             })}

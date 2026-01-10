@@ -1,0 +1,312 @@
+import { useState, useRef, useEffect } from 'react';
+import { Settings } from 'lucide-react';
+import type { ViewType } from './ViewSelector';
+
+export interface ViewSettingsData {
+  calendar: {
+    dateField: 'dueDate' | 'startDate';
+    showCompleted: boolean;
+  };
+  timeline: {
+    defaultWeeks: 2 | 4 | 8 | 12;
+    showCompletedCards: boolean;
+  };
+  table: {
+    visibleColumns: string[];
+    defaultSort: 'title' | 'dueDate' | 'list' | 'completed';
+    sortDirection: 'asc' | 'desc';
+  };
+  dashboard: {
+    showCardsPerList: boolean;
+    showCardsPerLabel: boolean;
+    showOverdueCards: boolean;
+    showDueSoonCards: boolean;
+  };
+}
+
+export const DEFAULT_VIEW_SETTINGS: ViewSettingsData = {
+  calendar: {
+    dateField: 'dueDate',
+    showCompleted: true,
+  },
+  timeline: {
+    defaultWeeks: 4,
+    showCompletedCards: true,
+  },
+  table: {
+    visibleColumns: ['status', 'title', 'list', 'labels', 'dueDate', 'members'],
+    defaultSort: 'title',
+    sortDirection: 'asc',
+  },
+  dashboard: {
+    showCardsPerList: true,
+    showCardsPerLabel: true,
+    showOverdueCards: true,
+    showDueSoonCards: true,
+  },
+};
+
+interface ViewSettingsProps {
+  currentView: ViewType;
+  settings: ViewSettingsData;
+  onSettingsChange: (settings: ViewSettingsData) => void;
+}
+
+export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSettingsProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const updateCalendarSettings = (key: keyof ViewSettingsData['calendar'], value: any) => {
+    onSettingsChange({
+      ...settings,
+      calendar: { ...settings.calendar, [key]: value },
+    });
+  };
+
+  const updateTimelineSettings = (key: keyof ViewSettingsData['timeline'], value: any) => {
+    onSettingsChange({
+      ...settings,
+      timeline: { ...settings.timeline, [key]: value },
+    });
+  };
+
+  const updateTableSettings = (key: keyof ViewSettingsData['table'], value: any) => {
+    onSettingsChange({
+      ...settings,
+      table: { ...settings.table, [key]: value },
+    });
+  };
+
+  const updateDashboardSettings = (key: keyof ViewSettingsData['dashboard'], value: boolean) => {
+    onSettingsChange({
+      ...settings,
+      dashboard: { ...settings.dashboard, [key]: value },
+    });
+  };
+
+  const toggleTableColumn = (column: string) => {
+    const columns = settings.table.visibleColumns;
+    if (columns.includes(column)) {
+      onSettingsChange({
+        ...settings,
+        table: {
+          ...settings.table,
+          visibleColumns: columns.filter((c) => c !== column),
+        },
+      });
+    } else {
+      onSettingsChange({
+        ...settings,
+        table: {
+          ...settings.table,
+          visibleColumns: [...columns, column],
+        },
+      });
+    }
+  };
+
+  // Don't show settings for Kanban view (no customization yet)
+  if (currentView === 'kanban') {
+    return null;
+  }
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"
+        title="View Settings"
+      >
+        <Settings className="h-4 w-4" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full right-0 mt-1 w-64 bg-white rounded-lg shadow-lg py-2 z-50">
+          <div className="px-3 py-1.5 text-xs font-medium text-gray-500 uppercase border-b">
+            {currentView} View Settings
+          </div>
+
+          {/* Calendar Settings */}
+          {currentView === 'calendar' && (
+            <div className="p-3 space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">
+                  Show cards by
+                </label>
+                <select
+                  value={settings.calendar.dateField}
+                  onChange={(e) => updateCalendarSettings('dateField', e.target.value)}
+                  className="w-full px-2 py-1.5 border rounded text-sm"
+                >
+                  <option value="dueDate">Due Date</option>
+                  <option value="startDate">Start Date</option>
+                </select>
+              </div>
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.calendar.showCompleted}
+                  onChange={(e) => updateCalendarSettings('showCompleted', e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                Show completed cards
+              </label>
+            </div>
+          )}
+
+          {/* Timeline Settings */}
+          {currentView === 'timeline' && (
+            <div className="p-3 space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">
+                  Default time range
+                </label>
+                <select
+                  value={settings.timeline.defaultWeeks}
+                  onChange={(e) => updateTimelineSettings('defaultWeeks', Number(e.target.value))}
+                  className="w-full px-2 py-1.5 border rounded text-sm"
+                >
+                  <option value={2}>2 weeks</option>
+                  <option value={4}>4 weeks</option>
+                  <option value={8}>8 weeks</option>
+                  <option value={12}>12 weeks</option>
+                </select>
+              </div>
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.timeline.showCompletedCards}
+                  onChange={(e) => updateTimelineSettings('showCompletedCards', e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                Show completed cards
+              </label>
+            </div>
+          )}
+
+          {/* Table Settings */}
+          {currentView === 'table' && (
+            <div className="p-3 space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">
+                  Visible columns
+                </label>
+                <div className="space-y-1">
+                  {[
+                    { id: 'status', label: 'Status' },
+                    { id: 'title', label: 'Title' },
+                    { id: 'list', label: 'List' },
+                    { id: 'labels', label: 'Labels' },
+                    { id: 'dueDate', label: 'Due Date' },
+                    { id: 'members', label: 'Members' },
+                  ].map((col) => (
+                    <label
+                      key={col.id}
+                      className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={settings.table.visibleColumns.includes(col.id)}
+                        onChange={() => toggleTableColumn(col.id)}
+                        className="rounded border-gray-300"
+                        disabled={col.id === 'title'} // Title always visible
+                      />
+                      {col.label}
+                      {col.id === 'title' && (
+                        <span className="text-xs text-gray-400">(required)</span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">
+                  Default sort
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={settings.table.defaultSort}
+                    onChange={(e) => updateTableSettings('defaultSort', e.target.value)}
+                    className="flex-1 px-2 py-1.5 border rounded text-sm"
+                  >
+                    <option value="title">Title</option>
+                    <option value="dueDate">Due Date</option>
+                    <option value="list">List</option>
+                    <option value="completed">Status</option>
+                  </select>
+                  <select
+                    value={settings.table.sortDirection}
+                    onChange={(e) => updateTableSettings('sortDirection', e.target.value)}
+                    className="px-2 py-1.5 border rounded text-sm"
+                  >
+                    <option value="asc">Asc</option>
+                    <option value="desc">Desc</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Dashboard Settings */}
+          {currentView === 'dashboard' && (
+            <div className="p-3 space-y-2">
+              <label className="text-sm font-medium text-gray-700 block mb-2">
+                Show sections
+              </label>
+              {[
+                { key: 'showCardsPerList' as const, label: 'Cards per List chart' },
+                { key: 'showCardsPerLabel' as const, label: 'Cards per Label chart' },
+                { key: 'showOverdueCards' as const, label: 'Overdue Cards list' },
+                { key: 'showDueSoonCards' as const, label: 'Due Soon Cards list' },
+              ].map((item) => (
+                <label
+                  key={item.key}
+                  className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={settings.dashboard[item.key]}
+                    onChange={(e) => updateDashboardSettings(item.key, e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                  {item.label}
+                </label>
+              ))}
+            </div>
+          )}
+
+          {/* Reset button */}
+          <div className="px-3 pt-2 border-t mt-2">
+            <button
+              onClick={() => {
+                const defaultForView = DEFAULT_VIEW_SETTINGS[currentView as keyof typeof DEFAULT_VIEW_SETTINGS];
+                if (defaultForView) {
+                  onSettingsChange({
+                    ...settings,
+                    [currentView]: defaultForView,
+                  });
+                }
+              }}
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
+              Reset to defaults
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default ViewSettings;

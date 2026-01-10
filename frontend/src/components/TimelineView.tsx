@@ -7,9 +7,15 @@ import {
 } from 'lucide-react';
 import type { Card, CardLabel } from '../lib/api/cards';
 
+interface TimelineSettings {
+  defaultWeeks: 2 | 4 | 8 | 12;
+  showCompletedCards: boolean;
+}
+
 interface TimelineViewProps {
   cards: Card[];
   onCardClick: (card: Card) => void;
+  settings?: TimelineSettings;
 }
 
 const LABEL_COLORS: Record<CardLabel, string> = {
@@ -23,8 +29,13 @@ const LABEL_COLORS: Record<CardLabel, string> = {
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function TimelineView({ cards, onCardClick }: TimelineViewProps) {
-  const [weeksToShow, setWeeksToShow] = useState(4);
+const DEFAULT_SETTINGS: TimelineSettings = {
+  defaultWeeks: 4,
+  showCompletedCards: true,
+};
+
+export function TimelineView({ cards, onCardClick, settings = DEFAULT_SETTINGS }: TimelineViewProps) {
+  const [weeksToShow, setWeeksToShow] = useState(settings.defaultWeeks);
   const [startDate, setStartDate] = useState(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -49,7 +60,13 @@ export function TimelineView({ cards, onCardClick }: TimelineViewProps) {
   // Filter and prepare cards with dates
   const timelineCards = useMemo(() => {
     return cards
-      .filter((card) => card.startDate || card.dueDate)
+      .filter((card) => {
+        // Filter by date presence
+        if (!card.startDate && !card.dueDate) return false;
+        // Filter completed cards if setting says so
+        if (!settings.showCompletedCards && card.completed) return false;
+        return true;
+      })
       .map((card) => {
         const start = card.startDate ? new Date(card.startDate) : card.dueDate ? new Date(card.dueDate) : null;
         const end = card.dueDate ? new Date(card.dueDate) : card.startDate ? new Date(card.startDate) : null;
@@ -64,7 +81,7 @@ export function TimelineView({ cards, onCardClick }: TimelineViewProps) {
       })
       .filter((c): c is NonNullable<typeof c> => c !== null)
       .sort((a, b) => a.startTime - b.startTime);
-  }, [cards]);
+  }, [cards, settings.showCompletedCards]);
 
   // Navigate timeline
   const goToPreviousWeek = () => {
@@ -143,7 +160,7 @@ export function TimelineView({ cards, onCardClick }: TimelineViewProps) {
           </button>
           <select
             value={weeksToShow}
-            onChange={(e) => setWeeksToShow(Number(e.target.value))}
+            onChange={(e) => setWeeksToShow(Number(e.target.value) as 2 | 4 | 8 | 12)}
             className="px-2 py-1 text-sm border rounded-md"
           >
             <option value={2}>2 weeks</option>
