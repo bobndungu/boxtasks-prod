@@ -10,12 +10,12 @@ import {
   LogOut,
   ChevronDown,
   Search,
-  Bell,
 } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
 import SearchModal from '../components/SearchModal';
+import NotificationDropdown from '../components/NotificationDropdown';
 
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
@@ -77,10 +77,7 @@ export default function Dashboard() {
                 <span className="text-sm text-gray-500">Search...</span>
                 <kbd className="ml-auto px-1.5 py-0.5 text-xs bg-gray-200 rounded text-gray-500">⌘K</kbd>
               </button>
-              <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
+              <NotificationDropdown />
               <div className="relative group">
                 <button className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">

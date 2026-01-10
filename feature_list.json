@@ -1168,7 +1168,7 @@
       "id": 145,
       "name": "Build notification dropdown in header",
       "test": "Shows unread notifications",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "activity-notifications"
     },

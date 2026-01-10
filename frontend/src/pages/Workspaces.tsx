@@ -10,12 +10,12 @@ import {
   ChevronRight,
   Loader2,
   Search,
-  Bell,
   LogOut,
 } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { fetchWorkspaces, createWorkspace, type Workspace, type CreateWorkspaceData } from '../lib/api/workspaces';
+import NotificationDropdown from '../components/NotificationDropdown';
 
 const WORKSPACE_COLORS = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -86,9 +86,7 @@ export default function Workspaces() {
                   className="bg-transparent border-none outline-none text-sm w-full"
                 />
               </div>
-              <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                <Bell className="h-5 w-5" />
-              </button>
+              <NotificationDropdown />
               <div className="relative group">
                 <button className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
