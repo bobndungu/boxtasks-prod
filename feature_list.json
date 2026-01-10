@@ -1360,7 +1360,7 @@
       "id": 169,
       "name": "Implement dark mode",
       "test": "Dark theme toggles correctly",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "performance-polish"
     },

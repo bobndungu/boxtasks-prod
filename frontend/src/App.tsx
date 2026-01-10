@@ -5,6 +5,7 @@ import { useAuthStore } from './lib/stores/auth';
 import ToastContainer from './components/Toast';
 import { ErrorBoundary, BoardErrorBoundary } from './components/ErrorBoundary';
 import { SkipLinks } from './components/SkipLinks';
+import { PWAUpdatePrompt, OfflineIndicator, PWAInstallPrompt } from './components/PWAPrompt';
 
 // Pages
 import Home from './pages/Home';
@@ -78,6 +79,9 @@ function App() {
         <BrowserRouter>
           <SkipLinks />
           <ToastContainer />
+          <PWAUpdatePrompt />
+          <OfflineIndicator />
+          <PWAInstallPrompt />
           <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />

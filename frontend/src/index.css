@@ -215,3 +215,64 @@ body {
     max-width: 320px;
   }
 }
+
+/* PWA animations */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+/* PWA install banner */
+@media (display-mode: standalone) {
+  /* Styles for when running as installed PWA */
+  .pwa-install-prompt {
+    display: none !important;
+  }
+}
+
+/* Offline page styles */
+.offline-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.offline-page h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.offline-page p {
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 2rem;
+}
