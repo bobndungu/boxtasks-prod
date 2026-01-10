@@ -1,0 +1,247 @@
+<?php
+
+/**
+ * @file
+ * BoxTasks Activity module.
+ *
+ * Provides activity logging for BoxTasks entities.
+ */
+
+use Drupal\boxtasks_activity\ActivityLogger;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for node entities.
+ *
+ * Logs activity when cards and lists are created.
+ */
+function boxtasks_activity_node_insert(NodeInterface $node): void {
+  $logger = \Drupal::service('boxtasks_activity.logger');
+
+  switch ($node->bundle()) {
+    case 'card':
+      $logger->logCardActivity(ActivityLogger::TYPE_CARD_CREATED, $node);
+      break;
+
+    case 'board_list':
+      $board_id = $node->get('field_list_board')->target_id;
+      $logger->log(
+        ActivityLogger::TYPE_LIST_CREATED,
+        \Drupal::currentUser()->getDisplayName() . ' created list "' . $node->getTitle() . '"',
+        $board_id
+      );
+      break;
+
+    case 'card_comment':
+      $card_id = $node->get('field_comment_card')->target_id;
+      if ($card_id) {
+        $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
+        if ($card) {
+          $logger->logCardActivity(
+            ActivityLogger::TYPE_COMMENT_ADDED,
+            $card,
+            NULL,
+            ['comment_id' => $node->id()]
+          );
+        }
+      }
+      break;
+
+    case 'checklist':
+      $card_id = $node->get('field_checklist_card')->target_id;
+      if ($card_id) {
+        $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
+        if ($card) {
+          $logger->logCardActivity(
+            ActivityLogger::TYPE_CHECKLIST_ADDED,
+            $card,
+            NULL,
+            ['checklist_name' => $node->getTitle()]
+          );
+        }
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for node entities.
+ *
+ * Logs activity when cards are updated.
+ */
+function boxtasks_activity_node_update(NodeInterface $node): void {
+  // Only process cards.
+  if ($node->bundle() !== 'card') {
+    return;
+  }
+
+  $logger = \Drupal::service('boxtasks_activity.logger');
+  $original = $node->original;
+
+  // Check for card moved (list changed).
+  $current_list = $node->get('field_card_list')->target_id;
+  $original_list = $original->get('field_card_list')->target_id;
+  if ($current_list !== $original_list) {
+    // Get list names.
+    $from_list = _boxtasks_activity_get_list_name($original_list);
+    $to_list = _boxtasks_activity_get_list_name($current_list);
+
+    $logger->logCardActivity(
+      ActivityLogger::TYPE_CARD_MOVED,
+      $node,
+      NULL,
+      ['from_list' => $from_list, 'to_list' => $to_list]
+    );
+  }
+
+  // Check for card completed.
+  $current_completed = (bool) $node->get('field_card_completed')->value;
+  $original_completed = (bool) $original->get('field_card_completed')->value;
+  if ($current_completed && !$original_completed) {
+    $logger->logCardActivity(ActivityLogger::TYPE_CARD_COMPLETED, $node);
+  }
+
+  // Check for card archived.
+  $current_archived = (bool) $node->get('field_card_archived')->value;
+  $original_archived = (bool) $original->get('field_card_archived')->value;
+  if ($current_archived && !$original_archived) {
+    $logger->logCardActivity(ActivityLogger::TYPE_CARD_ARCHIVED, $node);
+  }
+  elseif (!$current_archived && $original_archived) {
+    $logger->logCardActivity(ActivityLogger::TYPE_CARD_RESTORED, $node);
+  }
+
+  // Check for label added/removed.
+  $current_labels = _boxtasks_activity_get_labels($node);
+  $original_labels = _boxtasks_activity_get_labels($original);
+
+  $added_labels = array_diff($current_labels, $original_labels);
+  $removed_labels = array_diff($original_labels, $current_labels);
+
+  foreach ($added_labels as $label) {
+    $logger->logCardActivity(
+      ActivityLogger::TYPE_LABEL_ADDED,
+      $node,
+      NULL,
+      ['label' => $label]
+    );
+  }
+
+  foreach ($removed_labels as $label) {
+    $logger->logCardActivity(
+      ActivityLogger::TYPE_LABEL_REMOVED,
+      $node,
+      NULL,
+      ['label' => $label]
+    );
+  }
+
+  // Check for member added/removed.
+  $current_members = _boxtasks_activity_get_members($node);
+  $original_members = _boxtasks_activity_get_members($original);
+
+  $added_members = array_diff($current_members, $original_members);
+  $removed_members = array_diff($original_members, $current_members);
+
+  foreach ($added_members as $member_id) {
+    $member = \Drupal::entityTypeManager()->getStorage('user')->load($member_id);
+    $logger->logCardActivity(
+      ActivityLogger::TYPE_MEMBER_ADDED,
+      $node,
+      NULL,
+      ['member_name' => $member ? $member->getDisplayName() : 'Unknown']
+    );
+  }
+
+  foreach ($removed_members as $member_id) {
+    $member = \Drupal::entityTypeManager()->getStorage('user')->load($member_id);
+    $logger->logCardActivity(
+      ActivityLogger::TYPE_MEMBER_REMOVED,
+      $node,
+      NULL,
+      ['member_name' => $member ? $member->getDisplayName() : 'Unknown']
+    );
+  }
+
+  // Check for due date change.
+  $current_due = $node->get('field_card_due_date')->value;
+  $original_due = $original->get('field_card_due_date')->value;
+
+  if ($current_due !== $original_due) {
+    if ($current_due && !$original_due) {
+      $logger->logCardActivity(
+        ActivityLogger::TYPE_DUE_DATE_SET,
+        $node,
+        NULL,
+        ['due_date' => $current_due]
+      );
+    }
+    elseif (!$current_due && $original_due) {
+      $logger->logCardActivity(ActivityLogger::TYPE_DUE_DATE_REMOVED, $node);
+    }
+    elseif ($current_due) {
+      $logger->logCardActivity(
+        ActivityLogger::TYPE_DUE_DATE_SET,
+        $node,
+        NULL,
+        ['due_date' => $current_due]
+      );
+    }
+  }
+}
+
+/**
+ * Gets a list name by ID.
+ *
+ * @param int|null $list_id
+ *   The list ID.
+ *
+ * @return string
+ *   The list name or 'Unknown'.
+ */
+function _boxtasks_activity_get_list_name(?int $list_id): string {
+  if (!$list_id) {
+    return 'Unknown';
+  }
+
+  $list = \Drupal::entityTypeManager()->getStorage('node')->load($list_id);
+  return $list ? $list->getTitle() : 'Unknown';
+}
+
+/**
+ * Gets labels from a card node.
+ *
+ * @param \Drupal\node\NodeInterface $card
+ *   The card node.
+ *
+ * @return array
+ *   Array of label values.
+ */
+function _boxtasks_activity_get_labels(NodeInterface $card): array {
+  $labels = [];
+  if ($card->hasField('field_card_labels')) {
+    foreach ($card->get('field_card_labels') as $item) {
+      $labels[] = $item->value;
+    }
+  }
+  return $labels;
+}
+
+/**
+ * Gets member IDs from a card node.
+ *
+ * @param \Drupal\node\NodeInterface $card
+ *   The card node.
+ *
+ * @return array
+ *   Array of member user IDs.
+ */
+function _boxtasks_activity_get_members(NodeInterface $card): array {
+  $members = [];
+  if ($card->hasField('field_card_members')) {
+    foreach ($card->get('field_card_members') as $item) {
+      $members[] = $item->target_id;
+    }
+  }
+  return $members;
+}

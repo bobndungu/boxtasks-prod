@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_activity_data
+    - node.type.activity
+id: node.activity.field_activity_data
+field_name: field_activity_data
+entity_type: node
+bundle: activity
+label: 'Activity Data'
+description: 'Additional JSON data for the activity'
+required: false
+translatable: false
+default_value: {}
+default_value_callback: ''
+settings: {}
+field_type: string_long

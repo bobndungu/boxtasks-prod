@@ -1,0 +1,11 @@
+services:
+  boxtasks_activity.logger:
+    class: Drupal\boxtasks_activity\ActivityLogger
+    arguments:
+      - '@entity_type.manager'
+      - '@current_user'
+      - '@logger.channel.boxtasks_activity'
+
+  logger.channel.boxtasks_activity:
+    parent: logger.channel_base
+    arguments: ['boxtasks_activity']

@@ -1136,7 +1136,7 @@
       "id": 141,
       "name": "Create Activity entity in Drupal",
       "test": "Activities logged for all actions",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "activity-notifications"
     },
