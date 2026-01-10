@@ -4,3 +4,11 @@ services:
     arguments:
       - '@entity_type.manager'
       - '@current_user'
+
+  boxtasks_notification.email:
+    class: Drupal\boxtasks_notification\EmailNotificationService
+    arguments:
+      - '@entity_type.manager'
+      - '@current_user'
+      - '@plugin.manager.mail'
+      - '@boxtasks_notification.notifier'

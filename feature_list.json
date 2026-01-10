@@ -1184,7 +1184,7 @@
       "id": 147,
       "name": "Build email notification system",
       "test": "Emails sent for key events",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "activity-notifications"
     },

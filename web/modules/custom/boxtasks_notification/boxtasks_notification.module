@@ -11,6 +11,17 @@ use Drupal\boxtasks_notification\NotificationService;
 use Drupal\node\NodeInterface;
 
 /**
+ * Implements hook_mail().
+ */
+function boxtasks_notification_mail($key, &$message, $params): void {
+  $message['subject'] = $params['subject'] ?? 'BoxTasks Notification';
+  $message['body'][] = $params['message'] ?? '';
+
+  // Set headers for HTML email.
+  $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+}
+
+/**
  * Implements hook_ENTITY_TYPE_insert() for node entities.
  *
  * Creates notifications for relevant entity creations.
@@ -87,10 +98,7 @@ function _boxtasks_notification_handle_comment(NodeInterface $comment, Notificat
     return;
   }
 
-  // Notify card members about the comment.
-  $notifier->notifyCardMembers($card, NotificationService::TYPE_COMMENT_ADDED);
-
-  // Check for @mentions in comment body.
+  // Get comment body for preview.
   $body = '';
   if ($comment->hasField('body') && !$comment->get('body')->isEmpty()) {
     $body = $comment->get('body')->value;
@@ -99,10 +107,30 @@ function _boxtasks_notification_handle_comment(NodeInterface $comment, Notificat
     $body = $comment->get('field_comment_body')->value;
   }
 
+  // Notify card members about the comment (in-app).
+  $notifier->notifyCardMembers($card, NotificationService::TYPE_COMMENT_ADDED);
+
+  // Send email notifications to card members.
+  $email_service = \Drupal::service('boxtasks_notification.email');
+  $member_ids = _boxtasks_notification_get_card_member_ids($card);
+  $current_user_id = (int) \Drupal::currentUser()->id();
+  foreach ($member_ids as $member_id) {
+    if ($member_id !== $current_user_id) {
+      $email_service->sendCommentEmail($member_id, $card, $body);
+    }
+  }
+
+  // Check for @mentions in comment body.
   if ($body) {
     $mentioned_users = _boxtasks_notification_extract_mentions($body);
     if (!empty($mentioned_users)) {
       $notifier->notifyMentions($comment, $card, $mentioned_users);
+      // Send email to mentioned users.
+      foreach ($mentioned_users as $user_id) {
+        if ($user_id !== $current_user_id) {
+          $email_service->sendMentionEmail($user_id, $card, $body);
+        }
+      }
     }
   }
 }
@@ -138,15 +166,38 @@ function _boxtasks_notification_check_member_changes(NodeInterface $node, NodeIn
   $added = array_diff($current_members, $original_members);
   $removed = array_diff($original_members, $current_members);
 
+  $email_service = \Drupal::service('boxtasks_notification.email');
+
   // Notify newly assigned members.
   foreach ($added as $user_id) {
     $notifier->notifyUser($user_id, $node, NotificationService::TYPE_MEMBER_ASSIGNED);
+    // Send email notification.
+    $email_service->sendAssignmentEmail($user_id, $node);
   }
 
   // Notify removed members.
   foreach ($removed as $user_id) {
     $notifier->notifyUser($user_id, $node, NotificationService::TYPE_MEMBER_REMOVED);
   }
+}
+
+/**
+ * Gets member IDs from a card.
+ *
+ * @param \Drupal\node\NodeInterface $card
+ *   The card entity.
+ *
+ * @return array
+ *   Array of user IDs.
+ */
+function _boxtasks_notification_get_card_member_ids(NodeInterface $card): array {
+  $member_ids = [];
+  if ($card->hasField('field_card_members')) {
+    foreach ($card->get('field_card_members') as $item) {
+      $member_ids[] = (int) $item->target_id;
+    }
+  }
+  return $member_ids;
 }
 
 /**
@@ -245,6 +296,14 @@ function _boxtasks_notification_check_due_dates(): void {
     }
 
     $notifier->notifyDueDateApproaching($card, $timeframe);
+
+    // Also send email notifications.
+    $email_service = \Drupal::service('boxtasks_notification.email');
+    $member_ids = _boxtasks_notification_get_card_member_ids($card);
+    foreach ($member_ids as $member_id) {
+      $email_service->sendDueDateEmail($member_id, $card, $timeframe);
+    }
+
     $notified_cards[] = $card_key;
   }
 
