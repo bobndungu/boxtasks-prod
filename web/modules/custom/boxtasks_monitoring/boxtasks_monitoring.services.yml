@@ -1,0 +1,4 @@
+services:
+  boxtasks_monitoring.health_checker:
+    class: Drupal\boxtasks_monitoring\Service\HealthChecker
+    arguments: ['@database', '@state', '@cache.default', '@datetime.time']

@@ -1,0 +1,7 @@
+name: 'BoxTasks Monitoring'
+type: module
+description: 'Provides health check endpoints and monitoring capabilities for BoxTasks.'
+core_version_requirement: ^10 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:boxtasks_security

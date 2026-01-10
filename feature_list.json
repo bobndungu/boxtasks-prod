@@ -1408,7 +1408,7 @@
       "id": 175,
       "name": "Implement CSRF protection",
       "test": "CSRF tokens validated",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "security-production"
     },
@@ -1416,7 +1416,7 @@
       "id": 176,
       "name": "Add audit logging",
       "test": "Security events logged",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "security-production"
     },
@@ -1424,7 +1424,7 @@
       "id": 177,
       "name": "Set up production environment config",
       "test": "Environment variables work",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "security-production"
     },
@@ -1432,7 +1432,7 @@
       "id": 178,
       "name": "Create deployment documentation",
       "test": "Can deploy to production",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "security-production"
     },

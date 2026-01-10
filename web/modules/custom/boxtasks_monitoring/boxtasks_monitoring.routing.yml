@@ -1,0 +1,35 @@
+boxtasks_monitoring.health:
+  path: '/api/health'
+  defaults:
+    _controller: '\Drupal\boxtasks_monitoring\Controller\HealthController::check'
+  requirements:
+    _permission: 'access content'
+  options:
+    no_cache: TRUE
+
+boxtasks_monitoring.health_detailed:
+  path: '/api/health/detailed'
+  defaults:
+    _controller: '\Drupal\boxtasks_monitoring\Controller\HealthController::detailed'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    no_cache: TRUE
+
+boxtasks_monitoring.metrics:
+  path: '/api/metrics'
+  defaults:
+    _controller: '\Drupal\boxtasks_monitoring\Controller\MetricsController::get'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    no_cache: TRUE
+
+boxtasks_monitoring.security_stats:
+  path: '/api/security/stats'
+  defaults:
+    _controller: '\Drupal\boxtasks_monitoring\Controller\SecurityStatsController::get'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    no_cache: TRUE
