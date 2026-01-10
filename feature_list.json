@@ -1440,7 +1440,7 @@
       "id": 179,
       "name": "Set up monitoring and health checks",
       "test": "Health endpoint responds",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "security-production"
     },
@@ -1448,7 +1448,7 @@
       "id": 180,
       "name": "Final testing and bug fixes",
       "test": "All features work end-to-end",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "security-production"
     }
