@@ -59,6 +59,7 @@ import {
   UserPlus,
   User,
   Settings,
+  Zap,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { fetchBoard, updateBoard, toggleBoardStar, fetchAllBoards, type Board } from '../lib/api/boards';
@@ -88,6 +89,7 @@ import CalendarView from '../components/CalendarView';
 import TimelineView from '../components/TimelineView';
 import TableView from '../components/TableView';
 import DashboardView from '../components/DashboardView';
+import { AutomationRules } from '../components/AutomationRules';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
   green: '#61bd4f',
@@ -153,6 +155,9 @@ export default function BoardView() {
 
   // Custom fields manager state
   const [showCustomFields, setShowCustomFields] = useState(false);
+
+  // Automation rules state
+  const [showAutomationRules, setShowAutomationRules] = useState(false);
 
   // Custom field data for cards display
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
@@ -1664,6 +1669,14 @@ export default function BoardView() {
                 <Settings className="h-4 w-4" />
                 <span className="text-sm hidden sm:inline">Fields</span>
               </button>
+              <button
+                onClick={() => setShowAutomationRules(true)}
+                className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded flex items-center gap-1"
+                title="Automation Rules"
+              >
+                <Zap className="h-4 w-4" />
+                <span className="text-sm hidden sm:inline">Automation</span>
+              </button>
               <button className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded">
                 <MoreHorizontal className="h-5 w-5" />
               </button>
@@ -2114,6 +2127,23 @@ export default function BoardView() {
           isOpen={showCustomFields}
           onClose={() => setShowCustomFields(false)}
         />
+      )}
+
+      {/* Automation Rules Panel */}
+      {showAutomationRules && id && currentBoard && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <AutomationRules
+            boardUuid={currentBoard.id}
+            lists={lists.map(l => ({ id: l.id, name: l.title }))}
+            labels={(['green', 'yellow', 'orange', 'red', 'purple', 'blue'] as CardLabel[]).map(color => ({
+              id: color,
+              name: color.charAt(0).toUpperCase() + color.slice(1),
+              color: LABEL_COLORS[color],
+            }))}
+            members={workspaceMembers.map(m => ({ id: m.id, name: m.displayName }))}
+            onClose={() => setShowAutomationRules(false)}
+          />
+        </div>
       )}
     </div>
   );

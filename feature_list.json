@@ -1080,7 +1080,7 @@
       "id": 134,
       "name": "Create Automation Rule entity",
       "test": "Rules stored and retrieved",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation"
     },
