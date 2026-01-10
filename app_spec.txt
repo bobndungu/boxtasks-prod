@@ -1,0 +1,678 @@
+# Project: BoxTasks2
+
+## Description
+A production-ready, enterprise-grade Trello clone rebuilt from scratch using Drupal 11 as the backend API and React as the frontend. This is a complete rebuild of the original BoxTasks application (~/Sites/DrupalDev/BoxTasks/) with a modern decoupled architecture.
+
+## Tech Stack
+
+### Backend (Drupal 11)
+- Drupal 11.x with PHP 8.3+
+- DDEV for local development
+- MySQL/MariaDB database
+- JSON:API module for RESTful API
+- Mercure for real-time push notifications
+- Custom modules for business logic
+- Entity/Content Type based data model
+
+### Frontend (React + Vite)
+- React 18+ with TypeScript
+- Vite 5.x as build tool
+- Tailwind CSS 3.4+ for styling
+- shadcn/ui for component library
+- TanStack Query v5 for server state
+- Zustand for client state
+- @dnd-kit for drag-and-drop
+- Socket.io or Mercure client for real-time
+
+### Infrastructure
+- DDEV for local Drupal development
+- Mercure hub for real-time (via DDEV add-on or external)
+- MinIO or local files for attachment storage
+
+## Dev Server
+- Drupal Backend: https://boxtasks2.ddev.site (DDEV)
+- React Frontend: http://localhost:5173 (Vite)
+- Mercure Hub: https://boxtasks2.ddev.site/.well-known/mercure
+
+## Source Project Reference
+The original BoxTasks is at ~/Sites/DrupalDev/BoxTasks/
+- Database schema: /packages/database/schema.sql (29 tables)
+- Types: /packages/shared/src/types/index.ts
+- API routes: /apps/api/src/routes/
+- Frontend components: /apps/web/src/lib/components/
+
+## Database Migration
+- Source: MySQL/MariaDB at tasks.boxraft.com (SSH key-based auth ready)
+- Need to migrate all production data to new Drupal structure
+- Map existing tables to Drupal content types and entities
+
+## Features (Broken into 80+ Small Tasks)
+
+### PHASE 1: Infrastructure Setup (Features 1-10)
+
+1. Initialize DDEV project for Drupal 11
+   - Test: ddev describe shows running Drupal site
+
+2. Install Drupal 11 with standard profile
+   - Test: Visit https://boxtasks2.ddev.site shows Drupal welcome
+
+3. Configure Drupal for decoupled/headless mode
+   - Enable JSON:API, disable frontend themes
+   - Test: /jsonapi endpoint returns valid JSON
+
+4. Set up Mercure module/integration
+   - Test: Mercure hub responds at /.well-known/mercure
+
+5. Initialize React frontend with Vite + TypeScript
+   - Test: npm run dev shows React app at localhost:5173
+
+6. Install and configure Tailwind CSS + shadcn/ui
+   - Test: Tailwind classes work, shadcn Button component renders
+
+7. Set up API client for Drupal JSON:API
+   - Test: Frontend can fetch /jsonapi endpoint
+
+8. Configure CORS for decoupled setup
+   - Test: Frontend can make API calls without CORS errors
+
+9. Set up authentication flow (Drupal Simple OAuth)
+   - Test: Can obtain JWT token via login
+
+10. Create base layout and routing in React
+    - Test: Navigation between pages works
+
+### PHASE 2: User System (Features 11-20)
+
+11. Create User profile fields in Drupal
+    - Fields: avatar, display_name, preferences
+    - Test: User entity has custom fields in JSON:API
+
+12. Build Login page in React
+    - Test: Can log in and receive token
+
+13. Build Registration page in React
+    - Test: Can create new account
+
+14. Implement token storage and refresh
+    - Test: Token persists across page refreshes
+
+15. Build user profile page
+    - Test: Can view/edit own profile
+
+16. Implement logout functionality
+    - Test: Logout clears session, redirects to login
+
+17. Add password reset flow
+    - Test: Can request and complete password reset
+
+18. Implement session management
+    - Test: Expired tokens trigger re-authentication
+
+19. Add user preferences storage
+    - Test: Preferences persist and load correctly
+
+20. Build auth-protected route wrapper
+    - Test: Unauthenticated users redirected to login
+
+### PHASE 3: Workspace System (Features 21-30)
+
+21. Create Workspace content type in Drupal
+    - Fields: name, description, owner, settings
+    - Test: Workspace appears in JSON:API
+
+22. Create Workspace Membership entity
+    - Fields: workspace, user, role (admin/member)
+    - Test: Memberships tracked in database
+
+23. Build workspace list page
+    - Test: Shows user's workspaces
+
+24. Build create workspace modal
+    - Test: Can create new workspace
+
+25. Build workspace settings page
+    - Test: Can edit workspace name/description
+
+26. Implement workspace member management
+    - Test: Can add/remove members
+
+27. Build workspace member invitation flow
+    - Test: Can invite users by email
+
+28. Implement workspace role permissions
+    - Test: Only admins can manage settings
+
+29. Build workspace deletion with confirmation
+    - Test: Can archive/delete workspace
+
+30. Implement workspace switching in UI
+    - Test: Can switch between workspaces smoothly
+
+### PHASE 4: Board System (Features 31-45)
+
+31. Create Board content type in Drupal
+    - Fields: name, workspace, background, visibility, settings, is_archived
+    - Test: Board appears in JSON:API
+
+32. Create Board Membership entity
+    - Fields: board, user, role (admin/member/observer)
+    - Test: Board permissions tracked
+
+33. Build board list within workspace
+    - Test: Shows workspace boards
+
+34. Build create board modal
+    - Test: Can create new board
+
+35. Build board header component
+    - Test: Shows board name, can edit inline
+
+36. Implement board background customization
+    - Colors, gradients, images
+    - Test: Background changes persist
+
+37. Build board settings panel
+    - Test: Can modify board settings
+
+38. Implement board visibility levels
+    - Private, workspace, public
+    - Test: Visibility controls access
+
+39. Build board member management
+    - Test: Can manage board-specific members
+
+40. Implement board archiving/restore
+    - Test: Can archive and restore boards
+
+41. Build board deletion flow
+    - Test: Deleted boards removed from view
+
+42. Implement board favorites/starring
+    - Test: Starred boards appear in favorites
+
+43. Build board templates feature
+    - Test: Can create board from template
+
+44. Implement board copy functionality
+    - Test: Can duplicate a board
+
+45. Build recent boards section
+    - Test: Recently viewed boards tracked
+
+### PHASE 5: List System (Features 46-55)
+
+46. Create List content type in Drupal
+    - Fields: name, board, position, color, wip_limit, is_archived
+    - Test: List appears in JSON:API
+
+47. Build list column component
+    - Test: Lists display as columns on board
+
+48. Implement add list functionality
+    - Test: Can add new list to board
+
+49. Build list header with inline editing
+    - Test: Can rename list inline
+
+50. Implement list drag-and-drop reordering
+    - Using fractional indexing
+    - Test: Can reorder lists by dragging
+
+51. Build list menu with actions
+    - Test: Menu shows copy, move, archive options
+
+52. Implement list archiving
+    - Test: Archived lists hidden from view
+
+53. Build WIP (Work In Progress) limit feature
+    - Test: WIP limit warning displays
+
+54. Implement list color coding
+    - Test: List header shows selected color
+
+55. Build list collapse/expand toggle
+    - Test: Can collapse lists to save space
+
+### PHASE 6: Card System (Features 56-75)
+
+56. Create Card content type in Drupal
+    - Fields: title, description, list, position, cover, due_date, start_date, is_complete
+    - Test: Card appears in JSON:API
+
+57. Build card item component
+    - Test: Cards display in lists
+
+58. Implement add card functionality
+    - Test: Can add new card to list
+
+59. Build card modal with full details
+    - Test: Click card opens detail modal
+
+60. Implement card title inline editing
+    - Test: Can edit card title
+
+61. Build card description editor
+    - Rich text with markdown support
+    - Test: Description saves correctly
+
+62. Implement card drag-and-drop within list
+    - Test: Can reorder cards in same list
+
+63. Implement card drag-and-drop between lists
+    - Test: Can move cards to different lists
+
+64. Build card cover image feature
+    - Test: Cover image displays on card
+
+65. Implement card due dates
+    - Test: Due date shows on card, can set/edit
+
+66. Build card start date feature
+    - Test: Start date tracks when work begins
+
+67. Implement card completion toggle
+    - Test: Can mark card complete
+
+68. Build card quick actions menu
+    - Test: Quick actions work (labels, members, due)
+
+69. Implement card archiving
+    - Test: Archived cards hidden from list
+
+70. Build card copying functionality
+    - Test: Can duplicate card
+
+71. Implement card moving between boards
+    - Test: Can move card to another board
+
+72. Build card activity log
+    - Test: Activity shows changes history
+
+73. Implement card watching/notifications
+    - Test: Watchers notified of changes
+
+74. Build card template functionality
+    - Test: Can create card from template
+
+75. Implement card search within board
+    - Test: Search filters visible cards
+
+### PHASE 7: Labels System (Features 76-82)
+
+76. Create Label content type in Drupal
+    - Fields: name, color, board
+    - Test: Label appears in JSON:API
+
+77. Create Card-Label relationship entity
+    - Test: Cards can have multiple labels
+
+78. Build label management modal
+    - Test: Can create/edit/delete labels
+
+79. Implement label picker in card modal
+    - Test: Can add/remove labels from card
+
+80. Build label display on card item
+    - Test: Labels show as colored bars/chips
+
+81. Implement label filtering on board
+    - Test: Filter shows only cards with label
+
+82. Build label color palette selector
+    - Test: Can choose from color options
+
+### PHASE 8: Members System (Features 83-88)
+
+83. Create Card-Member relationship entity
+    - Test: Cards can have assigned members
+
+84. Build member picker in card modal
+    - Test: Can assign/unassign members
+
+85. Implement member avatars on card
+    - Test: Assigned member avatars display
+
+86. Build member filtering on board
+    - Test: Filter shows member's cards
+
+87. Implement member assignment notifications
+    - Test: Member notified when assigned
+
+88. Build "My Cards" filter view
+    - Test: Shows current user's assigned cards
+
+### PHASE 9: Checklist System (Features 89-96)
+
+89. Create Checklist content type in Drupal
+    - Fields: name, card, position
+    - Test: Checklist appears in JSON:API
+
+90. Create Checklist Item entity
+    - Fields: name, checklist, position, is_complete, due_date, member
+    - Test: Items tracked per checklist
+
+91. Build checklist section in card modal
+    - Test: Checklists display with items
+
+92. Implement add checklist functionality
+    - Test: Can add new checklist to card
+
+93. Build checklist item add/edit/delete
+    - Test: Can manage checklist items
+
+94. Implement checklist item toggle
+    - Test: Can mark items complete
+
+95. Build checklist progress bar
+    - Test: Progress shows completed percentage
+
+96. Implement checklist item due dates (premium)
+    - Test: Items can have due dates
+
+### PHASE 10: Comments System (Features 97-102)
+
+97. Create Comment content type in Drupal
+    - Fields: body, card, author, created
+    - Test: Comment appears in JSON:API
+
+98. Build comments section in card modal
+    - Test: Comments display chronologically
+
+99. Implement add comment functionality
+    - Test: Can post new comment
+
+100. Build comment edit/delete
+     - Test: Can edit/delete own comments
+
+101. Implement @mention functionality
+     - Test: @mentions notify users
+
+102. Build comment reactions (optional)
+     - Test: Can react to comments
+
+### PHASE 11: Attachments System (Features 103-108)
+
+103. Create Attachment media type in Drupal
+     - Fields: file, card, uploader, uploaded_at
+     - Test: Files upload and store correctly
+
+104. Build attachment section in card modal
+     - Test: Attachments display with previews
+
+105. Implement file upload functionality
+     - Test: Can upload files up to limit
+
+106. Build attachment preview/download
+     - Test: Can preview images, download files
+
+107. Implement attachment deletion
+     - Test: Can remove attachments
+
+108. Build drag-drop file upload
+     - Test: Can drag files to upload
+
+### PHASE 12: Real-time Features (Features 109-118)
+
+109. Set up Mercure client in React
+     - Test: Can subscribe to Mercure topics
+
+110. Implement real-time card updates
+     - Test: Card changes appear without refresh
+
+111. Implement real-time list updates
+     - Test: List changes sync across users
+
+112. Build user presence indicators
+     - Test: Shows who's viewing board
+
+113. Implement real-time comment updates
+     - Test: New comments appear instantly
+
+114. Build optimistic UI updates
+     - Test: Actions feel instant with rollback
+
+115. Implement real-time drag-and-drop sync
+     - Test: Dragging syncs to other users
+
+116. Build connection status indicator
+     - Test: Shows connected/disconnected state
+
+117. Implement reconnection logic
+     - Test: Auto-reconnects after disconnect
+
+118. Build offline queue for actions
+     - Test: Actions queued when offline
+
+### PHASE 13: Custom Fields (Premium) (Features 119-125)
+
+119. Create Custom Field definition entity
+     - Types: text, number, date, checkbox, dropdown
+     - Test: Field definitions stored per board
+
+120. Create Card Custom Field Values entity
+     - Test: Values stored per card
+
+121. Build custom field management UI
+     - Test: Can create/edit field definitions
+
+122. Implement custom field display on cards
+     - Test: Fields show on card front
+
+123. Build custom field editing in modal
+     - Test: Can set/edit field values
+
+124. Implement dropdown option management
+     - Test: Can define dropdown options
+
+125. Build custom field filtering
+     - Test: Can filter by custom field values
+
+### PHASE 14: Views System (Premium) (Features 126-133)
+
+126. Create Board View entity
+     - Types: board, calendar, timeline, table, dashboard
+     - Test: View configurations saved
+
+127. Build calendar view component
+     - Test: Cards display on calendar by due date
+
+128. Build timeline/Gantt view component
+     - Test: Cards show as timeline bars
+
+129. Build table view component
+     - Test: Cards in sortable table format
+
+130. Build dashboard view with charts
+     - Test: Shows board statistics
+
+131. Implement view switching UI
+     - Test: Can switch between views
+
+132. Build view customization options
+     - Test: Views can be configured
+
+133. Implement view sharing
+     - Test: Views can be shared with team
+
+### PHASE 15: Automation (Butler) (Features 134-140)
+
+134. Create Automation Rule entity
+     - Fields: trigger, conditions, actions, board
+     - Test: Rules stored and retrieved
+
+135. Build automation rules management UI
+     - Test: Can create/edit/delete rules
+
+136. Implement trigger types
+     - Card created, moved, due date, etc.
+     - Test: Triggers fire correctly
+
+137. Build action types
+     - Move card, add label, assign member, etc.
+     - Test: Actions execute correctly
+
+138. Implement condition evaluation
+     - Test: Conditions filter trigger events
+
+139. Build automation log/history
+     - Test: Rule executions logged
+
+140. Implement scheduled automations
+     - Test: Time-based rules execute
+
+### PHASE 16: Activity & Notifications (Features 141-148)
+
+141. Create Activity entity in Drupal
+     - Fields: type, actor, target, data, timestamp
+     - Test: Activities logged for all actions
+
+142. Build activity feed in card modal
+     - Test: Card history displays
+
+143. Build board activity feed
+     - Test: Board-wide activity visible
+
+144. Create Notification entity
+     - Fields: user, type, data, is_read, created
+     - Test: Notifications created for events
+
+145. Build notification dropdown in header
+     - Test: Shows unread notifications
+
+146. Implement notification preferences
+     - Test: Users can control notifications
+
+147. Build email notification system
+     - Test: Emails sent for key events
+
+148. Implement push notifications (optional)
+     - Test: Browser push notifications work
+
+### PHASE 17: Search & Filtering (Features 149-154)
+
+149. Implement board search functionality
+     - Test: Can search cards on board
+
+150. Build global search across workspaces
+     - Test: Search finds cards anywhere
+
+151. Implement advanced filters
+     - Labels, members, due dates, etc.
+     - Test: Multiple filters combine correctly
+
+152. Build saved filter/view feature
+     - Test: Filters can be saved
+
+153. Implement search result highlighting
+     - Test: Matches highlighted in results
+
+154. Build keyboard shortcuts for search
+     - Test: Ctrl/Cmd+K opens search
+
+### PHASE 18: Data Migration (Features 155-162)
+
+155. Map existing PostgreSQL schema to Drupal entities
+     - Test: Mapping document complete
+
+156. Create migration scripts for users
+     - Test: Users imported correctly
+
+157. Create migration for workspaces
+     - Test: Workspaces with members imported
+
+158. Create migration for boards and lists
+     - Test: Board structure imported
+
+159. Create migration for cards with all relationships
+     - Test: Cards with labels, members imported
+
+160. Create migration for checklists and items
+     - Test: Checklists fully imported
+
+161. Create migration for comments and activities
+     - Test: Comment history preserved
+
+162. Create migration for attachments
+     - Test: Files migrated to new storage
+
+### PHASE 19: Performance & Polish (Features 163-172)
+
+163. Implement virtual scrolling for large boards
+     - Test: 1000+ cards scroll smoothly
+
+164. Add loading states and skeletons
+     - Test: Loading states show appropriately
+
+165. Implement error boundaries
+     - Test: Errors don't crash entire app
+
+166. Add keyboard navigation
+     - Test: Can navigate with keyboard
+
+167. Implement accessibility (WCAG)
+     - Test: Screen reader compatible
+
+168. Add responsive design for mobile
+     - Test: Works on phone screens
+
+169. Implement dark mode
+     - Test: Dark theme toggles correctly
+
+170. Add PWA support
+     - Test: Can install as app
+
+171. Optimize bundle size
+     - Test: Lighthouse performance >90
+
+172. Add comprehensive error handling
+     - Test: Errors show helpful messages
+
+### PHASE 20: Security & Production (Features 173-180)
+
+173. Implement rate limiting
+     - Test: Excessive requests blocked
+
+174. Add input validation and sanitization
+     - Test: XSS attempts blocked
+
+175. Implement CSRF protection
+     - Test: CSRF tokens validated
+
+176. Add audit logging
+     - Test: Security events logged
+
+177. Set up production environment config
+     - Test: Environment variables work
+
+178. Create deployment documentation
+     - Test: Can deploy to production
+
+179. Set up monitoring and health checks
+     - Test: Health endpoint responds
+
+180. Final testing and bug fixes
+     - Test: All features work end-to-end
+
+## Quality Requirements
+
+### Performance
+- API response time < 100ms for standard operations
+- Page load < 2 seconds on 3G
+- Support 50+ concurrent users
+- Handle 10,000+ cards per board
+
+### Security
+- JWT authentication with refresh tokens
+- Role-based access control
+- Input validation on all endpoints
+- XSS/CSRF/SQL injection protection
+
+### Accessibility
+- WCAG 2.1 AA compliance
+- Keyboard navigable
+- Screen reader compatible
+
+### Responsiveness
+- Works on desktop (1920px+)
+- Works on tablet (768px-1919px)
+- Works on mobile (320px-767px)
