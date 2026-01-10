@@ -168,10 +168,194 @@ function _boxtasks_automation_handle_checklist_item_update(NodeInterface $node):
 /**
  * Implements hook_cron().
  *
- * Checks for cards with approaching due dates and fires triggers.
+ * Checks for cards with approaching due dates and runs scheduled automations.
  */
 function boxtasks_automation_cron(): void {
   _boxtasks_automation_check_due_dates();
+  _boxtasks_automation_run_scheduled();
+}
+
+/**
+ * Runs scheduled automations that are due.
+ */
+function _boxtasks_automation_run_scheduled(): void {
+  $now = time();
+
+  // Find all enabled scheduled rules that are due to run.
+  $query = \Drupal::entityTypeManager()->getStorage('automation_rule')->getQuery()
+    ->condition('trigger_type', 'scheduled')
+    ->condition('enabled', TRUE)
+    ->condition('next_scheduled_run', $now, '<=')
+    ->accessCheck(FALSE);
+
+  $rule_ids = $query->execute();
+
+  if (empty($rule_ids)) {
+    return;
+  }
+
+  $rules = \Drupal::entityTypeManager()->getStorage('automation_rule')->loadMultiple($rule_ids);
+  $executor = \Drupal::service('boxtasks_automation.executor');
+
+  foreach ($rules as $rule) {
+    $board_id = $rule->get('board_id')->target_id;
+
+    // Build trigger data for scheduled run.
+    $trigger_data = [
+      'scheduled_run' => TRUE,
+      'run_time' => $now,
+      'board_id' => $board_id,
+    ];
+
+    // Get scope from trigger config (all cards, or specific filter).
+    $config = $rule->getTriggerConfig();
+    $scope = $config['scope'] ?? 'all_cards';
+
+    // Execute based on scope.
+    if ($scope === 'all_cards') {
+      // Run actions on all cards in the board.
+      _boxtasks_automation_run_scheduled_on_board($rule, $executor, $board_id, $trigger_data, $config);
+    }
+    elseif ($scope === 'filtered_cards') {
+      // Run actions on cards matching filter criteria.
+      _boxtasks_automation_run_scheduled_on_filtered_cards($rule, $executor, $board_id, $trigger_data, $config);
+    }
+    else {
+      // Single execution (no card context).
+      $executor->executeRule($rule, 'scheduled', $trigger_data);
+    }
+
+    // Calculate and set the next scheduled run.
+    $rule->calculateNextScheduledRun();
+    $rule->save();
+
+    \Drupal::logger('boxtasks_automation')->info('Executed scheduled automation "@name" on board @board.', [
+      '@name' => $rule->get('name')->value,
+      '@board' => $board_id,
+    ]);
+  }
+}
+
+/**
+ * Runs scheduled automation on all cards in a board.
+ */
+function _boxtasks_automation_run_scheduled_on_board($rule, $executor, $board_id, $trigger_data, $config): void {
+  // Get all lists in the board.
+  $list_query = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->condition('type', 'board_list')
+    ->condition('field_list_board', $board_id)
+    ->accessCheck(FALSE);
+
+  $list_ids = $list_query->execute();
+
+  if (empty($list_ids)) {
+    return;
+  }
+
+  // Get all cards in those lists.
+  $card_query = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->condition('type', 'card')
+    ->condition('field_card_list', $list_ids, 'IN')
+    ->condition('field_card_archived', FALSE)
+    ->accessCheck(FALSE);
+
+  $card_ids = $card_query->execute();
+
+  if (empty($card_ids)) {
+    return;
+  }
+
+  $cards = \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($card_ids);
+
+  foreach ($cards as $card) {
+    $card_trigger_data = $trigger_data + [
+      'card_id' => $card->id(),
+      'card' => [
+        'id' => $card->id(),
+        'uuid' => $card->uuid(),
+        'title' => $card->getTitle(),
+        'list_id' => $card->get('field_card_list')->target_id,
+        'labels' => _boxtasks_automation_get_labels($card),
+        'due_date' => $card->get('field_card_due_date')->value,
+        'completed' => (bool) $card->get('field_card_completed')->value,
+      ],
+    ];
+
+    // Check conditions before executing.
+    $executor->executeRule($rule, 'scheduled', $card_trigger_data);
+  }
+}
+
+/**
+ * Runs scheduled automation on filtered cards.
+ */
+function _boxtasks_automation_run_scheduled_on_filtered_cards($rule, $executor, $board_id, $trigger_data, $config): void {
+  // Build query based on filter config.
+  $filter = $config['filter'] ?? [];
+
+  // Get all lists in the board first.
+  $list_query = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->condition('type', 'board_list')
+    ->condition('field_list_board', $board_id)
+    ->accessCheck(FALSE);
+
+  $list_ids = $list_query->execute();
+
+  if (empty($list_ids)) {
+    return;
+  }
+
+  $card_query = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->condition('type', 'card')
+    ->condition('field_card_list', $list_ids, 'IN')
+    ->condition('field_card_archived', FALSE)
+    ->accessCheck(FALSE);
+
+  // Apply filters.
+  if (!empty($filter['has_due_date'])) {
+    $card_query->exists('field_card_due_date');
+  }
+
+  if (!empty($filter['is_overdue'])) {
+    $card_query->condition('field_card_due_date', date('Y-m-d\TH:i:s'), '<');
+  }
+
+  if (!empty($filter['is_incomplete'])) {
+    $card_query->condition('field_card_completed', FALSE);
+  }
+
+  if (!empty($filter['has_label'])) {
+    $card_query->condition('field_card_labels', $filter['has_label']);
+  }
+
+  if (!empty($filter['in_list'])) {
+    $card_query->condition('field_card_list', $filter['in_list']);
+  }
+
+  $card_ids = $card_query->execute();
+
+  if (empty($card_ids)) {
+    return;
+  }
+
+  $cards = \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($card_ids);
+
+  foreach ($cards as $card) {
+    $card_trigger_data = $trigger_data + [
+      'card_id' => $card->id(),
+      'card' => [
+        'id' => $card->id(),
+        'uuid' => $card->uuid(),
+        'title' => $card->getTitle(),
+        'list_id' => $card->get('field_card_list')->target_id,
+        'labels' => _boxtasks_automation_get_labels($card),
+        'due_date' => $card->get('field_card_due_date')->value,
+        'completed' => (bool) $card->get('field_card_completed')->value,
+      ],
+    ];
+
+    $executor->executeRule($rule, 'scheduled', $card_trigger_data);
+  }
 }
 
 /**

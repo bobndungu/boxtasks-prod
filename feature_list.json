@@ -1128,7 +1128,7 @@
       "id": 140,
       "name": "Implement scheduled automations",
       "test": "Time-based rules execute",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation"
     },

@@ -79,6 +79,33 @@ export const TRIGGER_TYPES = [
   { id: 'label_removed', label: 'Label Removed', description: 'When a label is removed from a card' },
   { id: 'member_added', label: 'Member Added', description: 'When a member is assigned to a card' },
   { id: 'checklist_completed', label: 'Checklist Completed', description: 'When all checklist items are completed' },
+  { id: 'scheduled', label: 'Scheduled', description: 'Run on a schedule (daily, weekly, monthly)' },
+] as const;
+
+// Schedule interval options for scheduled trigger
+export const SCHEDULE_INTERVALS = [
+  { id: 'hourly', label: 'Hourly', description: 'Run every hour' },
+  { id: 'daily', label: 'Daily', description: 'Run once per day' },
+  { id: 'weekly', label: 'Weekly', description: 'Run on specific days of the week' },
+  { id: 'monthly', label: 'Monthly', description: 'Run on a specific day of the month' },
+] as const;
+
+// Days of week for weekly schedules
+export const DAYS_OF_WEEK = [
+  { id: 1, label: 'Monday' },
+  { id: 2, label: 'Tuesday' },
+  { id: 3, label: 'Wednesday' },
+  { id: 4, label: 'Thursday' },
+  { id: 5, label: 'Friday' },
+  { id: 6, label: 'Saturday' },
+  { id: 7, label: 'Sunday' },
+] as const;
+
+// Scope options for scheduled automations
+export const SCHEDULE_SCOPES = [
+  { id: 'all_cards', label: 'All Cards', description: 'Run on all cards in the board' },
+  { id: 'filtered_cards', label: 'Filtered Cards', description: 'Run on cards matching filter criteria' },
+  { id: 'single', label: 'Board Level', description: 'Run once (no card context)' },
 ] as const;
 
 // Available condition types

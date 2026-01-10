@@ -221,6 +221,17 @@ class AutomationRule extends ContentEntityBase {
       ])
       ->setDisplayConfigurable('view', TRUE);
 
+    // Next scheduled run timestamp (for scheduled triggers).
+    $fields['next_scheduled_run'] = BaseFieldDefinition::create('timestamp')
+      ->setLabel(t('Next Scheduled Run'))
+      ->setDescription(t('When this rule should next run (for scheduled triggers).'))
+      ->setDisplayOptions('view', [
+        'label' => 'above',
+        'type' => 'timestamp',
+        'weight' => 9,
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+
     // Created timestamp.
     $fields['created'] = BaseFieldDefinition::create('created')
       ->setLabel(t('Created'))
@@ -336,6 +347,169 @@ class AutomationRule extends ContentEntityBase {
     $this->set('execution_count', $count + 1);
     $this->set('last_executed', \Drupal::time()->getRequestTime());
     return $this;
+  }
+
+  /**
+   * Checks if this is a scheduled automation.
+   *
+   * @return bool
+   *   TRUE if this is a scheduled automation.
+   */
+  public function isScheduled(): bool {
+    return $this->get('trigger_type')->value === 'scheduled';
+  }
+
+  /**
+   * Gets the next scheduled run timestamp.
+   *
+   * @return int|null
+   *   The timestamp or NULL if not set.
+   */
+  public function getNextScheduledRun(): ?int {
+    $value = $this->get('next_scheduled_run')->value;
+    return $value ? (int) $value : NULL;
+  }
+
+  /**
+   * Sets the next scheduled run timestamp.
+   *
+   * @param int $timestamp
+   *   The timestamp.
+   *
+   * @return $this
+   */
+  public function setNextScheduledRun(int $timestamp): static {
+    $this->set('next_scheduled_run', $timestamp);
+    return $this;
+  }
+
+  /**
+   * Calculates and sets the next scheduled run based on trigger config.
+   *
+   * @return $this
+   */
+  public function calculateNextScheduledRun(): static {
+    if (!$this->isScheduled()) {
+      return $this;
+    }
+
+    $config = $this->getTriggerConfig();
+    $interval = $config['interval'] ?? 'daily';
+    $time = $config['time'] ?? '09:00';
+    $now = \Drupal::time()->getRequestTime();
+
+    // Parse the time of day.
+    [$hour, $minute] = array_map('intval', explode(':', $time));
+
+    switch ($interval) {
+      case 'hourly':
+        // Next hour at the configured minute.
+        $next = strtotime(date('Y-m-d H:00:00', $now) . " +1 hour +{$minute} minutes");
+        break;
+
+      case 'daily':
+        // Today or tomorrow at the configured time.
+        $today = strtotime(date('Y-m-d', $now) . " {$hour}:{$minute}:00");
+        $next = $today > $now ? $today : $today + 86400;
+        break;
+
+      case 'weekly':
+        // Find the next matching day of week.
+        $days = $config['days_of_week'] ?? [1]; // Default to Monday.
+        $next = $this->findNextWeeklyRun($now, $hour, $minute, $days);
+        break;
+
+      case 'monthly':
+        // The configured day of month at the configured time.
+        $day = $config['day_of_month'] ?? 1;
+        $next = $this->findNextMonthlyRun($now, $hour, $minute, $day);
+        break;
+
+      default:
+        // Default to daily.
+        $today = strtotime(date('Y-m-d', $now) . " {$hour}:{$minute}:00");
+        $next = $today > $now ? $today : $today + 86400;
+    }
+
+    $this->setNextScheduledRun($next);
+    return $this;
+  }
+
+  /**
+   * Finds the next weekly run timestamp.
+   *
+   * @param int $now
+   *   Current timestamp.
+   * @param int $hour
+   *   Hour of day.
+   * @param int $minute
+   *   Minute of hour.
+   * @param array $days
+   *   Days of week (1=Monday, 7=Sunday).
+   *
+   * @return int
+   *   The next run timestamp.
+   */
+  protected function findNextWeeklyRun(int $now, int $hour, int $minute, array $days): int {
+    $current_day = (int) date('N', $now); // 1=Monday, 7=Sunday.
+    $today_time = strtotime(date('Y-m-d', $now) . " {$hour}:{$minute}:00");
+
+    // Sort days and ensure they're valid.
+    $days = array_filter($days, fn($d) => $d >= 1 && $d <= 7);
+    sort($days);
+
+    // Check today first if it's a scheduled day and time hasn't passed.
+    if (in_array($current_day, $days, TRUE) && $today_time > $now) {
+      return $today_time;
+    }
+
+    // Find next scheduled day.
+    foreach ($days as $day) {
+      if ($day > $current_day) {
+        $diff = $day - $current_day;
+        return $today_time + ($diff * 86400);
+      }
+    }
+
+    // Wrap around to next week's first scheduled day.
+    $diff = 7 - $current_day + $days[0];
+    return $today_time + ($diff * 86400);
+  }
+
+  /**
+   * Finds the next monthly run timestamp.
+   *
+   * @param int $now
+   *   Current timestamp.
+   * @param int $hour
+   *   Hour of day.
+   * @param int $minute
+   *   Minute of hour.
+   * @param int $day
+   *   Day of month.
+   *
+   * @return int
+   *   The next run timestamp.
+   */
+  protected function findNextMonthlyRun(int $now, int $hour, int $minute, int $day): int {
+    $current_month = (int) date('n', $now);
+    $current_year = (int) date('Y', $now);
+
+    // Try this month.
+    $this_month = mktime($hour, $minute, 0, $current_month, $day, $current_year);
+    if ($this_month > $now) {
+      return $this_month;
+    }
+
+    // Try next month.
+    $next_month = $current_month + 1;
+    $next_year = $current_year;
+    if ($next_month > 12) {
+      $next_month = 1;
+      $next_year++;
+    }
+
+    return mktime($hour, $minute, 0, $next_month, $day, $next_year);
   }
 
 }
