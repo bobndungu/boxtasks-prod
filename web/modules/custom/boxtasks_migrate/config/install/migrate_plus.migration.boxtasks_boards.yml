@@ -1,0 +1,111 @@
+id: boxtasks_boards
+label: 'BoxTasks Boards'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - boards
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      b.id,
+      b.workspace_id,
+      b.name,
+      b.description,
+      b.visibility,
+      b.background_type,
+      b.background_value,
+      b.is_template,
+      b.is_closed,
+      b.position,
+      b.settings,
+      b.created_by,
+      b.created_at,
+      b.updated_at,
+      b.deleted_at
+    FROM boards b
+    WHERE b.deleted_at IS NULL
+    ORDER BY b.created_at ASC
+  ids:
+    id:
+      type: string
+
+process:
+  type:
+    plugin: default_value
+    default_value: board
+
+  # Store original UUID (needs new field)
+  field_original_uuid: id
+
+  # Title from name
+  title: name
+
+  # Description
+  field_board_description: description
+
+  # Workspace reference (existing field)
+  field_board_workspace:
+    plugin: migration_lookup
+    migration: boxtasks_workspaces
+    source: workspace_id
+
+  # Visibility (existing field)
+  field_board_visibility: visibility
+
+  # Background (existing field - combine type and value)
+  field_board_background: background_value
+
+  # Archived flag (existing field, maps from is_closed)
+  field_board_archived:
+    plugin: default_value
+    default_value: 0
+    source: is_closed
+
+  # Is template (needs new field)
+  field_is_template:
+    plugin: default_value
+    default_value: 0
+    source: is_template
+
+  # Position (needs new field)
+  field_position: position
+
+  # Settings as JSON (needs new field)
+  field_settings:
+    plugin: callback
+    callable: json_encode
+    source: settings
+
+  # Author
+  uid:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: created_by
+    no_stub: true
+
+  # Status - published
+  status:
+    plugin: default_value
+    default_value: 1
+
+  # Timestamps
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+
+destination:
+  plugin: entity:node
+
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_workspaces

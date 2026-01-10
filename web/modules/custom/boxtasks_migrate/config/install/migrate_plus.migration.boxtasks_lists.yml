@@ -1,0 +1,86 @@
+id: boxtasks_lists
+label: 'BoxTasks Lists'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - lists
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      l.id,
+      l.board_id,
+      l.name,
+      l.position,
+      l.color,
+      l.wip_limit,
+      l.is_collapsed,
+      l.created_at,
+      l.updated_at
+    FROM lists l
+    INNER JOIN boards b ON l.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY l.created_at ASC
+  ids:
+    id:
+      type: string
+
+process:
+  type:
+    plugin: default_value
+    default_value: board_list
+
+  # Store original UUID (needs new field)
+  field_original_uuid: id
+
+  # Title from name
+  title: name
+
+  # Board reference (existing field)
+  field_list_board:
+    plugin: migration_lookup
+    migration: boxtasks_boards
+    source: board_id
+
+  # Position (existing field)
+  field_list_position: position
+
+  # Color (existing field)
+  field_list_color: color
+
+  # WIP Limit (existing field)
+  field_list_wip_limit:
+    plugin: default_value
+    default_value: 0
+    source: wip_limit
+
+  # Collapsed state (needs new field)
+  field_is_collapsed:
+    plugin: default_value
+    default_value: 0
+    source: is_collapsed
+
+  # Status - published
+  status:
+    plugin: default_value
+    default_value: 1
+
+  # Timestamps
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+
+destination:
+  plugin: entity:node
+
+migration_dependencies:
+  required:
+    - boxtasks_boards

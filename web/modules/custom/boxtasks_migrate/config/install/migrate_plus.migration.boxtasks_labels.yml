@@ -1,0 +1,57 @@
+id: boxtasks_labels
+label: 'BoxTasks Labels'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - labels
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      l.id,
+      l.board_id,
+      l.name,
+      l.color,
+      l.created_at
+    FROM labels l
+    INNER JOIN boards b ON l.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY l.created_at ASC
+  ids:
+    id:
+      type: string
+
+process:
+  vid:
+    plugin: default_value
+    default_value: board_labels
+
+  # Store original UUID
+  field_original_uuid: id
+
+  # Name - use color as fallback if name is empty
+  name:
+    plugin: callback
+    callable: 'Drupal\boxtasks_migrate\Plugin\migrate\process\LabelName::transform'
+    source:
+      - name
+      - color
+
+  # Board reference
+  field_board:
+    plugin: migration_lookup
+    migration: boxtasks_boards
+    source: board_id
+
+  # Color
+  field_color: color
+
+destination:
+  plugin: entity:taxonomy_term
+
+migration_dependencies:
+  required:
+    - boxtasks_boards

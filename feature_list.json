@@ -1272,7 +1272,7 @@
       "id": 158,
       "name": "Create migration for boards and lists",
       "test": "Board structure imported",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "data-migration"
     },

@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_is_collapsed
+    - node.type.board_list
+  module:
+    - node
+id: node.board_list.field_is_collapsed
+field_name: field_is_collapsed
+entity_type: node
+bundle: board_list
+label: 'Collapsed'
+description: 'Whether this list is collapsed in the UI.'
+required: false
+translatable: false
+default_value:
+  - value: false
+default_value_callback: ''
+settings:
+  on_label: 'Collapsed'
+  off_label: 'Expanded'
+field_type: boolean

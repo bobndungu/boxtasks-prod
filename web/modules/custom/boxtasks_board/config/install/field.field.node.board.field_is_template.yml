@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_is_template
+    - node.type.board
+  module:
+    - node
+id: node.board.field_is_template
+field_name: field_is_template
+entity_type: node
+bundle: board
+label: 'Is Template'
+description: 'Whether this board is a template.'
+required: false
+translatable: false
+default_value:
+  - value: false
+default_value_callback: ''
+settings:
+  on_label: 'Template'
+  off_label: 'Regular Board'
+field_type: boolean
