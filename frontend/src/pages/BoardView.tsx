@@ -80,7 +80,7 @@ import { ActiveUsers } from '../components/ActiveUsers';
 import { useAuthStore } from '../lib/stores/auth';
 import { toast } from '../lib/stores/toast';
 import { CustomFieldsManager } from '../components/CustomFieldsManager';
-import { fetchCustomFieldsByBoard, fetchCardCustomFieldValues, type CustomFieldDefinition, type CustomFieldValue } from '../lib/api/customFields';
+import { fetchCustomFieldsByBoard, fetchCardCustomFieldValues, setCardCustomFieldValue, type CustomFieldDefinition, type CustomFieldValue } from '../lib/api/customFields';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
   green: '#61bd4f',
@@ -1674,6 +1674,15 @@ export default function BoardView() {
           onDelete={() => handleDeleteCard(selectedCard)}
           onArchive={() => handleArchiveCard(selectedCard)}
           onCopy={() => handleCopyCard(selectedCard)}
+          customFieldDefs={customFieldDefs}
+          initialCustomFieldValues={customFieldValues.get(selectedCard.id) || []}
+          onCustomFieldChange={(cardId, values) => {
+            setCustomFieldValues((prev) => {
+              const newMap = new Map(prev);
+              newMap.set(cardId, values);
+              return newMap;
+            });
+          }}
         />
       )}
 
@@ -2428,6 +2437,9 @@ function CardDetailModal({
   onDelete,
   onArchive,
   onCopy,
+  customFieldDefs,
+  initialCustomFieldValues,
+  onCustomFieldChange,
 }: {
   card: Card;
   listTitle: string;
@@ -2437,6 +2449,9 @@ function CardDetailModal({
   onDelete: () => void;
   onArchive: () => void;
   onCopy: () => void;
+  customFieldDefs: CustomFieldDefinition[];
+  initialCustomFieldValues: CustomFieldValue[];
+  onCustomFieldChange: (cardId: string, values: CustomFieldValue[]) => void;
 }) {
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description || '');
@@ -2495,6 +2510,14 @@ function CardDetailModal({
   const [showMemberPicker, setShowMemberPicker] = useState(false);
   const [cardMembers, setCardMembers] = useState<CardMember[]>(card.members || []);
   const [isTogglingMember, setIsTogglingMember] = useState(false);
+
+  // Custom field state
+  const [customFieldValueMap, setCustomFieldValueMap] = useState<Map<string, string>>(() => {
+    const map = new Map<string, string>();
+    initialCustomFieldValues.forEach((v) => map.set(v.definitionId, v.value));
+    return map;
+  });
+  const [isSavingCustomField, setIsSavingCustomField] = useState(false);
 
   useEffect(() => {
     loadComments();
@@ -2887,6 +2910,32 @@ function CardDetailModal({
       toast.error('Failed to update member assignment');
     } finally {
       setIsTogglingMember(false);
+    }
+  };
+
+  const handleCustomFieldChange = async (definitionId: string, value: string) => {
+    setIsSavingCustomField(true);
+    try {
+      const savedValue = await setCardCustomFieldValue(card.id, definitionId, value);
+      setCustomFieldValueMap((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(definitionId, value);
+        return newMap;
+      });
+
+      // Update parent state with new value
+      const updatedValues = [...initialCustomFieldValues.filter((v) => v.definitionId !== definitionId)];
+      if (value) {
+        updatedValues.push(savedValue);
+      }
+      onCustomFieldChange(card.id, updatedValues);
+
+      toast.success('Custom field updated');
+    } catch (err) {
+      console.error('Failed to update custom field:', err);
+      toast.error('Failed to update custom field');
+    } finally {
+      setIsSavingCustomField(false);
     }
   };
 
@@ -3976,6 +4025,124 @@ function CardDetailModal({
                   ))}
                 </div>
               </div>
+
+              {/* Custom Fields Section */}
+              {customFieldDefs.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Custom Fields</h4>
+                  <div className="space-y-3">
+                    {customFieldDefs.map((fieldDef) => {
+                      const currentValue = customFieldValueMap.get(fieldDef.id) || '';
+
+                      return (
+                        <div key={fieldDef.id} className="space-y-1">
+                          <label className="text-xs font-medium text-gray-600">
+                            {fieldDef.title}
+                            {fieldDef.required && <span className="text-red-500 ml-1">*</span>}
+                          </label>
+
+                          {fieldDef.type === 'text' && (
+                            <input
+                              type="text"
+                              value={currentValue}
+                              onChange={(e) => {
+                                setCustomFieldValueMap((prev) => {
+                                  const newMap = new Map(prev);
+                                  newMap.set(fieldDef.id, e.target.value);
+                                  return newMap;
+                                });
+                              }}
+                              onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
+                              disabled={isSavingCustomField}
+                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                              placeholder={`Enter ${fieldDef.title.toLowerCase()}`}
+                            />
+                          )}
+
+                          {fieldDef.type === 'number' && (
+                            <input
+                              type="number"
+                              value={currentValue}
+                              onChange={(e) => {
+                                setCustomFieldValueMap((prev) => {
+                                  const newMap = new Map(prev);
+                                  newMap.set(fieldDef.id, e.target.value);
+                                  return newMap;
+                                });
+                              }}
+                              onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
+                              disabled={isSavingCustomField}
+                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                              placeholder="0"
+                            />
+                          )}
+
+                          {fieldDef.type === 'date' && (
+                            <input
+                              type="date"
+                              value={currentValue}
+                              onChange={(e) => {
+                                setCustomFieldValueMap((prev) => {
+                                  const newMap = new Map(prev);
+                                  newMap.set(fieldDef.id, e.target.value);
+                                  return newMap;
+                                });
+                                handleCustomFieldChange(fieldDef.id, e.target.value);
+                              }}
+                              disabled={isSavingCustomField}
+                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                            />
+                          )}
+
+                          {fieldDef.type === 'dropdown' && (
+                            <select
+                              value={currentValue}
+                              onChange={(e) => {
+                                setCustomFieldValueMap((prev) => {
+                                  const newMap = new Map(prev);
+                                  newMap.set(fieldDef.id, e.target.value);
+                                  return newMap;
+                                });
+                                handleCustomFieldChange(fieldDef.id, e.target.value);
+                              }}
+                              disabled={isSavingCustomField}
+                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500 bg-white"
+                            >
+                              <option value="">Select {fieldDef.title.toLowerCase()}</option>
+                              {fieldDef.options.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+
+                          {fieldDef.type === 'checkbox' && (
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={currentValue === 'true'}
+                                onChange={(e) => {
+                                  const newValue = e.target.checked ? 'true' : 'false';
+                                  setCustomFieldValueMap((prev) => {
+                                    const newMap = new Map(prev);
+                                    newMap.set(fieldDef.id, newValue);
+                                    return newMap;
+                                  });
+                                  handleCustomFieldChange(fieldDef.id, newValue);
+                                }}
+                                disabled={isSavingCustomField}
+                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-gray-700">{fieldDef.title}</span>
+                            </label>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Actions</h4>
