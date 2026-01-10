@@ -18,6 +18,7 @@ import SearchModal from '../components/SearchModal';
 import NotificationDropdown from '../components/NotificationDropdown';
 import MobileNav, { MobileBottomNav } from '../components/MobileNav';
 import { useIsMobile } from '../lib/hooks/useMediaQuery';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
@@ -42,27 +43,27 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 md:pb-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16 md:pb-0 transition-colors">
       {/* Mobile Navigation */}
       {isMobile && <MobileNav onSearchClick={() => setShowSearch(true)} />}
 
       {/* Desktop Header */}
-      <header className="hidden md:block bg-white border-b border-gray-200">
+      <header className="hidden md:block bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo & Navigation */}
             <div className="flex items-center space-x-8">
               <Link to="/dashboard" className="flex items-center space-x-2">
-                <Layout className="h-7 w-7 text-blue-600" />
-                <span className="text-xl font-bold text-gray-900">BoxTasks</span>
+                <Layout className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+                <span className="text-xl font-bold text-gray-900 dark:text-white">BoxTasks</span>
               </Link>
               <nav id="main-navigation" className="hidden md:flex items-center space-x-1" aria-label="Main navigation">
                 <WorkspaceSwitcher />
-                <button className="flex items-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg" aria-haspopup="menu" aria-expanded="false">
+                <button className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" aria-haspopup="menu" aria-expanded="false">
                   Recent
                   <ChevronDown className="h-4 w-4 ml-1" aria-hidden="true" />
                 </button>
-                <button className="flex items-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg" aria-haspopup="menu" aria-expanded="false">
+                <button className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" aria-haspopup="menu" aria-expanded="false">
                   Starred
                   <ChevronDown className="h-4 w-4 ml-1" aria-hidden="true" />
                 </button>
@@ -77,12 +78,13 @@ export default function Dashboard() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowSearch(true)}
-                className="hidden md:flex items-center bg-gray-100 rounded-lg px-3 py-2 w-64 hover:bg-gray-200 transition-colors"
+                className="hidden md:flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 w-64 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                <Search className="h-4 w-4 text-gray-400 mr-2" />
-                <span className="text-sm text-gray-500">Search...</span>
-                <kbd className="ml-auto px-1.5 py-0.5 text-xs bg-gray-200 rounded text-gray-500">⌘K</kbd>
+                <Search className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                <span className="text-sm text-gray-500 dark:text-gray-400">Search...</span>
+                <kbd className="ml-auto px-1.5 py-0.5 text-xs bg-gray-200 dark:bg-gray-600 rounded text-gray-500 dark:text-gray-400">⌘K</kbd>
               </button>
+              <ThemeToggle />
               <NotificationDropdown />
               <div className="relative group">
                 <button className="flex items-center space-x-2" aria-haspopup="menu" aria-expanded="false" aria-label={`User menu for ${user?.displayName || user?.username || 'User'}`}>
@@ -90,19 +92,19 @@ export default function Dashboard() {
                     {user?.displayName?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 </button>
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="font-medium text-gray-900">{user?.displayName || user?.username}</p>
-                    <p className="text-sm text-gray-500">{user?.email}</p>
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                    <p className="font-medium text-gray-900 dark:text-white">{user?.displayName || user?.username}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
                   </div>
                   <div className="py-1">
-                    <Link to="/profile" className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50">
+                    <Link to="/profile" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                       <Settings className="h-4 w-4 mr-3" />
                       Profile & Settings
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50"
+                      className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       <LogOut className="h-4 w-4 mr-3" />
                       Log out
@@ -119,10 +121,10 @@ export default function Dashboard() {
       <main id="main-content" className="container mx-auto px-4 py-4 md:py-8" role="main" aria-label="Dashboard content">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
             Welcome, {user?.displayName || user?.username || 'User'}!
           </h1>
-          <p className="text-gray-500">Here's what's happening in your workspaces</p>
+          <p className="text-gray-500 dark:text-gray-400">Here's what's happening in your workspaces</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
@@ -132,23 +134,23 @@ export default function Dashboard() {
             <section>
               <div className="flex items-center mb-4">
                 <Star className="h-5 w-5 text-yellow-500 mr-2" />
-                <h2 className="text-lg font-semibold text-gray-900">Starred Boards</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Starred Boards</h2>
               </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                <Star className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">Star your favorite boards to access them quickly</p>
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+                <Star className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400 mb-4">Star your favorite boards to access them quickly</p>
               </div>
             </section>
 
             {/* Recent Boards */}
             <section>
               <div className="flex items-center mb-4">
-                <Clock className="h-5 w-5 text-gray-500 mr-2" />
-                <h2 className="text-lg font-semibold text-gray-900">Recently Viewed</h2>
+                <Clock className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recently Viewed</h2>
               </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">No recently viewed boards yet</p>
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+                <Clock className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400 mb-4">No recently viewed boards yet</p>
                 <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                   Create your first board
                 </button>
@@ -159,17 +161,17 @@ export default function Dashboard() {
             <section>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
-                  <Users className="h-5 w-5 text-gray-500 mr-2" />
-                  <h2 className="text-lg font-semibold text-gray-900">Your Workspaces</h2>
+                  <Users className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Your Workspaces</h2>
                 </div>
-                <Link to="/workspaces" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                <Link to="/workspaces" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium">
                   View All
                 </Link>
               </div>
               {workspaces.length === 0 ? (
-                <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 mb-4">No workspaces yet</p>
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+                  <Users className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">No workspaces yet</p>
                   <Link
                     to="/workspaces"
                     className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -183,7 +185,7 @@ export default function Dashboard() {
                     <Link
                       key={workspace.id}
                       to={`/workspace/${workspace.id}`}
-                      className="block bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                      className="block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md dark:hover:shadow-gray-900/30 transition-shadow"
                     >
                       <div className="flex items-start space-x-4">
                         <div
@@ -193,9 +195,9 @@ export default function Dashboard() {
                           {workspace.title.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{workspace.title}</h3>
+                          <h3 className="font-semibold text-gray-900 dark:text-white">{workspace.title}</h3>
                           {workspace.description && (
-                            <p className="text-sm text-gray-500 line-clamp-1">{workspace.description}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">{workspace.description}</p>
                           )}
                         </div>
                       </div>
@@ -204,7 +206,7 @@ export default function Dashboard() {
                   {workspaces.length > 3 && (
                     <Link
                       to="/workspaces"
-                      className="block text-center text-blue-600 hover:text-blue-700 text-sm font-medium py-2"
+                      className="block text-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium py-2"
                     >
                       View all {workspaces.length} workspaces
                     </Link>
@@ -217,23 +219,23 @@ export default function Dashboard() {
           {/* Right Column - Activity & Links */}
           <div className="space-y-6">
             {/* Quick Links */}
-            <section className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h2>
+            <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h2>
               <ul className="space-y-3">
                 <li>
-                  <a href="#" className="flex items-center text-gray-600 hover:text-blue-600">
+                  <a href="#" className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                     <Layout className="h-4 w-4 mr-3" />
                     Create a board
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="flex items-center text-gray-600 hover:text-blue-600">
+                  <a href="#" className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                     <Users className="h-4 w-4 mr-3" />
                     Invite team members
                   </a>
                 </li>
                 <li>
-                  <Link to="/profile" className="flex items-center text-gray-600 hover:text-blue-600">
+                  <Link to="/profile" className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
                     <Settings className="h-4 w-4 mr-3" />
                     Edit profile
                   </Link>
@@ -242,12 +244,12 @@ export default function Dashboard() {
             </section>
 
             {/* Activity Feed Placeholder */}
-            <section className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Activity</h2>
+            <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Activity</h2>
               <div className="text-center py-8">
-                <Clock className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">No recent activity</p>
-                <p className="text-xs text-gray-400 mt-1">
+                <Clock className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-sm text-gray-500 dark:text-gray-400">No recent activity</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                   When you or your team take action, it will show up here
                 </p>
               </div>

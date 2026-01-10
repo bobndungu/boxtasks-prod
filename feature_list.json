@@ -1352,7 +1352,7 @@
       "id": 168,
       "name": "Add responsive design for mobile",
       "test": "Works on phone screens",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "performance-polish"
     },
