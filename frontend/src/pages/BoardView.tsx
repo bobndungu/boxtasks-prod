@@ -91,6 +91,7 @@ import TableView from '../components/TableView';
 import DashboardView from '../components/DashboardView';
 import { AutomationRules } from '../components/AutomationRules';
 import { AdvancedFilters, DEFAULT_FILTER_STATE, matchesFilters, type FilterState } from '../components/AdvancedFilters';
+import { highlightText } from '../lib/utils/highlight';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
   green: '#61bd4f',
@@ -1613,6 +1614,7 @@ export default function BoardView() {
                   toggleCollapse={toggleListCollapse}
                   customFieldDefs={customFieldDefs}
                   customFieldValues={customFieldValues}
+                  searchQuery={searchQuery}
                 />
               ))}
             </SortableContext>
@@ -1964,6 +1966,7 @@ function SortableList({
   toggleCollapse,
   customFieldDefs,
   customFieldValues,
+  searchQuery = '',
 }: {
   list: BoardList;
   cards: Card[];
@@ -1983,6 +1986,7 @@ function SortableList({
   toggleCollapse: (listId: string) => void;
   customFieldDefs: CustomFieldDefinition[];
   customFieldValues: Map<string, CustomFieldValue[]>;
+  searchQuery?: string;
 }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(list.title);
@@ -2263,6 +2267,7 @@ function SortableList({
                 }}
                 customFieldDefs={customFieldDefs}
                 cardCustomFieldValues={customFieldValues.get(card.id) || []}
+                searchQuery={searchQuery}
               />
             ))}
           </SortableContext>
@@ -2342,6 +2347,7 @@ function SortableCard({
   onQuickEdit,
   customFieldDefs,
   cardCustomFieldValues,
+  searchQuery = '',
 }: {
   card: Card;
   onClick: () => void;
@@ -2350,6 +2356,7 @@ function SortableCard({
   onQuickEdit: (e: React.MouseEvent) => void;
   customFieldDefs: CustomFieldDefinition[];
   cardCustomFieldValues: CustomFieldValue[];
+  searchQuery?: string;
 }) {
   const [showQuickActions, setShowQuickActions] = useState(false);
 
@@ -2445,7 +2452,7 @@ function SortableCard({
             </div>
           )}
           <p className={`text-sm ${card.completed ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
-            {card.title}
+            {searchQuery ? highlightText(card.title, searchQuery) : card.title}
           </p>
         </div>
         {(card.startDate || card.dueDate || card.description) && (

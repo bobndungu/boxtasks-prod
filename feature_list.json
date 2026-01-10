@@ -1232,7 +1232,7 @@
       "id": 153,
       "name": "Implement search result highlighting",
       "test": "Matches highlighted in results",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "search-filtering"
     },
