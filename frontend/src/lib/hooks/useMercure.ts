@@ -4,10 +4,12 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 const MERCURE_HUB_URL = import.meta.env.VITE_MERCURE_URL || 'http://localhost:3000/.well-known/mercure';
 
 // Helper to create stable callback refs
-function useStableCallback<T extends (...args: unknown[]) => unknown>(callback: T | undefined): T | undefined {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function useStableCallback<T extends (...args: any[]) => any>(callback: T | undefined): T | undefined {
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
-  return useCallback(((...args) => callbackRef.current?.(...args)) as T, []);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return useCallback(((...args: any[]) => callbackRef.current?.(...args)) as T, []);
 }
 
 export type MercureEventType =

@@ -73,6 +73,7 @@ import { fetchWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspac
 import { useKeyboardShortcuts } from '../lib/hooks/useKeyboardShortcuts';
 import { useBoardUpdates } from '../lib/hooks/useMercure';
 import { usePresence } from '../lib/hooks/usePresence';
+import { useOptimistic } from '../lib/hooks/useOptimistic';
 import { ConnectionStatus } from '../components/ConnectionStatus';
 import { ActiveUsers } from '../components/ActiveUsers';
 import { useAuthStore } from '../lib/stores/auth';
@@ -140,6 +141,10 @@ export default function BoardView() {
   // Workspace members for @mentions
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
 
+  // Optimistic UI updates
+  const cardOptimistic = useOptimistic<Map<string, Card[]>>();
+  const listOptimistic = useOptimistic<BoardList[]>();
+
   // Keyboard shortcuts
   useKeyboardShortcuts([
     { key: 'n', action: () => {
@@ -196,13 +201,25 @@ export default function BoardView() {
         setCardsByList((prev) => {
           const newMap = new Map(prev);
           const listCards = newMap.get(card.listId) || [];
-          // Only add if not already present
-          if (!listCards.some((c) => c.id === card.id)) {
-            newMap.set(card.listId, [...listCards, card]);
+          // Only add if not already present (check by ID and also by temp ID pattern for optimistic cards)
+          const existingByRealId = listCards.some((c) => c.id === card.id);
+          const existingTempCard = listCards.some((c) =>
+            c.id.startsWith('temp_') && c.title === card.title && c.listId === card.listId
+          );
+          if (!existingByRealId) {
+            if (existingTempCard) {
+              // Replace temp card with real card
+              newMap.set(card.listId, listCards.map((c) =>
+                (c.id.startsWith('temp_') && c.title === card.title) ? card : c
+              ));
+            } else {
+              newMap.set(card.listId, [...listCards, card]);
+            }
           }
           return newMap;
         });
-        toast.info(`Card "${card.title}" was created`);
+        // Only show toast if this wasn't an optimistic update from this user
+        // (real-time updates from other users should show toast)
       }
     },
     onCardUpdated: (cardData) => {
@@ -447,19 +464,61 @@ export default function BoardView() {
       return;
     }
 
-    try {
-      const newList = await createList({
-        title: newListTitle,
+    const tempId = `temp_list_${Date.now()}`;
+    const titleToCreate = newListTitle;
+
+    // Create temporary optimistic list
+    const tempList: BoardList = {
+      id: tempId,
+      title: titleToCreate,
+      boardId: id,
+      position: lists.length,
+      archived: false,
+      wipLimit: 0,
+      color: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Clear form immediately for better UX
+    setNewListTitle('');
+    setAddingListId(null);
+
+    // Add empty card array for the temp list
+    setCardsByList((prev) => new Map(prev).set(tempId, []));
+
+    // Execute with optimistic update
+    await listOptimistic.execute({
+      currentState: lists,
+      optimisticUpdate: (current) => [...current, tempList],
+      apiCall: () => createList({
+        title: titleToCreate,
         boardId: id,
         position: lists.length,
-      });
-      setLists([...lists, newList]);
-      setCardsByList(new Map(cardsByList).set(newList.id, []));
-      setNewListTitle('');
-      setAddingListId(null);
-    } catch {
-      setError('Failed to create list');
-    }
+      }),
+      onSuccess: (newList) => {
+        // Replace temp list with real list from server
+        setLists((prev) => prev.map((l) => (l.id === tempId ? newList : l)));
+        // Update cardsByList with the real list id
+        setCardsByList((prev) => {
+          const newMap = new Map(prev);
+          const cards = newMap.get(tempId) || [];
+          newMap.delete(tempId);
+          newMap.set(newList.id, cards);
+          return newMap;
+        });
+      },
+      rollbackState: (prevLists) => {
+        setLists(prevLists);
+        // Also remove the temp cards entry
+        setCardsByList((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(tempId);
+          return newMap;
+        });
+      },
+      options: { errorMessage: 'Failed to create list' },
+    });
   };
 
   const handleAddCard = async (listId: string) => {
@@ -469,22 +528,64 @@ export default function BoardView() {
       return;
     }
 
-    try {
-      const listCards = cardsByList.get(listId) || [];
-      const newCard = await createCard({
-        title: newCardTitle,
+    const listCards = cardsByList.get(listId) || [];
+    const tempId = `temp_${Date.now()}`;
+    const titleToCreate = newCardTitle;
+
+    // Create temporary optimistic card
+    const tempCard: Card = {
+      id: tempId,
+      title: titleToCreate,
+      listId,
+      position: listCards.length,
+      labels: [],
+      archived: false,
+      completed: false,
+      watcherIds: [],
+      memberIds: [],
+      members: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Clear form immediately for better UX
+    setNewCardTitle('');
+    setAddingCardToList(null);
+
+    // Execute with optimistic update
+    await cardOptimistic.execute({
+      currentState: cardsByList,
+      optimisticUpdate: (current) => {
+        const newMap = new Map(current);
+        const cards = newMap.get(listId) || [];
+        newMap.set(listId, [...cards, tempCard]);
+        return newMap;
+      },
+      apiCall: () => createCard({
+        title: titleToCreate,
         listId,
         position: listCards.length,
-      });
-
-      const newCardsMap = new Map(cardsByList);
-      newCardsMap.set(listId, [...listCards, newCard]);
-      setCardsByList(newCardsMap);
-      setNewCardTitle('');
-      setAddingCardToList(null);
-    } catch {
-      setError('Failed to create card');
-    }
+      }),
+      onSuccess: (newCard) => {
+        // Replace temp card with real card from server (or skip if Mercure already added it)
+        setCardsByList((prev) => {
+          const newMap = new Map(prev);
+          const cards = newMap.get(listId) || [];
+          // Check if the real card already exists (added by Mercure)
+          const realCardExists = cards.some((c) => c.id === newCard.id);
+          if (realCardExists) {
+            // Mercure already added it, just remove the temp card if it exists
+            newMap.set(listId, cards.filter((c) => c.id !== tempId));
+          } else {
+            // Replace temp card with real card
+            newMap.set(listId, cards.map((c) => (c.id === tempId ? newCard : c)));
+          }
+          return newMap;
+        });
+      },
+      rollbackState: setCardsByList,
+      options: { errorMessage: 'Failed to create card' },
+    });
   };
 
   const handleOpenTemplatePicker = async (listId: string) => {
@@ -544,27 +645,51 @@ export default function BoardView() {
   };
 
   const handleDeleteList = async (listId: string) => {
-    try {
-      await deleteList(listId);
-      setLists(lists.filter((l) => l.id !== listId));
-      const newCardsMap = new Map(cardsByList);
-      newCardsMap.delete(listId);
-      setCardsByList(newCardsMap);
-    } catch {
-      setError('Failed to delete list');
-    }
+    // Store cards for potential rollback
+    const cardsToRestore = cardsByList.get(listId) || [];
+
+    // Optimistically remove from cards map
+    setCardsByList((prev) => {
+      const newMap = new Map(prev);
+      newMap.delete(listId);
+      return newMap;
+    });
+
+    await listOptimistic.execute({
+      currentState: lists,
+      optimisticUpdate: (current) => current.filter((l) => l.id !== listId),
+      apiCall: () => deleteList(listId),
+      rollbackState: (prevLists) => {
+        setLists(prevLists);
+        // Restore cards
+        setCardsByList((prev) => new Map(prev).set(listId, cardsToRestore));
+      },
+      options: { errorMessage: 'Failed to delete list' },
+    });
   };
 
   const handleArchiveList = async (listId: string) => {
-    try {
-      await archiveList(listId);
-      setLists(lists.filter((l) => l.id !== listId));
-      const newCardsMap = new Map(cardsByList);
-      newCardsMap.delete(listId);
-      setCardsByList(newCardsMap);
-    } catch {
-      setError('Failed to archive list');
-    }
+    // Store cards for potential rollback
+    const cardsToRestore = cardsByList.get(listId) || [];
+
+    // Optimistically remove from cards map
+    setCardsByList((prev) => {
+      const newMap = new Map(prev);
+      newMap.delete(listId);
+      return newMap;
+    });
+
+    await listOptimistic.execute({
+      currentState: lists,
+      optimisticUpdate: (current) => current.filter((l) => l.id !== listId),
+      apiCall: () => archiveList(listId),
+      rollbackState: (prevLists) => {
+        setLists(prevLists);
+        // Restore cards
+        setCardsByList((prev) => new Map(prev).set(listId, cardsToRestore));
+      },
+      options: { errorMessage: 'Failed to archive list' },
+    });
   };
 
   const handleUpdateList = async (listId: string, data: { title?: string; wipLimit?: number; color?: string | null }) => {
@@ -642,35 +767,55 @@ export default function BoardView() {
     }
   };
 
-  // Quick action handlers for cards (no modal)
+  // Quick action handlers for cards (no modal) - with optimistic updates
   const handleQuickComplete = async (card: Card) => {
-    try {
-      const updated = await updateCard(card.id, { completed: !card.completed });
-      const newCardsMap = new Map(cardsByList);
-      const listCards = newCardsMap.get(card.listId) || [];
-      newCardsMap.set(
-        card.listId,
-        listCards.map((c) => (c.id === card.id ? updated : c))
-      );
-      setCardsByList(newCardsMap);
-    } catch {
-      setError('Failed to update card');
-    }
+    const newCompleted = !card.completed;
+
+    await cardOptimistic.execute({
+      currentState: cardsByList,
+      optimisticUpdate: (current) => {
+        const newMap = new Map(current);
+        const listCards = newMap.get(card.listId) || [];
+        newMap.set(
+          card.listId,
+          listCards.map((c) => (c.id === card.id ? { ...c, completed: newCompleted } : c))
+        );
+        return newMap;
+      },
+      apiCall: () => updateCard(card.id, { completed: newCompleted }),
+      onSuccess: (updated) => {
+        // Update with real server data
+        setCardsByList((prev) => {
+          const newMap = new Map(prev);
+          const listCards = newMap.get(card.listId) || [];
+          newMap.set(
+            card.listId,
+            listCards.map((c) => (c.id === card.id ? updated : c))
+          );
+          return newMap;
+        });
+      },
+      rollbackState: setCardsByList,
+      options: { errorMessage: 'Failed to update card' },
+    });
   };
 
   const handleQuickArchive = async (card: Card) => {
-    try {
-      await updateCard(card.id, { archived: true });
-      const newCardsMap = new Map(cardsByList);
-      const listCards = newCardsMap.get(card.listId) || [];
-      newCardsMap.set(
-        card.listId,
-        listCards.filter((c) => c.id !== card.id)
-      );
-      setCardsByList(newCardsMap);
-    } catch {
-      setError('Failed to archive card');
-    }
+    await cardOptimistic.execute({
+      currentState: cardsByList,
+      optimisticUpdate: (current) => {
+        const newMap = new Map(current);
+        const listCards = newMap.get(card.listId) || [];
+        newMap.set(
+          card.listId,
+          listCards.filter((c) => c.id !== card.id)
+        );
+        return newMap;
+      },
+      apiCall: () => updateCard(card.id, { archived: true }),
+      rollbackState: setCardsByList,
+      options: { errorMessage: 'Failed to archive card' },
+    });
   };
 
   const handleCopyCard = async (card: Card) => {
