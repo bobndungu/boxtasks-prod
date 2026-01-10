@@ -1336,7 +1336,7 @@
       "id": 166,
       "name": "Add keyboard navigation",
       "test": "Can navigate with keyboard",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "performance-polish"
     },
