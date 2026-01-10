@@ -22,12 +22,12 @@ parameters:
       - PATCH
       - DELETE
       - OPTIONS
-    # Allow React frontend
+    # Allow React frontend (any localhost port for development)
     allowedOrigins:
-      - 'http://localhost:5173'
-      - 'http://127.0.0.1:5173'
       - 'https://boxtasks2.ddev.site'
-    allowedOriginsPatterns: []
+    allowedOriginsPatterns:
+      - '/^http:\/\/localhost:\d+$/'
+      - '/^http:\/\/127\.0\.0\.1:\d+$/'
     exposedHeaders:
       - link
       - x-drupal-cache
