@@ -155,6 +155,40 @@ class MercurePublisher {
   }
 
   /**
+   * Publishes user presence to Mercure.
+   */
+  public function publishPresence(string $boardId, array $presenceData): void {
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'presence.update',
+      'data' => $presenceData,
+      'timestamp' => date('c'),
+    ];
+
+    // Also update state for active users tracking
+    $state = \Drupal::state();
+    $presenceKey = 'boxtasks_presence_' . $boardId;
+    $activeUsers = $state->get($presenceKey, []);
+
+    $userId = $presenceData['userId'];
+    if ($presenceData['action'] === 'join' || $presenceData['action'] === 'heartbeat') {
+      $activeUsers[$userId] = [
+        'userId' => $userId,
+        'username' => $presenceData['username'],
+        'displayName' => $presenceData['displayName'],
+        'avatar' => $presenceData['avatar'],
+        'lastSeen' => time(),
+      ];
+    }
+    elseif ($presenceData['action'] === 'leave') {
+      unset($activeUsers[$userId]);
+    }
+
+    $state->set($presenceKey, $activeUsers);
+    $this->publish($topic, $data);
+  }
+
+  /**
    * Publishes a comment event to Mercure.
    */
   public function publishCommentEvent(NodeInterface $comment, string $eventType): void {

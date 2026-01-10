@@ -23,7 +23,8 @@ export type MercureEventType =
   | 'comment.updated'
   | 'comment.deleted'
   | 'member.assigned'
-  | 'member.unassigned';
+  | 'member.unassigned'
+  | 'presence.update';
 
 export interface MercureMessage<T = unknown> {
   type: MercureEventType;
@@ -226,6 +227,15 @@ export function useMercure(options: UseMercureOptions) {
   };
 }
 
+export interface PresenceUpdateData {
+  userId: string;
+  username: string;
+  displayName: string;
+  avatar: string;
+  action: 'join' | 'leave' | 'heartbeat';
+  timestamp: string;
+}
+
 /**
  * Hook for subscribing to board-specific updates
  */
@@ -240,6 +250,7 @@ export function useBoardUpdates(
     onListUpdated?: (listData: unknown) => void;
     onListDeleted?: (listId: string) => void;
     onCommentCreated?: (commentData: unknown) => void;
+    onPresenceUpdate?: (presenceData: PresenceUpdateData) => void;
   }
 ) {
   const topics = boardId ? [`/boards/${boardId}`] : [];
@@ -269,6 +280,9 @@ export function useBoardUpdates(
         break;
       case 'comment.created':
         callbacks.onCommentCreated?.(message.data);
+        break;
+      case 'presence.update':
+        callbacks.onPresenceUpdate?.(message.data as PresenceUpdateData);
         break;
     }
   }, [callbacks]);

@@ -904,7 +904,7 @@
       "id": 112,
       "name": "Build user presence indicators",
       "test": "Shows who's viewing board",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "realtime"
     },

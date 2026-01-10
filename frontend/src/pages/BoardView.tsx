@@ -72,7 +72,9 @@ import { createNotification } from '../lib/api/notifications';
 import { fetchWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspaces';
 import { useKeyboardShortcuts } from '../lib/hooks/useKeyboardShortcuts';
 import { useBoardUpdates } from '../lib/hooks/useMercure';
+import { usePresence } from '../lib/hooks/usePresence';
 import { ConnectionStatus } from '../components/ConnectionStatus';
+import { ActiveUsers } from '../components/ActiveUsers';
 import { useAuthStore } from '../lib/stores/auth';
 import { toast } from '../lib/stores/toast';
 
@@ -297,7 +299,14 @@ export default function BoardView() {
         toast.info(`New comment on "${comment.cardTitle}"`);
       }
     },
+    onPresenceUpdate: (presenceData) => {
+      // Handle presence updates via usePresence hook
+      handlePresenceUpdate(presenceData);
+    },
   });
+
+  // User presence tracking
+  const { activeUsers, handlePresenceUpdate } = usePresence({ boardId: id, enabled: !!id });
 
   // Filter cards based on search query, label filter, and member filter
   const filteredCardsByList = useMemo(() => {
@@ -1156,6 +1165,11 @@ export default function BoardView() {
                 <Clock className="h-4 w-4 mr-2" />
                 Activity
               </button>
+              {activeUsers.length > 0 && (
+                <div className="bg-white/10 rounded px-2 py-1">
+                  <ActiveUsers users={activeUsers} maxDisplay={3} />
+                </div>
+              )}
               <ConnectionStatus
                 state={mercureConnection}
                 onReconnect={mercureConnection.reconnect}
