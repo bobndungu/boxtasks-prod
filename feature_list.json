@@ -1304,7 +1304,7 @@
       "id": 162,
       "name": "Create migration for attachments",
       "test": "Files migrated to new storage",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "data-migration"
     },
