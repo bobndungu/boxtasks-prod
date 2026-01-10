@@ -1,0 +1,61 @@
+id: boxtasks_workspace_members
+label: 'BoxTasks Workspace Members'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - workspaces
+  - members
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      wm.id,
+      wm.workspace_id,
+      wm.user_id,
+      wm.role,
+      wm.created_at
+    FROM workspace_memberships wm
+    ORDER BY wm.created_at ASC
+  ids:
+    id:
+      type: string
+
+process:
+  type:
+    plugin: default_value
+    default_value: workspace_member
+
+  # Parent workspace (will be attached via paragraph reference)
+  parent_id:
+    plugin: migration_lookup
+    migration: boxtasks_workspaces
+    source: workspace_id
+
+  parent_type:
+    plugin: default_value
+    default_value: node
+
+  parent_field_name:
+    plugin: default_value
+    default_value: field_members
+
+  # User reference
+  field_user:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: user_id
+
+  # Role
+  field_role: role
+
+destination:
+  plugin: entity_reference_revisions:paragraph
+  default_bundle: workspace_member
+
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_workspaces

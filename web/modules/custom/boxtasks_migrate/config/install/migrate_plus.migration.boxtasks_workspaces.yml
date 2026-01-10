@@ -1,0 +1,81 @@
+id: boxtasks_workspaces
+label: 'BoxTasks Workspaces'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - workspaces
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      id,
+      name,
+      description,
+      slug,
+      avatar_url,
+      is_premium,
+      settings,
+      created_at,
+      updated_at
+    FROM workspaces
+    ORDER BY created_at ASC
+  ids:
+    id:
+      type: string
+
+process:
+  type:
+    plugin: default_value
+    default_value: workspace
+
+  # Store original UUID
+  field_original_uuid: id
+
+  # Title from name
+  title: name
+
+  # Description to body
+  body/value: description
+  body/format:
+    plugin: default_value
+    default_value: basic_html
+
+  # Slug for URL alias
+  field_slug: slug
+
+  # Premium flag
+  field_is_premium:
+    plugin: default_value
+    default_value: 0
+    source: is_premium
+
+  # Settings as JSON
+  field_settings:
+    plugin: callback
+    callable: json_encode
+    source: settings
+
+  # Status - published
+  status:
+    plugin: default_value
+    default_value: 1
+
+  # Timestamps
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+
+destination:
+  plugin: entity:node
+
+migration_dependencies:
+  required:
+    - boxtasks_users

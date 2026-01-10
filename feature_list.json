@@ -1264,7 +1264,7 @@
       "id": 157,
       "name": "Create migration for workspaces",
       "test": "Workspaces with members imported",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "data-migration"
     },
