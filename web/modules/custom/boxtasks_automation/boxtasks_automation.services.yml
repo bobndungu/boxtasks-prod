@@ -1,0 +1,10 @@
+services:
+  boxtasks_automation.executor:
+    class: Drupal\boxtasks_automation\AutomationExecutor
+    arguments:
+      - '@entity_type.manager'
+      - '@logger.channel.boxtasks_automation'
+
+  logger.channel.boxtasks_automation:
+    parent: logger.channel_base
+    arguments: ['boxtasks_automation']

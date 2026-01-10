@@ -1,0 +1,10 @@
+name: 'BoxTasks Automation'
+type: module
+description: 'Provides automation rules for BoxTasks boards'
+package: BoxTasks
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:jsonapi
+  - boxtasks_board:boxtasks_board
+  - boxtasks_card:boxtasks_card
+  - boxtasks_list:boxtasks_list

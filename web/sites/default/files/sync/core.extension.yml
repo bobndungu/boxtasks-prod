@@ -8,6 +8,7 @@ module:
   block_content: 0
   boxtasks_activity: 0
   boxtasks_attachment: 0
+  boxtasks_automation: 0
   boxtasks_board: 0
   boxtasks_boardview: 0
   boxtasks_card: 0

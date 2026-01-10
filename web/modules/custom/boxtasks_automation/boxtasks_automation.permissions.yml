@@ -1,0 +1,20 @@
+administer automation rules:
+  title: 'Administer automation rules'
+  description: 'Full control over all automation rules'
+  restrict access: true
+
+create automation rules:
+  title: 'Create automation rules'
+  description: 'Create new automation rules for boards'
+
+view automation rules:
+  title: 'View automation rules'
+  description: 'View automation rules'
+
+edit automation rules:
+  title: 'Edit automation rules'
+  description: 'Edit any automation rule'
+
+delete automation rules:
+  title: 'Delete automation rules'
+  description: 'Delete any automation rule'
