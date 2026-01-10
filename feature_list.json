@@ -1096,7 +1096,7 @@
       "id": 136,
       "name": "Implement trigger types",
       "test": "Triggers fire correctly",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation"
     },
@@ -1104,7 +1104,7 @@
       "id": 137,
       "name": "Build action types",
       "test": "Actions execute correctly",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation"
     },
@@ -1112,7 +1112,7 @@
       "id": 138,
       "name": "Implement condition evaluation",
       "test": "Conditions filter trigger events",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation"
     },
@@ -1120,7 +1120,7 @@
       "id": 139,
       "name": "Build automation log/history",
       "test": "Rule executions logged",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "automation"
     },

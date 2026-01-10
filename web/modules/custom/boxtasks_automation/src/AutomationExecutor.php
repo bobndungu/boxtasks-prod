@@ -214,7 +214,18 @@ class AutomationExecutor {
       case 'card_in_list':
         $card_list_id = $trigger_data['card']['list_id'] ?? '';
         $required_list_id = $config['list_id'] ?? '';
-        return $card_list_id === $required_list_id;
+        // Convert UUID to numeric ID if needed for comparison.
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $required_list_id)) {
+          $lists = $this->entityTypeManager->getStorage('node')->loadByProperties([
+            'uuid' => $required_list_id,
+            'type' => 'board_list',
+          ]);
+          if (!empty($lists)) {
+            $list = reset($lists);
+            $required_list_id = $list->id();
+          }
+        }
+        return (string) $card_list_id === (string) $required_list_id;
 
       case 'card_has_due_date':
         return !empty($trigger_data['card']['due_date']);
@@ -452,6 +463,19 @@ class AutomationExecutor {
     $card = $this->entityTypeManager->getStorage('node')->load($card_id);
     if (!$card) {
       return ['success' => FALSE, 'error' => 'Card not found'];
+    }
+
+    // The config stores UUID, but the field needs numeric ID.
+    // Check if it's a UUID and convert to numeric ID.
+    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $user_id)) {
+      $users = $this->entityTypeManager->getStorage('user')->loadByProperties([
+        'uuid' => $user_id,
+      ]);
+      if (empty($users)) {
+        return ['success' => FALSE, 'error' => 'User not found'];
+      }
+      $user = reset($users);
+      $user_id = $user->id();
     }
 
     $members = $card->get('field_card_members')->getValue();
