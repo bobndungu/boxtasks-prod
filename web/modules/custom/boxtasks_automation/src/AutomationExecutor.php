@@ -367,6 +367,20 @@ class AutomationExecutor {
       return ['success' => FALSE, 'error' => 'Card not found'];
     }
 
+    // The config stores UUID, but the field needs numeric ID.
+    // Check if it's a UUID and convert to numeric ID.
+    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $target_list_id)) {
+      $lists = $this->entityTypeManager->getStorage('node')->loadByProperties([
+        'uuid' => $target_list_id,
+        'type' => 'board_list',
+      ]);
+      if (empty($lists)) {
+        return ['success' => FALSE, 'error' => 'Target list not found'];
+      }
+      $target_list = reset($lists);
+      $target_list_id = $target_list->id();
+    }
+
     $card->set('field_card_list', $target_list_id);
     $card->save();
 

@@ -1,0 +1,332 @@
+<?php
+
+/**
+ * @file
+ * BoxTasks Automation module.
+ *
+ * Provides automation rules for BoxTasks boards.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for node entities.
+ *
+ * Fires the 'card_created' trigger when a new card is created.
+ */
+function boxtasks_automation_node_insert(NodeInterface $node): void {
+  if ($node->bundle() !== 'card') {
+    return;
+  }
+
+  _boxtasks_automation_fire_card_trigger($node, 'card_created');
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for node entities.
+ *
+ * Fires various triggers when a card or checklist item is updated.
+ */
+function boxtasks_automation_node_update(NodeInterface $node): void {
+  // Handle checklist item updates.
+  if ($node->bundle() === 'checklist_item') {
+    _boxtasks_automation_handle_checklist_item_update($node);
+    return;
+  }
+
+  // Only process cards from here.
+  if ($node->bundle() !== 'card') {
+    return;
+  }
+
+  $original = $node->original;
+
+  // Check for card moved (list changed).
+  $current_list = $node->get('field_card_list')->target_id;
+  $original_list = $original->get('field_card_list')->target_id;
+  if ($current_list !== $original_list) {
+    _boxtasks_automation_fire_card_trigger($node, 'card_moved', [
+      'from_list_id' => $original_list,
+      'to_list_id' => $current_list,
+    ]);
+  }
+
+  // Check for card completed.
+  $current_completed = (bool) $node->get('field_card_completed')->value;
+  $original_completed = (bool) $original->get('field_card_completed')->value;
+  if ($current_completed && !$original_completed) {
+    _boxtasks_automation_fire_card_trigger($node, 'card_completed');
+  }
+
+  // Check for label added/removed.
+  $current_labels = _boxtasks_automation_get_labels($node);
+  $original_labels = _boxtasks_automation_get_labels($original);
+
+  $added_labels = array_diff($current_labels, $original_labels);
+  $removed_labels = array_diff($original_labels, $current_labels);
+
+  foreach ($added_labels as $label) {
+    _boxtasks_automation_fire_card_trigger($node, 'label_added', ['label' => $label]);
+  }
+
+  foreach ($removed_labels as $label) {
+    _boxtasks_automation_fire_card_trigger($node, 'label_removed', ['label' => $label]);
+  }
+
+  // Check for member added.
+  $current_members = _boxtasks_automation_get_members($node);
+  $original_members = _boxtasks_automation_get_members($original);
+
+  $added_members = array_diff($current_members, $original_members);
+
+  foreach ($added_members as $member_id) {
+    _boxtasks_automation_fire_card_trigger($node, 'member_added', ['user_id' => $member_id]);
+  }
+
+  // Check for due date approaching (this would typically be handled by cron).
+  // Here we fire it if due date was just set within the next 24 hours.
+  $current_due = $node->get('field_card_due_date')->value;
+  $original_due = $original->get('field_card_due_date')->value;
+
+  if ($current_due && $current_due !== $original_due) {
+    $due_timestamp = strtotime($current_due);
+    $now = time();
+    $one_day = 86400;
+
+    // Fire if due date is within 24 hours.
+    if ($due_timestamp > $now && $due_timestamp <= ($now + $one_day)) {
+      _boxtasks_automation_fire_card_trigger($node, 'due_date_approaching', [
+        'due_date' => $current_due,
+      ]);
+    }
+  }
+}
+
+/**
+ * Handles checklist_item updates to check for checklist completion.
+ *
+ * Fires 'checklist_completed' trigger when all items in a checklist are complete.
+ *
+ * @param \Drupal\node\NodeInterface $node
+ *   The checklist item node.
+ */
+function _boxtasks_automation_handle_checklist_item_update(NodeInterface $node): void {
+
+  // Check if item was just completed.
+  $original = $node->original;
+  $current_completed = (bool) $node->get('field_checklist_item_completed')->value;
+  $original_completed = (bool) $original->get('field_checklist_item_completed')->value;
+
+  if (!$current_completed || $original_completed) {
+    // Item wasn't just completed.
+    return;
+  }
+
+  // Get the parent checklist.
+  $checklist_id = $node->get('field_checklist_item_checklist')->target_id;
+  if (!$checklist_id) {
+    return;
+  }
+
+  $checklist = \Drupal::entityTypeManager()->getStorage('node')->load($checklist_id);
+  if (!$checklist || $checklist->bundle() !== 'checklist') {
+    return;
+  }
+
+  // Check if all items in the checklist are now complete.
+  $query = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->condition('type', 'checklist_item')
+    ->condition('field_checklist_item_checklist', $checklist_id)
+    ->condition('field_checklist_item_completed', FALSE)
+    ->accessCheck(FALSE);
+
+  $incomplete_count = $query->count()->execute();
+
+  if ($incomplete_count > 0) {
+    // Still has incomplete items.
+    return;
+  }
+
+  // All items are complete - get the card and fire trigger.
+  $card_id = $checklist->get('field_checklist_card')->target_id;
+  if (!$card_id) {
+    return;
+  }
+
+  $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
+  if (!$card || $card->bundle() !== 'card') {
+    return;
+  }
+
+  _boxtasks_automation_fire_card_trigger($card, 'checklist_completed', [
+    'checklist_id' => $checklist_id,
+    'checklist_title' => $checklist->getTitle(),
+  ]);
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Checks for cards with approaching due dates and fires triggers.
+ */
+function boxtasks_automation_cron(): void {
+  _boxtasks_automation_check_due_dates();
+}
+
+/**
+ * Helper function to fire a card automation trigger.
+ *
+ * @param \Drupal\node\NodeInterface $card
+ *   The card node.
+ * @param string $trigger_type
+ *   The trigger type.
+ * @param array $extra_data
+ *   Additional data to include in the trigger.
+ */
+function _boxtasks_automation_fire_card_trigger(NodeInterface $card, string $trigger_type, array $extra_data = []): void {
+  // Get the board ID from the card's list.
+  $list_id = $card->get('field_card_list')->target_id;
+  if (!$list_id) {
+    return;
+  }
+
+  $list = \Drupal::entityTypeManager()->getStorage('node')->load($list_id);
+  if (!$list || $list->bundle() !== 'board_list') {
+    return;
+  }
+
+  $board_id = $list->get('field_list_board')->target_id;
+  if (!$board_id) {
+    return;
+  }
+
+  // Build trigger data.
+  $trigger_data = [
+    'card_id' => $card->id(),
+    'card' => [
+      'id' => $card->id(),
+      'uuid' => $card->uuid(),
+      'title' => $card->getTitle(),
+      'list_id' => $list_id,
+      'labels' => _boxtasks_automation_get_labels($card),
+      'due_date' => $card->get('field_card_due_date')->value,
+      'completed' => (bool) $card->get('field_card_completed')->value,
+    ],
+    'list_id' => $list_id,
+    'board_id' => $board_id,
+  ] + $extra_data;
+
+  // Get the executor service and fire the trigger.
+  try {
+    /** @var \Drupal\boxtasks_automation\AutomationExecutor $executor */
+    $executor = \Drupal::service('boxtasks_automation.executor');
+    $results = $executor->fireTrigger((string) $board_id, $trigger_type, $trigger_data);
+
+    // Log results if any rules were executed.
+    if (!empty($results)) {
+      \Drupal::logger('boxtasks_automation')->info('Fired trigger @type for card @card_id on board @board_id. @count rules executed.', [
+        '@type' => $trigger_type,
+        '@card_id' => $card->id(),
+        '@board_id' => $board_id,
+        '@count' => count($results),
+      ]);
+    }
+  }
+  catch (\Exception $e) {
+    \Drupal::logger('boxtasks_automation')->error('Error firing automation trigger: @message', [
+      '@message' => $e->getMessage(),
+    ]);
+  }
+}
+
+/**
+ * Gets labels from a card node.
+ *
+ * @param \Drupal\node\NodeInterface $card
+ *   The card node.
+ *
+ * @return array
+ *   Array of label values.
+ */
+function _boxtasks_automation_get_labels(NodeInterface $card): array {
+  $labels = [];
+  if ($card->hasField('field_card_labels')) {
+    foreach ($card->get('field_card_labels') as $item) {
+      $labels[] = $item->value;
+    }
+  }
+  return $labels;
+}
+
+/**
+ * Gets member IDs from a card node.
+ *
+ * @param \Drupal\node\NodeInterface $card
+ *   The card node.
+ *
+ * @return array
+ *   Array of member user IDs.
+ */
+function _boxtasks_automation_get_members(NodeInterface $card): array {
+  $members = [];
+  if ($card->hasField('field_card_members')) {
+    foreach ($card->get('field_card_members') as $item) {
+      $members[] = $item->target_id;
+    }
+  }
+  return $members;
+}
+
+/**
+ * Checks for cards with due dates approaching and fires triggers.
+ */
+function _boxtasks_automation_check_due_dates(): void {
+  $now = time();
+  $one_day = 86400;
+
+  // Find cards with due dates in the next 24 hours that haven't been notified.
+  $query = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->condition('type', 'card')
+    ->condition('field_card_due_date', date('Y-m-d\TH:i:s', $now), '>=')
+    ->condition('field_card_due_date', date('Y-m-d\TH:i:s', $now + $one_day), '<=')
+    ->condition('field_card_completed', FALSE)
+    ->accessCheck(FALSE);
+
+  $card_ids = $query->execute();
+
+  if (empty($card_ids)) {
+    return;
+  }
+
+  $cards = \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($card_ids);
+
+  // Get state service to track which cards have been notified.
+  $state = \Drupal::state();
+  $notified_cards = $state->get('boxtasks_automation.due_date_notified', []);
+
+  foreach ($cards as $card) {
+    // Skip if already notified today.
+    $today = date('Y-m-d');
+    $state_key = $card->id() . ':' . $today;
+
+    if (in_array($state_key, $notified_cards, TRUE)) {
+      continue;
+    }
+
+    // Fire the trigger.
+    _boxtasks_automation_fire_card_trigger($card, 'due_date_approaching', [
+      'due_date' => $card->get('field_card_due_date')->value,
+    ]);
+
+    // Mark as notified.
+    $notified_cards[] = $state_key;
+  }
+
+  // Clean up old notifications (older than today).
+  $notified_cards = array_filter($notified_cards, function ($key) use ($today) {
+    return str_contains($key, $today);
+  });
+
+  $state->set('boxtasks_automation.due_date_notified', $notified_cards);
+}

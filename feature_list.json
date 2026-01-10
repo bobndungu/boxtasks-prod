@@ -1088,7 +1088,7 @@
       "id": 135,
       "name": "Build automation rules management UI",
       "test": "Can create/edit/delete rules",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "automation"
     },

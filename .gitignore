@@ -1,2 +1,5 @@
 # OAuth keys - do not commit
 keys/
+
+# Drupal generated files
+web/sites/default/files/
