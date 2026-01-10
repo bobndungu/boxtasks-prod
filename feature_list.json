@@ -1392,7 +1392,7 @@
       "id": 173,
       "name": "Implement rate limiting",
       "test": "Excessive requests blocked",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "security-production"
     },

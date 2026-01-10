@@ -9,6 +9,15 @@ services:
     tags:
       - { name: event_subscriber }
 
+  boxtasks_security.input_sanitizer:
+    class: Drupal\boxtasks_security\Service\InputSanitizer
+
+  boxtasks_security.input_validation_subscriber:
+    class: Drupal\boxtasks_security\EventSubscriber\InputValidationSubscriber
+    arguments: ['@boxtasks_security.input_sanitizer', '@logger.factory']
+    tags:
+      - { name: event_subscriber }
+
   boxtasks_security.audit_logger:
     class: Drupal\boxtasks_security\Service\AuditLogger
     arguments: ['@database', '@current_user', '@datetime.time']
