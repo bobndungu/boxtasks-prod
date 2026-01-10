@@ -1312,7 +1312,7 @@
       "id": 163,
       "name": "Implement virtual scrolling for large boards",
       "test": "1000+ cards scroll smoothly",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "performance-polish"
     },

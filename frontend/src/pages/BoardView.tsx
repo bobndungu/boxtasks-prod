@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { Link, useParams } from 'react-router-dom';
 import {
   DndContext,
@@ -1995,6 +1996,19 @@ function SortableList({
   const [showWipSettings, setShowWipSettings] = useState(false);
   const [wipLimitValue, setWipLimitValue] = useState(list.wipLimit?.toString() || '0');
 
+  // Virtual scrolling setup
+  const virtualContainerRef = useRef<HTMLDivElement>(null);
+  const VIRTUAL_THRESHOLD = 20; // Enable virtualization for lists with more than 20 cards
+  const useVirtual = cards.length > VIRTUAL_THRESHOLD;
+
+  const virtualizer = useVirtualizer({
+    count: cards.length,
+    getScrollElement: () => virtualContainerRef.current,
+    estimateSize: () => 80, // Estimated card height
+    overscan: 5,
+    enabled: useVirtual,
+  });
+
   const isCollapsed = collapsedLists.has(list.id);
   const isOverWipLimit = list.wipLimit > 0 && cards.length > list.wipLimit;
 
@@ -2244,32 +2258,90 @@ function SortableList({
         </div>
       )}
 
-      {/* Cards (collapsible) */}
+      {/* Cards (collapsible) - with optional virtual scrolling for large lists */}
       {!isCollapsed && (
-        <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-2">
+        <div
+          ref={virtualContainerRef}
+          className="flex-1 overflow-y-auto px-2 pb-2"
+          style={useVirtual ? { contain: 'strict' } : undefined}
+        >
           <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-            {cards.map((card) => (
-              <SortableCard
-                key={card.id}
-                card={card}
-                onClick={() => onCardClick(card)}
-                onQuickComplete={(e) => {
-                  e.stopPropagation();
-                  onQuickComplete(card);
+            {useVirtual ? (
+              // Virtualized rendering for large lists
+              <div
+                style={{
+                  height: `${virtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
                 }}
-                onQuickArchive={(e) => {
-                  e.stopPropagation();
-                  onQuickArchive(card);
-                }}
-                onQuickEdit={(e) => {
-                  e.stopPropagation();
-                  onCardClick(card);
-                }}
-                customFieldDefs={customFieldDefs}
-                cardCustomFieldValues={customFieldValues.get(card.id) || []}
-                searchQuery={searchQuery}
-              />
-            ))}
+              >
+                {virtualizer.getVirtualItems().map((virtualItem) => {
+                  const card = cards[virtualItem.index];
+                  if (!card) return null;
+                  return (
+                    <div
+                      key={card.id}
+                      data-index={virtualItem.index}
+                      ref={virtualizer.measureElement}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualItem.start}px)`,
+                        paddingBottom: '8px',
+                      }}
+                    >
+                      <SortableCard
+                        card={card}
+                        onClick={() => onCardClick(card)}
+                        onQuickComplete={(e) => {
+                          e.stopPropagation();
+                          onQuickComplete(card);
+                        }}
+                        onQuickArchive={(e) => {
+                          e.stopPropagation();
+                          onQuickArchive(card);
+                        }}
+                        onQuickEdit={(e) => {
+                          e.stopPropagation();
+                          onCardClick(card);
+                        }}
+                        customFieldDefs={customFieldDefs}
+                        cardCustomFieldValues={customFieldValues.get(card.id) || []}
+                        searchQuery={searchQuery}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              // Normal rendering for small lists
+              <div className="space-y-2">
+                {cards.map((card) => (
+                  <SortableCard
+                    key={card.id}
+                    card={card}
+                    onClick={() => onCardClick(card)}
+                    onQuickComplete={(e) => {
+                      e.stopPropagation();
+                      onQuickComplete(card);
+                    }}
+                    onQuickArchive={(e) => {
+                      e.stopPropagation();
+                      onQuickArchive(card);
+                    }}
+                    onQuickEdit={(e) => {
+                      e.stopPropagation();
+                      onCardClick(card);
+                    }}
+                    customFieldDefs={customFieldDefs}
+                    cardCustomFieldValues={customFieldValues.get(card.id) || []}
+                    searchQuery={searchQuery}
+                  />
+                ))}
+              </div>
+            )}
           </SortableContext>
 
           {/* Add Card Form */}
