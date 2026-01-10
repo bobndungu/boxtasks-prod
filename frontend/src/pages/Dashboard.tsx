@@ -50,18 +50,18 @@ export default function Dashboard() {
                 <Layout className="h-7 w-7 text-blue-600" />
                 <span className="text-xl font-bold text-gray-900">BoxTasks</span>
               </Link>
-              <nav className="hidden md:flex items-center space-x-1">
+              <nav id="main-navigation" className="hidden md:flex items-center space-x-1" aria-label="Main navigation">
                 <WorkspaceSwitcher />
-                <button className="flex items-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                <button className="flex items-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg" aria-haspopup="menu" aria-expanded="false">
                   Recent
-                  <ChevronDown className="h-4 w-4 ml-1" />
+                  <ChevronDown className="h-4 w-4 ml-1" aria-hidden="true" />
                 </button>
-                <button className="flex items-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                <button className="flex items-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg" aria-haspopup="menu" aria-expanded="false">
                   Starred
-                  <ChevronDown className="h-4 w-4 ml-1" />
+                  <ChevronDown className="h-4 w-4 ml-1" aria-hidden="true" />
                 </button>
-                <button className="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 flex items-center">
-                  <Plus className="h-4 w-4 mr-1" />
+                <button className="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 flex items-center" aria-label="Create new board or workspace">
+                  <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
                   Create
                 </button>
               </nav>
@@ -79,8 +79,8 @@ export default function Dashboard() {
               </button>
               <NotificationDropdown />
               <div className="relative group">
-                <button className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                <button className="flex items-center space-x-2" aria-haspopup="menu" aria-expanded="false" aria-label={`User menu for ${user?.displayName || user?.username || 'User'}`}>
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold" aria-hidden="true">
                     {user?.displayName?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 </button>
@@ -110,7 +110,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main id="main-content" className="container mx-auto px-4 py-8" role="main" aria-label="Dashboard content">
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-1">

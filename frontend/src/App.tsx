@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './lib/stores/auth';
 import ToastContainer from './components/Toast';
 import { ErrorBoundary, BoardErrorBoundary } from './components/ErrorBoundary';
+import { SkipLinks } from './components/SkipLinks';
 
 // Pages
 import Home from './pages/Home';
@@ -33,8 +34,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex h-screen items-center justify-center" role="status" aria-label="Loading authentication">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" aria-hidden="true"></div>
+        <span className="sr-only">Loading authentication...</span>
       </div>
     );
   }
@@ -63,8 +65,9 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800" role="status" aria-label="Loading application">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white" aria-hidden="true"></div>
+        <span className="sr-only">Loading BoxTasks application...</span>
       </div>
     );
   }
@@ -73,6 +76,7 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
+          <SkipLinks />
           <ToastContainer />
           <Routes>
           {/* Public routes */}
