@@ -1368,7 +1368,7 @@
       "id": 170,
       "name": "Add PWA support",
       "test": "Can install as app",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "performance-polish"
     },

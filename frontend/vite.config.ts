@@ -1,9 +1,28 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import compression from 'vite-plugin-compression'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React vendor chunk
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          // State management and data fetching
+          'vendor-state': ['zustand', '@tanstack/react-query'],
+          // Drag and drop functionality
+          'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+          // UI components and icons
+          'vendor-ui': ['lucide-react'],
+        },
+      },
+    },
+    // Increase warning limit slightly since we're code-splitting
+    chunkSizeWarningLimit: 300,
+  },
   plugins: [
     react(),
     VitePWA({
@@ -74,6 +93,16 @@ export default defineConfig({
       devOptions: {
         enabled: true,
       },
+    }),
+    // Gzip compression for production
+    compression({
+      algorithm: 'gzip',
+      ext: '.gz',
+    }),
+    // Brotli compression for modern browsers
+    compression({
+      algorithm: 'brotliCompress',
+      ext: '.br',
     }),
   ],
 })
