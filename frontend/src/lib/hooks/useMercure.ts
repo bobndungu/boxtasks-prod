@@ -17,6 +17,7 @@ export type MercureEventType =
   | 'card.updated'
   | 'card.deleted'
   | 'card.moved'
+  | 'card.reordered'
   | 'list.created'
   | 'list.updated'
   | 'list.deleted'
@@ -248,9 +249,11 @@ export function useBoardUpdates(
     onCardUpdated?: (cardData: unknown) => void;
     onCardDeleted?: (cardId: string) => void;
     onCardMoved?: (moveData: { cardId: string; fromListId: string; toListId: string; position: number }) => void;
+    onCardReordered?: (reorderData: { listId: string; cardPositions: Record<string, number> }) => void;
     onListCreated?: (listData: unknown) => void;
     onListUpdated?: (listData: unknown) => void;
     onListDeleted?: (listId: string) => void;
+    onListReordered?: (listPositions: Record<string, number>) => void;
     onCommentCreated?: (commentData: unknown) => void;
     onPresenceUpdate?: (presenceData: PresenceUpdateData) => void;
   }
@@ -271,6 +274,9 @@ export function useBoardUpdates(
       case 'card.moved':
         callbacks.onCardMoved?.(message.data as { cardId: string; fromListId: string; toListId: string; position: number });
         break;
+      case 'card.reordered':
+        callbacks.onCardReordered?.(message.data as { listId: string; cardPositions: Record<string, number> });
+        break;
       case 'list.created':
         callbacks.onListCreated?.(message.data);
         break;
@@ -279,6 +285,9 @@ export function useBoardUpdates(
         break;
       case 'list.deleted':
         callbacks.onListDeleted?.(message.data as string);
+        break;
+      case 'list.reordered':
+        callbacks.onListReordered?.(message.data as Record<string, number>);
         break;
       case 'comment.created':
         callbacks.onCommentCreated?.(message.data);

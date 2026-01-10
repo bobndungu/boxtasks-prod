@@ -231,6 +231,8 @@ export default function BoardView() {
           if (index !== -1) {
             const newCards = [...cards];
             newCards[index] = card;
+            // Sort by position to handle reordering within the list
+            newCards.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
             newMap.set(listId, newCards);
             break;
           }
@@ -299,13 +301,44 @@ export default function BoardView() {
     },
     onListUpdated: (listData) => {
       const list = listData as BoardList;
-      setLists((prev) => prev.map((l) => (l.id === list.id ? list : l)));
+      setLists((prev) => {
+        const updated = prev.map((l) => (l.id === list.id ? list : l));
+        // Sort by position to handle reordering
+        return updated.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      });
     },
     onListDeleted: (listId) => {
       setLists((prev) => prev.filter((l) => l.id !== listId));
       setCardsByList((prev) => {
         const newMap = new Map(prev);
         newMap.delete(listId);
+        return newMap;
+      });
+    },
+    onListReordered: (listPositions) => {
+      // Batch reorder lists based on position mapping
+      setLists((prev) => {
+        const updated = prev.map((list) => ({
+          ...list,
+          position: listPositions[list.id] ?? list.position,
+        }));
+        return updated.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      });
+    },
+    onCardReordered: (reorderData) => {
+      // Batch reorder cards within a list based on position mapping
+      const { listId, cardPositions } = reorderData;
+      setCardsByList((prev) => {
+        const newMap = new Map(prev);
+        const listCards = newMap.get(listId);
+        if (listCards) {
+          const updated = listCards.map((card) => ({
+            ...card,
+            position: cardPositions[card.id] ?? card.position,
+          }));
+          updated.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+          newMap.set(listId, updated);
+        }
         return newMap;
       });
     },

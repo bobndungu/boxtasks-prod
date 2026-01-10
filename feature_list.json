@@ -928,7 +928,7 @@
       "id": 115,
       "name": "Implement real-time drag-and-drop sync",
       "test": "Dragging syncs to other users",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "realtime"
     },

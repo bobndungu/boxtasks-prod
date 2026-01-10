@@ -155,6 +155,26 @@ class MercurePublisher {
   }
 
   /**
+   * Publishes a list reordered event to Mercure.
+   *
+   * @param string $boardId
+   *   The board ID.
+   * @param array $listPositions
+   *   Array of [listId => position] mappings.
+   */
+  public function publishListReordered(string $boardId, array $listPositions): void {
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'list.reordered',
+      'data' => $listPositions,
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
    * Publishes user presence to Mercure.
    */
   public function publishPresence(string $boardId, array $presenceData): void {
