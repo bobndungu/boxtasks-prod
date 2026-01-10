@@ -1072,7 +1072,7 @@
       "id": 133,
       "name": "Implement view sharing",
       "test": "Views can be shared with team",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "views-system"
     },
