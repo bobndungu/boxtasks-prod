@@ -1048,7 +1048,7 @@
       "id": 130,
       "name": "Build dashboard view with charts",
       "test": "Shows board statistics",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "views-system"
     },
