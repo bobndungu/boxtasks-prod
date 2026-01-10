@@ -1008,7 +1008,7 @@
       "id": 125,
       "name": "Build custom field filtering",
       "test": "Can filter by custom field values",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "custom-fields"
     },
