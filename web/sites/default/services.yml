@@ -1,0 +1,46 @@
+parameters:
+  # Security settings
+  security.enable_super_user: true
+
+  # Configure Cross-Site HTTP requests (CORS) for decoupled frontend
+  cors.config:
+    enabled: true
+    # Allow standard headers plus JWT auth
+    allowedHeaders:
+      - accept
+      - accept-language
+      - content-language
+      - content-type
+      - authorization
+      - x-csrf-token
+      - x-requested-with
+    # Allow all REST methods
+    allowedMethods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    # Allow React frontend
+    allowedOrigins:
+      - 'http://localhost:5173'
+      - 'http://127.0.0.1:5173'
+      - 'https://boxtasks2.ddev.site'
+    allowedOriginsPatterns: []
+    exposedHeaders:
+      - link
+      - x-drupal-cache
+      - x-drupal-cache-contexts
+      - x-drupal-cache-tags
+      - x-drupal-dynamic-cache
+    maxAge: 1000
+    supportsCredentials: true
+
+  # Session settings
+  session.storage.options:
+    gc_probability: 1
+    gc_divisor: 100
+    gc_maxlifetime: 200000
+    cookie_lifetime: 2000000
+    cookie_samesite: None
