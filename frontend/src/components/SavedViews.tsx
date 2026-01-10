@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bookmark, Plus, Trash2, Check, Copy, ExternalLink } from 'lucide-react';
+import { Bookmark, Plus, Trash2, Check, Copy, ExternalLink, Filter } from 'lucide-react';
 import type { ViewType } from './ViewSelector';
 import type { ViewSettingsData } from './ViewSettings';
+import type { FilterState } from './AdvancedFilters';
 
 export interface SavedView {
   id: string;
   name: string;
   viewType: ViewType;
   settings: ViewSettingsData;
+  filters?: FilterState;
   isDefault?: boolean;
   createdAt: string;
 }
@@ -16,8 +18,9 @@ interface SavedViewsProps {
   boardId: string;
   currentView: ViewType;
   currentSettings: ViewSettingsData;
+  currentFilters?: FilterState;
   savedViews: SavedView[];
-  onSaveView: (name: string, isDefault: boolean) => void;
+  onSaveView: (name: string, isDefault: boolean, includeFilters: boolean) => void;
   onLoadView: (view: SavedView) => void;
   onDeleteView: (viewId: string) => void;
   onSetDefault: (viewId: string | null) => void;
@@ -27,6 +30,7 @@ export function SavedViews({
   // boardId reserved for future API integration
   currentView,
   currentSettings,
+  currentFilters,
   savedViews,
   onSaveView,
   onLoadView,
@@ -37,9 +41,19 @@ export function SavedViews({
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [newViewName, setNewViewName] = useState('');
   const [makeDefault, setMakeDefault] = useState(false);
+  const [includeFilters, setIncludeFilters] = useState(true);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check if current filters are active
+  const hasActiveFilters = currentFilters && (
+    currentFilters.labels.length > 0 ||
+    currentFilters.members.length > 0 ||
+    currentFilters.dueDateFilter !== null ||
+    currentFilters.completionStatus !== null ||
+    currentFilters.customFields.length > 0
+  );
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -63,9 +77,10 @@ export function SavedViews({
 
   const handleSaveView = () => {
     if (newViewName.trim()) {
-      onSaveView(newViewName.trim(), makeDefault);
+      onSaveView(newViewName.trim(), makeDefault, includeFilters && !!hasActiveFilters);
       setNewViewName('');
       setMakeDefault(false);
+      setIncludeFilters(true);
       setShowSaveForm(false);
     }
   };
@@ -167,6 +182,17 @@ export function SavedViews({
                     >
                       <span className="text-sm text-gray-700">{view.name}</span>
                       <span className="text-xs text-gray-400 capitalize">({view.viewType})</span>
+                      {view.filters && (
+                        view.filters.labels.length > 0 ||
+                        view.filters.members.length > 0 ||
+                        view.filters.dueDateFilter !== null ||
+                        view.filters.completionStatus !== null ||
+                        view.filters.customFields.length > 0
+                      ) && (
+                        <span title="Has saved filters">
+                          <Filter className="h-3.5 w-3.5 text-blue-500" />
+                        </span>
+                      )}
                       {view.isDefault && (
                         <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
                           Default
@@ -221,7 +247,7 @@ export function SavedViews({
                   placeholder="View name..."
                   className="w-full px-2 py-1.5 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <div className="flex items-center gap-2">
+                <div className="space-y-1.5">
                   <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
                     <input
                       type="checkbox"
@@ -231,6 +257,18 @@ export function SavedViews({
                     />
                     Set as default view
                   </label>
+                  {hasActiveFilters && (
+                    <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={includeFilters}
+                        onChange={(e) => setIncludeFilters(e.target.checked)}
+                        className="rounded text-blue-600 focus:ring-blue-500"
+                      />
+                      <Filter className="h-3.5 w-3.5 text-blue-500" />
+                      Include current filters
+                    </label>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -245,6 +283,7 @@ export function SavedViews({
                       setShowSaveForm(false);
                       setNewViewName('');
                       setMakeDefault(false);
+                      setIncludeFilters(true);
                     }}
                     className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
                   >

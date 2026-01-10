@@ -1224,7 +1224,7 @@
       "id": 152,
       "name": "Build saved filter/view feature",
       "test": "Filters can be saved",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "search-filtering"
     },

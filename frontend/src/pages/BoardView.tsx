@@ -230,12 +230,13 @@ export default function BoardView() {
   }, [id, savedViews]);
 
   // Handlers for saved views
-  const handleSaveView = (name: string, isDefault: boolean) => {
+  const handleSaveView = (name: string, isDefault: boolean, includeFilters: boolean) => {
     const newView: SavedView = {
       id: crypto.randomUUID(),
       name,
       viewType: currentView,
       settings: viewSettings,
+      filters: includeFilters ? advancedFilters : undefined,
       isDefault,
       createdAt: new Date().toISOString(),
     };
@@ -248,13 +249,19 @@ export default function BoardView() {
       return [...updated, newView];
     });
 
-    toast.success(`View "${name}" saved`);
+    const filterMsg = includeFilters ? ' (with filters)' : '';
+    toast.success(`View "${name}" saved${filterMsg}`);
   };
 
   const handleLoadView = (view: SavedView) => {
     setCurrentView(view.viewType);
     setViewSettings(view.settings);
-    toast.success(`Loaded view "${view.name}"`);
+    // Apply saved filters if present
+    if (view.filters) {
+      setAdvancedFilters(view.filters);
+    }
+    const filterMsg = view.filters ? ' with filters' : '';
+    toast.success(`Loaded view "${view.name}"${filterMsg}`);
   };
 
   const handleDeleteView = (viewId: string) => {
@@ -1423,6 +1430,7 @@ export default function BoardView() {
                 boardId={id || ''}
                 currentView={currentView}
                 currentSettings={viewSettings}
+                currentFilters={advancedFilters}
                 savedViews={savedViews}
                 onSaveView={handleSaveView}
                 onLoadView={handleLoadView}
