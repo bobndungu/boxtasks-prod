@@ -1192,7 +1192,7 @@
       "id": 148,
       "name": "Implement push notifications",
       "test": "Browser push notifications work",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "activity-notifications"
     },

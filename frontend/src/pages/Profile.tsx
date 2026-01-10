@@ -23,6 +23,13 @@ import {
   NOTIFICATION_PREFERENCE_LABELS,
   type NotificationPreferences,
 } from '../lib/api/notifications';
+import {
+  isPushSupported,
+  isPushSubscribed,
+  subscribeToPush,
+  unsubscribeFromPush,
+  getNotificationPermission,
+} from '../lib/api/push';
 
 const TIMEZONES = [
   'UTC',
@@ -55,6 +62,9 @@ export default function Profile() {
   const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifMessage, setNotifMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
 
   // Load notification preferences
   useEffect(() => {
@@ -64,6 +74,12 @@ export default function Profile() {
         .catch(console.error);
     }
   }, [user?.id]);
+
+  // Check push notification status
+  useEffect(() => {
+    setPushSupported(isPushSupported());
+    isPushSubscribed().then(setPushEnabled);
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -370,6 +386,66 @@ export default function Profile() {
                 })}
               </div>
             </div>
+
+            {/* Push Notifications */}
+            {pushSupported && (
+              <div className="pt-6 border-t border-gray-200">
+                <h3 className="font-medium text-gray-900 mb-4 flex items-center">
+                  <Bell className="h-4 w-4 mr-2 text-purple-600" />
+                  Browser Push Notifications
+                </h3>
+                <p className="text-sm text-gray-500 mb-3">
+                  Receive instant notifications in your browser, even when BoxTasks is closed
+                </p>
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {pushEnabled ? 'Push notifications are enabled' : 'Enable push notifications'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {getNotificationPermission() === 'denied'
+                        ? 'Permission denied - please enable in browser settings'
+                        : pushEnabled
+                        ? 'You will receive notifications for important events'
+                        : 'Get notified instantly when something happens'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!user?.id) return;
+                      setPushLoading(true);
+                      try {
+                        if (pushEnabled) {
+                          await unsubscribeFromPush(user.id);
+                          setPushEnabled(false);
+                        } else {
+                          const subscription = await subscribeToPush(user.id);
+                          setPushEnabled(!!subscription);
+                        }
+                      } catch (error) {
+                        console.error('Push subscription error:', error);
+                      } finally {
+                        setPushLoading(false);
+                      }
+                    }}
+                    disabled={pushLoading || getNotificationPermission() === 'denied'}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center ${
+                      pushEnabled
+                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                    }`}
+                  >
+                    {pushLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : pushEnabled ? (
+                      'Disable'
+                    ) : (
+                      'Enable'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Email Digest */}
             <div className="pt-6 border-t border-gray-200">
