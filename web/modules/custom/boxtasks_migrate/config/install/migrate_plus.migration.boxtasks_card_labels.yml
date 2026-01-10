@@ -1,0 +1,55 @@
+id: boxtasks_card_labels
+label: 'BoxTasks Card Labels'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - cards
+  - labels
+
+# This migration updates cards with their labels
+# It runs after cards and labels are created
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      cl.card_id,
+      array_agg(cl.label_id) as label_ids
+    FROM card_labels cl
+    INNER JOIN cards c ON cl.card_id = c.id
+    INNER JOIN boards b ON c.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    GROUP BY cl.card_id
+  ids:
+    card_id:
+      type: string
+
+process:
+  # Look up the Drupal node ID for this card
+  nid:
+    plugin: migration_lookup
+    migration: boxtasks_cards
+    source: card_id
+
+  # Map label IDs to Drupal taxonomy term IDs
+  field_card_labels:
+    plugin: sub_process
+    source: label_ids
+    process:
+      target_id:
+        plugin: migration_lookup
+        migration: boxtasks_labels
+        source: '0'
+
+destination:
+  plugin: entity:node
+  default_bundle: card
+  overwrite_properties:
+    - field_card_labels
+
+migration_dependencies:
+  required:
+    - boxtasks_cards
+    - boxtasks_labels

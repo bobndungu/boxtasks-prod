@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_completed_at
+    - node.type.card
+  module:
+    - node
+id: node.card.field_completed_at
+field_name: field_completed_at
+entity_type: node
+bundle: card
+label: 'Completed At'
+description: 'When this card was marked as completed.'
+required: false
+translatable: false
+default_value: []
+default_value_callback: ''
+settings: {}
+field_type: timestamp

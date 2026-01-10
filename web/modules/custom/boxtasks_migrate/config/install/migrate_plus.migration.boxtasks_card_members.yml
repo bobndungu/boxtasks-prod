@@ -1,0 +1,55 @@
+id: boxtasks_card_members
+label: 'BoxTasks Card Members'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - cards
+  - members
+
+# This migration updates cards with their assigned members
+# It runs after cards are created and adds user references
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      cm.card_id,
+      array_agg(cm.user_id) as member_ids
+    FROM card_members cm
+    INNER JOIN cards c ON cm.card_id = c.id
+    INNER JOIN boards b ON c.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    GROUP BY cm.card_id
+  ids:
+    card_id:
+      type: string
+
+process:
+  # Look up the Drupal node ID for this card
+  nid:
+    plugin: migration_lookup
+    migration: boxtasks_cards
+    source: card_id
+
+  # Map user IDs to Drupal user IDs
+  field_card_members:
+    plugin: sub_process
+    source: member_ids
+    process:
+      target_id:
+        plugin: migration_lookup
+        migration: boxtasks_users
+        source: '0'
+
+destination:
+  plugin: entity:node
+  default_bundle: card
+  overwrite_properties:
+    - field_card_members
+
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_cards

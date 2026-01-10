@@ -1280,7 +1280,7 @@
       "id": 159,
       "name": "Create migration for cards with relationships",
       "test": "Cards with labels, members imported",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "data-migration"
     },

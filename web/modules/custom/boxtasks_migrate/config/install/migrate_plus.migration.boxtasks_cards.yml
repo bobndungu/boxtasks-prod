@@ -1,0 +1,129 @@
+id: boxtasks_cards
+label: 'BoxTasks Cards'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - cards
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      c.id,
+      c.list_id,
+      c.board_id,
+      c.title,
+      c.description,
+      c.position,
+      c.cover_type,
+      c.cover_value,
+      c.start_date,
+      c.due_date,
+      c.is_completed,
+      c.completed_at,
+      c.created_by,
+      c.created_at,
+      c.updated_at
+    FROM cards c
+    INNER JOIN lists l ON c.list_id = l.id
+    INNER JOIN boards b ON c.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY c.created_at ASC
+  ids:
+    id:
+      type: string
+
+process:
+  type:
+    plugin: default_value
+    default_value: card
+
+  # Store original UUID
+  field_original_uuid: id
+
+  # Title
+  title: title
+
+  # Description
+  field_card_description: description
+
+  # List reference
+  field_card_list:
+    plugin: migration_lookup
+    migration: boxtasks_lists
+    source: list_id
+
+  # Board reference (for denormalization/filtering)
+  field_card_board:
+    plugin: migration_lookup
+    migration: boxtasks_boards
+    source: board_id
+
+  # Position
+  field_card_position: position
+
+  # Cover image/color
+  field_card_cover: cover_value
+
+  # Start date
+  field_card_start_date:
+    plugin: format_date
+    source: start_date
+    from_format: 'Y-m-d H:i:s'
+    to_format: 'Y-m-d'
+    settings:
+      validate_format: false
+
+  # Due date
+  field_card_due_date:
+    plugin: format_date
+    source: due_date
+    from_format: 'Y-m-d H:i:s'
+    to_format: 'Y-m-d'
+    settings:
+      validate_format: false
+
+  # Completed flag
+  field_card_completed:
+    plugin: default_value
+    default_value: 0
+    source: is_completed
+
+  # Completed timestamp
+  field_completed_at:
+    plugin: callback
+    callable: strtotime
+    source: completed_at
+
+  # Author
+  uid:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: created_by
+    no_stub: true
+
+  # Status - published
+  status:
+    plugin: default_value
+    default_value: 1
+
+  # Timestamps
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+
+destination:
+  plugin: entity:node
+
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_boards
+    - boxtasks_lists
