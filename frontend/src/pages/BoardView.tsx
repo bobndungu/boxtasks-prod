@@ -90,6 +90,7 @@ import TimelineView from '../components/TimelineView';
 import TableView from '../components/TableView';
 import DashboardView from '../components/DashboardView';
 import { AutomationRules } from '../components/AutomationRules';
+import { AdvancedFilters, DEFAULT_FILTER_STATE, matchesFilters, type FilterState } from '../components/AdvancedFilters';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
   green: '#61bd4f',
@@ -135,13 +136,15 @@ export default function BoardView() {
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Label filter state
-  const [labelFilter, setLabelFilter] = useState<CardLabel[]>([]);
-  const [showLabelFilter, setShowLabelFilter] = useState(false);
+  // Advanced filters state (unified filter panel)
+  const [advancedFilters, setAdvancedFilters] = useState<FilterState>(DEFAULT_FILTER_STATE);
 
-  // Member filter state
-  const [memberFilter, setMemberFilter] = useState<string[]>([]);
-  const [showMemberFilter, setShowMemberFilter] = useState(false);
+  // Legacy filter aliases for backwards compatibility
+  const labelFilter = advancedFilters.labels;
+  const memberFilter = advancedFilters.members;
+  const setMemberFilter = useCallback((members: string[]) => {
+    setAdvancedFilters((prev) => ({ ...prev, members }));
+  }, []);
 
   // Template picker state
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
@@ -163,13 +166,8 @@ export default function BoardView() {
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<Map<string, CustomFieldValue[]>>(new Map());
 
-  // Custom field filter state
-  interface CustomFieldFilterItem {
-    definitionId: string;
-    value: string;
-  }
-  const [customFieldFilter, setCustomFieldFilter] = useState<CustomFieldFilterItem[]>([]);
-  const [showCustomFieldFilter, setShowCustomFieldFilter] = useState(false);
+  // Custom field filter alias for backwards compatibility
+  const customFieldFilter = advancedFilters.customFields;
 
   // View switching state
   const [currentView, setCurrentView] = useState<ViewType>('kanban');
@@ -496,14 +494,17 @@ export default function BoardView() {
   // User presence tracking
   const { activeUsers, handlePresenceUpdate } = usePresence({ boardId: id, enabled: !!id });
 
-  // Filter cards based on search query, label filter, member filter, and custom field filter
+  // Filter cards based on search query and advanced filters
   const filteredCardsByList = useMemo(() => {
     const hasSearchQuery = searchQuery.trim().length > 0;
-    const hasLabelFilter = labelFilter.length > 0;
-    const hasMemberFilter = memberFilter.length > 0;
-    const hasCustomFieldFilter = customFieldFilter.length > 0;
+    const hasAdvancedFilters =
+      advancedFilters.labels.length > 0 ||
+      advancedFilters.members.length > 0 ||
+      advancedFilters.dueDateFilter !== null ||
+      advancedFilters.completionStatus !== null ||
+      advancedFilters.customFields.length > 0;
 
-    if (!hasSearchQuery && !hasLabelFilter && !hasMemberFilter && !hasCustomFieldFilter) return cardsByList;
+    if (!hasSearchQuery && !hasAdvancedFilters) return cardsByList;
 
     const query = searchQuery.toLowerCase();
     const filtered = new Map<string, Card[]>();
@@ -515,38 +516,27 @@ export default function BoardView() {
           card.title.toLowerCase().includes(query) ||
           (card.description && card.description.toLowerCase().includes(query));
 
-        // Check label filter (card must have at least one of the selected labels)
-        const matchesLabel = !hasLabelFilter ||
-          labelFilter.some((label) => card.labels.includes(label));
+        if (!matchesSearch) return false;
 
-        // Check member filter (card must have at least one of the selected members)
-        const matchesMember = !hasMemberFilter ||
-          memberFilter.some((memberId) => card.memberIds?.includes(memberId));
-
-        // Check custom field filter (all filter conditions must match)
-        let matchesCustomField = true;
-        if (hasCustomFieldFilter) {
-          const cardCfValues = customFieldValues.get(card.id) || [];
-          matchesCustomField = customFieldFilter.every((filterItem) => {
-            const cardValue = cardCfValues.find((v) => v.definitionId === filterItem.definitionId);
-            if (!cardValue) return false;
-            // For checkbox fields, compare boolean string
-            const fieldDef = customFieldDefs.find((d) => d.id === filterItem.definitionId);
-            if (fieldDef?.type === 'checkbox') {
-              return cardValue.value === filterItem.value;
-            }
-            // For other fields, case-insensitive contains match
-            return cardValue.value.toLowerCase().includes(filterItem.value.toLowerCase());
-          });
-        }
-
-        return matchesSearch && matchesLabel && matchesMember && matchesCustomField;
+        // Use the matchesFilters helper for advanced filters
+        const cardCfValues = customFieldValues.get(card.id) || [];
+        return matchesFilters(
+          {
+            labels: card.labels,
+            memberIds: card.memberIds,
+            dueDate: card.dueDate,
+            completed: card.completed,
+          },
+          advancedFilters,
+          cardCfValues.map((v) => ({ definitionId: v.definitionId, value: v.value })),
+          customFieldDefs
+        );
       });
       filtered.set(listId, matchingCards);
     }
 
     return filtered;
-  }, [cardsByList, searchQuery, labelFilter, memberFilter, customFieldFilter, customFieldValues, customFieldDefs]);
+  }, [cardsByList, searchQuery, advancedFilters, customFieldValues, customFieldDefs]);
 
   // Flat array of all filtered cards for alternative views
   const allFilteredCards = useMemo(() => {
@@ -1366,72 +1356,17 @@ export default function BoardView() {
                   Search
                 </button>
               )}
-              {/* Label Filter */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowLabelFilter(!showLabelFilter)}
-                  className={`px-3 py-1.5 rounded flex items-center text-sm ${
-                    labelFilter.length > 0 ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter
-                  {labelFilter.length > 0 && (
-                    <span className="ml-1 bg-white/30 rounded-full px-1.5 text-xs">
-                      {labelFilter.length}
-                    </span>
-                  )}
-                </button>
-                {showLabelFilter && (
-                  <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
-                    <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase">
-                      Filter by Label
-                    </div>
-                    {(['green', 'yellow', 'orange', 'red', 'purple', 'blue'] as CardLabel[]).map((label) => (
-                      <button
-                        key={label}
-                        onClick={() => {
-                          if (labelFilter.includes(label)) {
-                            setLabelFilter(labelFilter.filter((l) => l !== label));
-                          } else {
-                            setLabelFilter([...labelFilter, label]);
-                          }
-                        }}
-                        className="w-full px-3 py-1.5 flex items-center hover:bg-gray-100"
-                      >
-                        <span
-                          className={`w-8 h-5 rounded mr-3 ${
-                            label === 'green' ? 'bg-green-500' :
-                            label === 'yellow' ? 'bg-yellow-500' :
-                            label === 'orange' ? 'bg-orange-500' :
-                            label === 'red' ? 'bg-red-500' :
-                            label === 'purple' ? 'bg-purple-500' :
-                            'bg-blue-500'
-                          }`}
-                        />
-                        <span className="capitalize text-sm text-gray-700">{label}</span>
-                        {labelFilter.includes(label) && (
-                          <Check className="h-4 w-4 ml-auto text-blue-600" />
-                        )}
-                      </button>
-                    ))}
-                    {labelFilter.length > 0 && (
-                      <>
-                        <div className="border-t my-1" />
-                        <button
-                          onClick={() => {
-                            setLabelFilter([]);
-                            setShowLabelFilter(false);
-                          }}
-                          className="w-full px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 text-left"
-                        >
-                          Clear filter
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
+              {/* Advanced Filters - unified filter panel */}
+              <AdvancedFilters
+                filters={advancedFilters}
+                onFiltersChange={setAdvancedFilters}
+                availableMembers={workspaceMembers.map((m) => ({
+                  id: m.id,
+                  name: m.displayName,
+                }))}
+                customFieldDefs={customFieldDefs}
+                currentUserId={currentUser?.id}
+              />
               {/* My Cards Quick Filter */}
               {currentUser && (
                 <button
@@ -1451,173 +1386,6 @@ export default function BoardView() {
                   <User className="h-4 w-4 mr-2" />
                   My Cards
                 </button>
-              )}
-              {/* Member Filter */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowMemberFilter(!showMemberFilter)}
-                  className={`px-3 py-1.5 rounded flex items-center text-sm ${
-                    memberFilter.length > 0 ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Members
-                  {memberFilter.length > 0 && (
-                    <span className="ml-1 bg-white/30 rounded-full px-1.5 text-xs">
-                      {memberFilter.length}
-                    </span>
-                  )}
-                </button>
-                {showMemberFilter && (
-                  <div className="absolute top-full right-0 mt-1 w-56 bg-white rounded-lg shadow-lg py-2 z-50">
-                    <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase">
-                      Filter by Member
-                    </div>
-                    {currentUser && (
-                      <button
-                        onClick={() => {
-                          if (memberFilter.includes(currentUser.id)) {
-                            setMemberFilter(memberFilter.filter((id) => id !== currentUser.id));
-                          } else {
-                            setMemberFilter([...memberFilter, currentUser.id]);
-                          }
-                        }}
-                        className="w-full px-3 py-1.5 flex items-center hover:bg-gray-100"
-                      >
-                        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium mr-3">
-                          {(currentUser.displayName || currentUser.username).charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-sm text-gray-700">
-                          {currentUser.displayName || currentUser.username} (me)
-                        </span>
-                        {memberFilter.includes(currentUser.id) && (
-                          <Check className="h-4 w-4 ml-auto text-blue-600" />
-                        )}
-                      </button>
-                    )}
-                    {memberFilter.length > 0 && (
-                      <>
-                        <div className="border-t my-1" />
-                        <button
-                          onClick={() => {
-                            setMemberFilter([]);
-                            setShowMemberFilter(false);
-                          }}
-                          className="w-full px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 text-left"
-                        >
-                          Clear filter
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-              {/* Custom Field Filter */}
-              {customFieldDefs.length > 0 && (
-                <div className="relative">
-                  <button
-                    onClick={() => setShowCustomFieldFilter(!showCustomFieldFilter)}
-                    className={`px-3 py-1.5 rounded flex items-center text-sm ${
-                      customFieldFilter.length > 0 ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Custom
-                    {customFieldFilter.length > 0 && (
-                      <span className="ml-1 bg-white/30 rounded-full px-1.5 text-xs">
-                        {customFieldFilter.length}
-                      </span>
-                    )}
-                  </button>
-                  {showCustomFieldFilter && (
-                    <div className="absolute top-full right-0 mt-1 w-72 bg-white rounded-lg shadow-lg py-2 z-50">
-                      <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase">
-                        Filter by Custom Fields
-                      </div>
-                      <div className="max-h-64 overflow-y-auto">
-                        {customFieldDefs.map((fieldDef) => {
-                          const existingFilter = customFieldFilter.find((f) => f.definitionId === fieldDef.id);
-                          return (
-                            <div key={fieldDef.id} className="px-3 py-2 border-b border-gray-100 last:border-b-0">
-                              <div className="text-sm font-medium text-gray-700 mb-1">{fieldDef.title}</div>
-                              {fieldDef.type === 'dropdown' ? (
-                                <select
-                                  value={existingFilter?.value || ''}
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    if (value === '') {
-                                      setCustomFieldFilter(customFieldFilter.filter((f) => f.definitionId !== fieldDef.id));
-                                    } else {
-                                      const newFilter = customFieldFilter.filter((f) => f.definitionId !== fieldDef.id);
-                                      newFilter.push({ definitionId: fieldDef.id, value });
-                                      setCustomFieldFilter(newFilter);
-                                    }
-                                  }}
-                                  className="w-full px-2 py-1.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                  <option value="">All</option>
-                                  {fieldDef.options.map((opt) => (
-                                    <option key={opt} value={opt}>{opt}</option>
-                                  ))}
-                                </select>
-                              ) : fieldDef.type === 'checkbox' ? (
-                                <select
-                                  value={existingFilter?.value || ''}
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    if (value === '') {
-                                      setCustomFieldFilter(customFieldFilter.filter((f) => f.definitionId !== fieldDef.id));
-                                    } else {
-                                      const newFilter = customFieldFilter.filter((f) => f.definitionId !== fieldDef.id);
-                                      newFilter.push({ definitionId: fieldDef.id, value });
-                                      setCustomFieldFilter(newFilter);
-                                    }
-                                  }}
-                                  className="w-full px-2 py-1.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                  <option value="">All</option>
-                                  <option value="true">Yes</option>
-                                  <option value="false">No</option>
-                                </select>
-                              ) : (
-                                <input
-                                  type={fieldDef.type === 'number' ? 'number' : fieldDef.type === 'date' ? 'date' : 'text'}
-                                  value={existingFilter?.value || ''}
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    if (value === '') {
-                                      setCustomFieldFilter(customFieldFilter.filter((f) => f.definitionId !== fieldDef.id));
-                                    } else {
-                                      const newFilter = customFieldFilter.filter((f) => f.definitionId !== fieldDef.id);
-                                      newFilter.push({ definitionId: fieldDef.id, value });
-                                      setCustomFieldFilter(newFilter);
-                                    }
-                                  }}
-                                  placeholder={`Filter by ${fieldDef.title.toLowerCase()}...`}
-                                  className="w-full px-2 py-1.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {customFieldFilter.length > 0 && (
-                        <>
-                          <div className="border-t my-1" />
-                          <button
-                            onClick={() => {
-                              setCustomFieldFilter([]);
-                              setShowCustomFieldFilter(false);
-                            }}
-                            className="w-full px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 text-left"
-                          >
-                            Clear all filters
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
               )}
               <button className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded flex items-center text-sm">
                 <Users className="h-4 w-4 mr-2" />
@@ -1718,48 +1486,60 @@ export default function BoardView() {
         </div>
       )}
 
-      {/* Label Filter Banner */}
-      {labelFilter.length > 0 && (
+      {/* Active Filters Banner - shows all active filters */}
+      {(labelFilter.length > 0 || memberFilter.length > 0 || advancedFilters.dueDateFilter || advancedFilters.completionStatus || customFieldFilter.length > 0) && (
         <div className="bg-blue-100 text-blue-800 px-4 py-2 text-sm flex items-center justify-between">
-          <div className="flex items-center">
-            <Filter className="h-4 w-4 mr-2" />
-            <span>Filtering by labels: </span>
-            <div className="flex items-center gap-1 ml-2">
-              {labelFilter.map((label) => (
-                <span
-                  key={label}
-                  className={`px-2 py-0.5 rounded text-white text-xs capitalize ${
-                    label === 'green' ? 'bg-green-500' :
-                    label === 'yellow' ? 'bg-yellow-500 text-yellow-900' :
-                    label === 'orange' ? 'bg-orange-500' :
-                    label === 'red' ? 'bg-red-500' :
-                    label === 'purple' ? 'bg-purple-500' :
-                    'bg-blue-500'
-                  }`}
-                >
-                  {label}
-                </span>
-              ))}
-            </div>
-            <span className="ml-2">
-              — {Array.from(filteredCardsByList.values()).reduce((sum, cards) => sum + cards.length, 0)} cards
-            </span>
-          </div>
-          <button
-            onClick={() => setLabelFilter([])}
-            className="text-blue-800 hover:text-blue-900 underline"
-          >
-            Clear filter
-          </button>
-        </div>
-      )}
-
-      {/* Custom Field Filter Banner */}
-      {customFieldFilter.length > 0 && (
-        <div className="bg-purple-100 text-purple-800 px-4 py-2 text-sm flex items-center justify-between">
           <div className="flex items-center flex-wrap gap-2">
-            <Settings className="h-4 w-4 mr-1" />
-            <span>Filtering by custom fields: </span>
+            <Filter className="h-4 w-4" />
+            <span>Active filters:</span>
+
+            {/* Labels */}
+            {labelFilter.map((label) => (
+              <span
+                key={`label-${label}`}
+                className={`px-2 py-0.5 rounded text-white text-xs capitalize ${
+                  label === 'green' ? 'bg-green-500' :
+                  label === 'yellow' ? 'bg-yellow-500 text-yellow-900' :
+                  label === 'orange' ? 'bg-orange-500' :
+                  label === 'red' ? 'bg-red-500' :
+                  label === 'purple' ? 'bg-purple-500' :
+                  'bg-blue-500'
+                }`}
+              >
+                {label}
+              </span>
+            ))}
+
+            {/* Members */}
+            {memberFilter.length > 0 && (
+              <span className="px-2 py-0.5 bg-blue-200 rounded text-xs">
+                {memberFilter.length} member{memberFilter.length > 1 ? 's' : ''}
+              </span>
+            )}
+
+            {/* Due Date */}
+            {advancedFilters.dueDateFilter && (
+              <span className="px-2 py-0.5 bg-orange-200 text-orange-800 rounded text-xs">
+                {advancedFilters.dueDateFilter === 'overdue' && 'Overdue'}
+                {advancedFilters.dueDateFilter === 'today' && 'Due today'}
+                {advancedFilters.dueDateFilter === 'this_week' && 'Due this week'}
+                {advancedFilters.dueDateFilter === 'this_month' && 'Due this month'}
+                {advancedFilters.dueDateFilter === 'no_date' && 'No due date'}
+              </span>
+            )}
+
+            {/* Completion Status */}
+            {advancedFilters.completionStatus && (
+              <span className={`px-2 py-0.5 rounded text-xs ${
+                advancedFilters.completionStatus === 'completed'
+                  ? 'bg-green-200 text-green-800'
+                  : 'bg-gray-200 text-gray-800'
+              }`}>
+                {advancedFilters.completionStatus === 'completed' ? 'Completed' : 'Not completed'}
+              </span>
+            )}
+
+            {/* Custom Fields */}
             {customFieldFilter.map((filter) => {
               const fieldDef = customFieldDefs.find((d) => d.id === filter.definitionId);
               if (!fieldDef) return null;
@@ -1769,28 +1549,23 @@ export default function BoardView() {
               }
               return (
                 <span
-                  key={filter.definitionId}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-200 rounded text-xs"
+                  key={`cf-${filter.definitionId}`}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-200 text-purple-800 rounded text-xs"
                 >
                   <strong>{fieldDef.title}:</strong> {displayValue}
-                  <button
-                    onClick={() => setCustomFieldFilter(customFieldFilter.filter((f) => f.definitionId !== filter.definitionId))}
-                    className="text-purple-600 hover:text-purple-800"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
                 </span>
               );
             })}
-            <span className="ml-2">
+
+            <span className="text-blue-600">
               — {Array.from(filteredCardsByList.values()).reduce((sum, cards) => sum + cards.length, 0)} cards
             </span>
           </div>
           <button
-            onClick={() => setCustomFieldFilter([])}
-            className="text-purple-800 hover:text-purple-900 underline"
+            onClick={() => setAdvancedFilters(DEFAULT_FILTER_STATE)}
+            className="text-blue-800 hover:text-blue-900 underline"
           >
-            Clear filter
+            Clear all filters
           </button>
         </div>
       )}
