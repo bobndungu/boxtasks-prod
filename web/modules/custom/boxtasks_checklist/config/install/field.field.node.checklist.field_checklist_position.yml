@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_checklist_position
+    - node.type.checklist
+id: node.checklist.field_checklist_position
+field_name: field_checklist_position
+entity_type: node
+bundle: checklist
+label: Position
+description: 'Order position of this checklist within the card.'
+required: false
+translatable: false
+default_value:
+  - value: 0
+default_value_callback: ''
+settings: {}
+field_type: integer

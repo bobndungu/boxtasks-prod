@@ -1,0 +1,69 @@
+id: boxtasks_checklists
+label: 'BoxTasks Checklists'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - checklists
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      ch.id,
+      ch.card_id,
+      ch.name,
+      ch.position,
+      ch.created_at,
+      ch.updated_at
+    FROM checklists ch
+    INNER JOIN cards c ON ch.card_id = c.id
+    INNER JOIN boards b ON c.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY ch.created_at ASC
+  ids:
+    id:
+      type: string
+
+process:
+  type:
+    plugin: default_value
+    default_value: checklist
+
+  # Store original UUID
+  field_original_uuid: id
+
+  # Title from name
+  title: name
+
+  # Card reference
+  field_checklist_card:
+    plugin: migration_lookup
+    migration: boxtasks_cards
+    source: card_id
+
+  # Position
+  field_checklist_position: position
+
+  # Status - published
+  status:
+    plugin: default_value
+    default_value: 1
+
+  # Timestamps
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+
+destination:
+  plugin: entity:node
+
+migration_dependencies:
+  required:
+    - boxtasks_cards

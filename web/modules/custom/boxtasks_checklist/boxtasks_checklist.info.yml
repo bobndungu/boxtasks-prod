@@ -5,4 +5,6 @@ core_version_requirement: ^10 || ^11
 package: BoxTasks
 dependencies:
   - drupal:node
+  - drupal:user
+  - drupal:datetime
   - jsonapi:jsonapi

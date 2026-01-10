@@ -1,0 +1,96 @@
+id: boxtasks_checklist_items
+label: 'BoxTasks Checklist Items'
+migration_group: boxtasks
+migration_tags:
+  - boxtasks
+  - checklists
+
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      ci.id,
+      ci.checklist_id,
+      ci.name,
+      ci.position,
+      ci.is_checked,
+      ci.assigned_to,
+      ci.due_date,
+      ci.created_at,
+      ci.updated_at
+    FROM checklist_items ci
+    INNER JOIN checklists ch ON ci.checklist_id = ch.id
+    INNER JOIN cards c ON ch.card_id = c.id
+    INNER JOIN boards b ON c.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY ci.created_at ASC
+  ids:
+    id:
+      type: string
+
+process:
+  type:
+    plugin: default_value
+    default_value: checklist_item
+
+  # Store original UUID
+  field_original_uuid: id
+
+  # Title from name
+  title: name
+
+  # Checklist reference
+  field_item_checklist:
+    plugin: migration_lookup
+    migration: boxtasks_checklists
+    source: checklist_id
+
+  # Position
+  field_item_position: position
+
+  # Completed flag
+  field_item_completed:
+    plugin: default_value
+    default_value: 0
+    source: is_checked
+
+  # Assigned user (Premium feature)
+  field_item_assigned_to:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: assigned_to
+    no_stub: true
+
+  # Due date (Premium feature)
+  field_item_due_date:
+    plugin: format_date
+    source: due_date
+    from_format: 'Y-m-d H:i:s'
+    to_format: 'Y-m-d'
+    settings:
+      validate_format: false
+
+  # Status - published
+  status:
+    plugin: default_value
+    default_value: 1
+
+  # Timestamps
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+
+destination:
+  plugin: entity:node
+
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_checklists

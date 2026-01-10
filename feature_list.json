@@ -1288,7 +1288,7 @@
       "id": 160,
       "name": "Create migration for checklists and items",
       "test": "Checklists fully imported",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "data-migration"
     },
