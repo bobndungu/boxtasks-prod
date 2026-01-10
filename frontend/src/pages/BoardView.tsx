@@ -58,6 +58,7 @@ import {
   SmilePlus,
   UserPlus,
   User,
+  Settings,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { fetchBoard, updateBoard, toggleBoardStar, fetchAllBoards, type Board } from '../lib/api/boards';
@@ -78,6 +79,7 @@ import { ConnectionStatus } from '../components/ConnectionStatus';
 import { ActiveUsers } from '../components/ActiveUsers';
 import { useAuthStore } from '../lib/stores/auth';
 import { toast } from '../lib/stores/toast';
+import { CustomFieldsManager } from '../components/CustomFieldsManager';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
   green: '#61bd4f',
@@ -140,6 +142,9 @@ export default function BoardView() {
 
   // Workspace members for @mentions
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
+
+  // Custom fields manager state
+  const [showCustomFields, setShowCustomFields] = useState(false);
 
   // Optimistic UI updates
   const cardOptimistic = useOptimistic<Map<string, Card[]>>();
@@ -1353,6 +1358,14 @@ export default function BoardView() {
                 onReconnect={mercureConnection.reconnect}
                 className="text-white/80 p-1.5"
               />
+              <button
+                onClick={() => setShowCustomFields(true)}
+                className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded flex items-center gap-1"
+                title="Custom Fields"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="text-sm hidden sm:inline">Fields</span>
+              </button>
               <button className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded">
                 <MoreHorizontal className="h-5 w-5" />
               </button>
@@ -1730,6 +1743,15 @@ export default function BoardView() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Custom Fields Manager */}
+      {id && (
+        <CustomFieldsManager
+          boardId={id}
+          isOpen={showCustomFields}
+          onClose={() => setShowCustomFields(false)}
+        />
       )}
     </div>
   );
@@ -4096,6 +4118,7 @@ function CardDetailModal({
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
