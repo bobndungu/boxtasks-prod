@@ -960,7 +960,7 @@
       "id": 119,
       "name": "Create Custom Field definition entity",
       "test": "Field definitions stored per board",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "custom-fields"
     },
@@ -968,7 +968,7 @@
       "id": 120,
       "name": "Create Card Custom Field Values entity",
       "test": "Values stored per card",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "custom-fields"
     },
