@@ -235,3 +235,115 @@ export function getNotificationDisplay(type: NotificationType): { icon: string; 
   };
   return displays[type] || { icon: '🔔', label: 'Notification', color: 'text-gray-600' };
 }
+
+// Notification Preferences
+export interface NotificationPreferences {
+  inApp: {
+    member_assigned: boolean;
+    member_removed: boolean;
+    card_due: boolean;
+    comment_added: boolean;
+    mentioned: boolean;
+    card_moved: boolean;
+    card_completed: boolean;
+    due_date_approaching: boolean;
+  };
+  email: {
+    member_assigned: boolean;
+    mentioned: boolean;
+    card_due: boolean;
+    due_date_approaching: boolean;
+  };
+  emailDigest: 'none' | 'daily' | 'weekly';
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  inApp: {
+    member_assigned: true,
+    member_removed: true,
+    card_due: true,
+    comment_added: true,
+    mentioned: true,
+    card_moved: false,
+    card_completed: true,
+    due_date_approaching: true,
+  },
+  email: {
+    member_assigned: true,
+    mentioned: true,
+    card_due: true,
+    due_date_approaching: true,
+  },
+  emailDigest: 'daily',
+};
+
+// Fetch notification preferences for a user
+export async function fetchNotificationPreferences(userId: string): Promise<NotificationPreferences> {
+  const response = await fetch(
+    `${API_URL}/jsonapi/user/user/${userId}?fields[user--user]=field_notif_prefs`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch notification preferences');
+  }
+
+  const result = await response.json();
+  const prefsJson = result.data?.attributes?.field_notif_prefs;
+
+  if (prefsJson) {
+    try {
+      return JSON.parse(prefsJson);
+    } catch {
+      return DEFAULT_NOTIFICATION_PREFERENCES;
+    }
+  }
+
+  return DEFAULT_NOTIFICATION_PREFERENCES;
+}
+
+// Update notification preferences
+export async function updateNotificationPreferences(
+  userId: string,
+  preferences: NotificationPreferences
+): Promise<void> {
+  const response = await fetch(`${API_URL}/jsonapi/user/user/${userId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+      'Authorization': `Bearer ${getAccessToken()}`,
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'user--user',
+        id: userId,
+        attributes: {
+          field_notif_prefs: JSON.stringify(preferences),
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to update notification preferences');
+  }
+}
+
+// Preference labels for UI display
+export const NOTIFICATION_PREFERENCE_LABELS: Record<string, { label: string; description: string }> = {
+  member_assigned: { label: 'Assigned to cards', description: 'When you are assigned to a card' },
+  member_removed: { label: 'Removed from cards', description: 'When you are removed from a card' },
+  card_due: { label: 'Cards due', description: 'When a card you are assigned to is due' },
+  comment_added: { label: 'New comments', description: 'When someone comments on cards you follow' },
+  mentioned: { label: 'Mentions', description: 'When someone @mentions you' },
+  card_moved: { label: 'Cards moved', description: 'When cards you follow are moved' },
+  card_completed: { label: 'Cards completed', description: 'When cards you follow are completed' },
+  due_date_approaching: { label: 'Due date reminders', description: 'Reminders before cards are due' },
+};

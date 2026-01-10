@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Layout,
@@ -11,9 +11,18 @@ import {
   Save,
   Loader2,
   Camera,
+  Bell,
+  MailIcon,
 } from 'lucide-react';
 import { useAuthStore, type User as UserType } from '../lib/stores/auth';
 import { getAccessToken } from '../lib/api/client';
+import {
+  fetchNotificationPreferences,
+  updateNotificationPreferences,
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  NOTIFICATION_PREFERENCE_LABELS,
+  type NotificationPreferences,
+} from '../lib/api/notifications';
 
 const TIMEZONES = [
   'UTC',
@@ -43,6 +52,18 @@ export default function Profile() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifMessage, setNotifMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Load notification preferences
+  useEffect(() => {
+    if (user?.id) {
+      fetchNotificationPreferences(user.id)
+        .then(setNotifPrefs)
+        .catch(console.error);
+    }
+  }, [user?.id]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -254,6 +275,162 @@ export default function Profile() {
               </button>
             </div>
           </form>
+        </div>
+
+        {/* Notification Preferences */}
+        <div className="mt-8 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Bell className="h-5 w-5 text-gray-400 mr-2" />
+                <h2 className="text-lg font-semibold text-gray-900">Notification Preferences</h2>
+              </div>
+              {notifMessage && (
+                <span
+                  className={`text-sm ${
+                    notifMessage.type === 'success' ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
+                  {notifMessage.text}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-500 mt-1">
+              Control how you receive notifications
+            </p>
+          </div>
+
+          <div className="p-6 space-y-8">
+            {/* In-App Notifications */}
+            <div>
+              <h3 className="font-medium text-gray-900 mb-4 flex items-center">
+                <Bell className="h-4 w-4 mr-2 text-blue-600" />
+                In-App Notifications
+              </h3>
+              <div className="space-y-3">
+                {(Object.keys(notifPrefs.inApp) as Array<keyof typeof notifPrefs.inApp>).map((key) => {
+                  const labels = NOTIFICATION_PREFERENCE_LABELS[key];
+                  if (!labels) return null;
+                  return (
+                    <label key={key} className="flex items-start cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={notifPrefs.inApp[key]}
+                        onChange={(e) =>
+                          setNotifPrefs({
+                            ...notifPrefs,
+                            inApp: { ...notifPrefs.inApp, [key]: e.target.checked },
+                          })
+                        }
+                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                      />
+                      <div className="ml-3">
+                        <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                          {labels.label}
+                        </span>
+                        <p className="text-xs text-gray-500">{labels.description}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Email Notifications */}
+            <div className="pt-6 border-t border-gray-200">
+              <h3 className="font-medium text-gray-900 mb-4 flex items-center">
+                <MailIcon className="h-4 w-4 mr-2 text-blue-600" />
+                Email Notifications
+              </h3>
+              <div className="space-y-3">
+                {(Object.keys(notifPrefs.email) as Array<keyof typeof notifPrefs.email>).map((key) => {
+                  const labels = NOTIFICATION_PREFERENCE_LABELS[key];
+                  if (!labels) return null;
+                  return (
+                    <label key={key} className="flex items-start cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={notifPrefs.email[key]}
+                        onChange={(e) =>
+                          setNotifPrefs({
+                            ...notifPrefs,
+                            email: { ...notifPrefs.email, [key]: e.target.checked },
+                          })
+                        }
+                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                      />
+                      <div className="ml-3">
+                        <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                          {labels.label}
+                        </span>
+                        <p className="text-xs text-gray-500">{labels.description}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Email Digest */}
+            <div className="pt-6 border-t border-gray-200">
+              <h3 className="font-medium text-gray-900 mb-4">Email Digest</h3>
+              <p className="text-sm text-gray-500 mb-3">
+                Receive a summary of activity instead of individual emails
+              </p>
+              <div className="flex space-x-4">
+                {(['none', 'daily', 'weekly'] as const).map((option) => (
+                  <label key={option} className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="emailDigest"
+                      value={option}
+                      checked={notifPrefs.emailDigest === option}
+                      onChange={() => setNotifPrefs({ ...notifPrefs, emailDigest: option })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 cursor-pointer"
+                    />
+                    <span className="ml-2 text-sm text-gray-700 capitalize">{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="pt-6 border-t border-gray-200">
+              <button
+                onClick={async () => {
+                  if (!user?.id) return;
+                  setNotifLoading(true);
+                  setNotifMessage(null);
+                  try {
+                    await updateNotificationPreferences(user.id, notifPrefs);
+                    setNotifMessage({ type: 'success', text: 'Preferences saved!' });
+                    setTimeout(() => setNotifMessage(null), 3000);
+                  } catch (error) {
+                    setNotifMessage({
+                      type: 'error',
+                      text: error instanceof Error ? error.message : 'Failed to save preferences',
+                    });
+                  } finally {
+                    setNotifLoading(false);
+                  }
+                }}
+                disabled={notifLoading}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {notifLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Notification Preferences
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Danger Zone */}

@@ -86,6 +86,11 @@ class NotificationService {
       return NULL;
     }
 
+    // Check user's notification preferences.
+    if (!$this->userWantsNotification($user_id, $type, 'inApp')) {
+      return NULL;
+    }
+
     try {
       $storage = $this->entityTypeManager->getStorage('node');
 
@@ -345,6 +350,62 @@ class NotificationService {
       ->accessCheck(FALSE);
 
     return (int) $query->count()->execute();
+  }
+
+  /**
+   * Checks if user wants to receive a specific notification type.
+   *
+   * @param int $user_id
+   *   The user ID.
+   * @param string $type
+   *   The notification type.
+   * @param string $channel
+   *   The channel ('inApp' or 'email').
+   *
+   * @return bool
+   *   TRUE if user wants this notification, FALSE otherwise.
+   */
+  public function userWantsNotification(int $user_id, string $type, string $channel = 'inApp'): bool {
+    try {
+      $user = $this->entityTypeManager->getStorage('user')->load($user_id);
+      if (!$user || !$user->hasField('field_notif_prefs')) {
+        // Default to true if no preferences set.
+        return TRUE;
+      }
+
+      $prefs_json = $user->get('field_notif_prefs')->value;
+      if (!$prefs_json) {
+        return TRUE;
+      }
+
+      $prefs = json_decode($prefs_json, TRUE);
+      if (!$prefs || !isset($prefs[$channel])) {
+        return TRUE;
+      }
+
+      // Map notification types to preference keys.
+      $key_map = [
+        self::TYPE_MEMBER_ASSIGNED => 'member_assigned',
+        self::TYPE_MEMBER_REMOVED => 'member_removed',
+        self::TYPE_CARD_DUE => 'card_due',
+        self::TYPE_COMMENT_ADDED => 'comment_added',
+        self::TYPE_MENTIONED => 'mentioned',
+        self::TYPE_CARD_MOVED => 'card_moved',
+        self::TYPE_CARD_COMPLETED => 'card_completed',
+        self::TYPE_CHECKLIST_ITEM_COMPLETED => 'checklist_completed',
+        self::TYPE_DUE_DATE_APPROACHING => 'due_date_approaching',
+        self::TYPE_LABEL_ADDED => 'label_added',
+      ];
+
+      $pref_key = $key_map[$type] ?? $type;
+
+      // Return the preference value, defaulting to true.
+      return $prefs[$channel][$pref_key] ?? TRUE;
+    }
+    catch (\Exception $e) {
+      // On error, default to sending the notification.
+      return TRUE;
+    }
   }
 
   /**

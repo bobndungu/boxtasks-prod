@@ -1176,7 +1176,7 @@
       "id": 146,
       "name": "Implement notification preferences",
       "test": "Users can control notifications",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "activity-notifications"
     },
