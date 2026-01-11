@@ -15,26 +15,32 @@ class RateLimiter {
 
   /**
    * Rate limit configurations by endpoint type.
+   *
+   * These are generous defaults suitable for normal application usage.
+   * For production, consider making these configurable via Drupal config.
    */
   protected const RATE_LIMITS = [
-    // Authentication endpoints - stricter limits
+    // Authentication endpoints - generous for normal usage
+    // 100 auth attempts per 15 minutes should handle any legitimate use case
     'auth' => [
-      'limit' => 50,
-      'window' => 300, // 5 minutes
+      'limit' => 100,
+      'window' => 900, // 15 minutes
     ],
-    // API read endpoints
+    // API read endpoints - very generous for SPAs with frequent polling
+    // 2000 reads per minute handles real-time updates and heavy usage
     'api_read' => [
+      'limit' => 2000,
+      'window' => 60, // 1 minute
+    ],
+    // API write endpoints - generous for active users
+    // 500 writes per minute handles bulk operations and active editing
+    'api_write' => [
       'limit' => 500,
       'window' => 60, // 1 minute
     ],
-    // API write endpoints
-    'api_write' => [
-      'limit' => 100,
-      'window' => 60, // 1 minute
-    ],
-    // General requests
+    // General requests - very generous default
     'default' => [
-      'limit' => 200,
+      'limit' => 1000,
       'window' => 60, // 1 minute
     ],
   ];
