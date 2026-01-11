@@ -60,9 +60,13 @@ import {
   UserPlus,
   User,
   Settings,
+  Settings2,
   Zap,
   Copy,
   ExternalLink,
+  Mail,
+  Phone,
+  Link2,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { fetchBoard, updateBoard, toggleBoardStar, fetchAllBoards, type Board } from '../lib/api/boards';
@@ -84,7 +88,7 @@ import { ActiveUsers } from '../components/ActiveUsers';
 import { useAuthStore } from '../lib/stores/auth';
 import { toast } from '../lib/stores/toast';
 import { CustomFieldsManager } from '../components/CustomFieldsManager';
-import { fetchCustomFieldsByBoard, fetchCardCustomFieldValues, setCardCustomFieldValue, type CustomFieldDefinition, type CustomFieldValue } from '../lib/api/customFields';
+import { fetchCustomFieldsByBoard, fetchCardCustomFieldValues, setCardCustomFieldValue, enableCardScopedField, disableCardScopedField, getDisplayableFieldsForCard, getAvailableCardScopedFields, type CustomFieldDefinition, type CustomFieldValue } from '../lib/api/customFields';
 import { ViewSelector, type ViewType } from '../components/ViewSelector';
 import { ViewSettings, DEFAULT_VIEW_SETTINGS, type ViewSettingsData } from '../components/ViewSettings';
 import { SavedViews, type SavedView } from '../components/SavedViews';
@@ -3174,6 +3178,68 @@ function CardDetailModal({
   });
   const [isSavingCustomField, setIsSavingCustomField] = useState(false);
 
+  // Card-scoped fields state
+  const [showCardFieldsPicker, setShowCardFieldsPicker] = useState(false);
+  const [isAddingCardField, setIsAddingCardField] = useState(false);
+  const [cardFieldValues, setCardFieldValues] = useState<CustomFieldValue[]>(initialCustomFieldValues);
+
+  // Get displayable fields (workspace + board + enabled card-scoped)
+  const displayableFieldDefs = useMemo(() => {
+    return getDisplayableFieldsForCard(cardFieldValues, customFieldDefs);
+  }, [cardFieldValues, customFieldDefs]);
+
+  // Get available card-scoped fields that haven't been added yet
+  const availableCardFields = useMemo(() => {
+    return getAvailableCardScopedFields(cardFieldValues, customFieldDefs);
+  }, [cardFieldValues, customFieldDefs]);
+
+  // Handle adding a card-scoped field
+  const handleAddCardField = async (fieldDefId: string) => {
+    setIsAddingCardField(true);
+    try {
+      const newValue = await enableCardScopedField(card.id, fieldDefId);
+      setCardFieldValues(prev => [...prev, newValue]);
+      // Also update the value map
+      setCustomFieldValueMap(prev => {
+        const newMap = new Map(prev);
+        newMap.set(fieldDefId, '');
+        return newMap;
+      });
+      // Notify parent
+      onCustomFieldChange(card.id, [...cardFieldValues, newValue]);
+      toast.success('Field added to card');
+    } catch (err) {
+      console.error('Failed to add card field:', err);
+      toast.error('Failed to add field');
+    } finally {
+      setIsAddingCardField(false);
+    }
+  };
+
+  // Handle removing a card-scoped field
+  const handleRemoveCardField = async (fieldDefId: string) => {
+    setIsAddingCardField(true);
+    try {
+      await disableCardScopedField(card.id, fieldDefId);
+      const updatedValues = cardFieldValues.filter(v => v.definitionId !== fieldDefId);
+      setCardFieldValues(updatedValues);
+      // Also update the value map
+      setCustomFieldValueMap(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(fieldDefId);
+        return newMap;
+      });
+      // Notify parent
+      onCustomFieldChange(card.id, updatedValues);
+      toast.success('Field removed from card');
+    } catch (err) {
+      console.error('Failed to remove card field:', err);
+      toast.error('Failed to remove field');
+    } finally {
+      setIsAddingCardField(false);
+    }
+  };
+
   useEffect(() => {
     loadComments();
     loadAttachments();
@@ -4073,20 +4139,35 @@ function CardDetailModal({
               </div>
 
               {/* Custom Fields - Main Content Area */}
-              {customFieldDefs.filter(f => f.displayLocation === 'main' || !f.displayLocation).length > 0 && (
+              {displayableFieldDefs.filter(f => f.displayLocation === 'main' || !f.displayLocation).length > 0 && (
                 <div className="border-t pt-4 mt-4">
                   <h4 className="text-sm font-medium text-gray-700 mb-3">Custom Fields</h4>
                   <div className="space-y-4">
-                    {customFieldDefs
+                    {displayableFieldDefs
                       .filter(fieldDef => fieldDef.displayLocation === 'main' || !fieldDef.displayLocation)
                       .map((fieldDef) => {
                         const currentValue = customFieldValueMap.get(fieldDef.id) || '';
                         return (
                           <div key={fieldDef.id} className="space-y-1">
-                            <label className="text-sm font-medium text-gray-600 block">
-                              {fieldDef.title}
-                              {fieldDef.required && <span className="text-red-500 ml-1">*</span>}
-                            </label>
+                            <div className="flex items-center justify-between">
+                              <label className="text-sm font-medium text-gray-600">
+                                {fieldDef.title}
+                                {fieldDef.required && <span className="text-red-500 ml-1">*</span>}
+                                {fieldDef.scope === 'card' && (
+                                  <span className="ml-2 text-xs text-gray-400 font-normal">(card-specific)</span>
+                                )}
+                              </label>
+                              {fieldDef.scope === 'card' && (
+                                <button
+                                  onClick={() => handleRemoveCardField(fieldDef.id)}
+                                  disabled={isAddingCardField}
+                                  className="text-xs text-gray-400 hover:text-red-500 disabled:opacity-50"
+                                  title="Remove field from this card"
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
 
                             {fieldDef.type === 'text' && (
                               <input
@@ -5131,6 +5212,64 @@ function CardDetailModal({
                     <Tag className="h-4 w-4 mr-2" />
                     Labels
                   </button>
+                  {/* Add Card-Scoped Custom Fields */}
+                  {availableCardFields.length > 0 && (
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowCardFieldsPicker(!showCardFieldsPicker)}
+                        className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
+                      >
+                        <span className="flex items-center">
+                          <Settings2 className="h-4 w-4 mr-2" />
+                          Custom Fields
+                        </span>
+                        <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
+                          {availableCardFields.length}
+                        </span>
+                      </button>
+                      {showCardFieldsPicker && (
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Add Custom Fields</h5>
+                          <p className="text-xs text-gray-500 mb-3">Select card-specific fields to add:</p>
+                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                            {availableCardFields.map((field) => (
+                              <button
+                                key={field.id}
+                                onClick={() => handleAddCardField(field.id)}
+                                disabled={isAddingCardField}
+                                className="w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 text-left disabled:opacity-50"
+                              >
+                                <div className="w-6 h-6 rounded bg-blue-100 flex items-center justify-center">
+                                  {field.type === 'text' && <span className="text-blue-600 text-xs font-medium">Aa</span>}
+                                  {field.type === 'number' && <span className="text-blue-600 text-xs font-medium">#</span>}
+                                  {field.type === 'date' && <Calendar className="h-3 w-3 text-blue-600" />}
+                                  {field.type === 'dropdown' && <ChevronDown className="h-3 w-3 text-blue-600" />}
+                                  {field.type === 'checkbox' && <CheckSquare className="h-3 w-3 text-blue-600" />}
+                                  {field.type === 'url' && <Link2 className="h-3 w-3 text-blue-600" />}
+                                  {field.type === 'email' && <Mail className="h-3 w-3 text-blue-600" />}
+                                  {field.type === 'currency' && <span className="text-blue-600 text-xs font-medium">$</span>}
+                                  {field.type === 'rating' && <Star className="h-3 w-3 text-blue-600" />}
+                                  {field.type === 'phone' && <Phone className="h-3 w-3 text-blue-600" />}
+                                  {field.type === 'longtext' && <FileText className="h-3 w-3 text-blue-600" />}
+                                </div>
+                                <div className="flex-1">
+                                  <span className="text-sm text-gray-700">{field.title}</span>
+                                  <span className="block text-xs text-gray-400 capitalize">{field.type}</span>
+                                </div>
+                                <Plus className="h-4 w-4 text-gray-400" />
+                              </button>
+                            ))}
+                          </div>
+                          <button
+                            onClick={() => setShowCardFieldsPicker(false)}
+                            className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="relative">
                     <button
                       onClick={() => setShowDatePicker(!showDatePicker)}
@@ -5248,19 +5387,31 @@ function CardDetailModal({
               </div>
 
               {/* Custom Fields Section - Sidebar Only */}
-              {customFieldDefs.filter(f => f.displayLocation === 'sidebar').length > 0 && (
+              {displayableFieldDefs.filter(f => f.displayLocation === 'sidebar').length > 0 && (
                 <div>
                   <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Custom Fields</h4>
                   <div className="space-y-3">
-                    {customFieldDefs.filter(f => f.displayLocation === 'sidebar').map((fieldDef) => {
+                    {displayableFieldDefs.filter(f => f.displayLocation === 'sidebar').map((fieldDef) => {
                       const currentValue = customFieldValueMap.get(fieldDef.id) || '';
 
                       return (
                         <div key={fieldDef.id} className="space-y-1">
-                          <label className="text-xs font-medium text-gray-600">
-                            {fieldDef.title}
-                            {fieldDef.required && <span className="text-red-500 ml-1">*</span>}
-                          </label>
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-medium text-gray-600">
+                              {fieldDef.title}
+                              {fieldDef.required && <span className="text-red-500 ml-1">*</span>}
+                            </label>
+                            {fieldDef.scope === 'card' && (
+                              <button
+                                onClick={() => handleRemoveCardField(fieldDef.id)}
+                                disabled={isAddingCardField}
+                                className="text-xs text-gray-400 hover:text-red-500 disabled:opacity-50"
+                                title="Remove field"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
 
                           {fieldDef.type === 'text' && (
                             <input

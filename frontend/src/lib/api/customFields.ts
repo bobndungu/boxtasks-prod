@@ -354,3 +354,55 @@ export async function deleteCardCustomFieldValue(id: string): Promise<void> {
     throw new Error('Failed to delete custom field value');
   }
 }
+
+// Enable a card-scoped custom field for a card (creates empty value to indicate field is active)
+export async function enableCardScopedField(cardId: string, definitionId: string): Promise<CustomFieldValue> {
+  return setCardCustomFieldValue(cardId, definitionId, '');
+}
+
+// Disable a card-scoped custom field for a card (removes the value record)
+export async function disableCardScopedField(cardId: string, definitionId: string): Promise<void> {
+  const existingValues = await fetchCardCustomFieldValues(cardId);
+  const existingValue = existingValues.find((v) => v.definitionId === definitionId);
+
+  if (existingValue) {
+    await deleteCardCustomFieldValue(existingValue.id);
+  }
+}
+
+// Get list of card-scoped field definitions that are enabled for a card
+export function getEnabledCardScopedFields(
+  cardValues: CustomFieldValue[],
+  allDefs: CustomFieldDefinition[]
+): CustomFieldDefinition[] {
+  const cardScopedDefs = allDefs.filter(d => d.scope === 'card');
+  const enabledDefIds = new Set(cardValues.map(v => v.definitionId));
+  return cardScopedDefs.filter(d => enabledDefIds.has(d.id));
+}
+
+// Get list of card-scoped field definitions that are NOT enabled for a card
+export function getAvailableCardScopedFields(
+  cardValues: CustomFieldValue[],
+  allDefs: CustomFieldDefinition[]
+): CustomFieldDefinition[] {
+  const cardScopedDefs = allDefs.filter(d => d.scope === 'card');
+  const enabledDefIds = new Set(cardValues.map(v => v.definitionId));
+  return cardScopedDefs.filter(d => !enabledDefIds.has(d.id));
+}
+
+// Get all fields that should be displayed for a card (workspace + board + enabled card-scoped)
+export function getDisplayableFieldsForCard(
+  cardValues: CustomFieldValue[],
+  allDefs: CustomFieldDefinition[]
+): CustomFieldDefinition[] {
+  const enabledDefIds = new Set(cardValues.map(v => v.definitionId));
+
+  return allDefs.filter(def => {
+    // Workspace and board scope fields are always displayed
+    if (def.scope === 'workspace' || def.scope === 'board' || !def.scope) {
+      return true;
+    }
+    // Card scope fields are only displayed if enabled (have a value record)
+    return enabledDefIds.has(def.id);
+  });
+}
