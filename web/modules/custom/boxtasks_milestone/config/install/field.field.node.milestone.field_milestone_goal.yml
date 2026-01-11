@@ -1,0 +1,28 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_milestone_goal
+    - node.type.milestone
+    - node.type.goal
+id: node.milestone.field_milestone_goal
+field_name: field_milestone_goal
+entity_type: node
+bundle: milestone
+label: Goal
+description: 'The goal this milestone is part of (optional).'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      goal: goal
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

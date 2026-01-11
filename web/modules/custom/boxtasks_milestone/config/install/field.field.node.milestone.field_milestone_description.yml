@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_milestone_description
+    - node.type.milestone
+  module:
+    - text
+id: node.milestone.field_milestone_description
+field_name: field_milestone_description
+entity_type: node
+bundle: milestone
+label: Description
+description: 'A detailed description of the milestone.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long
