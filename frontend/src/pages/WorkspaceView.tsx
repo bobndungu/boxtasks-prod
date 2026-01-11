@@ -13,12 +13,14 @@ import {
   Target,
   Flag,
   BarChart3,
+  AlertTriangle,
 } from 'lucide-react';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { useBoardStore } from '../lib/stores/board';
 import { BoardGridSkeleton, PageLoading } from '../components/BoardSkeleton';
 import { fetchWorkspace } from '../lib/api/workspaces';
 import { fetchBoardsByWorkspace, createBoard, toggleBoardStar, type Board, type CreateBoardData } from '../lib/api/boards';
+import { usePermissions } from '../lib/hooks/usePermissions';
 
 const BOARD_BACKGROUNDS = [
   '#0079BF', '#D29034', '#519839', '#B04632', '#89609E',
@@ -30,6 +32,12 @@ export default function WorkspaceView() {
   const navigate = useNavigate();
   const { currentWorkspace, setCurrentWorkspace } = useWorkspaceStore();
   const { boards, setBoards, addBoard, updateBoard, setLoading, isLoading } = useBoardStore();
+
+  // Role-based permissions for this workspace
+  const { canView, canCreate, loading: permissionsLoading } = usePermissions(id);
+  const canViewWorkspace = permissionsLoading ? true : canView('workspace', false);
+  const canViewBoards = permissionsLoading ? true : canView('board', false);
+  const canCreateBoards = permissionsLoading ? true : canCreate('board');
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +100,30 @@ export default function WorkspaceView() {
     return (
       <div className="min-h-screen bg-gray-50">
         <PageLoading message="Loading workspace..." />
+      </div>
+    );
+  }
+
+  // Access denied if user cannot view the workspace
+  if (!canViewWorkspace) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="h-8 w-8 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-6">
+            You don&apos;t have permission to view this workspace. Contact the workspace admin to request access.
+          </p>
+          <Link
+            to="/workspaces"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Workspaces
+          </Link>
+        </div>
       </div>
     );
   }
@@ -172,13 +204,15 @@ export default function WorkspaceView() {
               )}
             </div>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Create Board
-          </button>
+          {canCreateBoards && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Board
+            </button>
+          )}
         </div>
 
         {error && (
@@ -196,16 +230,22 @@ export default function WorkspaceView() {
           ) : boards.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
               <Layout className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No boards yet</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {canViewBoards ? 'No boards yet' : 'No boards available'}
+              </h3>
               <p className="text-gray-500 mb-6">
-                Create your first board to start organizing your work
+                {canCreateBoards
+                  ? 'Create your first board to start organizing your work'
+                  : 'You don\'t have permission to view boards in this workspace'}
               </p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700"
-              >
-                Create Board
-              </button>
+              {canCreateBoards && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700"
+                >
+                  Create Board
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -244,13 +284,15 @@ export default function WorkspaceView() {
               ))}
 
               {/* Create Board Card */}
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="h-28 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500 transition-colors"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Create new board
-              </button>
+              {canCreateBoards && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="h-28 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500 transition-colors"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Create new board
+                </button>
+              )}
             </div>
           )}
         </div>

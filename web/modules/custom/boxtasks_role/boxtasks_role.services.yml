@@ -1,0 +1,10 @@
+services:
+  boxtasks_role.permission_checker:
+    class: Drupal\boxtasks_role\Service\PermissionChecker
+    arguments: ['@entity_type.manager', '@current_user']
+
+  boxtasks_role.jsonapi_filter_subscriber:
+    class: Drupal\boxtasks_role\EventSubscriber\JsonApiFilterSubscriber
+    arguments: ['@boxtasks_role.permission_checker', '@entity_type.manager']
+    tags:
+      - { name: event_subscriber }

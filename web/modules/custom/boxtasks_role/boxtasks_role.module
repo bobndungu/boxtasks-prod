@@ -1,0 +1,84 @@
+<?php
+
+/**
+ * @file
+ * BoxTasks Role module for workspace-based role permissions.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_node_access().
+ */
+function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $account) {
+  // Only handle board and workspace nodes.
+  $type = $node->bundle();
+  if (!in_array($type, ['board', 'workspace'])) {
+    return AccessResult::neutral();
+  }
+
+  // Admins bypass all checks.
+  if ($account->hasPermission('administer nodes')) {
+    return AccessResult::allowed()->cachePerPermissions();
+  }
+
+  // Get the permission checker service.
+  /** @var \Drupal\boxtasks_role\Service\PermissionChecker $permission_checker */
+  $permission_checker = \Drupal::service('boxtasks_role.permission_checker');
+
+  // Map operation to permission field.
+  $permission_map = [
+    'board' => [
+      'view' => 'field_perm_board_view',
+      'update' => 'field_perm_board_edit',
+      'delete' => 'field_perm_board_delete',
+    ],
+    'workspace' => [
+      'view' => 'field_perm_workspace_view',
+      'update' => 'field_perm_workspace_edit',
+      'delete' => 'field_perm_workspace_delete',
+    ],
+  ];
+
+  if (!isset($permission_map[$type][$op])) {
+    return AccessResult::neutral();
+  }
+
+  $permission_field = $permission_map[$type][$op];
+
+  // Get workspace ID.
+  if ($type === 'board') {
+    if (!$node->hasField('field_board_workspace')) {
+      return AccessResult::neutral();
+    }
+    $workspace_ref = $node->get('field_board_workspace')->entity;
+    if (!$workspace_ref) {
+      return AccessResult::neutral();
+    }
+    $workspace_id = $workspace_ref->uuid();
+  }
+  else {
+    $workspace_id = $node->uuid();
+  }
+
+  // Check permission.
+  $owner_id = (int) $node->getOwnerId();
+  $has_permission = $permission_checker->checkPermission(
+    $permission_field,
+    $workspace_id,
+    $owner_id,
+    $account->id()
+  );
+
+  if ($has_permission) {
+    return AccessResult::allowed()
+      ->cachePerUser()
+      ->addCacheableDependency($node);
+  }
+
+  return AccessResult::forbidden()
+    ->cachePerUser()
+    ->addCacheableDependency($node);
+}
