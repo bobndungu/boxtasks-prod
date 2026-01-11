@@ -1,0 +1,30 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_member_role_workspace
+    - node.type.member_role
+    - node.type.workspace
+  module:
+    - node
+id: node.member_role.field_member_role_workspace
+field_name: field_member_role_workspace
+entity_type: node
+bundle: member_role
+label: Workspace
+description: 'The workspace this role assignment applies to.'
+required: true
+translatable: false
+default_value: []
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      workspace: workspace
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

@@ -1,0 +1,9 @@
+name: 'BoxTasks Role'
+type: module
+description: 'Provides role-based permissions for BoxTasks workspaces'
+package: BoxTasks
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:node
+  - drupal:options
+  - drupal:user

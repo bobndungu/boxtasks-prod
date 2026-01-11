@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the BoxTasks Role module.
+ */
+
+use Drupal\node\Entity\Node;
+
+/**
+ * Implements hook_install().
+ */
+function boxtasks_role_install() {
+  // Create default global roles.
+  _boxtasks_role_create_default_roles();
+}
+
+/**
+ * Creates the default workspace roles.
+ */
+function _boxtasks_role_create_default_roles() {
+  // Admin role - full permissions.
+  $admin_role = Node::create([
+    'type' => 'workspace_role',
+    'title' => 'Admin',
+    'field_role_workspace' => NULL,
+    'field_role_is_default' => FALSE,
+    'field_perm_card_create' => 'any',
+    'field_perm_card_edit' => 'any',
+    'field_perm_card_delete' => 'any',
+    'field_perm_card_move' => 'any',
+    'field_perm_list_create' => 'any',
+    'field_perm_list_edit' => 'any',
+    'field_perm_list_delete' => 'any',
+    'field_perm_member_manage' => 'any',
+    'field_perm_comment_edit' => 'any',
+    'field_perm_comment_delete' => 'any',
+  ]);
+  $admin_role->save();
+
+  // Editor role - can edit everything but not manage members.
+  $editor_role = Node::create([
+    'type' => 'workspace_role',
+    'title' => 'Editor',
+    'field_role_workspace' => NULL,
+    'field_role_is_default' => TRUE, // Default role for new members.
+    'field_perm_card_create' => 'any',
+    'field_perm_card_edit' => 'any',
+    'field_perm_card_delete' => 'own',
+    'field_perm_card_move' => 'any',
+    'field_perm_list_create' => 'any',
+    'field_perm_list_edit' => 'any',
+    'field_perm_list_delete' => 'own',
+    'field_perm_member_manage' => 'none',
+    'field_perm_comment_edit' => 'own',
+    'field_perm_comment_delete' => 'own',
+  ]);
+  $editor_role->save();
+
+  // Viewer role - can only view and comment.
+  $viewer_role = Node::create([
+    'type' => 'workspace_role',
+    'title' => 'Viewer',
+    'field_role_workspace' => NULL,
+    'field_role_is_default' => FALSE,
+    'field_perm_card_create' => 'none',
+    'field_perm_card_edit' => 'none',
+    'field_perm_card_delete' => 'none',
+    'field_perm_card_move' => 'none',
+    'field_perm_list_create' => 'none',
+    'field_perm_list_edit' => 'none',
+    'field_perm_list_delete' => 'none',
+    'field_perm_member_manage' => 'none',
+    'field_perm_comment_edit' => 'own',
+    'field_perm_comment_delete' => 'own',
+  ]);
+  $viewer_role->save();
+
+  \Drupal::messenger()->addMessage(t('Created default workspace roles: Admin, Editor, Viewer.'));
+}

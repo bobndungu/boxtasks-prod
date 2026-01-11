@@ -16,6 +16,8 @@ import {
   UserPlus,
   Search,
   X,
+  Shield,
+  ChevronDown,
 } from 'lucide-react';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { useAuthStore } from '../lib/stores/auth';
@@ -29,6 +31,14 @@ import {
   type CreateWorkspaceData,
   type WorkspaceMember,
 } from '../lib/api/workspaces';
+import {
+  fetchWorkspaceRoles,
+  fetchWorkspaceMemberRoles,
+  createMemberRole,
+  updateMemberRole,
+  type WorkspaceRole,
+  type MemberRoleAssignment,
+} from '../lib/api/roles';
 
 const WORKSPACE_COLORS = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -62,6 +72,12 @@ export default function WorkspaceSettings() {
   const [isSearching, setIsSearching] = useState(false);
   const [isSavingMembers, setIsSavingMembers] = useState(false);
 
+  // Role management state
+  const [roles, setRoles] = useState<WorkspaceRole[]>([]);
+  const [memberRoles, setMemberRoles] = useState<MemberRoleAssignment[]>([]);
+  const [editingMemberRole, setEditingMemberRole] = useState<string | null>(null);
+  const [isSavingRole, setIsSavingRole] = useState(false);
+
   useEffect(() => {
     if (id) {
       loadWorkspace();
@@ -83,6 +99,13 @@ export default function WorkspaceSettings() {
       // Load members
       const membersList = await fetchWorkspaceMembers(id);
       setMembers(membersList);
+      // Load roles and member role assignments
+      const [rolesList, memberRolesList] = await Promise.all([
+        fetchWorkspaceRoles(id),
+        fetchWorkspaceMemberRoles(id),
+      ]);
+      setRoles(rolesList);
+      setMemberRoles(memberRolesList);
     } catch (err) {
       setMessage({ type: 'error', text: 'Failed to load workspace' });
     } finally {
@@ -153,6 +176,42 @@ export default function WorkspaceSettings() {
       setMessage({ type: 'error', text: 'Failed to remove member' });
     } finally {
       setIsSavingMembers(false);
+    }
+  };
+
+  // Get member's current role
+  const getMemberRole = (memberId: string): WorkspaceRole | undefined => {
+    const assignment = memberRoles.find((mr) => mr.userId === memberId);
+    if (assignment?.role) return assignment.role;
+    // Return default role if no assignment
+    return roles.find((r) => r.isDefault);
+  };
+
+  // Handle role change for a member
+  const handleRoleChange = async (memberId: string, roleId: string) => {
+    if (!id) return;
+    setIsSavingRole(true);
+    try {
+      const existingAssignment = memberRoles.find((mr) => mr.userId === memberId);
+
+      if (existingAssignment) {
+        // Update existing assignment
+        const updated = await updateMemberRole(existingAssignment.id, roleId);
+        setMemberRoles(memberRoles.map((mr) =>
+          mr.id === existingAssignment.id ? { ...updated, role: roles.find((r) => r.id === roleId) } : mr
+        ));
+      } else {
+        // Create new assignment
+        const newAssignment = await createMemberRole(id, memberId, roleId);
+        setMemberRoles([...memberRoles, { ...newAssignment, role: roles.find((r) => r.id === roleId) }]);
+      }
+
+      setMessage({ type: 'success', text: 'Role updated successfully' });
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to update role' });
+    } finally {
+      setIsSavingRole(false);
+      setEditingMemberRole(null);
     }
   };
 
@@ -422,61 +481,94 @@ export default function WorkspaceSettings() {
                 No members yet. Add members to collaborate.
               </div>
             ) : (
-              members.map((member) => (
-                <div
-                  key={member.id}
-                  className="p-4 flex items-center justify-between hover:bg-gray-50"
-                >
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold mr-3">
-                      {member.displayName.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex items-center">
-                        <span className="font-medium text-gray-900">
-                          {member.displayName}
-                        </span>
-                        {member.isAdmin && (
-                          <span className="ml-2 flex items-center text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                            <Crown className="h-3 w-3 mr-1" />
-                            Admin
+              members.map((member) => {
+                const memberRole = getMemberRole(member.id);
+                return (
+                  <div
+                    key={member.id}
+                    className="p-4 flex items-center justify-between hover:bg-gray-50"
+                  >
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold mr-3">
+                        {member.displayName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="flex items-center">
+                          <span className="font-medium text-gray-900">
+                            {member.displayName}
                           </span>
-                        )}
-                        {member.id === user?.id && (
-                          <span className="ml-2 text-xs text-gray-400">(You)</span>
+                          {member.isAdmin && (
+                            <span className="ml-2 flex items-center text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                              <Crown className="h-3 w-3 mr-1" />
+                              Admin
+                            </span>
+                          )}
+                          {member.id === user?.id && (
+                            <span className="ml-2 text-xs text-gray-400">(You)</span>
+                          )}
+                        </div>
+                        {member.email && (
+                          <p className="text-sm text-gray-500">{member.email}</p>
                         )}
                       </div>
-                      {member.email && (
-                        <p className="text-sm text-gray-500">{member.email}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {/* Role selector */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setEditingMemberRole(editingMemberRole === member.id ? null : member.id)}
+                          disabled={isSavingRole}
+                          className="flex items-center px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50"
+                        >
+                          <Shield className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
+                          <span>{memberRole?.title || 'No Role'}</span>
+                          <ChevronDown className="h-3.5 w-3.5 ml-1.5 text-gray-400" />
+                        </button>
+                        {editingMemberRole === member.id && (
+                          <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                            {roles.map((role) => (
+                              <button
+                                key={role.id}
+                                onClick={() => handleRoleChange(member.id, role.id)}
+                                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
+                                  memberRole?.id === role.id ? 'bg-blue-50 text-blue-700' : ''
+                                }`}
+                              >
+                                <span>{role.title}</span>
+                                {role.isDefault && (
+                                  <span className="text-xs text-gray-400">(Default)</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleToggleAdmin(member.id)}
+                        disabled={isSavingMembers}
+                        className={`p-2 rounded-lg transition-colors ${
+                          member.isAdmin
+                            ? 'text-amber-600 hover:bg-amber-50'
+                            : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                        }`}
+                        title={member.isAdmin ? 'Remove admin' : 'Make admin'}
+                      >
+                        <Crown className="h-4 w-4" />
+                      </button>
+                      {member.id !== user?.id && (
+                        <button
+                          onClick={() => handleRemoveMember(member.id)}
+                          disabled={isSavingMembers}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove member"
+                        >
+                          <UserMinus className="h-4 w-4" />
+                        </button>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleToggleAdmin(member.id)}
-                      disabled={isSavingMembers}
-                      className={`p-2 rounded-lg transition-colors ${
-                        member.isAdmin
-                          ? 'text-amber-600 hover:bg-amber-50'
-                          : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
-                      }`}
-                      title={member.isAdmin ? 'Remove admin' : 'Make admin'}
-                    >
-                      <Crown className="h-4 w-4" />
-                    </button>
-                    {member.id !== user?.id && (
-                      <button
-                        onClick={() => handleRemoveMember(member.id)}
-                        disabled={isSavingMembers}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Remove member"
-                      >
-                        <UserMinus className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

@@ -23,6 +23,7 @@ module:
   boxtasks_notification: 0
   boxtasks_realtime: 0
   boxtasks_relationships: 0
+  boxtasks_role: 0
   boxtasks_security: 0
   boxtasks_template: 0
   boxtasks_user: 0

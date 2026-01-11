@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_card_move
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_card_move
+field_name: field_perm_card_move
+entity_type: node
+bundle: workspace_role
+label: 'Move Cards'
+description: 'Permission to move cards between lists. Own = only cards created by you. Any = all cards.'
+required: false
+translatable: false
+default_value:
+  - value: 'any'
+default_value_callback: ''
+settings: {}
+field_type: list_string

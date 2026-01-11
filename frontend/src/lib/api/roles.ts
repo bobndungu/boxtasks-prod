@@ -1,0 +1,478 @@
+import { getAccessToken, fetchWithCsrf } from './client';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
+
+export type PermissionLevel = 'any' | 'own' | 'none';
+
+export interface WorkspaceRole {
+  id: string;
+  title: string;
+  workspaceId: string | null; // null = global role
+  isDefault: boolean;
+  permissions: {
+    cardCreate: PermissionLevel;
+    cardEdit: PermissionLevel;
+    cardDelete: PermissionLevel;
+    cardMove: PermissionLevel;
+    listCreate: PermissionLevel;
+    listEdit: PermissionLevel;
+    listDelete: PermissionLevel;
+    memberManage: PermissionLevel;
+    commentEdit: PermissionLevel;
+    commentDelete: PermissionLevel;
+  };
+}
+
+export interface MemberRoleAssignment {
+  id: string;
+  workspaceId: string;
+  userId: string;
+  roleId: string;
+  role?: WorkspaceRole;
+}
+
+// Transform JSON:API response to WorkspaceRole
+function transformRole(data: Record<string, unknown>): WorkspaceRole {
+  const attrs = data.attributes as Record<string, unknown>;
+  const rels = data.relationships as Record<string, { data: { id: string } | null }> | undefined;
+
+  return {
+    id: data.id as string,
+    title: attrs.title as string,
+    workspaceId: rels?.field_role_workspace?.data?.id || null,
+    isDefault: (attrs.field_role_is_default as boolean) || false,
+    permissions: {
+      cardCreate: (attrs.field_perm_card_create as PermissionLevel) || 'none',
+      cardEdit: (attrs.field_perm_card_edit as PermissionLevel) || 'none',
+      cardDelete: (attrs.field_perm_card_delete as PermissionLevel) || 'none',
+      cardMove: (attrs.field_perm_card_move as PermissionLevel) || 'none',
+      listCreate: (attrs.field_perm_list_create as PermissionLevel) || 'none',
+      listEdit: (attrs.field_perm_list_edit as PermissionLevel) || 'none',
+      listDelete: (attrs.field_perm_list_delete as PermissionLevel) || 'none',
+      memberManage: (attrs.field_perm_member_manage as PermissionLevel) || 'none',
+      commentEdit: (attrs.field_perm_comment_edit as PermissionLevel) || 'none',
+      commentDelete: (attrs.field_perm_comment_delete as PermissionLevel) || 'none',
+    },
+  };
+}
+
+// Transform JSON:API response to MemberRoleAssignment
+function transformMemberRole(data: Record<string, unknown>, included?: Record<string, unknown>[]): MemberRoleAssignment {
+  const rels = data.relationships as Record<string, { data: { id: string } | null }> | undefined;
+
+  const roleId = rels?.field_member_role_role?.data?.id || '';
+  let role: WorkspaceRole | undefined;
+
+  if (included && roleId) {
+    const roleData = included.find((item) => item.id === roleId && item.type === 'node--workspace_role');
+    if (roleData) {
+      role = transformRole(roleData);
+    }
+  }
+
+  return {
+    id: data.id as string,
+    workspaceId: rels?.field_member_role_workspace?.data?.id || '',
+    userId: rels?.field_member_role_user?.data?.id || '',
+    roleId,
+    role,
+  };
+}
+
+// Fetch all global roles (roles not tied to a specific workspace)
+export async function fetchGlobalRoles(): Promise<WorkspaceRole[]> {
+  // Fetch all roles and filter client-side for global ones (no workspace)
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/workspace_role?sort=title`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch roles');
+  }
+
+  const result = await response.json();
+  const data = result.data;
+  if (!Array.isArray(data)) return [];
+
+  const allRoles = data.map((item: Record<string, unknown>) => transformRole(item));
+  // Return only global roles (those without a workspace)
+  return allRoles.filter((role) => role.workspaceId === null);
+}
+
+// Fetch roles available for a workspace (global + workspace-specific)
+export async function fetchWorkspaceRoles(workspaceId: string): Promise<WorkspaceRole[]> {
+  // Fetch all roles and filter for global + workspace-specific
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/workspace_role?sort=title`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const result = await response.json();
+  if (!Array.isArray(result.data)) return [];
+
+  const allRoles = result.data.map((item: Record<string, unknown>) => transformRole(item));
+
+  // Return global roles (no workspace) + workspace-specific roles
+  return allRoles.filter((role) => role.workspaceId === null || role.workspaceId === workspaceId);
+}
+
+// Fetch a single role by ID
+export async function fetchRole(roleId: string): Promise<WorkspaceRole | null> {
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/workspace_role/${roleId}`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const result = await response.json();
+  return transformRole(result.data);
+}
+
+// Get the default role
+export async function fetchDefaultRole(): Promise<WorkspaceRole | null> {
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/workspace_role?filter[field_role_is_default]=1&page[limit]=1`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const result = await response.json();
+  if (!Array.isArray(result.data) || result.data.length === 0) {
+    return null;
+  }
+
+  return transformRole(result.data[0]);
+}
+
+// Fetch member role assignment for a user in a workspace
+export async function fetchMemberRole(workspaceId: string, userId: string): Promise<MemberRoleAssignment | null> {
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&filter[field_member_role_user.id]=${userId}&include=field_member_role_role`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const result = await response.json();
+  if (!Array.isArray(result.data) || result.data.length === 0) {
+    return null;
+  }
+
+  return transformMemberRole(result.data[0], result.included);
+}
+
+// Fetch all member role assignments for a workspace
+export async function fetchWorkspaceMemberRoles(workspaceId: string): Promise<MemberRoleAssignment[]> {
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&include=field_member_role_role,field_member_role_user`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const result = await response.json();
+  if (!Array.isArray(result.data)) {
+    return [];
+  }
+
+  return result.data.map((item: Record<string, unknown>) => transformMemberRole(item, result.included));
+}
+
+// Create a member role assignment
+export async function createMemberRole(workspaceId: string, userId: string, roleId: string): Promise<MemberRoleAssignment> {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/member_role`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--member_role',
+        attributes: {
+          title: `Role Assignment`,
+        },
+        relationships: {
+          field_member_role_workspace: {
+            data: { type: 'node--workspace', id: workspaceId },
+          },
+          field_member_role_user: {
+            data: { type: 'user--user', id: userId },
+          },
+          field_member_role_role: {
+            data: { type: 'node--workspace_role', id: roleId },
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to create member role');
+  }
+
+  const result = await response.json();
+  return transformMemberRole(result.data);
+}
+
+// Update a member role assignment
+export async function updateMemberRole(assignmentId: string, roleId: string): Promise<MemberRoleAssignment> {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/member_role/${assignmentId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--member_role',
+        id: assignmentId,
+        relationships: {
+          field_member_role_role: {
+            data: { type: 'node--workspace_role', id: roleId },
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to update member role');
+  }
+
+  // Refetch with included data
+  const fetchResponse = await fetch(
+    `${API_URL}/jsonapi/node/member_role/${assignmentId}?include=field_member_role_role`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!fetchResponse.ok) {
+    throw new Error('Failed to fetch updated member role');
+  }
+
+  const result = await fetchResponse.json();
+  return transformMemberRole(result.data, result.included);
+}
+
+// Delete a member role assignment
+export async function deleteMemberRole(assignmentId: string): Promise<void> {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/member_role/${assignmentId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok && response.status !== 204) {
+    throw new Error('Failed to delete member role');
+  }
+}
+
+// Create a new workspace role
+export async function createWorkspaceRole(
+  title: string,
+  workspaceId: string | null,
+  permissions: WorkspaceRole['permissions'],
+  isDefault: boolean = false
+): Promise<WorkspaceRole> {
+  const relationships: Record<string, unknown> = {};
+
+  if (workspaceId) {
+    relationships.field_role_workspace = {
+      data: { type: 'node--workspace', id: workspaceId },
+    };
+  }
+
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace_role`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--workspace_role',
+        attributes: {
+          title,
+          field_role_is_default: isDefault,
+          field_perm_card_create: permissions.cardCreate,
+          field_perm_card_edit: permissions.cardEdit,
+          field_perm_card_delete: permissions.cardDelete,
+          field_perm_card_move: permissions.cardMove,
+          field_perm_list_create: permissions.listCreate,
+          field_perm_list_edit: permissions.listEdit,
+          field_perm_list_delete: permissions.listDelete,
+          field_perm_member_manage: permissions.memberManage,
+          field_perm_comment_edit: permissions.commentEdit,
+          field_perm_comment_delete: permissions.commentDelete,
+        },
+        ...(Object.keys(relationships).length > 0 && { relationships }),
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to create role');
+  }
+
+  const result = await response.json();
+  return transformRole(result.data);
+}
+
+// Update a workspace role
+export async function updateWorkspaceRole(
+  roleId: string,
+  updates: Partial<{
+    title: string;
+    permissions: Partial<WorkspaceRole['permissions']>;
+    isDefault: boolean;
+  }>
+): Promise<WorkspaceRole> {
+  const attributes: Record<string, unknown> = {};
+
+  if (updates.title !== undefined) {
+    attributes.title = updates.title;
+  }
+  if (updates.isDefault !== undefined) {
+    attributes.field_role_is_default = updates.isDefault;
+  }
+  if (updates.permissions) {
+    if (updates.permissions.cardCreate !== undefined) {
+      attributes.field_perm_card_create = updates.permissions.cardCreate;
+    }
+    if (updates.permissions.cardEdit !== undefined) {
+      attributes.field_perm_card_edit = updates.permissions.cardEdit;
+    }
+    if (updates.permissions.cardDelete !== undefined) {
+      attributes.field_perm_card_delete = updates.permissions.cardDelete;
+    }
+    if (updates.permissions.cardMove !== undefined) {
+      attributes.field_perm_card_move = updates.permissions.cardMove;
+    }
+    if (updates.permissions.listCreate !== undefined) {
+      attributes.field_perm_list_create = updates.permissions.listCreate;
+    }
+    if (updates.permissions.listEdit !== undefined) {
+      attributes.field_perm_list_edit = updates.permissions.listEdit;
+    }
+    if (updates.permissions.listDelete !== undefined) {
+      attributes.field_perm_list_delete = updates.permissions.listDelete;
+    }
+    if (updates.permissions.memberManage !== undefined) {
+      attributes.field_perm_member_manage = updates.permissions.memberManage;
+    }
+    if (updates.permissions.commentEdit !== undefined) {
+      attributes.field_perm_comment_edit = updates.permissions.commentEdit;
+    }
+    if (updates.permissions.commentDelete !== undefined) {
+      attributes.field_perm_comment_delete = updates.permissions.commentDelete;
+    }
+  }
+
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace_role/${roleId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--workspace_role',
+        id: roleId,
+        attributes,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to update role');
+  }
+
+  const result = await response.json();
+  return transformRole(result.data);
+}
+
+// Delete a workspace role
+export async function deleteWorkspaceRole(roleId: string): Promise<void> {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace_role/${roleId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok && response.status !== 204) {
+    throw new Error('Failed to delete role');
+  }
+}
+
+// Permission check helpers
+export function canPerformAction(
+  permission: PermissionLevel,
+  isOwner: boolean
+): boolean {
+  if (permission === 'any') return true;
+  if (permission === 'own' && isOwner) return true;
+  return false;
+}
+
+// Get user's effective permissions for a workspace
+export async function getUserPermissions(workspaceId: string, userId: string): Promise<WorkspaceRole['permissions'] | null> {
+  const memberRole = await fetchMemberRole(workspaceId, userId);
+
+  if (memberRole?.role) {
+    return memberRole.role.permissions;
+  }
+
+  // If no role assigned, get default role
+  const defaultRole = await fetchDefaultRole();
+  return defaultRole?.permissions || null;
+}

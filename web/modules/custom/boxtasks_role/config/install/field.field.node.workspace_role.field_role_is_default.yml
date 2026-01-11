@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_role_is_default
+    - node.type.workspace_role
+  module:
+    - node
+id: node.workspace_role.field_role_is_default
+field_name: field_role_is_default
+entity_type: node
+bundle: workspace_role
+label: 'Is Default Role'
+description: 'If checked, this role will be assigned to new workspace members by default.'
+required: false
+translatable: false
+default_value:
+  - value: 0
+default_value_callback: ''
+settings:
+  on_label: 'Yes'
+  off_label: 'No'
+field_type: boolean

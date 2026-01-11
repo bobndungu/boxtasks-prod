@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_comment_delete
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_comment_delete
+field_name: field_perm_comment_delete
+entity_type: node
+bundle: workspace_role
+label: 'Delete Comments'
+description: 'Permission to delete comments. Own = only your comments. Any = all comments.'
+required: false
+translatable: false
+default_value:
+  - value: 'own'
+default_value_callback: ''
+settings: {}
+field_type: list_string
