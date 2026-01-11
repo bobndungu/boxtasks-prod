@@ -7,6 +7,11 @@ export interface ChecklistItemAssignee {
   name: string;
 }
 
+export interface ChecklistItemCompletedBy {
+  id: string;
+  name: string;
+}
+
 export interface ChecklistItem {
   id: string;
   title: string;
@@ -18,6 +23,9 @@ export interface ChecklistItem {
   children?: ChecklistItem[];
   assigneeId?: string;
   assignee?: ChecklistItemAssignee;
+  completedById?: string;
+  completedBy?: ChecklistItemCompletedBy;
+  completedAt?: string;
 }
 
 export interface Checklist {
@@ -47,6 +55,21 @@ function transformChecklistItem(data: Record<string, unknown>, included?: Record
     }
   }
 
+  // Get completed by user and timestamp
+  const completedById = rels?.field_item_completed_by?.data?.id;
+  let completedBy: ChecklistItemCompletedBy | undefined;
+  if (included && completedById) {
+    const user = included.find((item) => item.id === completedById && item.type === 'user--user');
+    if (user) {
+      const userAttrs = user.attributes as Record<string, unknown>;
+      completedBy = {
+        id: completedById,
+        name: (userAttrs.field_display_name as string) || (userAttrs.name as string) || 'Unknown',
+      };
+    }
+  }
+  const completedAt = attrs.field_item_completed_at as string | undefined;
+
   return {
     id: data.id as string,
     title: attrs.title as string,
@@ -58,6 +81,9 @@ function transformChecklistItem(data: Record<string, unknown>, included?: Record
     children: [],
     assigneeId,
     assignee,
+    completedById,
+    completedBy,
+    completedAt,
   };
 }
 
@@ -105,7 +131,7 @@ export async function fetchChecklistsByCard(cardId: string): Promise<Checklist[]
   ).join('&');
 
   const itemsResponse = await fetch(
-    `${API_URL}/jsonapi/node/checklist_item?${filterParams}&sort=field_item_position&include=field_item_assignee`,
+    `${API_URL}/jsonapi/node/checklist_item?${filterParams}&sort=field_item_position&include=field_item_assignee,field_item_completed_by`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -256,10 +282,32 @@ export async function createChecklistItem(
 }
 
 // Update a checklist item
-export async function updateChecklistItem(id: string, updates: { title?: string; completed?: boolean; position?: number; dueDate?: string | null }): Promise<ChecklistItem> {
+export async function updateChecklistItem(
+  id: string,
+  updates: { title?: string; completed?: boolean; position?: number; dueDate?: string | null },
+  completedByUserId?: string
+): Promise<ChecklistItem> {
   const attributes: Record<string, unknown> = {};
+  const relationships: Record<string, unknown> = {};
+
   if (updates.title !== undefined) attributes.title = updates.title;
-  if (updates.completed !== undefined) attributes.field_item_completed = updates.completed;
+  if (updates.completed !== undefined) {
+    attributes.field_item_completed = updates.completed;
+    // Set completion metadata when marking as completed
+    if (updates.completed && completedByUserId) {
+      // Format date as RFC 3339 with timezone offset (Drupal datetime format)
+      const now = new Date();
+      const completedAt = now.toISOString().replace(/\.\d{3}Z$/, '+00:00');
+      attributes.field_item_completed_at = completedAt;
+      relationships.field_item_completed_by = {
+        data: { type: 'user--user', id: completedByUserId },
+      };
+    } else if (!updates.completed) {
+      // Clear completion metadata when unchecking
+      attributes.field_item_completed_at = null;
+      relationships.field_item_completed_by = { data: null };
+    }
+  }
   if (updates.position !== undefined) attributes.field_item_position = updates.position;
   if (updates.dueDate !== undefined) attributes.field_item_due_date = updates.dueDate;
 
@@ -274,6 +322,7 @@ export async function updateChecklistItem(id: string, updates: { title?: string;
         type: 'node--checklist_item',
         id,
         attributes,
+        ...(Object.keys(relationships).length > 0 && { relationships }),
       },
     }),
   });
@@ -283,8 +332,23 @@ export async function updateChecklistItem(id: string, updates: { title?: string;
     throw new Error(error.errors?.[0]?.detail || 'Failed to update checklist item');
   }
 
-  const result = await response.json();
-  return transformChecklistItem(result.data);
+  // Refetch to get included user data for completedBy
+  const itemResponse = await fetch(
+    `${API_URL}/jsonapi/node/checklist_item/${id}?include=field_item_assignee,field_item_completed_by`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!itemResponse.ok) {
+    throw new Error('Failed to fetch updated checklist item');
+  }
+
+  const itemResult = await itemResponse.json();
+  return transformChecklistItem(itemResult.data, itemResult.included);
 }
 
 // Delete a checklist item
@@ -326,7 +390,7 @@ export async function updateChecklistItemAssignee(id: string, assigneeId: string
 
   // Refetch to get included user data
   const itemResponse = await fetch(
-    `${API_URL}/jsonapi/node/checklist_item/${id}?include=field_item_assignee`,
+    `${API_URL}/jsonapi/node/checklist_item/${id}?include=field_item_assignee,field_item_completed_by`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',

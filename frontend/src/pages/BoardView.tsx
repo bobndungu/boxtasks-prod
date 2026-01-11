@@ -3962,7 +3962,12 @@ function CardDetailModal({
 
   const handleToggleChecklistItem = async (checklistId: string, itemId: string, completed: boolean) => {
     try {
-      const updated = await updateChecklistItem(itemId, { completed: !completed });
+      // Pass current user ID when marking as completed
+      const updated = await updateChecklistItem(
+        itemId,
+        { completed: !completed },
+        !completed ? currentUser?.id : undefined
+      );
       setChecklists(checklists.map((c) =>
         c.id === checklistId
           ? { ...c, items: updateItemInList(c.items, itemId, () => updated) }
@@ -5031,11 +5036,27 @@ function CardDetailModal({
                                   >
                                     {item.completed && <Check className="h-3 w-3" strokeWidth={3} />}
                                   </button>
-                                  <span className={`flex-1 text-sm transition-colors ${
-                                    item.completed ? 'line-through text-gray-400' : 'text-gray-700 font-medium'
-                                  }`}>
-                                    {item.title}
-                                  </span>
+                                  <div className="flex-1 min-w-0">
+                                    <span className={`text-sm transition-colors ${
+                                      item.completed ? 'line-through text-gray-400' : 'text-gray-700 font-medium'
+                                    }`}>
+                                      {item.title}
+                                    </span>
+                                    {/* Completion details */}
+                                    {item.completed && item.completedBy && (
+                                      <div className="text-xs text-gray-400 mt-0.5">
+                                        Completed by {item.completedBy.name}
+                                        {item.completedAt && (
+                                          <span> • {new Date(item.completedAt).toLocaleDateString(undefined, {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: 'numeric',
+                                            minute: '2-digit',
+                                          })}</span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
                                   {/* Assignee */}
                                   <div className="relative mr-2">
                                     {item.assignee ? (
