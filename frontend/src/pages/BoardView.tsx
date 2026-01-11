@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   DndContext,
   DragOverlay,
@@ -97,6 +97,8 @@ import { AutomationRules } from '../components/AutomationRules';
 import { AdvancedFilters, DEFAULT_FILTER_STATE, matchesFilters, type FilterState } from '../components/AdvancedFilters';
 import { BoardSkeleton } from '../components/BoardSkeleton';
 import { highlightText } from '../lib/utils/highlight';
+import BoardSettingsModal from '../components/BoardSettingsModal';
+import BoardMembersModal from '../components/BoardMembersModal';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
   green: '#61bd4f',
@@ -109,7 +111,8 @@ const LABEL_COLORS: Record<CardLabel, string> = {
 
 export default function BoardView() {
   const { id } = useParams<{ id: string }>();
-  const { currentBoard, setCurrentBoard } = useBoardStore();
+  const navigate = useNavigate();
+  const { currentBoard, setCurrentBoard, updateBoard: updateBoardInStore } = useBoardStore();
   const { user: currentUser } = useAuthStore();
 
   const [lists, setLists] = useState<BoardList[]>([]);
@@ -137,6 +140,8 @@ export default function BoardView() {
   const [isLoadingBoardActivities, setIsLoadingBoardActivities] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showShareDropdown, setShowShareDropdown] = useState(false);
+  const [showBoardSettings, setShowBoardSettings] = useState(false);
+  const [showBoardMembers, setShowBoardMembers] = useState(false);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -1345,6 +1350,22 @@ export default function BoardView() {
               >
                 <Star className={`h-5 w-5 ${currentBoard?.starred ? 'fill-current' : ''}`} />
               </button>
+
+              <button
+                onClick={() => setShowBoardMembers(true)}
+                className="p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10"
+                title="Board Members"
+              >
+                <Users className="h-5 w-5" />
+              </button>
+
+              <button
+                onClick={() => setShowBoardSettings(true)}
+                className="p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10"
+                title="Board Settings"
+              >
+                <Settings className="h-5 w-5" />
+              </button>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -2008,6 +2029,32 @@ export default function BoardView() {
             onClose={() => setShowAutomationRules(false)}
           />
         </div>
+      )}
+
+      {/* Board Settings Modal */}
+      {showBoardSettings && currentBoard && (
+        <BoardSettingsModal
+          board={currentBoard}
+          onClose={() => setShowBoardSettings(false)}
+          onUpdate={(updated) => {
+            setCurrentBoard(updated);
+            updateBoardInStore(updated);
+          }}
+          onDelete={() => {
+            navigate(currentBoard.workspaceId
+              ? `/workspace/${currentBoard.workspaceId}`
+              : '/dashboard');
+          }}
+        />
+      )}
+
+      {/* Board Members Modal */}
+      {showBoardMembers && currentBoard && (
+        <BoardMembersModal
+          boardId={currentBoard.id}
+          workspaceId={currentBoard.workspaceId}
+          onClose={() => setShowBoardMembers(false)}
+        />
       )}
     </div>
   );
