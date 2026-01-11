@@ -143,6 +143,7 @@ export default function BoardView() {
   // Drag and drop state
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeType, setActiveType] = useState<'card' | 'list' | null>(null);
+  const [dragSourceListId, setDragSourceListId] = useState<string | null>(null);
 
   // Board activity sidebar state
   const [showActivitySidebar, setShowActivitySidebar] = useState(false);
@@ -1262,8 +1263,11 @@ export default function BoardView() {
     // Check if it's a list or a card
     if (lists.some((l) => l.id === activeIdStr)) {
       setActiveType('list');
+      setDragSourceListId(null);
     } else {
       setActiveType('card');
+      // Track which list the card is being dragged from
+      setDragSourceListId(findListContainingCard(activeIdStr));
     }
     setActiveId(activeIdStr);
   };
@@ -1304,8 +1308,11 @@ export default function BoardView() {
 
       const [movedCard] = sourceCards.splice(activeIndex, 1);
 
-      // Always place moved cards at the top of the destination list
-      destCards.unshift({ ...movedCard, listId: overListId });
+      // Find position after pinned cards in destination list
+      const pinnedCount = destCards.filter(c => c.pinned).length;
+
+      // Insert after pinned cards (at the top of non-pinned cards)
+      destCards.splice(pinnedCount, 0, { ...movedCard, listId: overListId });
 
       newMap.set(activeListId, sourceCards);
       newMap.set(overListId, destCards);
@@ -1317,8 +1324,12 @@ export default function BoardView() {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
+    // Capture source list before clearing state
+    const sourceListId = dragSourceListId;
+
     setActiveId(null);
     setActiveType(null);
+    setDragSourceListId(null);
 
     if (!over) return;
 
@@ -1350,53 +1361,80 @@ export default function BoardView() {
       return;
     }
 
-    // Handle card reordering within the same list
-    const listId = findListContainingCard(activeIdStr);
-    if (!listId) return;
+    // Get current list containing the card
+    const currentListId = findListContainingCard(activeIdStr);
+    if (!currentListId) return;
 
-    const cards = cardsByList.get(listId) || [];
-    const oldIndex = cards.findIndex((c) => c.id === activeIdStr);
-    const newIndex = cards.findIndex((c) => c.id === overIdStr);
+    // Check if card moved to a different list
+    const movedToNewList = sourceListId && sourceListId !== currentListId;
 
-    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-      const newCards = arrayMove(cards, oldIndex, newIndex);
-      const newCardsMap = new Map(cardsByList);
-      newCardsMap.set(listId, newCards);
-      setCardsByList(newCardsMap);
+    if (movedToNewList) {
+      // Card was moved to a different list - ensure it's at the top (after pinned cards)
+      const destCards = cardsByList.get(currentListId) || [];
 
-      // Update positions in backend
+      // Find the position after any pinned cards
+      const pinnedCount = destCards.filter(c => c.id !== activeIdStr && c.pinned).length;
+
+      // Update UI state to position card after pinned cards
+      setCardsByList((prev) => {
+        const newMap = new Map(prev);
+        const cards = [...(newMap.get(currentListId) || [])];
+        const cardIndex = cards.findIndex(c => c.id === activeIdStr);
+        if (cardIndex !== -1) {
+          const [movedCard] = cards.splice(cardIndex, 1);
+          // Insert after pinned cards
+          cards.splice(pinnedCount, 0, movedCard);
+          newMap.set(currentListId, cards);
+        }
+        return newMap;
+      });
+
+      // Update backend
       try {
+        // Get fresh cards after state update
+        const updatedDestCards = cardsByList.get(currentListId) || [];
+        const finalPinnedCount = updatedDestCards.filter(c => c.id !== activeIdStr && c.pinned).length;
+
+        // Update the moved card with new list and position (after pinned cards)
+        await updateCard(activeIdStr, {
+          listId: currentListId,
+          position: finalPinnedCount,
+        });
+
+        // Update positions for all cards in the destination list
+        const allDestCards = cardsByList.get(currentListId) || [];
         await Promise.all(
-          newCards.map((card, index) =>
-            updateCard(card.id, { position: index })
-          )
+          allDestCards.map((c, index) => {
+            if (c.id !== activeIdStr) {
+              return updateCard(c.id, { position: index });
+            }
+            return Promise.resolve();
+          })
         );
       } catch {
-        setError('Failed to save card order');
+        setError('Failed to move card');
       }
-    }
+    } else {
+      // Card reordering within the same list
+      const cards = cardsByList.get(currentListId) || [];
+      const oldIndex = cards.findIndex((c) => c.id === activeIdStr);
+      const newIndex = cards.findIndex((c) => c.id === overIdStr);
 
-    // Handle card moved to different list
-    const card = getCard(activeIdStr);
-    if (card) {
-      const newListId = findListContainingCard(activeIdStr);
-      if (newListId && newListId !== card.listId) {
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        const newCards = arrayMove(cards, oldIndex, newIndex);
+        const newCardsMap = new Map(cardsByList);
+        newCardsMap.set(currentListId, newCards);
+        setCardsByList(newCardsMap);
+
+        // Update positions in backend
         try {
-          // Always place moved cards at the top (position 0) of the destination list
-          await updateCard(activeIdStr, {
-            listId: newListId,
-            position: 0,
-          });
-
-          // Update positions for all other cards in the destination list
-          const destCards = cardsByList.get(newListId) || [];
           await Promise.all(
-            destCards.slice(1).map((c, index) =>
-              updateCard(c.id, { position: index + 1 })
+            newCards.map((card, index) =>
+              updateCard(card.id, { position: index })
             )
           );
         } catch {
-          setError('Failed to move card');
+          setError('Failed to save card order');
         }
       }
     }
