@@ -1372,39 +1372,41 @@ export default function BoardView() {
       // Card was moved to a different list - ensure it's at the top (after pinned cards)
       const destCards = cardsByList.get(currentListId) || [];
 
-      // Find the position after any pinned cards
+      // Find the position after any pinned cards (excluding the moved card itself)
       const pinnedCount = destCards.filter(c => c.id !== activeIdStr && c.pinned).length;
 
-      // Update UI state to position card after pinned cards
+      // Compute the new card order BEFORE updating state so we can use it for backend
+      const currentCards = [...destCards];
+      const cardIndex = currentCards.findIndex(c => c.id === activeIdStr);
+      let newCardOrder: Card[] = [];
+
+      if (cardIndex !== -1) {
+        const [movedCard] = currentCards.splice(cardIndex, 1);
+        // Insert after pinned cards (at position pinnedCount)
+        currentCards.splice(pinnedCount, 0, movedCard);
+        newCardOrder = currentCards;
+      } else {
+        newCardOrder = currentCards;
+      }
+
+      // Update UI state with the computed order
       setCardsByList((prev) => {
         const newMap = new Map(prev);
-        const cards = [...(newMap.get(currentListId) || [])];
-        const cardIndex = cards.findIndex(c => c.id === activeIdStr);
-        if (cardIndex !== -1) {
-          const [movedCard] = cards.splice(cardIndex, 1);
-          // Insert after pinned cards
-          cards.splice(pinnedCount, 0, movedCard);
-          newMap.set(currentListId, cards);
-        }
+        newMap.set(currentListId, newCardOrder);
         return newMap;
       });
 
-      // Update backend
+      // Update backend using the computed order (not stale state)
       try {
-        // Get fresh cards after state update
-        const updatedDestCards = cardsByList.get(currentListId) || [];
-        const finalPinnedCount = updatedDestCards.filter(c => c.id !== activeIdStr && c.pinned).length;
-
         // Update the moved card with new list and position (after pinned cards)
         await updateCard(activeIdStr, {
           listId: currentListId,
-          position: finalPinnedCount,
+          position: pinnedCount,
         });
 
-        // Update positions for all cards in the destination list
-        const allDestCards = cardsByList.get(currentListId) || [];
+        // Update positions for all other cards in the destination list
         await Promise.all(
-          allDestCards.map((c, index) => {
+          newCardOrder.map((c, index) => {
             if (c.id !== activeIdStr) {
               return updateCard(c.id, { position: index });
             }
@@ -2190,6 +2192,30 @@ export default function BoardView() {
           canEditCard={canEdit('card', selectedCard.authorId === currentUser?.id)}
           canDeleteCard={canDelete('card', selectedCard.authorId === currentUser?.id)}
           canMoveCard={canMove('card', selectedCard.authorId === currentUser?.id)}
+          onMove={(cardId, fromListId, toListId) => {
+            setCardsByList((prev) => {
+              const newMap = new Map(prev);
+
+              // Get the source list and remove the card
+              const sourceCards = [...(newMap.get(fromListId) || [])];
+              const cardIndex = sourceCards.findIndex(c => c.id === cardId);
+              if (cardIndex === -1) return prev;
+
+              const [movedCard] = sourceCards.splice(cardIndex, 1);
+              newMap.set(fromListId, sourceCards);
+
+              // Get the destination list and add the card at the top (after pinned cards)
+              const destCards = [...(newMap.get(toListId) || [])];
+              const pinnedCount = destCards.filter(c => c.pinned).length;
+
+              // Update the card's listId and insert at the correct position
+              const updatedCard = { ...movedCard, listId: toListId, position: pinnedCount };
+              destCards.splice(pinnedCount, 0, updatedCard);
+              newMap.set(toListId, destCards);
+
+              return newMap;
+            });
+          }}
         />
       )}
 
@@ -3249,6 +3275,7 @@ function CardDetailModal({
   canEditCard,
   canDeleteCard,
   canMoveCard,
+  onMove,
 }: {
   card: Card;
   listTitle: string;
@@ -3270,6 +3297,7 @@ function CardDetailModal({
   canEditCard: boolean;
   canDeleteCard: boolean;
   canMoveCard: boolean;
+  onMove: (cardId: string, fromListId: string, toListId: string) => void;
 }) {
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description || '');
@@ -3756,11 +3784,14 @@ function CardDetailModal({
   const handleMoveCard = async () => {
     if (!selectedListId) return;
 
+    const fromListId = card.listId;
     setIsMoving(true);
     try {
       await updateCard(card.id, { listId: selectedListId, position: 0 });
+      // Update the board state to show the card in the new list immediately
+      onMove(card.id, fromListId, selectedListId);
       setShowMoveModal(false);
-      // Close the modal since the card is now on a different board
+      // Close the modal since the card is now on a different list
       onClose();
     } catch (err) {
       console.error('Failed to move card:', err);
