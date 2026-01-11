@@ -38,6 +38,7 @@ export interface CreateCardData {
   startDate?: string;
   dueDate?: string;
   labels?: CardLabel[];
+  creatorId?: string; // Auto-assign creator as member
 }
 
 // Transform JSON:API response to Card
@@ -207,6 +208,20 @@ export async function fetchCard(id: string): Promise<Card> {
 
 // Create a new card
 export async function createCard(data: CreateCardData): Promise<Card> {
+  // Build relationships object
+  const relationships: Record<string, unknown> = {
+    field_card_list: {
+      data: { type: 'node--board_list', id: data.listId },
+    },
+  };
+
+  // Auto-assign creator as member if creatorId is provided
+  if (data.creatorId) {
+    relationships.field_card_members = {
+      data: [{ type: 'user--user', id: data.creatorId }],
+    };
+  }
+
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card`, {
     method: 'POST',
     headers: {
@@ -225,11 +240,7 @@ export async function createCard(data: CreateCardData): Promise<Card> {
           field_card_labels: data.labels || [],
           field_card_archived: false,
         },
-        relationships: {
-          field_card_list: {
-            data: { type: 'node--board_list', id: data.listId },
-          },
-        },
+        relationships,
       },
     }),
   });

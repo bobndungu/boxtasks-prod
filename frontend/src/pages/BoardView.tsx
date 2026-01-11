@@ -811,6 +811,7 @@ export default function BoardView() {
         title: titleToCreate,
         listId,
         position: listCards.length,
+        creatorId: currentUser?.id, // Auto-assign creator
       }),
       onSuccess: (newCard) => {
         // Replace temp card with real card from server (or skip if Mercure already added it)
@@ -863,6 +864,7 @@ export default function BoardView() {
         description: template.description,
         labels: template.labels.length > 0 ? template.labels : undefined,
         position: listCards.length,
+        creatorId: currentUser?.id, // Auto-assign creator
       });
 
       // Create checklists from template
@@ -1073,6 +1075,7 @@ export default function BoardView() {
         description: card.description,
         position: listCards.length,
         labels: card.labels,
+        creatorId: currentUser?.id, // Auto-assign creator
       });
       const newCardsMap = new Map(cardsByList);
       newCardsMap.set(card.listId, [...listCards, newCard]);
