@@ -68,11 +68,14 @@ import {
   Phone,
   Link2,
   Pin,
+  Briefcase,
+  Building2,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { fetchBoard, updateBoard, toggleBoardStar, fetchAllBoards, type Board } from '../lib/api/boards';
 import { fetchListsByBoard, createList, updateList, deleteList, archiveList, type BoardList } from '../lib/api/lists';
-import { fetchCardsByList, createCard, updateCard, deleteCard, uploadCardCover, removeCardCover, watchCard, unwatchCard, assignMember, unassignMember, type Card, type CardLabel, type CardMember } from '../lib/api/cards';
+import { fetchCardsByList, createCard, updateCard, deleteCard, uploadCardCover, removeCardCover, watchCard, unwatchCard, assignMember, unassignMember, updateCardDepartment, updateCardClient, type Card, type CardLabel, type CardMember } from '../lib/api/cards';
+import { fetchDepartments, fetchClients, type TaxonomyTerm } from '../lib/api/taxonomies';
 import { fetchCommentsByCard, createComment, updateComment, deleteComment, toggleReaction, type CardComment, type ReactionType } from '../lib/api/comments';
 import { fetchAttachmentsByCard, createAttachment, deleteAttachment, formatFileSize, type CardAttachment } from '../lib/api/attachments';
 import { fetchChecklistsByCard, createChecklist, deleteChecklist, createChecklistItem, updateChecklistItem, deleteChecklistItem, countChecklistItems, MAX_NESTING_DEPTH, type Checklist, type ChecklistItem } from '../lib/api/checklists';
@@ -174,6 +177,10 @@ export default function BoardView() {
 
   // Workspace members for @mentions
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
+
+  // Department and Client taxonomy state
+  const [departments, setDepartments] = useState<TaxonomyTerm[]>([]);
+  const [clients, setClients] = useState<TaxonomyTerm[]>([]);
 
   // Custom fields manager state
   const [showCustomFields, setShowCustomFields] = useState(false);
@@ -737,6 +744,18 @@ export default function BoardView() {
           console.error('Failed to load workspace members:', memberErr);
         }
       }
+
+      // Load taxonomy terms for Department and Client dropdowns
+      try {
+        const [depts, clnts] = await Promise.all([
+          fetchDepartments(),
+          fetchClients(),
+        ]);
+        setDepartments(depts);
+        setClients(clnts);
+      } catch (taxErr) {
+        console.error('Failed to load taxonomy terms:', taxErr);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load board');
     } finally {
@@ -855,6 +874,7 @@ export default function BoardView() {
       labels: [],
       archived: false,
       completed: false,
+      pinned: false,
       watcherIds: [],
       memberIds: [],
       members: [],
@@ -2089,6 +2109,36 @@ export default function BoardView() {
               return newMap;
             });
           }}
+          departments={departments}
+          clients={clients}
+          onDepartmentChange={async (cardId, departmentId) => {
+            const updatedCard = await updateCardDepartment(cardId, departmentId);
+            setCardsByList((prev) => {
+              const newMap = new Map(prev);
+              const listCards = newMap.get(updatedCard.listId) || [];
+              const updatedCards = listCards.map((c) =>
+                c.id === cardId ? { ...c, department: updatedCard.department } : c
+              );
+              newMap.set(updatedCard.listId, updatedCards);
+              return newMap;
+            });
+            // Update selectedCard too so the modal reflects the change
+            setSelectedCard((prev) => prev ? { ...prev, department: updatedCard.department } : null);
+          }}
+          onClientChange={async (cardId, clientId) => {
+            const updatedCard = await updateCardClient(cardId, clientId);
+            setCardsByList((prev) => {
+              const newMap = new Map(prev);
+              const listCards = newMap.get(updatedCard.listId) || [];
+              const updatedCards = listCards.map((c) =>
+                c.id === cardId ? { ...c, client: updatedCard.client } : c
+              );
+              newMap.set(updatedCard.listId, updatedCards);
+              return newMap;
+            });
+            // Update selectedCard too so the modal reflects the change
+            setSelectedCard((prev) => prev ? { ...prev, client: updatedCard.client } : null);
+          }}
         />
       )}
 
@@ -3122,6 +3172,10 @@ function CardDetailModal({
   customFieldDefs,
   initialCustomFieldValues,
   onCustomFieldChange,
+  departments,
+  clients,
+  onDepartmentChange,
+  onClientChange,
 }: {
   card: Card;
   listTitle: string;
@@ -3135,6 +3189,10 @@ function CardDetailModal({
   customFieldDefs: CustomFieldDefinition[];
   initialCustomFieldValues: CustomFieldValue[];
   onCustomFieldChange: (cardId: string, values: CustomFieldValue[]) => void;
+  departments: TaxonomyTerm[];
+  clients: TaxonomyTerm[];
+  onDepartmentChange: (cardId: string, departmentId: string | null) => Promise<void>;
+  onClientChange: (cardId: string, clientId: string | null) => Promise<void>;
 }) {
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description || '');
@@ -3198,6 +3256,12 @@ function CardDetailModal({
   // Watchers state
   const [showWatchersPicker, setShowWatchersPicker] = useState(false);
   const [isAddingWatcher, setIsAddingWatcher] = useState(false);
+
+  // Department and Client picker state
+  const [showDepartmentPicker, setShowDepartmentPicker] = useState(false);
+  const [showClientPicker, setShowClientPicker] = useState(false);
+  const [isUpdatingDepartment, setIsUpdatingDepartment] = useState(false);
+  const [isUpdatingClient, setIsUpdatingClient] = useState(false);
 
   // Custom field state
   const [customFieldValueMap, setCustomFieldValueMap] = useState<Map<string, string>>(() => {
@@ -3692,6 +3756,36 @@ function CardDetailModal({
       toast.error('Failed to update member assignment');
     } finally {
       setIsTogglingMember(false);
+    }
+  };
+
+  const handleDepartmentChange = async (departmentId: string | null) => {
+    setIsUpdatingDepartment(true);
+    try {
+      await onDepartmentChange(card.id, departmentId);
+      const dept = departments.find((d) => d.id === departmentId);
+      toast.success(departmentId ? `Department set to ${dept?.name}` : 'Department removed');
+      setShowDepartmentPicker(false);
+    } catch (err) {
+      console.error('Failed to update department:', err);
+      toast.error('Failed to update department');
+    } finally {
+      setIsUpdatingDepartment(false);
+    }
+  };
+
+  const handleClientChange = async (clientId: string | null) => {
+    setIsUpdatingClient(true);
+    try {
+      await onClientChange(card.id, clientId);
+      const clnt = clients.find((c) => c.id === clientId);
+      toast.success(clientId ? `Client set to ${clnt?.name}` : 'Client removed');
+      setShowClientPicker(false);
+    } catch (err) {
+      console.error('Failed to update client:', err);
+      toast.error('Failed to update client');
+    } finally {
+      setIsUpdatingClient(false);
     }
   };
 
@@ -5587,6 +5681,122 @@ function CardDetailModal({
                     <Tag className="h-4 w-4 mr-2" />
                     Labels
                   </button>
+                  {/* Department Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowDepartmentPicker(!showDepartmentPicker)}
+                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
+                    >
+                      <span className="flex items-center">
+                        <Briefcase className="h-4 w-4 mr-2" />
+                        Department
+                      </span>
+                      {card.department && (
+                        <span className="bg-purple-100 text-purple-700 text-xs px-1.5 py-0.5 rounded">
+                          {card.department.name}
+                        </span>
+                      )}
+                    </button>
+                    {showDepartmentPicker && (
+                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Select Department</h5>
+                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                          {departments.map((dept) => (
+                            <button
+                              key={dept.id}
+                              onClick={() => handleDepartmentChange(dept.id)}
+                              disabled={isUpdatingDepartment}
+                              className={`w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 text-left disabled:opacity-50 ${
+                                card.department?.id === dept.id ? 'bg-purple-50 border border-purple-200' : ''
+                              }`}
+                            >
+                              <Briefcase className="h-4 w-4 text-purple-600" />
+                              <span className="text-sm text-gray-700">{dept.name}</span>
+                              {card.department?.id === dept.id && (
+                                <Check className="h-4 w-4 text-purple-600 ml-auto" />
+                              )}
+                            </button>
+                          ))}
+                          {departments.length === 0 && (
+                            <p className="text-xs text-gray-400 text-center py-2">No departments available</p>
+                          )}
+                        </div>
+                        {card.department && (
+                          <button
+                            onClick={() => handleDepartmentChange(null)}
+                            disabled={isUpdatingDepartment}
+                            className="w-full mt-2 text-red-600 hover:text-red-700 text-sm"
+                          >
+                            Remove Department
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setShowDepartmentPicker(false)}
+                          className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {/* Client Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowClientPicker(!showClientPicker)}
+                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
+                    >
+                      <span className="flex items-center">
+                        <Building2 className="h-4 w-4 mr-2" />
+                        Client
+                      </span>
+                      {card.client && (
+                        <span className="bg-teal-100 text-teal-700 text-xs px-1.5 py-0.5 rounded">
+                          {card.client.name}
+                        </span>
+                      )}
+                    </button>
+                    {showClientPicker && (
+                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Select Client</h5>
+                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                          {clients.map((clnt) => (
+                            <button
+                              key={clnt.id}
+                              onClick={() => handleClientChange(clnt.id)}
+                              disabled={isUpdatingClient}
+                              className={`w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 text-left disabled:opacity-50 ${
+                                card.client?.id === clnt.id ? 'bg-teal-50 border border-teal-200' : ''
+                              }`}
+                            >
+                              <Building2 className="h-4 w-4 text-teal-600" />
+                              <span className="text-sm text-gray-700">{clnt.name}</span>
+                              {card.client?.id === clnt.id && (
+                                <Check className="h-4 w-4 text-teal-600 ml-auto" />
+                              )}
+                            </button>
+                          ))}
+                          {clients.length === 0 && (
+                            <p className="text-xs text-gray-400 text-center py-2">No clients available</p>
+                          )}
+                        </div>
+                        {card.client && (
+                          <button
+                            onClick={() => handleClientChange(null)}
+                            disabled={isUpdatingClient}
+                            className="w-full mt-2 text-red-600 hover:text-red-700 text-sm"
+                          >
+                            Remove Client
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setShowClientPicker(false)}
+                          className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {/* Add Card-Scoped Custom Fields */}
                   {availableCardFields.length > 0 && (
                     <div className="relative">

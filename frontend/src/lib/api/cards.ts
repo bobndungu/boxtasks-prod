@@ -10,6 +10,11 @@ export interface CardMember {
   email?: string;
 }
 
+export interface TaxonomyReference {
+  id: string;
+  name: string;
+}
+
 export interface Card {
   id: string;
   title: string;
@@ -27,6 +32,8 @@ export interface Card {
   watcherIds: string[];
   memberIds: string[];
   members: CardMember[];
+  department?: TaxonomyReference;
+  client?: TaxonomyReference;
   createdAt: string;
   updatedAt: string;
   // Activity counts for expanded view
@@ -103,6 +110,40 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
   const listData = rels?.field_card_list?.data;
   const listId = listData && !Array.isArray(listData) ? listData.id : '';
 
+  // Get department data
+  let department: { id: string; name: string } | undefined;
+  const departmentData = rels?.field_card_department?.data;
+  const departmentId = departmentData && !Array.isArray(departmentData) ? departmentData.id : undefined;
+  if (included && departmentId) {
+    const departmentTerm = included.find(
+      (item) => item.id === departmentId && (item.type as string)?.startsWith('taxonomy_term--')
+    );
+    if (departmentTerm) {
+      const termAttrs = departmentTerm.attributes as Record<string, unknown>;
+      department = {
+        id: departmentId,
+        name: termAttrs.name as string,
+      };
+    }
+  }
+
+  // Get client data
+  let client: { id: string; name: string } | undefined;
+  const clientData = rels?.field_card_client?.data;
+  const clientId = clientData && !Array.isArray(clientData) ? clientData.id : undefined;
+  if (included && clientId) {
+    const clientTerm = included.find(
+      (item) => item.id === clientId && (item.type as string)?.startsWith('taxonomy_term--')
+    );
+    if (clientTerm) {
+      const termAttrs = clientTerm.attributes as Record<string, unknown>;
+      client = {
+        id: clientId,
+        name: termAttrs.name as string,
+      };
+    }
+  }
+
   return {
     id: data.id as string,
     title: attrs.title as string,
@@ -120,6 +161,8 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     watcherIds,
     memberIds,
     members,
+    department,
+    client,
     createdAt: attrs.created as string,
     updatedAt: attrs.changed as string,
     // Initialize counts to 0 - will be populated when loading board if needed
@@ -133,7 +176,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
 // Fetch all cards for a list
 export async function fetchCardsByList(listId: string): Promise<Card[]> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?filter[field_card_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_cover,field_card_members`,
+    `${API_URL}/jsonapi/node/card?filter[field_card_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_cover,field_card_members,field_card_department,field_card_client`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -163,7 +206,7 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
   ).join('&');
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_cover,field_card_members`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_cover,field_card_members,field_card_department,field_card_client`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -202,7 +245,7 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
 
 // Fetch a single card
 export async function fetchCard(id: string): Promise<Card> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_cover,field_card_members`, {
+  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_cover,field_card_members,field_card_department,field_card_client`, {
     headers: {
       'Accept': 'application/vnd.api+json',
       'Authorization': `Bearer ${getAccessToken()}`,
@@ -351,6 +394,64 @@ export async function moveCard(cardId: string, targetListId: string, position: n
 // Archive a card
 export async function archiveCard(id: string): Promise<Card> {
   return updateCard(id, { archived: true });
+}
+
+// Update card department
+export async function updateCardDepartment(cardId: string, departmentId: string | null): Promise<Card> {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        relationships: {
+          field_card_department: {
+            data: departmentId ? { type: 'taxonomy_term--department', id: departmentId } : null,
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to update card department');
+  }
+
+  return fetchCard(cardId);
+}
+
+// Update card client
+export async function updateCardClient(cardId: string, clientId: string | null): Promise<Card> {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        relationships: {
+          field_card_client: {
+            data: clientId ? { type: 'taxonomy_term--client', id: clientId } : null,
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to update card client');
+  }
+
+  return fetchCard(cardId);
 }
 
 // Upload a cover image for a card
