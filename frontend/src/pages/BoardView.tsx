@@ -3356,6 +3356,11 @@ function CardDetailModal({
   const [isAddingCardField, setIsAddingCardField] = useState(false);
   const [cardFieldValues, setCardFieldValues] = useState<CustomFieldValue[]>(initialCustomFieldValues);
 
+  // Sync cardFieldValues when card changes (component reuse with different card)
+  useEffect(() => {
+    setCardFieldValues(initialCustomFieldValues);
+  }, [card.id]);
+
   // Get displayable fields (workspace + board + enabled card-scoped)
   const displayableFieldDefs = useMemo(() => {
     return getDisplayableFieldsForCard(cardFieldValues, customFieldDefs);
@@ -3371,15 +3376,23 @@ function CardDetailModal({
     setIsAddingCardField(true);
     try {
       const newValue = await enableCardScopedField(card.id, fieldDefId);
-      setCardFieldValues(prev => [...prev, newValue]);
+      // Use functional update and compute the new values
+      let updatedValues: CustomFieldValue[] = [];
+      setCardFieldValues(prev => {
+        updatedValues = [...prev, newValue];
+        return updatedValues;
+      });
       // Also update the value map
       setCustomFieldValueMap(prev => {
         const newMap = new Map(prev);
         newMap.set(fieldDefId, '');
         return newMap;
       });
-      // Notify parent
-      onCustomFieldChange(card.id, [...cardFieldValues, newValue]);
+      // Notify parent with the computed updated values
+      // Use setTimeout to ensure state update has been processed
+      setTimeout(() => {
+        onCustomFieldChange(card.id, updatedValues);
+      }, 0);
       toast.success('Field added to card');
     } catch (err) {
       console.error('Failed to add card field:', err);
@@ -3394,16 +3407,23 @@ function CardDetailModal({
     setIsAddingCardField(true);
     try {
       await disableCardScopedField(card.id, fieldDefId);
-      const updatedValues = cardFieldValues.filter(v => v.definitionId !== fieldDefId);
-      setCardFieldValues(updatedValues);
+      // Use functional update to ensure we have the latest values
+      let updatedValues: CustomFieldValue[] = [];
+      setCardFieldValues(prev => {
+        updatedValues = prev.filter(v => v.definitionId !== fieldDefId);
+        return updatedValues;
+      });
       // Also update the value map
       setCustomFieldValueMap(prev => {
         const newMap = new Map(prev);
         newMap.delete(fieldDefId);
         return newMap;
       });
-      // Notify parent
-      onCustomFieldChange(card.id, updatedValues);
+      // Notify parent with the computed updated values
+      // Use setTimeout to ensure state update has been processed
+      setTimeout(() => {
+        onCustomFieldChange(card.id, updatedValues);
+      }, 0);
       toast.success('Field removed from card');
     } catch (err) {
       console.error('Failed to remove card field:', err);
