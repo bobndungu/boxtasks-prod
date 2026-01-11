@@ -247,8 +247,12 @@ export async function createCard(data: CreateCardData): Promise<Card> {
           title: data.title,
           field_card_description: data.description ? { value: data.description } : null,
           field_card_position: data.position || 0,
-          field_card_start_date: data.startDate ? `${data.startDate}T12:00:00+00:00` : null,
-          field_card_due_date: data.dueDate ? `${data.dueDate}T12:00:00+00:00` : null,
+          field_card_start_date: data.startDate
+            ? (data.startDate.includes('T') ? data.startDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.startDate}T12:00:00+00:00`)
+            : null,
+          field_card_due_date: data.dueDate
+            ? (data.dueDate.includes('T') ? data.dueDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.dueDate}T12:00:00+00:00`)
+            : null,
           field_card_labels: data.labels || [],
           field_card_archived: false,
         },
@@ -278,11 +282,19 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
   if (data.position !== undefined) attributes.field_card_position = data.position;
   if (data.startDate !== undefined) {
     // Convert date to RFC 3339 format for Drupal datetime field (requires timezone)
-    attributes.field_card_start_date = data.startDate ? `${data.startDate}T12:00:00+00:00` : null;
+    // Handle both simple date strings (YYYY-MM-DD) and full ISO timestamps
+    // Convert Z suffix to +00:00 and remove milliseconds for Drupal compatibility
+    attributes.field_card_start_date = data.startDate
+      ? (data.startDate.includes('T') ? data.startDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.startDate}T12:00:00+00:00`)
+      : null;
   }
   if (data.dueDate !== undefined) {
     // Convert date to RFC 3339 format for Drupal datetime field (requires timezone)
-    attributes.field_card_due_date = data.dueDate ? `${data.dueDate}T12:00:00+00:00` : null;
+    // Handle both simple date strings (YYYY-MM-DD) and full ISO timestamps
+    // Convert Z suffix to +00:00 and remove milliseconds for Drupal compatibility
+    attributes.field_card_due_date = data.dueDate
+      ? (data.dueDate.includes('T') ? data.dueDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.dueDate}T12:00:00+00:00`)
+      : null;
   }
   if (data.labels) attributes.field_card_labels = data.labels;
   if (data.archived !== undefined) attributes.field_card_archived = data.archived;
