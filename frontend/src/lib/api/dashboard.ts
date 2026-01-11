@@ -205,7 +205,7 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
         description: attrs.field_activity_description as string,
         timestamp: attrs.created as string,
         userId,
-        userName: user ? (user.attributes as Record<string, unknown>).display_name as string : undefined,
+        userName: user ? (user.attributes as Record<string, unknown>).field_display_name as string : undefined,
         cardId,
         cardTitle: card ? (card.attributes as Record<string, unknown>).title as string : undefined,
       };
@@ -253,7 +253,7 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
 
       return {
         id: memberId,
-        name: memberAttrs.display_name as string || memberAttrs.name as string || 'Unknown',
+        name: memberAttrs.field_display_name as string || memberAttrs.name as string || 'Unknown',
         email: memberAttrs.mail as string || '',
         assignedCards: assignedCards.length,
         completedCards: completedMemberCards.length,

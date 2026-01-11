@@ -90,7 +90,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
         const userAttrs = user.attributes as Record<string, unknown>;
         members.push({
           id: memberId,
-          name: (userAttrs.display_name as string) || (userAttrs.name as string) || 'Unknown User',
+          name: (userAttrs.field_display_name as string) || (userAttrs.name as string) || 'Unknown User',
           email: userAttrs.mail as string | undefined,
         });
       } else {

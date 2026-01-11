@@ -37,7 +37,7 @@ function transformComment(data: Record<string, unknown>, included?: Record<strin
     const author = included.find((item) => item.id === authorId && item.type === 'user--user');
     if (author) {
       const authorAttrs = author.attributes as Record<string, unknown>;
-      authorName = (authorAttrs.display_name as string) || (authorAttrs.name as string) || 'Unknown User';
+      authorName = (authorAttrs.field_display_name as string) || (authorAttrs.name as string) || 'Unknown User';
     }
   }
 

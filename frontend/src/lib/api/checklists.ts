@@ -42,7 +42,7 @@ function transformChecklistItem(data: Record<string, unknown>, included?: Record
       const userAttrs = user.attributes as Record<string, unknown>;
       assignee = {
         id: assigneeId,
-        name: (userAttrs.display_name as string) || (userAttrs.name as string) || 'Unknown',
+        name: (userAttrs.field_display_name as string) || (userAttrs.name as string) || 'Unknown',
       };
     }
   }

@@ -63,7 +63,7 @@ function transformNotification(data: Record<string, unknown>, included?: Record<
     const actor = included.find((item) => item.id === actorId && item.type === 'user--user');
     if (actor) {
       const actorAttrs = actor.attributes as Record<string, unknown>;
-      actorName = (actorAttrs.display_name as string) || (actorAttrs.name as string);
+      actorName = (actorAttrs.field_display_name as string) || (actorAttrs.name as string);
     }
   }
 
