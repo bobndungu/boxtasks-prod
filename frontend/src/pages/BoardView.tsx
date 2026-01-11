@@ -87,6 +87,7 @@ import { useKeyboardShortcuts } from '../lib/hooks/useKeyboardShortcuts';
 import { useBoardUpdates } from '../lib/hooks/useMercure';
 import { usePresence } from '../lib/hooks/usePresence';
 import { useOptimistic } from '../lib/hooks/useOptimistic';
+import { usePermissions } from '../lib/hooks/usePermissions';
 import { ConnectionStatus } from '../components/ConnectionStatus';
 import { ActiveUsers } from '../components/ActiveUsers';
 import { useAuthStore } from '../lib/stores/auth';
@@ -123,6 +124,9 @@ export default function BoardView() {
   const navigate = useNavigate();
   const { currentBoard, setCurrentBoard, updateBoard: updateBoardInStore } = useBoardStore();
   const { user: currentUser } = useAuthStore();
+
+  // Role-based permissions
+  const { canCreate, canEdit, canDelete, canMove } = usePermissions(currentBoard?.workspaceId);
 
   const [lists, setLists] = useState<BoardList[]>([]);
   const [cardsByList, setCardsByList] = useState<Map<string, Card[]>>(new Map());
@@ -1917,6 +1921,9 @@ export default function BoardView() {
                   customFieldValues={customFieldValues}
                   searchQuery={searchQuery}
                   fieldVisibility={fieldVisibility}
+                  canCreateCard={canCreate('card')}
+                  canEditList={canEdit('list', false)}
+                  canDeleteList={canDelete('list', false)}
                 />
               ))}
             </SortableContext>
@@ -1952,7 +1959,7 @@ export default function BoardView() {
                     </button>
                   </div>
                 </div>
-              ) : (
+              ) : canCreate('list') ? (
                 <button
                   onClick={() => setAddingListId('new')}
                   className="w-full bg-white/20 hover:bg-white/30 text-white rounded-xl px-4 py-3 text-left flex items-center font-medium transition-colors"
@@ -1960,7 +1967,7 @@ export default function BoardView() {
                   <Plus className="h-4 w-4 mr-2" />
                   Add another list
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
 
@@ -2139,6 +2146,9 @@ export default function BoardView() {
             // Update selectedCard too so the modal reflects the change
             setSelectedCard((prev) => prev ? { ...prev, client: updatedCard.client } : null);
           }}
+          canEditCard={canEdit('card', selectedCard.authorId === currentUser?.id)}
+          canDeleteCard={canDelete('card', selectedCard.authorId === currentUser?.id)}
+          canMoveCard={canMove('card', selectedCard.authorId === currentUser?.id)}
         />
       )}
 
@@ -2340,6 +2350,9 @@ function SortableList({
   customFieldValues,
   searchQuery = '',
   fieldVisibility,
+  canCreateCard,
+  canEditList,
+  canDeleteList,
 }: {
   list: BoardList;
   cards: Card[];
@@ -2361,6 +2374,10 @@ function SortableList({
   customFieldValues: Map<string, CustomFieldValue[]>;
   searchQuery?: string;
   fieldVisibility: CardFieldVisibilityProps;
+  // Permission checks
+  canCreateCard: boolean;
+  canEditList: boolean;
+  canDeleteList: boolean;
 }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(list.title);
@@ -2518,27 +2535,31 @@ function SortableList({
             {showMenu && (
               <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
                 <div className="py-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowMenu(false);
-                      setAddingCardToList(list.id);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add card
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowColorPicker(!showColorPicker);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                  >
-                    <Palette className="h-4 w-4 mr-2" />
-                    Set color
-                  </button>
+                  {canCreateCard && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        setAddingCardToList(list.id);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add card
+                    </button>
+                  )}
+                  {canEditList && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowColorPicker(!showColorPicker);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                    >
+                      <Palette className="h-4 w-4 mr-2" />
+                      Set color
+                    </button>
+                  )}
                   {showColorPicker && (
                     <div className="px-4 py-2 flex flex-wrap gap-2">
                       {LIST_COLORS.map((color) => (
@@ -2557,65 +2578,73 @@ function SortableList({
                       ))}
                     </div>
                   )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowWipSettings(!showWipSettings);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                  >
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                    Set WIP limit
-                  </button>
-                  {showWipSettings && (
-                    <div className="px-4 py-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="number"
-                          min="0"
-                          value={wipLimitValue}
-                          onChange={(e) => setWipLimitValue(e.target.value)}
-                          className="w-16 px-2 py-1 border rounded text-sm"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleWipLimitSave();
-                          }}
-                          className="px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                        >
-                          Set
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">0 = no limit</p>
-                    </div>
+                  {canEditList && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowWipSettings(!showWipSettings);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      >
+                        <AlertTriangle className="h-4 w-4 mr-2" />
+                        Set WIP limit
+                      </button>
+                      {showWipSettings && (
+                        <div className="px-4 py-2">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="number"
+                              min="0"
+                              value={wipLimitValue}
+                              onChange={(e) => setWipLimitValue(e.target.value)}
+                              className="w-16 px-2 py-1 border rounded text-sm"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleWipLimitSave();
+                              }}
+                              className="px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                            >
+                              Set
+                            </button>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">0 = no limit</p>
+                        </div>
+                      )}
+                    </>
                   )}
-                  <hr className="my-1" />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowMenu(false);
-                      onArchiveList(list.id);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive list
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowMenu(false);
-                      if (confirm('Delete this list and all its cards?')) {
-                        onDeleteList(list.id);
-                      }
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete list
-                  </button>
+                  {canDeleteList && (
+                    <>
+                      <hr className="my-1" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowMenu(false);
+                          onArchiveList(list.id);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      >
+                        <Archive className="h-4 w-4 mr-2" />
+                        Archive list
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowMenu(false);
+                          if (confirm('Delete this list and all its cards?')) {
+                            onDeleteList(list.id);
+                          }
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete list
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -2673,7 +2702,7 @@ function SortableList({
                 </button>
               </div>
             </div>
-          ) : (
+          ) : canCreateCard ? (
             <div className="flex items-center gap-1 mb-2">
               <button
                 onClick={() => setAddingCardToList(list.id)}
@@ -2690,7 +2719,7 @@ function SortableList({
                 <LayoutTemplate className="h-4 w-4" />
               </button>
             </div>
-          )}
+          ) : null}
 
           <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
             {useVirtual ? (
@@ -3176,6 +3205,9 @@ function CardDetailModal({
   clients,
   onDepartmentChange,
   onClientChange,
+  canEditCard,
+  canDeleteCard,
+  canMoveCard,
 }: {
   card: Card;
   listTitle: string;
@@ -3193,6 +3225,10 @@ function CardDetailModal({
   clients: TaxonomyTerm[];
   onDepartmentChange: (cardId: string, departmentId: string | null) => Promise<void>;
   onClientChange: (cardId: string, clientId: string | null) => Promise<void>;
+  // Permission checks
+  canEditCard: boolean;
+  canDeleteCard: boolean;
+  canMoveCard: boolean;
 }) {
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description || '');
@@ -6433,24 +6469,28 @@ function CardDetailModal({
               <div>
                 <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Actions</h4>
                 <div className="space-y-1">
-                  <button
-                    onClick={() => onUpdate(card.id, { pinned: !card.pinned })}
-                    className={`w-full px-3 py-2 rounded text-left text-sm flex items-center ${
-                      card.pinned
-                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-700'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                    }`}
-                  >
-                    <Pin className={`h-4 w-4 mr-2 ${card.pinned ? 'fill-current' : ''}`} />
-                    {card.pinned ? 'Unpin from Top' : 'Pin to Top'}
-                  </button>
-                  <button
-                    onClick={handleOpenMoveModal}
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
-                  >
-                    <ArrowRightLeft className="h-4 w-4 mr-2" />
-                    Move
-                  </button>
+                  {canEditCard && (
+                    <button
+                      onClick={() => onUpdate(card.id, { pinned: !card.pinned })}
+                      className={`w-full px-3 py-2 rounded text-left text-sm flex items-center ${
+                        card.pinned
+                          ? 'bg-amber-100 hover:bg-amber-200 text-amber-700'
+                          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      <Pin className={`h-4 w-4 mr-2 ${card.pinned ? 'fill-current' : ''}`} />
+                      {card.pinned ? 'Unpin from Top' : 'Pin to Top'}
+                    </button>
+                  )}
+                  {canMoveCard && (
+                    <button
+                      onClick={handleOpenMoveModal}
+                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
+                    >
+                      <ArrowRightLeft className="h-4 w-4 mr-2" />
+                      Move
+                    </button>
+                  )}
                   <button
                     onClick={onCopy}
                     className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
@@ -6460,30 +6500,34 @@ function CardDetailModal({
                     </svg>
                     Copy
                   </button>
-                  <button
-                    onClick={onArchive}
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive
-                  </button>
-                  <button
-                    onClick={() => {
-                      setTemplateName(card.title + ' Template');
-                      setShowTemplateNameModal(true);
-                    }}
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
-                  >
-                    <LayoutTemplate className="h-4 w-4 mr-2" />
-                    Save as Template
-                  </button>
-                  <button
-                    onClick={onDelete}
-                    className="w-full bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded text-left text-sm flex items-center"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </button>
+                  {canDeleteCard && (
+                    <>
+                      <button
+                        onClick={onArchive}
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
+                      >
+                        <Archive className="h-4 w-4 mr-2" />
+                        Archive
+                      </button>
+                      <button
+                        onClick={() => {
+                          setTemplateName(card.title + ' Template');
+                          setShowTemplateNameModal(true);
+                        }}
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
+                      >
+                        <LayoutTemplate className="h-4 w-4 mr-2" />
+                        Save as Template
+                      </button>
+                      <button
+                        onClick={onDelete}
+                        className="w-full bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded text-left text-sm flex items-center"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

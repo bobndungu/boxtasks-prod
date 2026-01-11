@@ -102,7 +102,7 @@ export async function fetchGlobalRoles(): Promise<WorkspaceRole[]> {
 
   const allRoles = data.map((item: Record<string, unknown>) => transformRole(item));
   // Return only global roles (those without a workspace)
-  return allRoles.filter((role) => role.workspaceId === null);
+  return allRoles.filter((role: WorkspaceRole) => role.workspaceId === null);
 }
 
 // Fetch roles available for a workspace (global + workspace-specific)
@@ -128,7 +128,7 @@ export async function fetchWorkspaceRoles(workspaceId: string): Promise<Workspac
   const allRoles = result.data.map((item: Record<string, unknown>) => transformRole(item));
 
   // Return global roles (no workspace) + workspace-specific roles
-  return allRoles.filter((role) => role.workspaceId === null || role.workspaceId === workspaceId);
+  return allRoles.filter((role: WorkspaceRole) => role.workspaceId === null || role.workspaceId === workspaceId);
 }
 
 // Fetch a single role by ID

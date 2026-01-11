@@ -36,6 +36,7 @@ export interface Card {
   client?: TaxonomyReference;
   createdAt: string;
   updatedAt: string;
+  authorId?: string; // The user who created this card
   // Activity counts for expanded view
   commentCount: number;
   attachmentCount: number;
@@ -144,6 +145,10 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     }
   }
 
+  // Get author ID (node creator)
+  const authorData = rels?.uid?.data;
+  const authorId = authorData && !Array.isArray(authorData) ? authorData.id : undefined;
+
   return {
     id: data.id as string,
     title: attrs.title as string,
@@ -165,6 +170,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     client,
     createdAt: attrs.created as string,
     updatedAt: attrs.changed as string,
+    authorId,
     // Initialize counts to 0 - will be populated when loading board if needed
     commentCount: 0,
     attachmentCount: 0,
