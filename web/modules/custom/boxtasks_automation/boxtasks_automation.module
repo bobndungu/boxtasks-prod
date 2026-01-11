@@ -115,8 +115,8 @@ function _boxtasks_automation_handle_checklist_item_update(NodeInterface $node):
 
   // Check if item was just completed.
   $original = $node->original;
-  $current_completed = (bool) $node->get('field_checklist_item_completed')->value;
-  $original_completed = (bool) $original->get('field_checklist_item_completed')->value;
+  $current_completed = (bool) $node->get('field_item_completed')->value;
+  $original_completed = (bool) $original->get('field_item_completed')->value;
 
   if (!$current_completed || $original_completed) {
     // Item wasn't just completed.
@@ -124,7 +124,7 @@ function _boxtasks_automation_handle_checklist_item_update(NodeInterface $node):
   }
 
   // Get the parent checklist.
-  $checklist_id = $node->get('field_checklist_item_checklist')->target_id;
+  $checklist_id = $node->get('field_item_checklist')->target_id;
   if (!$checklist_id) {
     return;
   }
@@ -137,8 +137,8 @@ function _boxtasks_automation_handle_checklist_item_update(NodeInterface $node):
   // Check if all items in the checklist are now complete.
   $query = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
     ->condition('type', 'checklist_item')
-    ->condition('field_checklist_item_checklist', $checklist_id)
-    ->condition('field_checklist_item_completed', FALSE)
+    ->condition('field_item_checklist', $checklist_id)
+    ->condition('field_item_completed', FALSE)
     ->accessCheck(FALSE);
 
   $incomplete_count = $query->count()->execute();

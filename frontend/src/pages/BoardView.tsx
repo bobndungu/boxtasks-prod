@@ -70,7 +70,7 @@ import { fetchListsByBoard, createList, updateList, deleteList, archiveList, typ
 import { fetchCardsByList, createCard, updateCard, deleteCard, uploadCardCover, removeCardCover, watchCard, unwatchCard, assignMember, unassignMember, type Card, type CardLabel, type CardMember } from '../lib/api/cards';
 import { fetchCommentsByCard, createComment, updateComment, deleteComment, toggleReaction, type CardComment, type ReactionType } from '../lib/api/comments';
 import { fetchAttachmentsByCard, createAttachment, deleteAttachment, formatFileSize, type CardAttachment } from '../lib/api/attachments';
-import { fetchChecklistsByCard, createChecklist, deleteChecklist, createChecklistItem, updateChecklistItem, deleteChecklistItem, type Checklist } from '../lib/api/checklists';
+import { fetchChecklistsByCard, createChecklist, deleteChecklist, createChecklistItem, updateChecklistItem, deleteChecklistItem, countChecklistItems, MAX_NESTING_DEPTH, type Checklist, type ChecklistItem } from '../lib/api/checklists';
 import { fetchActivitiesByCard, fetchActivitiesByBoard, getActivityDisplay, type Activity } from '../lib/api/activities';
 import { createTemplate, fetchTemplates, type CardTemplate, type ChecklistTemplate } from '../lib/api/templates';
 import { createNotification } from '../lib/api/notifications';
@@ -2921,6 +2921,7 @@ function CardDetailModal({
   const [showAddChecklist, setShowAddChecklist] = useState(false);
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const [addingItemToChecklist, setAddingItemToChecklist] = useState<string | null>(null);
+  const [addingSubItemTo, setAddingSubItemTo] = useState<{ checklistId: string; parentId: string } | null>(null);
   const [newItemTitle, setNewItemTitle] = useState('');
   const [editingItemDueDate, setEditingItemDueDate] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -3442,20 +3443,82 @@ function CardDetailModal({
     }
   };
 
-  const handleAddChecklistItem = async (checklistId: string) => {
+  const handleAddChecklistItem = async (checklistId: string, parentId?: string) => {
     if (!newItemTitle.trim()) return;
     try {
       const checklist = checklists.find((c) => c.id === checklistId);
-      const position = checklist?.items.length || 0;
-      const item = await createChecklistItem(checklistId, newItemTitle, position);
+      let position = 0;
+
+      if (parentId && checklist) {
+        // Find parent and count its children
+        const findParent = (items: ChecklistItem[]): ChecklistItem | undefined => {
+          for (const item of items) {
+            if (item.id === parentId) return item;
+            if (item.children?.length) {
+              const found = findParent(item.children);
+              if (found) return found;
+            }
+          }
+          return undefined;
+        };
+        const parent = findParent(checklist.items);
+        position = parent?.children?.length || 0;
+      } else if (checklist) {
+        position = checklist.items.length;
+      }
+
+      const item = await createChecklistItem(checklistId, newItemTitle, position, parentId);
+
+      // Update checklist items with new nested item
+      const addItemToList = (items: ChecklistItem[]): ChecklistItem[] => {
+        if (parentId) {
+          return items.map(i => {
+            if (i.id === parentId) {
+              return { ...i, children: [...(i.children || []), item] };
+            }
+            if (i.children?.length) {
+              return { ...i, children: addItemToList(i.children) };
+            }
+            return i;
+          });
+        }
+        return [...items, item];
+      };
+
       setChecklists(checklists.map((c) =>
-        c.id === checklistId ? { ...c, items: [...c.items, item] } : c
+        c.id === checklistId ? { ...c, items: addItemToList(c.items) } : c
       ));
       setNewItemTitle('');
       setAddingItemToChecklist(null);
+      setAddingSubItemTo(null);
     } catch (err) {
       console.error('Failed to create checklist item:', err);
     }
+  };
+
+  // Helper to recursively update an item in nested structure
+  const updateItemInList = (items: ChecklistItem[], itemId: string, updater: (item: ChecklistItem) => ChecklistItem): ChecklistItem[] => {
+    return items.map((item) => {
+      if (item.id === itemId) {
+        return updater(item);
+      }
+      if (item.children?.length) {
+        return { ...item, children: updateItemInList(item.children, itemId, updater) };
+      }
+      return item;
+    });
+  };
+
+  // Helper to recursively remove an item from nested structure
+  const removeItemFromList = (items: ChecklistItem[], itemId: string): ChecklistItem[] => {
+    return items
+      .filter((item) => item.id !== itemId)
+      .map((item) => {
+        if (item.children?.length) {
+          return { ...item, children: removeItemFromList(item.children, itemId) };
+        }
+        return item;
+      });
   };
 
   const handleToggleChecklistItem = async (checklistId: string, itemId: string, completed: boolean) => {
@@ -3463,7 +3526,7 @@ function CardDetailModal({
       const updated = await updateChecklistItem(itemId, { completed: !completed });
       setChecklists(checklists.map((c) =>
         c.id === checklistId
-          ? { ...c, items: c.items.map((i) => (i.id === itemId ? updated : i)) }
+          ? { ...c, items: updateItemInList(c.items, itemId, () => updated) }
           : c
       ));
     } catch (err) {
@@ -3476,7 +3539,7 @@ function CardDetailModal({
       await deleteChecklistItem(itemId);
       setChecklists(checklists.map((c) =>
         c.id === checklistId
-          ? { ...c, items: c.items.filter((i) => i.id !== itemId) }
+          ? { ...c, items: removeItemFromList(c.items, itemId) }
           : c
       ));
     } catch (err) {
@@ -3489,7 +3552,7 @@ function CardDetailModal({
       await updateChecklistItem(itemId, { dueDate });
       setChecklists(checklists.map((c) =>
         c.id === checklistId
-          ? { ...c, items: c.items.map((i) => i.id === itemId ? { ...i, dueDate: dueDate || undefined } : i) }
+          ? { ...c, items: updateItemInList(c.items, itemId, (item) => ({ ...item, dueDate: dueDate || undefined })) }
           : c
       ));
       setEditingItemDueDate(null);
@@ -3499,9 +3562,13 @@ function CardDetailModal({
   };
 
   const getChecklistProgress = (checklist: Checklist) => {
-    if (checklist.items.length === 0) return 0;
-    const completed = checklist.items.filter((i) => i.completed).length;
-    return Math.round((completed / checklist.items.length) * 100);
+    const { total, completed } = countChecklistItems(checklist.items);
+    if (total === 0) return 0;
+    return Math.round((completed / total) * 100);
+  };
+
+  const getChecklistCounts = (checklist: Checklist) => {
+    return countChecklistItems(checklist.items);
   };
 
   const loadActivities = async () => {
@@ -3851,7 +3918,7 @@ function CardDetailModal({
                           <div className="mb-3">
                             <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                               <span>{getChecklistProgress(checklist)}%</span>
-                              <span>{checklist.items.filter((i) => i.completed).length}/{checklist.items.length}</span>
+                              <span>{getChecklistCounts(checklist).completed}/{getChecklistCounts(checklist).total}</span>
                             </div>
                             <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                               <div
@@ -3862,85 +3929,135 @@ function CardDetailModal({
                           </div>
                         )}
 
-                        {/* Items */}
+                        {/* Items - Recursive renderer */}
                         <div className="space-y-1">
-                          {checklist.items.map((item) => (
-                            <div key={item.id} className="flex items-center group">
-                              <button
-                                onClick={() => handleToggleChecklistItem(checklist.id, item.id, item.completed)}
-                                className={`flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center mr-2 ${
-                                  item.completed
-                                    ? 'bg-blue-600 border-blue-600 text-white'
-                                    : 'border-gray-300 hover:border-blue-500'
-                                }`}
-                              >
-                                {item.completed && <Check className="h-3 w-3" />}
-                              </button>
-                              <span className={`flex-1 text-sm ${item.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-                                {item.title}
-                              </span>
-                              {/* Due date */}
-                              <div className="relative">
-                                {item.dueDate && !editingItemDueDate?.startsWith(item.id) && (
+                          {(function renderItems(items: ChecklistItem[], depth = 0): React.ReactNode {
+                            return items.map((item) => (
+                              <div key={item.id}>
+                                <div
+                                  className="flex items-center group"
+                                  style={{ paddingLeft: `${depth * 24}px` }}
+                                >
                                   <button
-                                    onClick={() => setEditingItemDueDate(`${item.id}-${checklist.id}`)}
-                                    className={`mr-1 text-xs px-1.5 py-0.5 rounded flex items-center ${
-                                      new Date(item.dueDate) < new Date() && !item.completed
-                                        ? 'bg-red-100 text-red-700'
-                                        : item.completed
-                                        ? 'bg-green-100 text-green-700'
-                                        : 'bg-gray-100 text-gray-600'
+                                    onClick={() => handleToggleChecklistItem(checklist.id, item.id, item.completed)}
+                                    className={`flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center mr-2 ${
+                                      item.completed
+                                        ? 'bg-blue-600 border-blue-600 text-white'
+                                        : 'border-gray-300 hover:border-blue-500'
                                     }`}
                                   >
-                                    <Calendar className="h-3 w-3 mr-1" />
-                                    {new Date(item.dueDate).toLocaleDateString()}
+                                    {item.completed && <Check className="h-3 w-3" />}
                                   </button>
-                                )}
-                                {!item.dueDate && (
-                                  <button
-                                    onClick={() => setEditingItemDueDate(`${item.id}-${checklist.id}`)}
-                                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 p-1 mr-1"
-                                    title="Set due date"
-                                  >
-                                    <Calendar className="h-3 w-3" />
-                                  </button>
-                                )}
-                                {editingItemDueDate === `${item.id}-${checklist.id}` && (
-                                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border p-2 z-50">
-                                    <input
-                                      type="date"
-                                      defaultValue={item.dueDate || ''}
-                                      onChange={(e) => handleUpdateChecklistItemDueDate(checklist.id, item.id, e.target.value || null)}
-                                      className="px-2 py-1 border rounded text-sm"
-                                      autoFocus
-                                    />
-                                    <div className="flex justify-between mt-2">
-                                      {item.dueDate && (
-                                        <button
-                                          onClick={() => handleUpdateChecklistItemDueDate(checklist.id, item.id, null)}
-                                          className="text-xs text-red-600 hover:text-red-700"
-                                        >
-                                          Remove
-                                        </button>
-                                      )}
+                                  <span className={`flex-1 text-sm ${item.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                                    {item.title}
+                                  </span>
+                                  {/* Due date */}
+                                  <div className="relative">
+                                    {item.dueDate && !editingItemDueDate?.startsWith(item.id) && (
                                       <button
-                                        onClick={() => setEditingItemDueDate(null)}
-                                        className="text-xs text-gray-500 hover:text-gray-700 ml-auto"
+                                        onClick={() => setEditingItemDueDate(`${item.id}-${checklist.id}`)}
+                                        className={`mr-1 text-xs px-1.5 py-0.5 rounded flex items-center ${
+                                          new Date(item.dueDate) < new Date() && !item.completed
+                                            ? 'bg-red-100 text-red-700'
+                                            : item.completed
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-gray-100 text-gray-600'
+                                        }`}
+                                      >
+                                        <Calendar className="h-3 w-3 mr-1" />
+                                        {new Date(item.dueDate).toLocaleDateString()}
+                                      </button>
+                                    )}
+                                    {!item.dueDate && (
+                                      <button
+                                        onClick={() => setEditingItemDueDate(`${item.id}-${checklist.id}`)}
+                                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 p-1 mr-1"
+                                        title="Set due date"
+                                      >
+                                        <Calendar className="h-3 w-3" />
+                                      </button>
+                                    )}
+                                    {editingItemDueDate === `${item.id}-${checklist.id}` && (
+                                      <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border p-2 z-50">
+                                        <input
+                                          type="date"
+                                          defaultValue={item.dueDate || ''}
+                                          onChange={(e) => handleUpdateChecklistItemDueDate(checklist.id, item.id, e.target.value || null)}
+                                          className="px-2 py-1 border rounded text-sm"
+                                          autoFocus
+                                        />
+                                        <div className="flex justify-between mt-2">
+                                          {item.dueDate && (
+                                            <button
+                                              onClick={() => handleUpdateChecklistItemDueDate(checklist.id, item.id, null)}
+                                              className="text-xs text-red-600 hover:text-red-700"
+                                            >
+                                              Remove
+                                            </button>
+                                          )}
+                                          <button
+                                            onClick={() => setEditingItemDueDate(null)}
+                                            className="text-xs text-gray-500 hover:text-gray-700 ml-auto"
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Add sub-item button (if under max depth) */}
+                                  {depth < MAX_NESTING_DEPTH - 1 && (
+                                    <button
+                                      onClick={() => setAddingSubItemTo({ checklistId: checklist.id, parentId: item.id })}
+                                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-blue-600 p-1"
+                                      title="Add sub-item"
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => handleDeleteChecklistItem(checklist.id, item.id)}
+                                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 p-1"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                                {/* Sub-item input form */}
+                                {addingSubItemTo?.checklistId === checklist.id && addingSubItemTo?.parentId === item.id && (
+                                  <div className="mt-1 mb-2" style={{ paddingLeft: `${(depth + 1) * 24}px` }}>
+                                    <input
+                                      type="text"
+                                      value={newItemTitle}
+                                      onChange={(e) => setNewItemTitle(e.target.value)}
+                                      onKeyDown={(e) => e.key === 'Enter' && handleAddChecklistItem(checklist.id, item.id)}
+                                      placeholder="Add a sub-item..."
+                                      autoFocus
+                                      className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                    <div className="flex space-x-2 mt-1">
+                                      <button
+                                        onClick={() => handleAddChecklistItem(checklist.id, item.id)}
+                                        className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium hover:bg-blue-700"
+                                      >
+                                        Add
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setAddingSubItemTo(null);
+                                          setNewItemTitle('');
+                                        }}
+                                        className="text-gray-600 px-2 py-1 text-xs"
                                       >
                                         Cancel
                                       </button>
                                     </div>
                                   </div>
                                 )}
+                                {/* Render children recursively */}
+                                {item.children && item.children.length > 0 && renderItems(item.children, depth + 1)}
                               </div>
-                              <button
-                                onClick={() => handleDeleteChecklistItem(checklist.id, item.id)}
-                                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 p-1"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
-                          ))}
+                            ));
+                          })(checklist.items)}
                         </div>
 
                         {/* Add item */}

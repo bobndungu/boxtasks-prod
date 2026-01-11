@@ -9,6 +9,8 @@ export interface ChecklistItem {
   completed: boolean;
   position: number;
   dueDate?: string;
+  parentId?: string;
+  children?: ChecklistItem[];
 }
 
 export interface Checklist {
@@ -31,6 +33,8 @@ function transformChecklistItem(data: Record<string, unknown>): ChecklistItem {
     completed: (attrs.field_item_completed as boolean) || false,
     position: (attrs.field_item_position as number) || 0,
     dueDate: attrs.field_item_due_date as string | undefined,
+    parentId: rels?.field_item_parent?.data?.id,
+    children: [],
   };
 }
 
@@ -91,10 +95,38 @@ export async function fetchChecklistsByCard(cardId: string): Promise<Checklist[]
     const itemsResult = await itemsResponse.json();
     const itemsData = itemsResult.data;
     if (Array.isArray(itemsData)) {
-      const items = itemsData.map((item: Record<string, unknown>) => transformChecklistItem(item));
-      // Group items by checklist
+      const allItems = itemsData.map((item: Record<string, unknown>) => transformChecklistItem(item));
+
+      // Build nested structure
+      const itemMap = new Map<string, ChecklistItem>();
+      allItems.forEach(item => itemMap.set(item.id, item));
+
+      // Group items by checklist and build hierarchy
       for (const checklist of checklists) {
-        checklist.items = items.filter((item) => item.checklistId === checklist.id);
+        const checklistItems = allItems.filter((item) => item.checklistId === checklist.id);
+
+        // Build parent-child relationships
+        const rootItems: ChecklistItem[] = [];
+        checklistItems.forEach(item => {
+          if (item.parentId && itemMap.has(item.parentId)) {
+            const parent = itemMap.get(item.parentId)!;
+            if (!parent.children) parent.children = [];
+            parent.children.push(item);
+          } else {
+            rootItems.push(item);
+          }
+        });
+
+        // Sort children by position
+        const sortChildren = (items: ChecklistItem[]) => {
+          items.sort((a, b) => a.position - b.position);
+          items.forEach(item => {
+            if (item.children?.length) sortChildren(item.children);
+          });
+        };
+        sortChildren(rootItems);
+
+        checklist.items = rootItems;
       }
     }
   }
@@ -146,7 +178,24 @@ export async function deleteChecklist(id: string): Promise<void> {
 }
 
 // Create a new checklist item
-export async function createChecklistItem(checklistId: string, title: string, position: number): Promise<ChecklistItem> {
+export async function createChecklistItem(
+  checklistId: string,
+  title: string,
+  position: number,
+  parentId?: string
+): Promise<ChecklistItem> {
+  const relationships: Record<string, unknown> = {
+    field_item_checklist: {
+      data: { type: 'node--checklist', id: checklistId },
+    },
+  };
+
+  if (parentId) {
+    relationships.field_item_parent = {
+      data: { type: 'node--checklist_item', id: parentId },
+    };
+  }
+
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/checklist_item`, {
     method: 'POST',
     headers: {
@@ -161,11 +210,7 @@ export async function createChecklistItem(checklistId: string, title: string, po
           field_item_completed: false,
           field_item_position: position,
         },
-        relationships: {
-          field_item_checklist: {
-            data: { type: 'node--checklist', id: checklistId },
-          },
-        },
+        relationships,
       },
     }),
   });
@@ -221,3 +266,65 @@ export async function deleteChecklistItem(id: string): Promise<void> {
     throw new Error('Failed to delete checklist item');
   }
 }
+
+// Helper: Count all items in a checklist (including nested)
+export function countChecklistItems(items: ChecklistItem[]): { total: number; completed: number } {
+  let total = 0;
+  let completed = 0;
+
+  const countRecursive = (itemList: ChecklistItem[]) => {
+    for (const item of itemList) {
+      total++;
+      if (item.completed) completed++;
+      if (item.children?.length) {
+        countRecursive(item.children);
+      }
+    }
+  };
+
+  countRecursive(items);
+  return { total, completed };
+}
+
+// Helper: Flatten nested items into a single array
+export function flattenChecklistItems(items: ChecklistItem[]): ChecklistItem[] {
+  const result: ChecklistItem[] = [];
+
+  const flatten = (itemList: ChecklistItem[]) => {
+    for (const item of itemList) {
+      result.push(item);
+      if (item.children?.length) {
+        flatten(item.children);
+      }
+    }
+  };
+
+  flatten(items);
+  return result;
+}
+
+// Helper: Find an item by ID in nested structure
+export function findChecklistItem(items: ChecklistItem[], id: string): ChecklistItem | undefined {
+  for (const item of items) {
+    if (item.id === id) return item;
+    if (item.children?.length) {
+      const found = findChecklistItem(item.children, id);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+// Helper: Get max nesting level (for UI display limits)
+export function getMaxNestingLevel(items: ChecklistItem[], currentLevel = 0): number {
+  let maxLevel = currentLevel;
+  for (const item of items) {
+    if (item.children?.length) {
+      maxLevel = Math.max(maxLevel, getMaxNestingLevel(item.children, currentLevel + 1));
+    }
+  }
+  return maxLevel;
+}
+
+// Maximum allowed nesting depth
+export const MAX_NESTING_DEPTH = 3;
