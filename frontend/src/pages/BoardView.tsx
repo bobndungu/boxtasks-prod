@@ -2656,18 +2656,59 @@ function SortableCard({
         </div>
         {(card.startDate || card.dueDate || card.description) && (
           <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-            {card.startDate && (
-              <span className="flex items-center text-blue-600">
-                <Clock className="h-3 w-3 mr-1" />
-                {new Date(card.startDate).toLocaleDateString()}
-              </span>
-            )}
-            {card.dueDate && (
-              <span className={`flex items-center ${card.completed ? 'text-green-600' : ''}`}>
-                <Calendar className="h-3 w-3 mr-1" />
-                {new Date(card.dueDate).toLocaleDateString()}
-              </span>
-            )}
+            {card.startDate && (() => {
+              const startDate = new Date(card.startDate);
+              const hasTime = startDate.getHours() !== 0 || startDate.getMinutes() !== 0;
+              const dateStr = startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+              const timeStr = hasTime ? startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+
+              return (
+                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20">
+                  <Clock className="h-3 w-3" />
+                  <span>{dateStr}</span>
+                  {hasTime && <span className="opacity-75">{timeStr}</span>}
+                </span>
+              );
+            })()}
+            {card.dueDate && (() => {
+              const dueDate = new Date(card.dueDate);
+              const now = new Date();
+              const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+              const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+              const diffDays = Math.floor((dueDateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+              let colorClass = 'text-gray-500 dark:text-gray-400';
+              let bgClass = '';
+
+              if (card.completed) {
+                colorClass = 'text-green-600 dark:text-green-400';
+                bgClass = 'bg-green-50 dark:bg-green-900/20';
+              } else if (diffDays < 0) {
+                // Overdue
+                colorClass = 'text-red-600 dark:text-red-400';
+                bgClass = 'bg-red-50 dark:bg-red-900/20';
+              } else if (diffDays === 0) {
+                // Due today
+                colorClass = 'text-amber-600 dark:text-amber-400';
+                bgClass = 'bg-amber-50 dark:bg-amber-900/20';
+              } else if (diffDays <= 2) {
+                // Due soon (within 2 days)
+                colorClass = 'text-yellow-600 dark:text-yellow-400';
+                bgClass = 'bg-yellow-50 dark:bg-yellow-900/20';
+              }
+
+              const hasTime = dueDate.getHours() !== 0 || dueDate.getMinutes() !== 0;
+              const dateStr = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+              const timeStr = hasTime ? dueDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+
+              return (
+                <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${colorClass} ${bgClass}`}>
+                  <Calendar className="h-3 w-3" />
+                  <span>{dateStr}</span>
+                  {hasTime && <span className="opacity-75">{timeStr}</span>}
+                </span>
+              );
+            })()}
           </div>
         )}
         {/* Member Avatars with Names */}
