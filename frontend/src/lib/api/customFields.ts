@@ -4,6 +4,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
 export type CustomFieldType = 'text' | 'longtext' | 'number' | 'date' | 'dropdown' | 'checkbox' | 'url' | 'email' | 'currency' | 'rating' | 'phone';
 
+export type CustomFieldDisplayLocation = 'main' | 'sidebar';
+
 export interface CustomFieldDefinition {
   id: string;
   title: string;
@@ -12,6 +14,7 @@ export interface CustomFieldDefinition {
   options: string[]; // For dropdown type
   required: boolean;
   position: number;
+  displayLocation: CustomFieldDisplayLocation; // Where the field appears in card modal
 }
 
 export interface CustomFieldValue {
@@ -28,6 +31,7 @@ export interface CreateCustomFieldData {
   options?: string[];
   required?: boolean;
   position?: number;
+  displayLocation?: CustomFieldDisplayLocation;
 }
 
 export interface UpdateCustomFieldData {
@@ -36,6 +40,7 @@ export interface UpdateCustomFieldData {
   options?: string[];
   required?: boolean;
   position?: number;
+  displayLocation?: CustomFieldDisplayLocation;
 }
 
 // Transform JSON:API response to CustomFieldDefinition
@@ -61,6 +66,7 @@ function transformFieldDefinition(data: Record<string, unknown>): CustomFieldDef
     options,
     required: (attrs.field_customfield_required as boolean) || false,
     position: (attrs.field_customfield_position as number) || 0,
+    displayLocation: (attrs.field_cf_display_loc as CustomFieldDisplayLocation) || 'main',
   };
 }
 
@@ -117,6 +123,7 @@ export async function createCustomField(data: CreateCustomFieldData): Promise<Cu
           field_customfield_options: data.options ? { value: JSON.stringify(data.options) } : null,
           field_customfield_required: data.required || false,
           field_customfield_position: data.position || 0,
+          field_cf_display_loc: data.displayLocation || 'main',
         },
         relationships: {
           field_customfield_board: {
@@ -145,6 +152,7 @@ export async function updateCustomField(id: string, data: UpdateCustomFieldData)
   if (data.options !== undefined) attributes.field_customfield_options = { value: JSON.stringify(data.options) };
   if (data.required !== undefined) attributes.field_customfield_required = data.required;
   if (data.position !== undefined) attributes.field_customfield_position = data.position;
+  if (data.displayLocation !== undefined) attributes.field_cf_display_loc = data.displayLocation;
 
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/custom_field_definition/${id}`, {
     method: 'PATCH',

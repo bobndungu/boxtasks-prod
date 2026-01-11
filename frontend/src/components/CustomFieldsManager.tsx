@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   X,
   Plus,
@@ -19,7 +19,30 @@ import {
   DollarSign,
   Star,
   Phone,
+  PanelLeft,
+  PanelRight,
 } from 'lucide-react';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+  type DragOverEvent,
+  useDroppable,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   fetchCustomFieldsByBoard,
   createCustomField,
@@ -27,6 +50,7 @@ import {
   deleteCustomField,
   type CustomFieldDefinition,
   type CustomFieldType,
+  type CustomFieldDisplayLocation,
   type CreateCustomFieldData,
 } from '../lib/api/customFields';
 import { toast } from '../lib/stores/toast';
@@ -65,6 +89,141 @@ const FIELD_TYPE_LABELS: Record<CustomFieldType, string> = {
   phone: 'Phone',
 };
 
+// Sortable field item component
+interface SortableFieldItemProps {
+  field: CustomFieldDefinition;
+  onEdit: (field: CustomFieldDefinition) => void;
+  onDelete: (field: CustomFieldDefinition) => void;
+  isDragging?: boolean;
+}
+
+function SortableFieldItem({ field, onEdit, onDelete, isDragging }: SortableFieldItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id: field.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isSortableDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 p-3 bg-white rounded-lg group border ${
+        isDragging ? 'shadow-lg ring-2 ring-blue-500' : 'shadow-sm hover:shadow-md'
+      } transition-shadow`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+      >
+        <GripVertical className="h-4 w-4 text-gray-400" />
+      </button>
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        {FIELD_TYPE_ICONS[field.type]}
+        <span className="font-medium truncate">{field.title}</span>
+        <span className="text-xs text-gray-500 px-2 py-0.5 bg-gray-100 rounded flex-shrink-0">
+          {FIELD_TYPE_LABELS[field.type]}
+        </span>
+        {field.required && (
+          <span className="text-xs text-red-500 flex-shrink-0">Required</span>
+        )}
+      </div>
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        <button
+          onClick={() => onEdit(field)}
+          className="p-1 hover:bg-gray-200 rounded"
+          title="Edit"
+        >
+          <Edit2 className="h-4 w-4 text-gray-500" />
+        </button>
+        <button
+          onClick={() => onDelete(field)}
+          className="p-1 hover:bg-red-100 rounded"
+          title="Delete"
+        >
+          <Trash2 className="h-4 w-4 text-red-500" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Static field item for drag overlay
+function FieldItemOverlay({ field }: { field: CustomFieldDefinition }) {
+  return (
+    <div className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-xl ring-2 ring-blue-500 border">
+      <GripVertical className="h-4 w-4 text-gray-400" />
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        {FIELD_TYPE_ICONS[field.type]}
+        <span className="font-medium truncate">{field.title}</span>
+        <span className="text-xs text-gray-500 px-2 py-0.5 bg-gray-100 rounded">
+          {FIELD_TYPE_LABELS[field.type]}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Droppable section component
+interface DroppableSectionProps {
+  id: CustomFieldDisplayLocation;
+  title: string;
+  icon: React.ReactNode;
+  fields: CustomFieldDefinition[];
+  onEdit: (field: CustomFieldDefinition) => void;
+  onDelete: (field: CustomFieldDefinition) => void;
+  isOver?: boolean;
+}
+
+function DroppableSection({ id, title, icon, fields, onEdit, onDelete, isOver }: DroppableSectionProps) {
+  const { setNodeRef } = useDroppable({ id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`p-3 rounded-lg border-2 border-dashed transition-colors ${
+        isOver
+          ? 'border-blue-500 bg-blue-50'
+          : 'border-gray-200 bg-gray-50'
+      }`}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        {icon}
+        <h4 className="font-medium text-sm text-gray-700">{title}</h4>
+        <span className="text-xs text-gray-500">({fields.length})</span>
+      </div>
+      <SortableContext items={fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
+        <div className="space-y-2 min-h-[60px]">
+          {fields.length === 0 ? (
+            <p className="text-xs text-gray-400 text-center py-4">
+              Drag fields here
+            </p>
+          ) : (
+            fields.map((field) => (
+              <SortableFieldItem
+                key={field.id}
+                field={field}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ))
+          )}
+        </div>
+      </SortableContext>
+    </div>
+  );
+}
+
 export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsManagerProps) {
   const [fields, setFields] = useState<CustomFieldDefinition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,6 +237,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
   const [newFieldOptions, setNewFieldOptions] = useState<string[]>([]);
   const [newFieldRequired, setNewFieldRequired] = useState(false);
   const [newOptionInput, setNewOptionInput] = useState('');
+  const [newFieldDisplayLocation, setNewFieldDisplayLocation] = useState<CustomFieldDisplayLocation>('main');
 
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -85,6 +245,37 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
   const [editOptions, setEditOptions] = useState<string[]>([]);
   const [editRequired, setEditRequired] = useState(false);
   const [editOptionInput, setEditOptionInput] = useState('');
+  const [editDisplayLocation, setEditDisplayLocation] = useState<CustomFieldDisplayLocation>('main');
+
+  // Drag and drop state
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overSectionId, setOverSectionId] = useState<CustomFieldDisplayLocation | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Split fields by display location
+  const mainFields = useMemo(
+    () => fields.filter(f => f.displayLocation === 'main' || !f.displayLocation).sort((a, b) => a.position - b.position),
+    [fields]
+  );
+  const sidebarFields = useMemo(
+    () => fields.filter(f => f.displayLocation === 'sidebar').sort((a, b) => a.position - b.position),
+    [fields]
+  );
+
+  const activeField = useMemo(
+    () => fields.find(f => f.id === activeId),
+    [fields, activeId]
+  );
 
   useEffect(() => {
     if (isOpen && boardId) {
@@ -125,6 +316,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
         options: newFieldType === 'dropdown' ? newFieldOptions : undefined,
         required: newFieldRequired,
         position: fields.length,
+        displayLocation: newFieldDisplayLocation,
       };
 
       const newField = await createCustomField(data);
@@ -137,6 +329,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
       setNewFieldType('text');
       setNewFieldOptions([]);
       setNewFieldRequired(false);
+      setNewFieldDisplayLocation('main');
     } catch (error) {
       console.error('Failed to create custom field:', error);
       toast.error('Failed to create custom field');
@@ -151,6 +344,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
     setEditType(field.type);
     setEditOptions(field.options || []);
     setEditRequired(field.required);
+    setEditDisplayLocation(field.displayLocation || 'main');
   };
 
   const handleSaveEdit = async () => {
@@ -171,6 +365,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
         type: editType,
         options: editType === 'dropdown' ? editOptions : undefined,
         required: editRequired,
+        displayLocation: editDisplayLocation,
       });
 
       setFields(fields.map((f) => (f.id === editingField.id ? updated : f)));
@@ -219,6 +414,117 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
     setEditOptions(editOptions.filter((o) => o !== option));
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    if (!over) {
+      setOverSectionId(null);
+      return;
+    }
+
+    // Check if over a section directly
+    if (over.id === 'main' || over.id === 'sidebar') {
+      setOverSectionId(over.id as CustomFieldDisplayLocation);
+      return;
+    }
+
+    // Check if over a field - find which section it belongs to
+    const overField = fields.find(f => f.id === over.id);
+    if (overField) {
+      const section = overField.displayLocation === 'sidebar' ? 'sidebar' : 'main';
+      setOverSectionId(section);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    setOverSectionId(null);
+
+    if (!over) return;
+
+    const activeField = fields.find(f => f.id === active.id);
+    if (!activeField) return;
+
+    // Determine the target section
+    let targetSection: CustomFieldDisplayLocation;
+    let targetIndex: number;
+
+    if (over.id === 'main' || over.id === 'sidebar') {
+      // Dropped on a section directly (empty area)
+      targetSection = over.id as CustomFieldDisplayLocation;
+      targetIndex = targetSection === 'main' ? mainFields.length : sidebarFields.length;
+    } else {
+      // Dropped on another field
+      const overField = fields.find(f => f.id === over.id);
+      if (!overField) return;
+
+      targetSection = overField.displayLocation === 'sidebar' ? 'sidebar' : 'main';
+      const targetList = targetSection === 'main' ? mainFields : sidebarFields;
+      targetIndex = targetList.findIndex(f => f.id === over.id);
+    }
+
+    const currentSection = activeField.displayLocation === 'sidebar' ? 'sidebar' : 'main';
+
+    // If moving within the same section
+    if (currentSection === targetSection) {
+      const currentList = targetSection === 'main' ? mainFields : sidebarFields;
+      const oldIndex = currentList.findIndex(f => f.id === active.id);
+
+      if (oldIndex !== targetIndex && oldIndex !== -1) {
+        const newList = arrayMove(currentList, oldIndex, targetIndex);
+
+        // Update positions locally first for instant feedback
+        const updatedFields = fields.map(f => {
+          const newIndex = newList.findIndex(nf => nf.id === f.id);
+          if (newIndex !== -1) {
+            return { ...f, position: newIndex };
+          }
+          return f;
+        });
+        setFields(updatedFields);
+
+        // Persist to backend
+        try {
+          await updateCustomField(activeField.id, { position: targetIndex });
+        } catch (error) {
+          console.error('Failed to update field position:', error);
+          toast.error('Failed to reorder field');
+          loadFields(); // Reload to restore correct state
+        }
+      }
+    } else {
+      // Moving to a different section
+      const newDisplayLocation = targetSection;
+
+      // Update locally first
+      const updatedFields = fields.map(f => {
+        if (f.id === activeField.id) {
+          return { ...f, displayLocation: newDisplayLocation, position: targetIndex };
+        }
+        return f;
+      });
+      setFields(updatedFields);
+
+      // Persist to backend
+      try {
+        await updateCustomField(activeField.id, {
+          displayLocation: newDisplayLocation,
+          position: targetIndex,
+        });
+        toast.success(`Moved "${activeField.title}" to ${newDisplayLocation === 'main' ? 'Main Content' : 'Sidebar'}`);
+      } catch (error) {
+        console.error('Failed to move field:', error);
+        toast.error('Failed to move field');
+        loadFields(); // Reload to restore correct state
+      }
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -246,48 +552,52 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Existing Fields */}
+              {/* Drag and Drop Fields */}
               {fields.length === 0 && !showNewForm ? (
                 <p className="text-gray-500 text-center py-4">
                   No custom fields yet. Create one to add extra data to cards.
                 </p>
               ) : (
-                <div className="space-y-2">
-                  {fields.map((field) => (
-                    <div
-                      key={field.id}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group"
-                    >
-                      <GripVertical className="h-4 w-4 text-gray-300" />
-                      <div className="flex items-center gap-2 flex-1">
-                        {FIELD_TYPE_ICONS[field.type]}
-                        <span className="font-medium">{field.title}</span>
-                        <span className="text-xs text-gray-500 px-2 py-0.5 bg-gray-200 rounded">
-                          {FIELD_TYPE_LABELS[field.type]}
-                        </span>
-                        {field.required && (
-                          <span className="text-xs text-red-500">Required</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => handleStartEdit(field)}
-                          className="p-1 hover:bg-gray-200 rounded"
-                          title="Edit"
-                        >
-                          <Edit2 className="h-4 w-4 text-gray-500" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteField(field)}
-                          className="p-1 hover:bg-red-100 rounded"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div className="space-y-4">
+                    <p className="text-xs text-gray-500 text-center">
+                      Drag fields between sections to change where they appear on cards
+                    </p>
+
+                    {/* Main Content Section */}
+                    <DroppableSection
+                      id="main"
+                      title="Main Content"
+                      icon={<PanelLeft className="h-4 w-4 text-blue-600" />}
+                      fields={mainFields}
+                      onEdit={handleStartEdit}
+                      onDelete={handleDeleteField}
+                      isOver={overSectionId === 'main'}
+                    />
+
+                    {/* Sidebar Section */}
+                    <DroppableSection
+                      id="sidebar"
+                      title="Sidebar"
+                      icon={<PanelRight className="h-4 w-4 text-purple-600" />}
+                      fields={sidebarFields}
+                      onEdit={handleStartEdit}
+                      onDelete={handleDeleteField}
+                      isOver={overSectionId === 'sidebar'}
+                    />
+                  </div>
+
+                  {/* Drag overlay */}
+                  <DragOverlay>
+                    {activeField ? <FieldItemOverlay field={activeField} /> : null}
+                  </DragOverlay>
+                </DndContext>
               )}
 
               {/* Edit Field Form */}
@@ -361,6 +671,36 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
                         </div>
                       </div>
                     )}
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Display Location</label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditDisplayLocation('main')}
+                          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border transition-colors ${
+                            editDisplayLocation === 'main'
+                              ? 'bg-blue-50 border-blue-500 text-blue-700'
+                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <PanelLeft className="h-4 w-4" />
+                          Main Content
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditDisplayLocation('sidebar')}
+                          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border transition-colors ${
+                            editDisplayLocation === 'sidebar'
+                              ? 'bg-purple-50 border-purple-500 text-purple-700'
+                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <PanelRight className="h-4 w-4" />
+                          Sidebar
+                        </button>
+                      </div>
+                    </div>
 
                     <label className="flex items-center gap-2">
                       <input
@@ -463,6 +803,36 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
                       </div>
                     )}
 
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Display Location</label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setNewFieldDisplayLocation('main')}
+                          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border transition-colors ${
+                            newFieldDisplayLocation === 'main'
+                              ? 'bg-blue-50 border-blue-500 text-blue-700'
+                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <PanelLeft className="h-4 w-4" />
+                          Main Content
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewFieldDisplayLocation('sidebar')}
+                          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border transition-colors ${
+                            newFieldDisplayLocation === 'sidebar'
+                              ? 'bg-purple-50 border-purple-500 text-purple-700'
+                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <PanelRight className="h-4 w-4" />
+                          Sidebar
+                        </button>
+                      </div>
+                    </div>
+
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -481,6 +851,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
                           setNewFieldType('text');
                           setNewFieldOptions([]);
                           setNewFieldRequired(false);
+                          setNewFieldDisplayLocation('main');
                         }}
                         className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
                       >

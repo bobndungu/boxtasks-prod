@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cf_display_loc
+    - node.type.custom_field_definition
+  module:
+    - options
+id: node.custom_field_definition.field_cf_display_loc
+field_name: field_cf_display_loc
+entity_type: node
+bundle: custom_field_definition
+label: 'Display Location'
+description: 'Where the custom field appears in the card modal (main content area or sidebar)'
+required: false
+translatable: false
+default_value:
+  - value: main
+default_value_callback: ''
+settings: {  }
+field_type: list_string
