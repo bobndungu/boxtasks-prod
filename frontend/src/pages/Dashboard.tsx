@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Layout,
   Plus,
@@ -13,17 +13,24 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
+import { useBoardStore } from '../lib/stores/board';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
 import SearchModal from '../components/SearchModal';
 import NotificationDropdown from '../components/NotificationDropdown';
 import MobileNav, { MobileBottomNav } from '../components/MobileNav';
 import { useIsMobile } from '../lib/hooks/useMediaQuery';
 import { ThemeToggle } from '../components/ThemeToggle';
+import CreateBoardModal from '../components/CreateBoardModal';
 
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
   const { workspaces } = useWorkspaceStore();
+  const { addBoard, starredBoards, recentBoards } = useBoardStore();
+  const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
+  const [showCreateBoardModal, setShowCreateBoardModal] = useState(false);
+  const [showRecentDropdown, setShowRecentDropdown] = useState(false);
+  const [showStarredDropdown, setShowStarredDropdown] = useState(false);
   const isMobile = useIsMobile();
 
   // Keyboard shortcut for search (Cmd+K or Ctrl+K)
@@ -59,15 +66,108 @@ export default function Dashboard() {
               </Link>
               <nav id="main-navigation" className="hidden md:flex items-center space-x-1" aria-label="Main navigation">
                 <WorkspaceSwitcher />
-                <button className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" aria-haspopup="menu" aria-expanded="false">
-                  Recent
-                  <ChevronDown className="h-4 w-4 ml-1" aria-hidden="true" />
-                </button>
-                <button className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" aria-haspopup="menu" aria-expanded="false">
-                  Starred
-                  <ChevronDown className="h-4 w-4 ml-1" aria-hidden="true" />
-                </button>
-                <button className="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 flex items-center" aria-label="Create new board or workspace">
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowRecentDropdown(!showRecentDropdown);
+                      setShowStarredDropdown(false);
+                    }}
+                    className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                    aria-haspopup="menu"
+                    aria-expanded={showRecentDropdown}
+                  >
+                    Recent
+                    <ChevronDown className="h-4 w-4 ml-1" aria-hidden="true" />
+                  </button>
+                  {showRecentDropdown && (
+                    <div className="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                      <div className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                        Recently Viewed
+                      </div>
+                      {recentBoards.length === 0 ? (
+                        <div className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+                          <Clock className="h-8 w-8 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+                          No recent boards
+                        </div>
+                      ) : (
+                        <div className="max-h-64 overflow-y-auto">
+                          {recentBoards.slice(0, 5).map((board) => (
+                            <button
+                              key={board.id}
+                              onClick={() => {
+                                navigate(`/board/${board.id}`);
+                                setShowRecentDropdown(false);
+                              }}
+                              className="w-full px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center"
+                            >
+                              <div
+                                className="w-8 h-6 rounded mr-3 flex-shrink-0"
+                                style={{ backgroundColor: board.background || '#0079BF' }}
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-200 truncate">
+                                {board.title}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowStarredDropdown(!showStarredDropdown);
+                      setShowRecentDropdown(false);
+                    }}
+                    className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                    aria-haspopup="menu"
+                    aria-expanded={showStarredDropdown}
+                  >
+                    Starred
+                    <ChevronDown className="h-4 w-4 ml-1" aria-hidden="true" />
+                  </button>
+                  {showStarredDropdown && (
+                    <div className="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                      <div className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                        Starred Boards
+                      </div>
+                      {starredBoards.length === 0 ? (
+                        <div className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+                          <Star className="h-8 w-8 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+                          No starred boards
+                        </div>
+                      ) : (
+                        <div className="max-h-64 overflow-y-auto">
+                          {starredBoards.map((board) => (
+                            <button
+                              key={board.id}
+                              onClick={() => {
+                                navigate(`/board/${board.id}`);
+                                setShowStarredDropdown(false);
+                              }}
+                              className="w-full px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center"
+                            >
+                              <div
+                                className="w-8 h-6 rounded mr-3 flex-shrink-0"
+                                style={{ backgroundColor: board.background || '#0079BF' }}
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-200 truncate">
+                                {board.title}
+                              </span>
+                              <Star className="h-4 w-4 ml-auto text-yellow-500 flex-shrink-0" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowCreateBoardModal(true)}
+                  className="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 flex items-center"
+                  aria-label="Create new board or workspace"
+                >
                   <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
                   Create
                 </button>
@@ -151,7 +251,10 @@ export default function Dashboard() {
               <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
                 <Clock className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                 <p className="text-gray-500 dark:text-gray-400 mb-4">No recently viewed boards yet</p>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                <button
+                  onClick={() => setShowCreateBoardModal(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
                   Create your first board
                 </button>
               </div>
@@ -223,10 +326,13 @@ export default function Dashboard() {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h2>
               <ul className="space-y-3">
                 <li>
-                  <a href="#" className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                  <button
+                    onClick={() => setShowCreateBoardModal(true)}
+                    className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 w-full text-left"
+                  >
                     <Layout className="h-4 w-4 mr-3" />
                     Create a board
-                  </a>
+                  </button>
                 </li>
                 <li>
                   <a href="#" className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
@@ -263,6 +369,18 @@ export default function Dashboard() {
 
       {/* Search Modal */}
       <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
+
+      {/* Create Board Modal */}
+      {showCreateBoardModal && (
+        <CreateBoardModal
+          onClose={() => setShowCreateBoardModal(false)}
+          onCreate={(board) => {
+            addBoard(board);
+            setShowCreateBoardModal(false);
+            navigate(`/board/${board.id}`);
+          }}
+        />
+      )}
     </div>
   );
 }

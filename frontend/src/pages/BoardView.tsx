@@ -61,6 +61,9 @@ import {
   User,
   Settings,
   Zap,
+  Link2,
+  Copy,
+  ExternalLink,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { fetchBoard, updateBoard, toggleBoardStar, fetchAllBoards, type Board } from '../lib/api/boards';
@@ -133,6 +136,7 @@ export default function BoardView() {
   const [collapsedLists, setCollapsedLists] = useState<Set<string>>(new Set());
   const [isLoadingBoardActivities, setIsLoadingBoardActivities] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -430,12 +434,35 @@ export default function BoardView() {
     onListCreated: (listData) => {
       const list = listData as BoardList;
       setLists((prev) => {
-        if (!prev.some((l) => l.id === list.id)) {
-          return [...prev, list];
+        // Check if real ID already exists
+        if (prev.some((l) => l.id === list.id)) {
+          return prev;
         }
-        return prev;
+        // Check if there's a temp list with matching title that should be replaced
+        const tempListIndex = prev.findIndex(
+          (l) => l.id.startsWith('temp_list_') && l.title === list.title
+        );
+        if (tempListIndex !== -1) {
+          // Replace temp list with real list
+          const updated = [...prev];
+          updated[tempListIndex] = list;
+          return updated;
+        }
+        // No temp list found, add the new list
+        return [...prev, list];
       });
       setCardsByList((prev) => {
+        // Check if there's a temp list entry that should be replaced
+        const tempEntry = Array.from(prev.entries()).find(
+          ([key]) => key.startsWith('temp_list_')
+        );
+        if (tempEntry && !prev.has(list.id)) {
+          const newMap = new Map(prev);
+          const cards = tempEntry[1];
+          newMap.delete(tempEntry[0]);
+          newMap.set(list.id, cards);
+          return newMap;
+        }
         if (!prev.has(list.id)) {
           const newMap = new Map(prev);
           newMap.set(list.id, []);
@@ -1397,10 +1424,60 @@ export default function BoardView() {
                   My Cards
                 </button>
               )}
-              <button className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded flex items-center text-sm">
-                <Users className="h-4 w-4 mr-2" />
-                Share
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowShareDropdown(!showShareDropdown)}
+                  className={`px-3 py-1.5 rounded flex items-center text-sm ${
+                    showShareDropdown ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Share
+                </button>
+                {showShareDropdown && (
+                  <div className="absolute top-full right-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                    <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                      <h3 className="font-medium text-gray-900 dark:text-white text-sm">Share Board</h3>
+                    </div>
+                    <div className="p-3 space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                          Board Link
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            value={window.location.href}
+                            className="flex-1 text-sm px-2 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-gray-700 dark:text-gray-200"
+                          />
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(window.location.href);
+                              toast.success('Link copied to clipboard');
+                              setShowShareDropdown(false);
+                            }}
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                            title="Copy link"
+                          >
+                            <Copy className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                          </button>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          window.open(window.location.href, '_blank');
+                          setShowShareDropdown(false);
+                        }}
+                        className="w-full flex items-center px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2 text-gray-400" />
+                        Open in new tab
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <button
                 onClick={toggleActivitySidebar}
                 className={`px-3 py-1.5 rounded flex items-center text-sm ${
@@ -2715,7 +2792,7 @@ function CardDetailModal({
   // Watch state
   const { user: currentUser } = useAuthStore();
   const [isWatching, setIsWatching] = useState(
-    currentUser ? card.watcherIds.includes(currentUser.id) : false
+    currentUser && card.watcherIds ? card.watcherIds.includes(currentUser.id) : false
   );
   const [isTogglingWatch, setIsTogglingWatch] = useState(false);
 
@@ -3349,9 +3426,10 @@ function CardDetailModal({
   };
 
   const toggleLabel = (label: CardLabel) => {
-    const newLabels = card.labels.includes(label)
-      ? card.labels.filter((l) => l !== label)
-      : [...card.labels, label];
+    const currentLabels = card.labels || [];
+    const newLabels = currentLabels.includes(label)
+      ? currentLabels.filter((l) => l !== label)
+      : [...currentLabels, label];
     onUpdate(card.id, { labels: newLabels });
   };
 
@@ -3992,13 +4070,13 @@ function CardDetailModal({
                               key={reaction.type}
                               onClick={() => handleToggleReaction(comment.id, reaction.type)}
                               className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border ${
-                                currentUser && reaction.userIds.includes(currentUser.id)
+                                currentUser && (reaction.userIds || []).includes(currentUser.id)
                                   ? 'bg-blue-50 border-blue-300'
                                   : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                               }`}
                             >
                               <span className="mr-1">{reaction.type}</span>
-                              <span className="text-gray-600">{reaction.userIds.length}</span>
+                              <span className="text-gray-600">{(reaction.userIds || []).length}</span>
                             </button>
                           ))}
 
@@ -4236,7 +4314,7 @@ function CardDetailModal({
                       key={label}
                       onClick={() => toggleLabel(label)}
                       className={`w-8 h-6 rounded ${
-                        card.labels.includes(label) ? 'ring-2 ring-offset-1 ring-gray-600' : ''
+                        (card.labels || []).includes(label) ? 'ring-2 ring-offset-1 ring-gray-600' : ''
                       }`}
                       style={{ backgroundColor: LABEL_COLORS[label] }}
                     />
