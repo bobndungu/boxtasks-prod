@@ -61,7 +61,6 @@ import {
   User,
   Settings,
   Zap,
-  Link2,
   Copy,
   ExternalLink,
 } from 'lucide-react';
@@ -2695,11 +2694,38 @@ function SortableCard({
               if (!fieldDef || !cfv.value) return null;
 
               // Format value based on type
-              let displayValue = cfv.value;
+              let displayValue: React.ReactNode = cfv.value;
               if (fieldDef.type === 'date' && cfv.value) {
                 displayValue = new Date(cfv.value).toLocaleDateString();
               } else if (fieldDef.type === 'checkbox') {
                 displayValue = cfv.value === 'true' ? 'Yes' : 'No';
+              } else if (fieldDef.type === 'currency' && cfv.value) {
+                displayValue = `$${parseFloat(cfv.value).toFixed(2)}`;
+              } else if (fieldDef.type === 'rating' && cfv.value) {
+                const rating = parseInt(cfv.value);
+                displayValue = (
+                  <span className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <svg
+                        key={star}
+                        className={`w-3 h-3 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </span>
+                );
+              } else if (fieldDef.type === 'longtext' && cfv.value) {
+                displayValue = cfv.value.length > 30 ? cfv.value.substring(0, 30) + '...' : cfv.value;
+              } else if (fieldDef.type === 'url' && cfv.value) {
+                try {
+                  const url = new URL(cfv.value);
+                  displayValue = url.hostname;
+                } catch {
+                  displayValue = cfv.value;
+                }
               }
 
               return (
@@ -4479,6 +4505,150 @@ function CardDetailModal({
                               />
                               <span className="text-sm text-gray-700">{fieldDef.title}</span>
                             </label>
+                          )}
+
+                          {fieldDef.type === 'longtext' && (
+                            <textarea
+                              value={currentValue}
+                              onChange={(e) => {
+                                setCustomFieldValueMap((prev) => {
+                                  const newMap = new Map(prev);
+                                  newMap.set(fieldDef.id, e.target.value);
+                                  return newMap;
+                                });
+                              }}
+                              onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
+                              disabled={isSavingCustomField}
+                              rows={3}
+                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500 resize-y"
+                              placeholder={`Enter ${fieldDef.title.toLowerCase()}`}
+                            />
+                          )}
+
+                          {fieldDef.type === 'url' && (
+                            <input
+                              type="url"
+                              value={currentValue}
+                              onChange={(e) => {
+                                setCustomFieldValueMap((prev) => {
+                                  const newMap = new Map(prev);
+                                  newMap.set(fieldDef.id, e.target.value);
+                                  return newMap;
+                                });
+                              }}
+                              onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
+                              disabled={isSavingCustomField}
+                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                              placeholder="https://example.com"
+                            />
+                          )}
+
+                          {fieldDef.type === 'email' && (
+                            <input
+                              type="email"
+                              value={currentValue}
+                              onChange={(e) => {
+                                setCustomFieldValueMap((prev) => {
+                                  const newMap = new Map(prev);
+                                  newMap.set(fieldDef.id, e.target.value);
+                                  return newMap;
+                                });
+                              }}
+                              onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
+                              disabled={isSavingCustomField}
+                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                              placeholder="email@example.com"
+                            />
+                          )}
+
+                          {fieldDef.type === 'currency' && (
+                            <div className="relative">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={currentValue}
+                                onChange={(e) => {
+                                  setCustomFieldValueMap((prev) => {
+                                    const newMap = new Map(prev);
+                                    newMap.set(fieldDef.id, e.target.value);
+                                    return newMap;
+                                  });
+                                }}
+                                onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
+                                disabled={isSavingCustomField}
+                                className="w-full pl-6 pr-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                                placeholder="0.00"
+                              />
+                            </div>
+                          )}
+
+                          {fieldDef.type === 'rating' && (
+                            <div className="flex items-center gap-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  type="button"
+                                  onClick={() => {
+                                    const newValue = star.toString();
+                                    setCustomFieldValueMap((prev) => {
+                                      const newMap = new Map(prev);
+                                      newMap.set(fieldDef.id, newValue);
+                                      return newMap;
+                                    });
+                                    handleCustomFieldChange(fieldDef.id, newValue);
+                                  }}
+                                  disabled={isSavingCustomField}
+                                  className="p-0.5 hover:scale-110 transition-transform disabled:opacity-50"
+                                >
+                                  <svg
+                                    className={`w-5 h-5 ${
+                                      parseInt(currentValue || '0') >= star
+                                        ? 'text-yellow-400 fill-yellow-400'
+                                        : 'text-gray-300'
+                                    }`}
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                  >
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                  </svg>
+                                </button>
+                              ))}
+                              {currentValue && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCustomFieldValueMap((prev) => {
+                                      const newMap = new Map(prev);
+                                      newMap.set(fieldDef.id, '');
+                                      return newMap;
+                                    });
+                                    handleCustomFieldChange(fieldDef.id, '');
+                                  }}
+                                  className="ml-2 text-xs text-gray-400 hover:text-gray-600"
+                                >
+                                  Clear
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {fieldDef.type === 'phone' && (
+                            <input
+                              type="tel"
+                              value={currentValue}
+                              onChange={(e) => {
+                                setCustomFieldValueMap((prev) => {
+                                  const newMap = new Map(prev);
+                                  newMap.set(fieldDef.id, e.target.value);
+                                  return newMap;
+                                });
+                              }}
+                              onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
+                              disabled={isSavingCustomField}
+                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                              placeholder="+1 (555) 000-0000"
+                            />
                           )}
                         </div>
                       );

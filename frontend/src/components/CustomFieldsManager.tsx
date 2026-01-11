@@ -13,6 +13,12 @@ import {
   Calendar,
   List,
   CheckSquare,
+  AlignLeft,
+  Link,
+  Mail,
+  DollarSign,
+  Star,
+  Phone,
 } from 'lucide-react';
 import {
   fetchCustomFieldsByBoard,
@@ -33,18 +39,30 @@ interface CustomFieldsManagerProps {
 
 const FIELD_TYPE_ICONS: Record<CustomFieldType, React.ReactNode> = {
   text: <Type className="h-4 w-4" />,
+  longtext: <AlignLeft className="h-4 w-4" />,
   number: <Hash className="h-4 w-4" />,
   date: <Calendar className="h-4 w-4" />,
   dropdown: <List className="h-4 w-4" />,
   checkbox: <CheckSquare className="h-4 w-4" />,
+  url: <Link className="h-4 w-4" />,
+  email: <Mail className="h-4 w-4" />,
+  currency: <DollarSign className="h-4 w-4" />,
+  rating: <Star className="h-4 w-4" />,
+  phone: <Phone className="h-4 w-4" />,
 };
 
 const FIELD_TYPE_LABELS: Record<CustomFieldType, string> = {
   text: 'Text',
+  longtext: 'Long Text',
   number: 'Number',
   date: 'Date',
   dropdown: 'Dropdown',
   checkbox: 'Checkbox',
+  url: 'URL',
+  email: 'Email',
+  currency: 'Currency',
+  rating: 'Rating',
+  phone: 'Phone',
 };
 
 export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsManagerProps) {

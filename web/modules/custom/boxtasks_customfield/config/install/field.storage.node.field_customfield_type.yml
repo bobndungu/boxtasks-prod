@@ -11,10 +11,16 @@ type: list_string
 settings:
   allowed_values:
     - { value: text, label: Text }
+    - { value: longtext, label: 'Long Text' }
     - { value: number, label: Number }
     - { value: date, label: Date }
     - { value: dropdown, label: Dropdown }
     - { value: checkbox, label: Checkbox }
+    - { value: url, label: URL }
+    - { value: email, label: Email }
+    - { value: currency, label: Currency }
+    - { value: rating, label: Rating }
+    - { value: phone, label: Phone }
   allowed_values_function: ''
 module: options
 locked: false

@@ -11,10 +11,11 @@ interface BoardMembersModalProps {
 }
 
 export default function BoardMembersModal({
-  boardId,
+  boardId: _boardId,
   workspaceId,
   onClose,
 }: BoardMembersModalProps) {
+  void _boardId; // Used for future board-specific member filtering
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

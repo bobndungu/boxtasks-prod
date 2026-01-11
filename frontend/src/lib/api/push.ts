@@ -1,4 +1,4 @@
-import { getAccessToken, fetchWithCsrf } from './client';
+import { fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 

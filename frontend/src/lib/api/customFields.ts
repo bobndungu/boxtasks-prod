@@ -2,7 +2,7 @@ import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
-export type CustomFieldType = 'text' | 'number' | 'date' | 'dropdown' | 'checkbox';
+export type CustomFieldType = 'text' | 'longtext' | 'number' | 'date' | 'dropdown' | 'checkbox' | 'url' | 'email' | 'currency' | 'rating' | 'phone';
 
 export interface CustomFieldDefinition {
   id: string;

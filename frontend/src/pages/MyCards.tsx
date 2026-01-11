@@ -9,7 +9,6 @@ import {
 } from '../lib/api/globalViews';
 import {
   User,
-  Calendar,
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -20,7 +19,7 @@ import {
 } from 'lucide-react';
 
 function MyCards() {
-  const { user } = useAuthStore();
+  useAuthStore();
   const [cards, setCards] = useState<GlobalCard[]>([]);
   const [stats, setStats] = useState<MyCardsStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -114,13 +113,14 @@ function MyCards() {
     });
   };
 
-  const tabs = [
+  type TabId = 'all' | 'overdue' | 'today' | 'week' | 'completed';
+  const tabs: Array<{ id: TabId; label: string; count: number | undefined; color?: string }> = [
     { id: 'all', label: 'All', count: stats?.total },
     { id: 'overdue', label: 'Overdue', count: stats?.overdue, color: 'text-red-600' },
     { id: 'today', label: 'Today', count: stats?.dueToday, color: 'text-amber-600' },
     { id: 'week', label: 'This Week', count: stats?.dueThisWeek, color: 'text-blue-600' },
     { id: 'completed', label: 'Completed', count: stats?.completed, color: 'text-green-600' },
-  ] as const;
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

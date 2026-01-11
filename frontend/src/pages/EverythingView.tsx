@@ -8,7 +8,7 @@ import {
   type BoardRef,
   type WorkspaceRef
 } from '../lib/api/globalViews';
-import { Layers, Calendar, CheckCircle2, Clock, Filter, SortAsc, SortDesc, ChevronDown, ExternalLink } from 'lucide-react';
+import { Layers, CheckCircle2, Clock, Filter, SortAsc, SortDesc, ChevronDown, ExternalLink } from 'lucide-react';
 
 interface GroupedCards {
   [workspaceId: string]: {
@@ -23,7 +23,7 @@ interface GroupedCards {
 }
 
 function EverythingView() {
-  const { user } = useAuthStore();
+  useAuthStore();
   const [cards, setCards] = useState<GlobalCard[]>([]);
   const [boards, setBoards] = useState<BoardRef[]>([]);
   const [workspaces, setWorkspaces] = useState<WorkspaceRef[]>([]);
