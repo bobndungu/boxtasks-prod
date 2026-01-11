@@ -4048,9 +4048,9 @@ function CardDetailModal({
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
-            {/* Main Content */}
-            <div className="col-span-2 space-y-6">
+          <div className="grid grid-cols-4 gap-6">
+            {/* Main Content - 75% */}
+            <div className="col-span-3 space-y-6">
               {/* Labels */}
               {card.labels.length > 0 && (
                 <div>
