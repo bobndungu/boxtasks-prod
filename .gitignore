@@ -61,3 +61,4 @@ php_errors.log
 *.sql
 *.sql.gz
 test_results.json
+.playwright-mcp/
