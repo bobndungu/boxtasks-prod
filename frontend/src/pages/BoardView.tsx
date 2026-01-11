@@ -4407,10 +4407,11 @@ function CardDetailModal({
                                 <button
                                   onClick={() => handleRemoveCardField(fieldDef.id)}
                                   disabled={isAddingCardField}
-                                  className="text-xs text-gray-400 hover:text-red-500 disabled:opacity-50"
+                                  className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
                                   title="Remove field from this card"
                                 >
                                   <X className="h-3.5 w-3.5" />
+                                  <span className="hidden sm:inline">Remove</span>
                                 </button>
                               )}
                             </div>
