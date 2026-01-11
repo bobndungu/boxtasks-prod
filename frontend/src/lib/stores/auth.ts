@@ -1,6 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { login as apiLogin, logout as apiLogout, getAccessToken, refreshAccessToken } from '../api/client';
+import {
+  login as apiLogin,
+  logout as apiLogout,
+  getAccessToken,
+  refreshAccessToken,
+  isTokenValid,
+  isTokenExpired,
+  startSessionMonitoring,
+  stopSessionMonitoring,
+  onSessionEvent
+} from '../api/client';
 
 export interface User {
   id: string;
@@ -18,12 +28,16 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  sessionExpiring: boolean;
+  sessionExpiryMessage: string | null;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setSessionExpiring: (expiring: boolean, message?: string | null) => void;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  initSessionMonitoring: () => () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -33,9 +47,13 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: true,
       error: null,
+      sessionExpiring: false,
+      sessionExpiryMessage: null,
       setUser: (user) => set({ user, isAuthenticated: !!user, isLoading: false }),
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
+      setSessionExpiring: (sessionExpiring, sessionExpiryMessage = null) =>
+        set({ sessionExpiring, sessionExpiryMessage }),
       login: async (username: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
@@ -72,25 +90,113 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout: () => {
+        stopSessionMonitoring();
         apiLogout();
-        set({ user: null, isAuthenticated: false, isLoading: false, error: null });
+        set({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+          sessionExpiring: false,
+          sessionExpiryMessage: null
+        });
       },
       checkAuth: async () => {
         const token = getAccessToken();
+        const { user, isAuthenticated } = get();
+
+        // No token at all - definitely not authenticated
         if (!token) {
           set({ user: null, isAuthenticated: false, isLoading: false });
           return;
         }
-        // Try to refresh token if needed
-        try {
-          const newTokens = await refreshAccessToken();
-          if (!newTokens) {
-            get().logout();
+
+        // Token exists and is still valid - keep current auth state
+        if (isTokenValid()) {
+          // If we have persisted user data and valid token, we're good
+          if (user && isAuthenticated) {
+            // Start session monitoring for existing valid session
+            startSessionMonitoring();
+            set({ isLoading: false });
+            return;
           }
-        } catch {
-          get().logout();
         }
+
+        // Token is expired or about to expire - try to refresh
+        if (isTokenExpired()) {
+          try {
+            const newTokens = await refreshAccessToken();
+            if (!newTokens) {
+              // Refresh failed and token is expired - log out
+              get().logout();
+              return;
+            }
+            // Refresh succeeded - monitoring is started by refreshAccessToken
+            set({ isLoading: false });
+            return;
+          } catch {
+            // Refresh failed - log out
+            get().logout();
+            return;
+          }
+        }
+
+        // Token exists but we don't have user data - this shouldn't happen often
+        // but if it does, the user is still authenticated
+        if (token && !user) {
+          startSessionMonitoring();
+          set({ isAuthenticated: true, isLoading: false });
+          return;
+        }
+
         set({ isLoading: false });
+      },
+      initSessionMonitoring: () => {
+        // Subscribe to session events
+        const unsubscribe = onSessionEvent((event, message) => {
+          const { isAuthenticated } = get();
+          if (!isAuthenticated) return;
+
+          switch (event) {
+            case 'expiring':
+              set({
+                sessionExpiring: true,
+                sessionExpiryMessage: message || 'Your session is about to expire'
+              });
+              break;
+            case 'refreshed':
+              set({
+                sessionExpiring: false,
+                sessionExpiryMessage: null
+              });
+              break;
+            case 'expired':
+              // Give user a chance to see the message before logout
+              set({
+                sessionExpiring: true,
+                sessionExpiryMessage: message || 'Your session has expired'
+              });
+              // Delay logout to show message
+              setTimeout(() => {
+                get().logout();
+                window.location.href = '/login?expired=1';
+              }, 2000);
+              break;
+            case 'error':
+              set({
+                sessionExpiring: true,
+                sessionExpiryMessage: message || 'Session error occurred'
+              });
+              break;
+          }
+        });
+
+        // Start monitoring if already authenticated
+        if (get().isAuthenticated && getAccessToken()) {
+          startSessionMonitoring();
+        }
+
+        return unsubscribe;
       },
     }),
     {

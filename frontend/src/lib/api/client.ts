@@ -21,6 +21,24 @@ export const apiClient = axios.create({
 // Token management
 let accessToken: string | null = null;
 let csrfToken: string | null = null;
+let tokenExpiresAt: number | null = null;
+let tokenRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+let sessionHeartbeatTimer: ReturnType<typeof setInterval> | null = null;
+
+// Session event callbacks
+type SessionEventCallback = (event: 'refreshed' | 'expiring' | 'expired' | 'error', message?: string) => void;
+let sessionEventCallbacks: SessionEventCallback[] = [];
+
+export const onSessionEvent = (callback: SessionEventCallback): (() => void) => {
+  sessionEventCallbacks.push(callback);
+  return () => {
+    sessionEventCallbacks = sessionEventCallbacks.filter(cb => cb !== callback);
+  };
+};
+
+const emitSessionEvent = (event: 'refreshed' | 'expiring' | 'expired' | 'error', message?: string) => {
+  sessionEventCallbacks.forEach(cb => cb(event, message));
+};
 
 // CSRF token management for session-based authentication
 export const getCsrfToken = async (): Promise<string | null> => {
@@ -42,18 +60,134 @@ export const clearCsrfToken = (): void => {
   csrfToken = null;
 };
 
-export const setAccessToken = (token: string | null) => {
+export const setAccessToken = (token: string | null, expiresIn?: number) => {
   accessToken = token;
   if (token) {
     localStorage.setItem('access_token', token);
+    if (expiresIn) {
+      // Store expiration time (current time + expires_in seconds)
+      tokenExpiresAt = Date.now() + (expiresIn * 1000);
+      localStorage.setItem('token_expires_at', tokenExpiresAt.toString());
+    }
   } else {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('token_expires_at');
+    tokenExpiresAt = null;
   }
 };
 
 export const getAccessToken = (): string | null => {
   if (accessToken) return accessToken;
   return localStorage.getItem('access_token');
+};
+
+export const getTokenExpiresAt = (): number | null => {
+  if (tokenExpiresAt) return tokenExpiresAt;
+  const stored = localStorage.getItem('token_expires_at');
+  if (stored) {
+    tokenExpiresAt = parseInt(stored, 10);
+    return tokenExpiresAt;
+  }
+  return null;
+};
+
+// Token expiry buffer constants
+const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000; // Refresh 5 minutes before expiry
+const TOKEN_EXPIRING_WARNING_MS = 2 * 60 * 1000; // Warn 2 minutes before expiry
+const SESSION_HEARTBEAT_INTERVAL_MS = 60 * 1000; // Check every minute
+
+export const getTimeUntilExpiry = (): number => {
+  const expiresAt = getTokenExpiresAt();
+  if (!expiresAt) return Infinity;
+  return expiresAt - Date.now();
+};
+
+export const isTokenExpiring = (): boolean => {
+  const timeUntilExpiry = getTimeUntilExpiry();
+  return timeUntilExpiry > 0 && timeUntilExpiry <= TOKEN_REFRESH_BUFFER_MS;
+};
+
+export const isTokenExpired = (): boolean => {
+  const timeUntilExpiry = getTimeUntilExpiry();
+  if (timeUntilExpiry === Infinity) return false; // If no expiration info, assume valid
+  return timeUntilExpiry <= 0;
+};
+
+export const isTokenValid = (): boolean => {
+  const token = getAccessToken();
+  if (!token) return false;
+  return !isTokenExpired();
+};
+
+// Schedule proactive token refresh
+const scheduleTokenRefresh = () => {
+  // Clear any existing timer
+  if (tokenRefreshTimer) {
+    clearTimeout(tokenRefreshTimer);
+    tokenRefreshTimer = null;
+  }
+
+  const timeUntilExpiry = getTimeUntilExpiry();
+  if (timeUntilExpiry === Infinity || timeUntilExpiry <= 0) return;
+
+  // Calculate when to refresh (5 minutes before expiry, or halfway if less than 10 minutes)
+  const refreshIn = Math.max(
+    timeUntilExpiry - TOKEN_REFRESH_BUFFER_MS,
+    timeUntilExpiry / 2,
+    1000 // At least 1 second
+  );
+
+  tokenRefreshTimer = setTimeout(async () => {
+    try {
+      const result = await refreshAccessToken();
+      if (result) {
+        emitSessionEvent('refreshed', 'Session refreshed successfully');
+      } else {
+        emitSessionEvent('expired', 'Session expired - please log in again');
+      }
+    } catch {
+      emitSessionEvent('error', 'Failed to refresh session');
+    }
+  }, refreshIn);
+};
+
+// Start session heartbeat monitoring
+export const startSessionMonitoring = () => {
+  // Clear any existing heartbeat
+  if (sessionHeartbeatTimer) {
+    clearInterval(sessionHeartbeatTimer);
+    sessionHeartbeatTimer = null;
+  }
+
+  // Start new heartbeat
+  sessionHeartbeatTimer = setInterval(() => {
+    const timeUntilExpiry = getTimeUntilExpiry();
+
+    // Warn if session is about to expire
+    if (timeUntilExpiry > 0 && timeUntilExpiry <= TOKEN_EXPIRING_WARNING_MS) {
+      emitSessionEvent('expiring', `Session expiring in ${Math.ceil(timeUntilExpiry / 1000)} seconds`);
+    }
+
+    // If expired, emit event
+    if (timeUntilExpiry <= 0 && getAccessToken()) {
+      emitSessionEvent('expired', 'Session has expired');
+    }
+  }, SESSION_HEARTBEAT_INTERVAL_MS);
+
+  // Also schedule the proactive refresh
+  scheduleTokenRefresh();
+};
+
+// Stop session monitoring
+export const stopSessionMonitoring = () => {
+  if (tokenRefreshTimer) {
+    clearTimeout(tokenRefreshTimer);
+    tokenRefreshTimer = null;
+  }
+  if (sessionHeartbeatTimer) {
+    clearInterval(sessionHeartbeatTimer);
+    sessionHeartbeatTimer = null;
+  }
 };
 
 export const getRefreshToken = (): string | null => {
@@ -94,49 +228,73 @@ export async function login(username: string, password: string): Promise<OAuthTo
     }
   );
 
-  const { access_token, refresh_token } = response.data;
-  setAccessToken(access_token);
+  const { access_token, refresh_token, expires_in } = response.data;
+  setAccessToken(access_token, expires_in);
   setRefreshToken(refresh_token);
+
+  // Start session monitoring after successful login
+  startSessionMonitoring();
 
   return response.data;
 }
 
 // Refresh the access token
+let isRefreshing = false;
+let refreshPromise: Promise<OAuthTokenResponse | null> | null = null;
+
 export async function refreshAccessToken(): Promise<OAuthTokenResponse | null> {
+  // Prevent multiple simultaneous refresh attempts
+  if (isRefreshing && refreshPromise) {
+    return refreshPromise;
+  }
+
   const refreshToken = getRefreshToken();
   if (!refreshToken) return null;
 
-  try {
-    const response = await axios.post<OAuthTokenResponse>(
-      `${API_URL}/oauth/token`,
-      new URLSearchParams({
-        grant_type: 'refresh_token',
-        client_id: OAUTH_CLIENT_ID,
-        client_secret: OAUTH_CLIENT_SECRET,
-        refresh_token: refreshToken,
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }
-    );
+  isRefreshing = true;
+  refreshPromise = (async () => {
+    try {
+      const response = await axios.post<OAuthTokenResponse>(
+        `${API_URL}/oauth/token`,
+        new URLSearchParams({
+          grant_type: 'refresh_token',
+          client_id: OAUTH_CLIENT_ID,
+          client_secret: OAUTH_CLIENT_SECRET,
+          refresh_token: refreshToken,
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      );
 
-    const { access_token, refresh_token: newRefreshToken } = response.data;
-    setAccessToken(access_token);
-    setRefreshToken(newRefreshToken);
+      const { access_token, refresh_token: newRefreshToken, expires_in } = response.data;
+      setAccessToken(access_token, expires_in);
+      setRefreshToken(newRefreshToken);
 
-    return response.data;
-  } catch {
-    // Refresh token is invalid, clear tokens
-    setAccessToken(null);
-    setRefreshToken(null);
-    return null;
-  }
+      // Reschedule the next proactive refresh
+      scheduleTokenRefresh();
+
+      return response.data;
+    } catch {
+      // Refresh token is invalid, clear tokens and stop monitoring
+      stopSessionMonitoring();
+      setAccessToken(null);
+      setRefreshToken(null);
+      return null;
+    } finally {
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
-// Logout - clear all tokens
+// Logout - clear all tokens and stop monitoring
 export function logout(): void {
+  stopSessionMonitoring();
   setAccessToken(null);
   setRefreshToken(null);
   clearCsrfToken();
@@ -199,8 +357,9 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       }
 
-      // Refresh failed, redirect to login
-      window.location.href = '/login';
+      // Refresh failed - emit session expired event instead of abrupt redirect
+      // This allows the UI to show a proper message to the user
+      emitSessionEvent('expired', 'Your session has expired. Please log in again.');
     }
     return Promise.reject(error);
   }

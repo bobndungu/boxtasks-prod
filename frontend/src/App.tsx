@@ -6,6 +6,7 @@ import ToastContainer from './components/Toast';
 import { ErrorBoundary, BoardErrorBoundary } from './components/ErrorBoundary';
 import { SkipLinks } from './components/SkipLinks';
 import { PWAUpdatePrompt, OfflineIndicator, PWAInstallPrompt } from './components/PWAPrompt';
+import { SessionExpiryWarning } from './components/SessionExpiryWarning';
 
 // Lazy loaded pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
@@ -125,6 +126,7 @@ function RootLayout() {
       <PWAUpdatePrompt />
       <OfflineIndicator />
       <PWAInstallPrompt />
+      <SessionExpiryWarning />
       <Suspense fallback={<PageLoader />}>
         <Outlet />
       </Suspense>
@@ -161,11 +163,14 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  const { checkAuth, isLoading } = useAuthStore();
+  const { checkAuth, isLoading, initSessionMonitoring } = useAuthStore();
 
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+    // Initialize session monitoring after auth check
+    const unsubscribe = initSessionMonitoring();
+    return () => unsubscribe();
+  }, [checkAuth, initSessionMonitoring]);
 
   if (isLoading) {
     return (

@@ -1451,11 +1451,668 @@
       "status": "completed",
       "type": "both",
       "phase": "security-production"
+    },
+    {
+      "id": 181,
+      "name": "Fix session/logout erratic behavior - investigate root cause",
+      "test": "Review auth.ts and client.ts for token handling issues, check token expiry timing",
+      "status": "completed",
+      "type": "react",
+      "phase": "session-fix"
+    },
+    {
+      "id": 182,
+      "name": "Fix session/logout - improve token refresh logic",
+      "test": "Token refresh happens proactively before expiry, no unexpected logouts",
+      "status": "completed",
+      "type": "react",
+      "phase": "session-fix"
+    },
+    {
+      "id": 183,
+      "name": "Fix session/logout - add session heartbeat",
+      "test": "Periodic heartbeat keeps session alive, graceful timeout notification",
+      "status": "completed",
+      "type": "both",
+      "phase": "session-fix"
+    },
+    {
+      "id": 184,
+      "name": "Fix session/logout - test and verify stability",
+      "test": "User can work for 2+ hours without unexpected logout",
+      "status": "completed",
+      "type": "react",
+      "phase": "session-fix"
+    },
+    {
+      "id": 185,
+      "name": "Everything View - create backend endpoint for all cards",
+      "test": "API returns all cards user has access to across all boards",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "global-views"
+    },
+    {
+      "id": 186,
+      "name": "Everything View - build React page component",
+      "test": "Everything view displays cards grouped by board/workspace",
+      "status": "pending",
+      "type": "react",
+      "phase": "global-views"
+    },
+    {
+      "id": 187,
+      "name": "Everything View - add filtering and sorting",
+      "test": "Can filter by due date, labels, assignees and sort by multiple criteria",
+      "status": "pending",
+      "type": "react",
+      "phase": "global-views"
+    },
+    {
+      "id": 188,
+      "name": "Everything View - add to navigation",
+      "test": "Everything view accessible from main sidebar navigation",
+      "status": "pending",
+      "type": "react",
+      "phase": "global-views"
+    },
+    {
+      "id": 189,
+      "name": "My Cards View - create backend endpoint",
+      "test": "API returns only cards assigned to current user across all boards",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "global-views"
+    },
+    {
+      "id": 190,
+      "name": "My Cards View - build React page component",
+      "test": "My Cards view displays user's assigned cards grouped by status/board",
+      "status": "pending",
+      "type": "react",
+      "phase": "global-views"
+    },
+    {
+      "id": 191,
+      "name": "My Cards View - add quick actions",
+      "test": "Can complete, reschedule, or reassign cards directly from view",
+      "status": "pending",
+      "type": "react",
+      "phase": "global-views"
+    },
+    {
+      "id": 192,
+      "name": "Add long text custom field type in Drupal",
+      "test": "Custom field definition supports 'longtext' type with rich text",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "custom-fields-extended"
+    },
+    {
+      "id": 193,
+      "name": "Add URL custom field type",
+      "test": "Custom field definition supports 'url' type with link validation",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "custom-fields-extended"
+    },
+    {
+      "id": 194,
+      "name": "Add email custom field type",
+      "test": "Custom field definition supports 'email' type with email validation",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "custom-fields-extended"
+    },
+    {
+      "id": 195,
+      "name": "Add currency custom field type",
+      "test": "Custom field definition supports 'currency' type with formatting",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "custom-fields-extended"
+    },
+    {
+      "id": 196,
+      "name": "Add rating/star custom field type",
+      "test": "Custom field definition supports 'rating' type with 1-5 stars",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "custom-fields-extended"
+    },
+    {
+      "id": 197,
+      "name": "Add phone number custom field type",
+      "test": "Custom field definition supports 'phone' type with formatting",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "custom-fields-extended"
+    },
+    {
+      "id": 198,
+      "name": "Update custom field React components for new types",
+      "test": "All new field types render and edit correctly in card modal",
+      "status": "pending",
+      "type": "react",
+      "phase": "custom-fields-extended"
+    },
+    {
+      "id": 199,
+      "name": "Auto-assign cards to creator - update Drupal card creation",
+      "test": "New cards automatically have creator as first assignee",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "card-enhancements"
+    },
+    {
+      "id": 200,
+      "name": "Auto-assign cards to creator - update React UI",
+      "test": "Creator appears as assigned member immediately after card creation",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-enhancements"
+    },
+    {
+      "id": 201,
+      "name": "Show full display name on cards instead of initials",
+      "test": "Assigned member's full display name shows in small text on card bottom right",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-enhancements"
+    },
+    {
+      "id": 202,
+      "name": "Show due date and time on cards in board view",
+      "test": "Due date with time displays on card front in board view",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-enhancements"
+    },
+    {
+      "id": 203,
+      "name": "Create Goal entity type in Drupal",
+      "test": "Goal entity with title, description, target date, workspace, progress stored in API",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "goals-system"
+    },
+    {
+      "id": 204,
+      "name": "Create Goal-Card relationship",
+      "test": "Cards can be linked to goals, progress calculated from linked cards",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "goals-system"
+    },
+    {
+      "id": 205,
+      "name": "Build Goals management page",
+      "test": "Can create, edit, archive goals with progress tracking",
+      "status": "pending",
+      "type": "react",
+      "phase": "goals-system"
+    },
+    {
+      "id": 206,
+      "name": "Build Goal progress visualization",
+      "test": "Goals show progress bar, linked cards count, time remaining",
+      "status": "pending",
+      "type": "react",
+      "phase": "goals-system"
+    },
+    {
+      "id": 207,
+      "name": "Add goal linking in card modal",
+      "test": "Can link/unlink cards to goals from card modal",
+      "status": "pending",
+      "type": "react",
+      "phase": "goals-system"
+    },
+    {
+      "id": 208,
+      "name": "Add goal real-time updates via Mercure",
+      "test": "Goal progress updates in real-time when cards are completed",
+      "status": "pending",
+      "type": "both",
+      "phase": "goals-system"
+    },
+    {
+      "id": 209,
+      "name": "Create Milestone entity type in Drupal",
+      "test": "Milestone entity with title, due date, workspace, linked cards stored",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "milestones-system"
+    },
+    {
+      "id": 210,
+      "name": "Create Milestone-Card relationship",
+      "test": "Cards can be linked to milestones, milestone shows completion status",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "milestones-system"
+    },
+    {
+      "id": 211,
+      "name": "Build Milestones timeline view",
+      "test": "Milestones display on timeline with linked cards",
+      "status": "pending",
+      "type": "react",
+      "phase": "milestones-system"
+    },
+    {
+      "id": 212,
+      "name": "Build milestone management UI",
+      "test": "Can create, edit, complete milestones",
+      "status": "pending",
+      "type": "react",
+      "phase": "milestones-system"
+    },
+    {
+      "id": 213,
+      "name": "Add milestone linking in card modal",
+      "test": "Can link/unlink cards to milestones from card modal",
+      "status": "pending",
+      "type": "react",
+      "phase": "milestones-system"
+    },
+    {
+      "id": 214,
+      "name": "Milestone notifications for approaching deadlines",
+      "test": "Users notified when milestone deadline is approaching",
+      "status": "pending",
+      "type": "both",
+      "phase": "milestones-system"
+    },
+    {
+      "id": 215,
+      "name": "Smart Notifications - create notification preferences schema",
+      "test": "Users can set per-event notification preferences in Drupal",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "smart-notifications"
+    },
+    {
+      "id": 216,
+      "name": "Smart Notifications - implement digest batching",
+      "test": "Multiple notifications batched into hourly/daily digests",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "smart-notifications"
+    },
+    {
+      "id": 217,
+      "name": "Smart Notifications - add priority levels",
+      "test": "Urgent notifications bypass digest, delivered immediately",
+      "status": "pending",
+      "type": "both",
+      "phase": "smart-notifications"
+    },
+    {
+      "id": 218,
+      "name": "Smart Notifications - add snooze functionality",
+      "test": "Users can snooze notifications for later",
+      "status": "pending",
+      "type": "react",
+      "phase": "smart-notifications"
+    },
+    {
+      "id": 219,
+      "name": "Smart Notifications - build preferences UI",
+      "test": "Users can configure notification preferences per channel and event type",
+      "status": "pending",
+      "type": "react",
+      "phase": "smart-notifications"
+    },
+    {
+      "id": 220,
+      "name": "Smart Notifications - add smart muting",
+      "test": "Auto-mute notifications for boards/cards with high activity",
+      "status": "pending",
+      "type": "both",
+      "phase": "smart-notifications"
+    },
+    {
+      "id": 221,
+      "name": "Real-time Chat - create ChatRoom entity in Drupal",
+      "test": "Chat rooms stored per board/card with participant list",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "realtime-chat"
+    },
+    {
+      "id": 222,
+      "name": "Real-time Chat - create ChatMessage entity",
+      "test": "Chat messages stored with sender, room, timestamp, read receipts",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "realtime-chat"
+    },
+    {
+      "id": 223,
+      "name": "Real-time Chat - implement Mercure publishing",
+      "test": "New messages published via Mercure in real-time",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "realtime-chat"
+    },
+    {
+      "id": 224,
+      "name": "Real-time Chat - build chat panel component",
+      "test": "Chat panel displays messages with real-time updates",
+      "status": "pending",
+      "type": "react",
+      "phase": "realtime-chat"
+    },
+    {
+      "id": 225,
+      "name": "Real-time Chat - add typing indicators",
+      "test": "Shows when other users are typing",
+      "status": "pending",
+      "type": "both",
+      "phase": "realtime-chat"
+    },
+    {
+      "id": 226,
+      "name": "Real-time Chat - add message reactions",
+      "test": "Can react to messages with emoji",
+      "status": "pending",
+      "type": "both",
+      "phase": "realtime-chat"
+    },
+    {
+      "id": 227,
+      "name": "Real-time Chat - add file sharing in chat",
+      "test": "Can share files and images in chat messages",
+      "status": "pending",
+      "type": "both",
+      "phase": "realtime-chat"
+    },
+    {
+      "id": 228,
+      "name": "Real-time Chat - add unread message badges",
+      "test": "Unread message count shows on chat icon",
+      "status": "pending",
+      "type": "react",
+      "phase": "realtime-chat"
+    },
+    {
+      "id": 229,
+      "name": "Nested Checklists - update checklist item schema",
+      "test": "Checklist items can have parent_id for nesting",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "nested-checklists"
+    },
+    {
+      "id": 230,
+      "name": "Nested Checklists - implement hierarchy in API",
+      "test": "API returns checklist items with nested children",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "nested-checklists"
+    },
+    {
+      "id": 231,
+      "name": "Nested Checklists - build nested UI component",
+      "test": "Checklist items display with expandable nested children",
+      "status": "pending",
+      "type": "react",
+      "phase": "nested-checklists"
+    },
+    {
+      "id": 232,
+      "name": "Nested Checklists - add drag-and-drop for nesting",
+      "test": "Can drag items to nest under other items",
+      "status": "pending",
+      "type": "react",
+      "phase": "nested-checklists"
+    },
+    {
+      "id": 233,
+      "name": "Nested Checklists - parent completion auto-calculation",
+      "test": "Parent item shows completion based on children completion",
+      "status": "pending",
+      "type": "both",
+      "phase": "nested-checklists"
+    },
+    {
+      "id": 234,
+      "name": "Card Relationships - create CardRelationship entity",
+      "test": "Card relationships stored with type (blocks, relates_to, duplicates)",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "relationships-dependencies"
+    },
+    {
+      "id": 235,
+      "name": "Card Relationships - implement blocking validation",
+      "test": "Cards can't be completed if blocked by incomplete cards",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "relationships-dependencies"
+    },
+    {
+      "id": 236,
+      "name": "Card Relationships - build relationship picker UI",
+      "test": "Can add relationships from card modal with search",
+      "status": "pending",
+      "type": "react",
+      "phase": "relationships-dependencies"
+    },
+    {
+      "id": 237,
+      "name": "Card Relationships - display relationships on card",
+      "test": "Relationship indicators show on card front in board view",
+      "status": "pending",
+      "type": "react",
+      "phase": "relationships-dependencies"
+    },
+    {
+      "id": 238,
+      "name": "Card Dependencies - build dependency graph view",
+      "test": "Dependency view shows card relationships visually",
+      "status": "pending",
+      "type": "react",
+      "phase": "relationships-dependencies"
+    },
+    {
+      "id": 239,
+      "name": "Card Dependencies - add circular dependency detection",
+      "test": "Cannot create circular dependency chains",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "relationships-dependencies"
+    },
+    {
+      "id": 240,
+      "name": "Card Dependencies - blocked card visual indicators",
+      "test": "Blocked cards show special styling and cannot be completed",
+      "status": "pending",
+      "type": "react",
+      "phase": "relationships-dependencies"
+    },
+    {
+      "id": 241,
+      "name": "Dashboards - create Dashboard entity in Drupal",
+      "test": "Dashboard configurations stored with widget layout",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "dashboards-reports"
+    },
+    {
+      "id": 242,
+      "name": "Dashboards - create real-time metrics aggregation",
+      "test": "Board/workspace metrics calculated and cached efficiently",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "dashboards-reports"
+    },
+    {
+      "id": 243,
+      "name": "Dashboards - build dashboard page layout",
+      "test": "Dashboard displays configurable widget grid",
+      "status": "pending",
+      "type": "react",
+      "phase": "dashboards-reports"
+    },
+    {
+      "id": 244,
+      "name": "Dashboards - build card completion chart widget",
+      "test": "Widget shows cards completed over time",
+      "status": "pending",
+      "type": "react",
+      "phase": "dashboards-reports"
+    },
+    {
+      "id": 245,
+      "name": "Dashboards - build workload distribution widget",
+      "test": "Widget shows cards per team member",
+      "status": "pending",
+      "type": "react",
+      "phase": "dashboards-reports"
+    },
+    {
+      "id": 246,
+      "name": "Dashboards - build overdue cards widget",
+      "test": "Widget shows overdue cards with aging",
+      "status": "pending",
+      "type": "react",
+      "phase": "dashboards-reports"
+    },
+    {
+      "id": 247,
+      "name": "Dashboards - build velocity/burndown widget",
+      "test": "Widget shows sprint velocity or burndown chart",
+      "status": "pending",
+      "type": "react",
+      "phase": "dashboards-reports"
+    },
+    {
+      "id": 248,
+      "name": "Dashboards - add real-time updates via Mercure",
+      "test": "Dashboard widgets update in real-time as cards change",
+      "status": "pending",
+      "type": "both",
+      "phase": "dashboards-reports"
+    },
+    {
+      "id": 249,
+      "name": "Dashboards - build widget customization UI",
+      "test": "Users can add, remove, resize, and configure widgets",
+      "status": "pending",
+      "type": "react",
+      "phase": "dashboards-reports"
+    },
+    {
+      "id": 250,
+      "name": "Time Tracking - add time spent field to cards",
+      "test": "Cards track time spent with timer functionality",
+      "status": "pending",
+      "type": "both",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 251,
+      "name": "Time Tracking - build timer UI component",
+      "test": "Can start/stop timer on cards, view time logs",
+      "status": "pending",
+      "type": "react",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 252,
+      "name": "Recurring Cards - create recurrence pattern schema",
+      "test": "Cards can have daily, weekly, monthly recurrence patterns",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 253,
+      "name": "Recurring Cards - implement auto-creation logic",
+      "test": "New card instances created automatically based on pattern",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 254,
+      "name": "Recurring Cards - build recurrence UI",
+      "test": "Can set/edit recurrence from card modal",
+      "status": "pending",
+      "type": "react",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 255,
+      "name": "Card Templates - create template library",
+      "test": "Template library with categories for quick card creation",
+      "status": "pending",
+      "type": "both",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 256,
+      "name": "Bulk Operations - implement multi-select",
+      "test": "Can select multiple cards for bulk actions",
+      "status": "pending",
+      "type": "react",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 257,
+      "name": "Bulk Operations - add bulk move, archive, delete",
+      "test": "Can move, archive, delete multiple cards at once",
+      "status": "pending",
+      "type": "both",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 258,
+      "name": "Board Swimlanes - add swimlane configuration",
+      "test": "Boards can have horizontal swimlanes by assignee, priority, etc",
+      "status": "pending",
+      "type": "both",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 259,
+      "name": "Board Swimlanes - build swimlane view",
+      "test": "Board view shows cards in swimlane layout",
+      "status": "pending",
+      "type": "react",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 260,
+      "name": "Priority Field - add priority to cards",
+      "test": "Cards have priority field (low, medium, high, urgent)",
+      "status": "pending",
+      "type": "both",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 261,
+      "name": "Priority Field - visual indicators on cards",
+      "test": "Priority shows with color-coded icon on card front",
+      "status": "pending",
+      "type": "react",
+      "phase": "advanced-features"
+    },
+    {
+      "id": 262,
+      "name": "Final testing - all new features end-to-end",
+      "test": "All new features work correctly together",
+      "status": "pending",
+      "type": "both",
+      "phase": "final-testing"
     }
   ],
   "current_feature": null,
   "browser_retries": 0,
-  "phase": "infrastructure",
+  "phase": "session-fix",
   "created_at": "2026-01-10",
+  "updated_at": "2026-01-11",
   "source_project": "~/Sites/DrupalDev/BoxTasks/"
 }
