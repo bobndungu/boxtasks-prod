@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_goal_description
+    - node.type.goal
+  module:
+    - text
+id: node.goal.field_goal_description
+field_name: field_goal_description
+entity_type: node
+bundle: goal
+label: Description
+description: 'A detailed description of the goal.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long

@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_goal_color
+    - node.type.goal
+id: node.goal.field_goal_color
+field_name: field_goal_color
+entity_type: node
+bundle: goal
+label: Color
+description: 'The color for this goal (hex code).'
+required: false
+translatable: true
+default_value:
+  - value: '#0079BF'
+default_value_callback: ''
+settings: {  }
+field_type: string

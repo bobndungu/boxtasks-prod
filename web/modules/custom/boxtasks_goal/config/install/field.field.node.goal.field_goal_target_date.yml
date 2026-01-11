@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_goal_target_date
+    - node.type.goal
+  module:
+    - datetime
+id: node.goal.field_goal_target_date
+field_name: field_goal_target_date
+entity_type: node
+bundle: goal
+label: Target Date
+description: 'The target completion date for this goal.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

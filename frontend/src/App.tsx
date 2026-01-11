@@ -21,6 +21,7 @@ const WorkspaceSettings = lazy(() => import('./pages/WorkspaceSettings'));
 const BoardView = lazy(() => import('./pages/BoardView'));
 const EverythingView = lazy(() => import('./pages/EverythingView'));
 const MyCards = lazy(() => import('./pages/MyCards'));
+const Goals = lazy(() => import('./pages/Goals'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Loading fallback component
@@ -160,6 +161,7 @@ const router = createBrowserRouter([
       },
       { path: 'everything', element: <ProtectedRoute><EverythingView /></ProtectedRoute> },
       { path: 'my-cards', element: <ProtectedRoute><MyCards /></ProtectedRoute> },
+      { path: 'workspace/:workspaceId/goals', element: <ProtectedRoute><Goals /></ProtectedRoute> },
       // 404 catch-all
       { path: '*', element: <NotFound /> },
     ],

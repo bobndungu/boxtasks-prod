@@ -14,8 +14,13 @@ module:
   boxtasks_card: 0
   boxtasks_checklist: 0
   boxtasks_comment: 0
+  boxtasks_global_views: 0
+  boxtasks_goal: 0
   boxtasks_list: 0
+  boxtasks_monitoring: 0
+  boxtasks_notification: 0
   boxtasks_realtime: 0
+  boxtasks_security: 0
   boxtasks_template: 0
   boxtasks_user: 0
   boxtasks_workspace: 0

@@ -10,6 +10,7 @@ import {
   Star,
   Loader2,
   ArrowLeft,
+  Target,
 } from 'lucide-react';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { useBoardStore } from '../lib/stores/board';
@@ -119,6 +120,13 @@ export default function WorkspaceView() {
               </div>
             </div>
             <div className="ml-auto flex items-center space-x-2">
+              <Link
+                to={`/workspace/${id}/goals`}
+                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              >
+                <Target className="h-5 w-5" />
+                <span className="text-sm font-medium">Goals</span>
+              </Link>
               <Link
                 to={`/workspace/${id}/settings`}
                 className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
