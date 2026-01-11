@@ -2235,11 +2235,179 @@
       "status": "pending",
       "type": "both",
       "phase": "ui-enhancements"
+    },
+    {
+      "id": 279,
+      "name": "Custom fields click-to-edit UI like description field",
+      "test": "Custom fields show value in gray background and become editable on click",
+      "status": "completed",
+      "type": "react",
+      "phase": "ui-polish"
+    },
+    {
+      "id": 280,
+      "name": "Create cards from templates",
+      "test": "Can create a new card from a saved template with all template data",
+      "status": "pending",
+      "type": "both",
+      "phase": "card-templates"
+    },
+    {
+      "id": 281,
+      "name": "Move add card and add template buttons to top of list",
+      "test": "Add card and add template buttons appear at top of list instead of bottom",
+      "status": "completed",
+      "type": "react",
+      "phase": "ui-polish"
+    },
+    {
+      "id": 282,
+      "name": "Cards moved between lists placed at top",
+      "test": "When a card is moved from one list to another, it is placed at the top of the destination list",
+      "status": "completed",
+      "type": "react",
+      "phase": "ui-polish"
+    },
+    {
+      "id": 283,
+      "name": "Pin cards to top of list",
+      "test": "Cards can be pinned to stay at top of list above moved cards",
+      "status": "pending",
+      "type": "both",
+      "phase": "card-features"
+    },
+    {
+      "id": 284,
+      "name": "Close modals by clicking outside",
+      "test": "All modals (cards, settings, etc.) can be closed by clicking anywhere outside the modal",
+      "status": "completed",
+      "type": "react",
+      "phase": "ui-polish"
+    },
+    {
+      "id": 285,
+      "name": "Role-based permission system - create permission entity in Drupal",
+      "test": "Permission entity stores role, resource, operation (create/view/edit/delete), and scope (own/any/none)",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "permissions-system"
+    },
+    {
+      "id": 286,
+      "name": "Role-based permissions - link to Drupal backend permissions",
+      "test": "Frontend permissions sync with Drupal user roles and permissions",
+      "status": "pending",
+      "type": "both",
+      "phase": "permissions-system"
+    },
+    {
+      "id": 287,
+      "name": "Role-based permissions - build permission management UI",
+      "test": "Can create and edit permissions for boards and workspaces with own/any/none options",
+      "status": "pending",
+      "type": "react",
+      "phase": "permissions-system"
+    },
+    {
+      "id": 288,
+      "name": "Fix timeline view selection - enable table and dashboard views",
+      "test": "When in timeline view, can still switch to table view and dashboard view",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-polish"
+    },
+    {
+      "id": 289,
+      "name": "Fix card modal sidebar username display",
+      "test": "Full name appears next to Members button, not username next to Add to Card heading",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-polish"
+    },
+    {
+      "id": 290,
+      "name": "Watchers receive notifications",
+      "test": "Watchers of a card receive notifications about card changes",
+      "status": "pending",
+      "type": "both",
+      "phase": "notifications"
+    },
+    {
+      "id": 291,
+      "name": "Create Department taxonomy in Drupal",
+      "test": "Department taxonomy vocabulary exists with terms",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "taxonomies"
+    },
+    {
+      "id": 292,
+      "name": "Create Client taxonomy in Drupal",
+      "test": "Client taxonomy vocabulary exists with terms",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "taxonomies"
+    },
+    {
+      "id": 293,
+      "name": "Add Department and Client dropdown buttons in card modal sidebar",
+      "test": "Department and Client buttons appear in sidebar with dropdown selection from taxonomies",
+      "status": "pending",
+      "type": "react",
+      "phase": "taxonomies"
+    },
+    {
+      "id": 294,
+      "name": "Adjust card modal sidebar and main content widths",
+      "test": "Sidebar width reduced by 25%, main content area increased by 25%",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-polish"
+    },
+    {
+      "id": 295,
+      "name": "Activity section show all card activity",
+      "test": "Activity section shows list moves, field additions/edits, and all other card changes",
+      "status": "pending",
+      "type": "both",
+      "phase": "activity"
+    },
+    {
+      "id": 296,
+      "name": "Checklist items assignable to members",
+      "test": "Checklist items can be assigned to team members with dropdown",
+      "status": "pending",
+      "type": "both",
+      "phase": "checklists"
+    },
+    {
+      "id": 297,
+      "name": "Checklist items default assigned to card owner",
+      "test": "New checklist items are automatically assigned to the card owner",
+      "status": "pending",
+      "type": "both",
+      "phase": "checklists"
+    },
+    {
+      "id": 298,
+      "name": "Show assignee name next to checklist items",
+      "test": "Checklist items display assignee name in small text next to the item",
+      "status": "pending",
+      "type": "react",
+      "phase": "checklists"
+    },
+    {
+      "id": 299,
+      "name": "Show completion details on checked checklist items",
+      "test": "When a checklist item is checked, shows date, time, and person who checked it",
+      "status": "pending",
+      "type": "both",
+      "phase": "checklists"
     }
   ],
-  "current_feature": null,
+  "current_feature": 279,
   "browser_retries": 0,
-  "phase": "session-fix",
+  "phase": "ui-polish",
   "created_at": "2026-01-10",
   "updated_at": "2026-01-11",
   "source_project": "~/Sites/DrupalDev/BoxTasks/"

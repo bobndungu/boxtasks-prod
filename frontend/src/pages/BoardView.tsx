@@ -1262,14 +1262,8 @@ export default function BoardView() {
 
       const [movedCard] = sourceCards.splice(activeIndex, 1);
 
-      // Find the index to insert at
-      const overIndex = destCards.findIndex((c) => c.id === overIdStr);
-      if (overIndex === -1) {
-        // Dropping on the list itself (empty or at end)
-        destCards.push({ ...movedCard, listId: overListId });
-      } else {
-        destCards.splice(overIndex, 0, { ...movedCard, listId: overListId });
-      }
+      // Always place moved cards at the top of the destination list
+      destCards.unshift({ ...movedCard, listId: overListId });
 
       newMap.set(activeListId, sourceCards);
       newMap.set(overListId, destCards);
@@ -1345,14 +1339,20 @@ export default function BoardView() {
     if (card) {
       const newListId = findListContainingCard(activeIdStr);
       if (newListId && newListId !== card.listId) {
-        const newCards = cardsByList.get(newListId) || [];
-        const newPosition = newCards.findIndex((c) => c.id === activeIdStr);
-
         try {
+          // Always place moved cards at the top (position 0) of the destination list
           await updateCard(activeIdStr, {
             listId: newListId,
-            position: newPosition >= 0 ? newPosition : newCards.length,
+            position: 0,
           });
+
+          // Update positions for all other cards in the destination list
+          const destCards = cardsByList.get(newListId) || [];
+          await Promise.all(
+            destCards.slice(1).map((c, index) =>
+              updateCard(c.id, { position: index + 1 })
+            )
+          );
         } catch {
           setError('Failed to move card');
         }
@@ -2181,8 +2181,9 @@ export default function BoardView() {
 
       {/* Automation Rules Panel */}
       {showAutomationRules && id && currentBoard && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <AutomationRules
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAutomationRules(false)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <AutomationRules
             boardUuid={currentBoard.id}
             lists={lists.map(l => ({ id: l.id, name: l.title }))}
             labels={(['green', 'yellow', 'orange', 'red', 'purple', 'blue'] as CardLabel[]).map(color => ({
@@ -2193,6 +2194,7 @@ export default function BoardView() {
             members={workspaceMembers.map(m => ({ id: m.id, name: m.displayName }))}
             onClose={() => setShowAutomationRules(false)}
           />
+          </div>
         </div>
       )}
 
@@ -2568,6 +2570,60 @@ function SortableList({
           className="flex-1 overflow-y-auto px-2 pb-2"
           style={useVirtual ? { contain: 'strict' } : undefined}
         >
+          {/* Add Card Form - at the top of the list */}
+          {addingCardToList === list.id ? (
+            <div className="bg-white rounded-lg p-2 shadow-sm mb-2">
+              <textarea
+                value={newCardTitle}
+                onChange={(e) => setNewCardTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    onAddCard(list.id);
+                  }
+                }}
+                placeholder="Enter a title for this card..."
+                autoFocus
+                className="w-full p-2 text-sm border-none outline-none resize-none"
+                rows={3}
+              />
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => onAddCard(list.id)}
+                  className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700"
+                >
+                  Add card
+                </button>
+                <button
+                  onClick={() => {
+                    setAddingCardToList(null);
+                    setNewCardTitle('');
+                  }}
+                  className="p-1.5 text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 mb-2">
+              <button
+                onClick={() => setAddingCardToList(list.id)}
+                className="flex-1 text-left px-3 py-2 text-gray-500 hover:bg-gray-200 rounded-lg flex items-center text-sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add a card
+              </button>
+              <button
+                onClick={() => onOpenTemplatePicker(list.id)}
+                className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg"
+                title="Create from template"
+              >
+                <LayoutTemplate className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
           <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
             {useVirtual ? (
               // Virtualized rendering for large lists
@@ -2648,60 +2704,6 @@ function SortableList({
               </div>
             )}
           </SortableContext>
-
-          {/* Add Card Form */}
-          {addingCardToList === list.id ? (
-            <div className="bg-white rounded-lg p-2 shadow-sm">
-              <textarea
-                value={newCardTitle}
-                onChange={(e) => setNewCardTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    onAddCard(list.id);
-                  }
-                }}
-                placeholder="Enter a title for this card..."
-                autoFocus
-                className="w-full p-2 text-sm border-none outline-none resize-none"
-                rows={3}
-              />
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => onAddCard(list.id)}
-                  className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700"
-                >
-                  Add card
-                </button>
-                <button
-                  onClick={() => {
-                    setAddingCardToList(null);
-                    setNewCardTitle('');
-                  }}
-                  className="p-1.5 text-gray-500 hover:text-gray-700"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setAddingCardToList(list.id)}
-                className="flex-1 text-left px-3 py-2 text-gray-500 hover:bg-gray-200 rounded-lg flex items-center text-sm"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add a card
-              </button>
-              <button
-                onClick={() => onOpenTemplatePicker(list.id)}
-                className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg"
-                title="Create from template"
-              >
-                <LayoutTemplate className="h-4 w-4" />
-              </button>
-            </div>
-          )}
         </div>
       )}
 
@@ -3177,6 +3179,7 @@ function CardDetailModal({
     return map;
   });
   const [isSavingCustomField, setIsSavingCustomField] = useState(false);
+  const [editingCustomFieldId, setEditingCustomFieldId] = useState<string | null>(null);
 
   // Card-scoped fields state
   const [showCardFieldsPicker, setShowCardFieldsPicker] = useState(false);
@@ -3959,8 +3962,8 @@ function CardDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl my-8">
+    <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl my-8" onClick={(e) => e.stopPropagation()}>
         {/* Cover Image */}
         {coverImageUrl && (
           <div className="relative h-40 w-full">
@@ -4170,97 +4173,282 @@ function CardDetailModal({
                             </div>
 
                             {fieldDef.type === 'text' && (
-                              <input
-                                type="text"
-                                value={currentValue}
-                                onChange={(e) => {
-                                  setCustomFieldValueMap((prev) => {
-                                    const newMap = new Map(prev);
-                                    newMap.set(fieldDef.id, e.target.value);
-                                    return newMap;
-                                  });
-                                }}
-                                onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
-                                disabled={isSavingCustomField}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                                placeholder={`Enter ${fieldDef.title.toLowerCase()}`}
-                              />
+                              editingCustomFieldId === fieldDef.id ? (
+                                <div>
+                                  <input
+                                    type="text"
+                                    value={currentValue}
+                                    onChange={(e) => {
+                                      setCustomFieldValueMap((prev) => {
+                                        const newMap = new Map(prev);
+                                        newMap.set(fieldDef.id, e.target.value);
+                                        return newMap;
+                                      });
+                                    }}
+                                    disabled={isSavingCustomField}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                                    placeholder={`Enter ${fieldDef.title.toLowerCase()}`}
+                                    autoFocus
+                                  />
+                                  <div className="flex space-x-2 mt-2">
+                                    <button
+                                      onClick={() => {
+                                        handleCustomFieldChange(fieldDef.id, currentValue);
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      disabled={isSavingCustomField}
+                                      className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setCustomFieldValueMap((prev) => {
+                                          const newMap = new Map(prev);
+                                          const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                          newMap.set(fieldDef.id, originalValue);
+                                          return newMap;
+                                        });
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                >
+                                  {currentValue || `Add ${fieldDef.title.toLowerCase()}...`}
+                                </button>
+                              )
                             )}
 
                             {fieldDef.type === 'longtext' && (
-                              <textarea
-                                value={currentValue}
-                                onChange={(e) => {
-                                  setCustomFieldValueMap((prev) => {
-                                    const newMap = new Map(prev);
-                                    newMap.set(fieldDef.id, e.target.value);
-                                    return newMap;
-                                  });
-                                }}
-                                onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
-                                disabled={isSavingCustomField}
-                                rows={4}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-y"
-                                placeholder={`Enter ${fieldDef.title.toLowerCase()}`}
-                              />
+                              editingCustomFieldId === fieldDef.id ? (
+                                <div>
+                                  <textarea
+                                    value={currentValue}
+                                    onChange={(e) => {
+                                      setCustomFieldValueMap((prev) => {
+                                        const newMap = new Map(prev);
+                                        newMap.set(fieldDef.id, e.target.value);
+                                        return newMap;
+                                      });
+                                    }}
+                                    disabled={isSavingCustomField}
+                                    rows={4}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-y"
+                                    placeholder={`Enter ${fieldDef.title.toLowerCase()}`}
+                                    autoFocus
+                                  />
+                                  <div className="flex space-x-2 mt-2">
+                                    <button
+                                      onClick={() => {
+                                        handleCustomFieldChange(fieldDef.id, currentValue);
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      disabled={isSavingCustomField}
+                                      className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setCustomFieldValueMap((prev) => {
+                                          const newMap = new Map(prev);
+                                          const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                          newMap.set(fieldDef.id, originalValue);
+                                          return newMap;
+                                        });
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-20"
+                                >
+                                  {currentValue || `Add ${fieldDef.title.toLowerCase()}...`}
+                                </button>
+                              )
                             )}
 
                             {fieldDef.type === 'number' && (
-                              <input
-                                type="number"
-                                value={currentValue}
-                                onChange={(e) => {
-                                  setCustomFieldValueMap((prev) => {
-                                    const newMap = new Map(prev);
-                                    newMap.set(fieldDef.id, e.target.value);
-                                    return newMap;
-                                  });
-                                }}
-                                onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
-                                disabled={isSavingCustomField}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                                placeholder="0"
-                              />
+                              editingCustomFieldId === fieldDef.id ? (
+                                <div>
+                                  <input
+                                    type="number"
+                                    value={currentValue}
+                                    onChange={(e) => {
+                                      setCustomFieldValueMap((prev) => {
+                                        const newMap = new Map(prev);
+                                        newMap.set(fieldDef.id, e.target.value);
+                                        return newMap;
+                                      });
+                                    }}
+                                    disabled={isSavingCustomField}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                                    placeholder="0"
+                                    autoFocus
+                                  />
+                                  <div className="flex space-x-2 mt-2">
+                                    <button
+                                      onClick={() => {
+                                        handleCustomFieldChange(fieldDef.id, currentValue);
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      disabled={isSavingCustomField}
+                                      className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setCustomFieldValueMap((prev) => {
+                                          const newMap = new Map(prev);
+                                          const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                          newMap.set(fieldDef.id, originalValue);
+                                          return newMap;
+                                        });
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                >
+                                  {currentValue || `Enter ${fieldDef.title.toLowerCase()}...`}
+                                </button>
+                              )
                             )}
 
                             {fieldDef.type === 'date' && (
-                              <input
-                                type="date"
-                                value={currentValue}
-                                onChange={(e) => {
-                                  setCustomFieldValueMap((prev) => {
-                                    const newMap = new Map(prev);
-                                    newMap.set(fieldDef.id, e.target.value);
-                                    return newMap;
-                                  });
-                                  handleCustomFieldChange(fieldDef.id, e.target.value);
-                                }}
-                                disabled={isSavingCustomField}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                              />
+                              editingCustomFieldId === fieldDef.id ? (
+                                <div>
+                                  <input
+                                    type="date"
+                                    value={currentValue}
+                                    onChange={(e) => {
+                                      setCustomFieldValueMap((prev) => {
+                                        const newMap = new Map(prev);
+                                        newMap.set(fieldDef.id, e.target.value);
+                                        return newMap;
+                                      });
+                                    }}
+                                    disabled={isSavingCustomField}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                                    autoFocus
+                                  />
+                                  <div className="flex space-x-2 mt-2">
+                                    <button
+                                      onClick={() => {
+                                        handleCustomFieldChange(fieldDef.id, currentValue);
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      disabled={isSavingCustomField}
+                                      className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setCustomFieldValueMap((prev) => {
+                                          const newMap = new Map(prev);
+                                          const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                          newMap.set(fieldDef.id, originalValue);
+                                          return newMap;
+                                        });
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                >
+                                  {currentValue ? new Date(currentValue).toLocaleDateString() : `Select ${fieldDef.title.toLowerCase()}...`}
+                                </button>
+                              )
                             )}
 
                             {fieldDef.type === 'dropdown' && (
-                              <select
-                                value={currentValue}
-                                onChange={(e) => {
-                                  setCustomFieldValueMap((prev) => {
-                                    const newMap = new Map(prev);
-                                    newMap.set(fieldDef.id, e.target.value);
-                                    return newMap;
-                                  });
-                                  handleCustomFieldChange(fieldDef.id, e.target.value);
-                                }}
-                                disabled={isSavingCustomField}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
-                              >
-                                <option value="">Select {fieldDef.title.toLowerCase()}</option>
-                                {fieldDef.options.map((option) => (
-                                  <option key={option} value={option}>
-                                    {option}
-                                  </option>
-                                ))}
-                              </select>
+                              editingCustomFieldId === fieldDef.id ? (
+                                <div>
+                                  <select
+                                    value={currentValue}
+                                    onChange={(e) => {
+                                      setCustomFieldValueMap((prev) => {
+                                        const newMap = new Map(prev);
+                                        newMap.set(fieldDef.id, e.target.value);
+                                        return newMap;
+                                      });
+                                    }}
+                                    disabled={isSavingCustomField}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
+                                    autoFocus
+                                  >
+                                    <option value="">Select {fieldDef.title.toLowerCase()}</option>
+                                    {fieldDef.options.map((option) => (
+                                      <option key={option} value={option}>
+                                        {option}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <div className="flex space-x-2 mt-2">
+                                    <button
+                                      onClick={() => {
+                                        handleCustomFieldChange(fieldDef.id, currentValue);
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      disabled={isSavingCustomField}
+                                      className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setCustomFieldValueMap((prev) => {
+                                          const newMap = new Map(prev);
+                                          const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                          newMap.set(fieldDef.id, originalValue);
+                                          return newMap;
+                                        });
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                >
+                                  {currentValue || `Select ${fieldDef.title.toLowerCase()}...`}
+                                </button>
+                              )
                             )}
 
                             {fieldDef.type === 'checkbox' && (
@@ -4285,61 +4473,180 @@ function CardDetailModal({
                             )}
 
                             {fieldDef.type === 'url' && (
-                              <input
-                                type="url"
-                                value={currentValue}
-                                onChange={(e) => {
-                                  setCustomFieldValueMap((prev) => {
-                                    const newMap = new Map(prev);
-                                    newMap.set(fieldDef.id, e.target.value);
-                                    return newMap;
-                                  });
-                                }}
-                                onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
-                                disabled={isSavingCustomField}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                                placeholder="https://example.com"
-                              />
+                              editingCustomFieldId === fieldDef.id ? (
+                                <div>
+                                  <input
+                                    type="url"
+                                    value={currentValue}
+                                    onChange={(e) => {
+                                      setCustomFieldValueMap((prev) => {
+                                        const newMap = new Map(prev);
+                                        newMap.set(fieldDef.id, e.target.value);
+                                        return newMap;
+                                      });
+                                    }}
+                                    disabled={isSavingCustomField}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                                    placeholder="https://example.com"
+                                    autoFocus
+                                  />
+                                  <div className="flex space-x-2 mt-2">
+                                    <button
+                                      onClick={() => {
+                                        handleCustomFieldChange(fieldDef.id, currentValue);
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      disabled={isSavingCustomField}
+                                      className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setCustomFieldValueMap((prev) => {
+                                          const newMap = new Map(prev);
+                                          const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                          newMap.set(fieldDef.id, originalValue);
+                                          return newMap;
+                                        });
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                >
+                                  {currentValue ? (
+                                    <a href={currentValue} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" onClick={e => e.stopPropagation()}>
+                                      {currentValue}
+                                    </a>
+                                  ) : `Add ${fieldDef.title.toLowerCase()}...`}
+                                </button>
+                              )
                             )}
 
                             {fieldDef.type === 'email' && (
-                              <input
-                                type="email"
-                                value={currentValue}
-                                onChange={(e) => {
-                                  setCustomFieldValueMap((prev) => {
-                                    const newMap = new Map(prev);
-                                    newMap.set(fieldDef.id, e.target.value);
-                                    return newMap;
-                                  });
-                                }}
-                                onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
-                                disabled={isSavingCustomField}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                                placeholder="email@example.com"
-                              />
+                              editingCustomFieldId === fieldDef.id ? (
+                                <div>
+                                  <input
+                                    type="email"
+                                    value={currentValue}
+                                    onChange={(e) => {
+                                      setCustomFieldValueMap((prev) => {
+                                        const newMap = new Map(prev);
+                                        newMap.set(fieldDef.id, e.target.value);
+                                        return newMap;
+                                      });
+                                    }}
+                                    disabled={isSavingCustomField}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                                    placeholder="email@example.com"
+                                    autoFocus
+                                  />
+                                  <div className="flex space-x-2 mt-2">
+                                    <button
+                                      onClick={() => {
+                                        handleCustomFieldChange(fieldDef.id, currentValue);
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      disabled={isSavingCustomField}
+                                      className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setCustomFieldValueMap((prev) => {
+                                          const newMap = new Map(prev);
+                                          const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                          newMap.set(fieldDef.id, originalValue);
+                                          return newMap;
+                                        });
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                >
+                                  {currentValue ? (
+                                    <a href={`mailto:${currentValue}`} className="text-blue-600 hover:underline" onClick={e => e.stopPropagation()}>
+                                      {currentValue}
+                                    </a>
+                                  ) : `Add ${fieldDef.title.toLowerCase()}...`}
+                                </button>
+                              )
                             )}
 
                             {fieldDef.type === 'currency' && (
-                              <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  value={currentValue}
-                                  onChange={(e) => {
-                                    setCustomFieldValueMap((prev) => {
-                                      const newMap = new Map(prev);
-                                      newMap.set(fieldDef.id, e.target.value);
-                                      return newMap;
-                                    });
-                                  }}
-                                  onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
-                                  disabled={isSavingCustomField}
-                                  className="w-full pl-7 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                                  placeholder="0.00"
-                                />
-                              </div>
+                              editingCustomFieldId === fieldDef.id ? (
+                                <div>
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+                                    <input
+                                      type="number"
+                                      step="0.01"
+                                      value={currentValue}
+                                      onChange={(e) => {
+                                        setCustomFieldValueMap((prev) => {
+                                          const newMap = new Map(prev);
+                                          newMap.set(fieldDef.id, e.target.value);
+                                          return newMap;
+                                        });
+                                      }}
+                                      disabled={isSavingCustomField}
+                                      className="w-full pl-7 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                                      placeholder="0.00"
+                                      autoFocus
+                                    />
+                                  </div>
+                                  <div className="flex space-x-2 mt-2">
+                                    <button
+                                      onClick={() => {
+                                        handleCustomFieldChange(fieldDef.id, currentValue);
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      disabled={isSavingCustomField}
+                                      className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setCustomFieldValueMap((prev) => {
+                                          const newMap = new Map(prev);
+                                          const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                          newMap.set(fieldDef.id, originalValue);
+                                          return newMap;
+                                        });
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                >
+                                  {currentValue ? `$${parseFloat(currentValue).toFixed(2)}` : `Add ${fieldDef.title.toLowerCase()}...`}
+                                </button>
+                              )
                             )}
 
                             {fieldDef.type === 'rating' && (
@@ -4393,21 +4700,62 @@ function CardDetailModal({
                             )}
 
                             {fieldDef.type === 'phone' && (
-                              <input
-                                type="tel"
-                                value={currentValue}
-                                onChange={(e) => {
-                                  setCustomFieldValueMap((prev) => {
-                                    const newMap = new Map(prev);
-                                    newMap.set(fieldDef.id, e.target.value);
-                                    return newMap;
-                                  });
-                                }}
-                                onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
-                                disabled={isSavingCustomField}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                                placeholder="+1 (555) 000-0000"
-                              />
+                              editingCustomFieldId === fieldDef.id ? (
+                                <div>
+                                  <input
+                                    type="tel"
+                                    value={currentValue}
+                                    onChange={(e) => {
+                                      setCustomFieldValueMap((prev) => {
+                                        const newMap = new Map(prev);
+                                        newMap.set(fieldDef.id, e.target.value);
+                                        return newMap;
+                                      });
+                                    }}
+                                    disabled={isSavingCustomField}
+                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                                    placeholder="+1 (555) 000-0000"
+                                    autoFocus
+                                  />
+                                  <div className="flex space-x-2 mt-2">
+                                    <button
+                                      onClick={() => {
+                                        handleCustomFieldChange(fieldDef.id, currentValue);
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      disabled={isSavingCustomField}
+                                      className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setCustomFieldValueMap((prev) => {
+                                          const newMap = new Map(prev);
+                                          const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                          newMap.set(fieldDef.id, originalValue);
+                                          return newMap;
+                                        });
+                                        setEditingCustomFieldId(null);
+                                      }}
+                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                >
+                                  {currentValue ? (
+                                    <a href={`tel:${currentValue}`} className="text-blue-600 hover:underline" onClick={e => e.stopPropagation()}>
+                                      {currentValue}
+                                    </a>
+                                  ) : `Add ${fieldDef.title.toLowerCase()}...`}
+                                </button>
+                              )
                             )}
                           </div>
                         );
@@ -5414,39 +5762,113 @@ function CardDetailModal({
                           </div>
 
                           {fieldDef.type === 'text' && (
-                            <input
-                              type="text"
-                              value={currentValue}
-                              onChange={(e) => {
-                                setCustomFieldValueMap((prev) => {
-                                  const newMap = new Map(prev);
-                                  newMap.set(fieldDef.id, e.target.value);
-                                  return newMap;
-                                });
-                              }}
-                              onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
-                              disabled={isSavingCustomField}
-                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
-                              placeholder={`Enter ${fieldDef.title.toLowerCase()}`}
-                            />
+                            editingCustomFieldId === fieldDef.id ? (
+                              <div>
+                                <input
+                                  type="text"
+                                  value={currentValue}
+                                  onChange={(e) => {
+                                    setCustomFieldValueMap((prev) => {
+                                      const newMap = new Map(prev);
+                                      newMap.set(fieldDef.id, e.target.value);
+                                      return newMap;
+                                    });
+                                  }}
+                                  disabled={isSavingCustomField}
+                                  className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                                  placeholder={`Enter ${fieldDef.title.toLowerCase()}`}
+                                  autoFocus
+                                />
+                                <div className="flex space-x-2 mt-1.5">
+                                  <button
+                                    onClick={() => {
+                                      handleCustomFieldChange(fieldDef.id, currentValue);
+                                      setEditingCustomFieldId(null);
+                                    }}
+                                    disabled={isSavingCustomField}
+                                    className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium hover:bg-blue-700 disabled:opacity-50"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setCustomFieldValueMap((prev) => {
+                                        const newMap = new Map(prev);
+                                        const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                        newMap.set(fieldDef.id, originalValue);
+                                        return newMap;
+                                      });
+                                      setEditingCustomFieldId(null);
+                                    }}
+                                    className="text-gray-600 px-2 py-1 text-xs"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                className="w-full text-left px-2 py-1.5 bg-gray-100 rounded text-sm text-gray-600 hover:bg-gray-200"
+                              >
+                                {currentValue || `Add ${fieldDef.title.toLowerCase()}...`}
+                              </button>
+                            )
                           )}
 
                           {fieldDef.type === 'number' && (
-                            <input
-                              type="number"
-                              value={currentValue}
-                              onChange={(e) => {
-                                setCustomFieldValueMap((prev) => {
-                                  const newMap = new Map(prev);
-                                  newMap.set(fieldDef.id, e.target.value);
-                                  return newMap;
-                                });
-                              }}
-                              onBlur={() => handleCustomFieldChange(fieldDef.id, currentValue)}
-                              disabled={isSavingCustomField}
-                              className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
-                              placeholder="0"
-                            />
+                            editingCustomFieldId === fieldDef.id ? (
+                              <div>
+                                <input
+                                  type="number"
+                                  value={currentValue}
+                                  onChange={(e) => {
+                                    setCustomFieldValueMap((prev) => {
+                                      const newMap = new Map(prev);
+                                      newMap.set(fieldDef.id, e.target.value);
+                                      return newMap;
+                                    });
+                                  }}
+                                  disabled={isSavingCustomField}
+                                  className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                                  placeholder="0"
+                                  autoFocus
+                                />
+                                <div className="flex space-x-2 mt-1.5">
+                                  <button
+                                    onClick={() => {
+                                      handleCustomFieldChange(fieldDef.id, currentValue);
+                                      setEditingCustomFieldId(null);
+                                    }}
+                                    disabled={isSavingCustomField}
+                                    className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium hover:bg-blue-700 disabled:opacity-50"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setCustomFieldValueMap((prev) => {
+                                        const newMap = new Map(prev);
+                                        const originalValue = initialCustomFieldValues.find(v => v.definitionId === fieldDef.id)?.value || '';
+                                        newMap.set(fieldDef.id, originalValue);
+                                        return newMap;
+                                      });
+                                      setEditingCustomFieldId(null);
+                                    }}
+                                    className="text-gray-600 px-2 py-1 text-xs"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setEditingCustomFieldId(fieldDef.id)}
+                                className="w-full text-left px-2 py-1.5 bg-gray-100 rounded text-sm text-gray-600 hover:bg-gray-200"
+                              >
+                                {currentValue || `Enter ${fieldDef.title.toLowerCase()}...`}
+                              </button>
+                            )
                           )}
 
                           {fieldDef.type === 'date' && (
@@ -5711,8 +6133,8 @@ function CardDetailModal({
 
         {/* Move Modal */}
         {showMoveModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" onClick={() => setShowMoveModal(false)}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Move Card</h3>
                 <button
@@ -5799,8 +6221,8 @@ function CardDetailModal({
 
         {/* Save as Template Modal */}
         {showTemplateNameModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]" onClick={() => setShowTemplateNameModal(false)}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Save as Template</h3>
                 <button
