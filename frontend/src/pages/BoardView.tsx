@@ -5677,8 +5677,8 @@ function CardDetailModal({
                     </button>
                     {showMemberPicker && (
                       <>
-                        <div className="fixed inset-0 z-[5]" onClick={() => setShowMemberPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                        <div className="fixed inset-0 z-[51]" onClick={() => setShowMemberPicker(false)} />
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
                           <h5 className="text-sm font-medium text-gray-700 mb-2">Assign member (1 max)</h5>
                         {cardMembers.length > 0 && (
                           <div className="mb-3 p-2 bg-blue-50 rounded">
@@ -5764,8 +5764,8 @@ function CardDetailModal({
                     </button>
                     {showWatchersPicker && (
                       <>
-                        <div className="fixed inset-0 z-[5]" onClick={() => setShowWatchersPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                        <div className="fixed inset-0 z-[51]" onClick={() => setShowWatchersPicker(false)} />
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
                           <h5 className="text-sm font-medium text-gray-700 mb-2">Add Watchers</h5>
                         {/* Current watchers */}
                         {card.watcherIds && card.watcherIds.length > 0 && (
@@ -5855,8 +5855,8 @@ function CardDetailModal({
                     </button>
                     {showDepartmentPicker && (
                       <>
-                        <div className="fixed inset-0 z-[5]" onClick={() => setShowDepartmentPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                        <div className="fixed inset-0 z-[51]" onClick={() => setShowDepartmentPicker(false)} />
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
                           <h5 className="text-sm font-medium text-gray-700 mb-2">Select Department</h5>
                         <div className="space-y-1 max-h-48 overflow-y-auto">
                           {departments.map((dept) => (
@@ -5916,8 +5916,8 @@ function CardDetailModal({
                     </button>
                     {showClientPicker && (
                       <>
-                        <div className="fixed inset-0 z-[5]" onClick={() => setShowClientPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                        <div className="fixed inset-0 z-[51]" onClick={() => setShowClientPicker(false)} />
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
                           <h5 className="text-sm font-medium text-gray-700 mb-2">Select Client</h5>
                         <div className="space-y-1 max-h-48 overflow-y-auto">
                           {clients.map((clnt) => (
