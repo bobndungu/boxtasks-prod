@@ -10,14 +10,29 @@ export interface WorkspaceRole {
   workspaceId: string | null; // null = global role
   isDefault: boolean;
   permissions: {
+    // Card permissions
+    cardView: PermissionLevel;
     cardCreate: PermissionLevel;
     cardEdit: PermissionLevel;
     cardDelete: PermissionLevel;
     cardMove: PermissionLevel;
+    // List permissions
+    listView: PermissionLevel;
     listCreate: PermissionLevel;
     listEdit: PermissionLevel;
     listDelete: PermissionLevel;
+    // Board permissions
+    boardView: PermissionLevel;
+    boardCreate: PermissionLevel; // Only 'any' or 'none'
+    boardEdit: PermissionLevel;
+    boardDelete: PermissionLevel;
+    // Workspace permissions
+    workspaceView: PermissionLevel; // Only 'any' or 'none'
+    workspaceEdit: PermissionLevel; // Only 'any' or 'none'
+    workspaceDelete: PermissionLevel; // Only 'any' or 'none'
+    // Member management
     memberManage: PermissionLevel;
+    // Comment permissions
     commentEdit: PermissionLevel;
     commentDelete: PermissionLevel;
   };
@@ -42,14 +57,29 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
     workspaceId: rels?.field_role_workspace?.data?.id || null,
     isDefault: (attrs.field_role_is_default as boolean) || false,
     permissions: {
+      // Card permissions
+      cardView: (attrs.field_perm_card_view as PermissionLevel) || 'none',
       cardCreate: (attrs.field_perm_card_create as PermissionLevel) || 'none',
       cardEdit: (attrs.field_perm_card_edit as PermissionLevel) || 'none',
       cardDelete: (attrs.field_perm_card_delete as PermissionLevel) || 'none',
       cardMove: (attrs.field_perm_card_move as PermissionLevel) || 'none',
+      // List permissions
+      listView: (attrs.field_perm_list_view as PermissionLevel) || 'none',
       listCreate: (attrs.field_perm_list_create as PermissionLevel) || 'none',
       listEdit: (attrs.field_perm_list_edit as PermissionLevel) || 'none',
       listDelete: (attrs.field_perm_list_delete as PermissionLevel) || 'none',
+      // Board permissions
+      boardView: (attrs.field_perm_board_view as PermissionLevel) || 'none',
+      boardCreate: (attrs.field_perm_board_create as PermissionLevel) || 'none',
+      boardEdit: (attrs.field_perm_board_edit as PermissionLevel) || 'none',
+      boardDelete: (attrs.field_perm_board_delete as PermissionLevel) || 'none',
+      // Workspace permissions
+      workspaceView: (attrs.field_perm_workspace_view as PermissionLevel) || 'none',
+      workspaceEdit: (attrs.field_perm_workspace_edit as PermissionLevel) || 'none',
+      workspaceDelete: (attrs.field_perm_workspace_delete as PermissionLevel) || 'none',
+      // Member management
       memberManage: (attrs.field_perm_member_manage as PermissionLevel) || 'none',
+      // Comment permissions
       commentEdit: (attrs.field_perm_comment_edit as PermissionLevel) || 'none',
       commentDelete: (attrs.field_perm_comment_delete as PermissionLevel) || 'none',
     },
@@ -344,14 +374,29 @@ export async function createWorkspaceRole(
         attributes: {
           title,
           field_role_is_default: isDefault,
+          // Card permissions
+          field_perm_card_view: permissions.cardView,
           field_perm_card_create: permissions.cardCreate,
           field_perm_card_edit: permissions.cardEdit,
           field_perm_card_delete: permissions.cardDelete,
           field_perm_card_move: permissions.cardMove,
+          // List permissions
+          field_perm_list_view: permissions.listView,
           field_perm_list_create: permissions.listCreate,
           field_perm_list_edit: permissions.listEdit,
           field_perm_list_delete: permissions.listDelete,
+          // Board permissions
+          field_perm_board_view: permissions.boardView,
+          field_perm_board_create: permissions.boardCreate,
+          field_perm_board_edit: permissions.boardEdit,
+          field_perm_board_delete: permissions.boardDelete,
+          // Workspace permissions
+          field_perm_workspace_view: permissions.workspaceView,
+          field_perm_workspace_edit: permissions.workspaceEdit,
+          field_perm_workspace_delete: permissions.workspaceDelete,
+          // Member management
           field_perm_member_manage: permissions.memberManage,
+          // Comment permissions
           field_perm_comment_edit: permissions.commentEdit,
           field_perm_comment_delete: permissions.commentDelete,
         },
@@ -387,6 +432,10 @@ export async function updateWorkspaceRole(
     attributes.field_role_is_default = updates.isDefault;
   }
   if (updates.permissions) {
+    // Card permissions
+    if (updates.permissions.cardView !== undefined) {
+      attributes.field_perm_card_view = updates.permissions.cardView;
+    }
     if (updates.permissions.cardCreate !== undefined) {
       attributes.field_perm_card_create = updates.permissions.cardCreate;
     }
@@ -399,6 +448,10 @@ export async function updateWorkspaceRole(
     if (updates.permissions.cardMove !== undefined) {
       attributes.field_perm_card_move = updates.permissions.cardMove;
     }
+    // List permissions
+    if (updates.permissions.listView !== undefined) {
+      attributes.field_perm_list_view = updates.permissions.listView;
+    }
     if (updates.permissions.listCreate !== undefined) {
       attributes.field_perm_list_create = updates.permissions.listCreate;
     }
@@ -408,9 +461,34 @@ export async function updateWorkspaceRole(
     if (updates.permissions.listDelete !== undefined) {
       attributes.field_perm_list_delete = updates.permissions.listDelete;
     }
+    // Board permissions
+    if (updates.permissions.boardView !== undefined) {
+      attributes.field_perm_board_view = updates.permissions.boardView;
+    }
+    if (updates.permissions.boardCreate !== undefined) {
+      attributes.field_perm_board_create = updates.permissions.boardCreate;
+    }
+    if (updates.permissions.boardEdit !== undefined) {
+      attributes.field_perm_board_edit = updates.permissions.boardEdit;
+    }
+    if (updates.permissions.boardDelete !== undefined) {
+      attributes.field_perm_board_delete = updates.permissions.boardDelete;
+    }
+    // Workspace permissions
+    if (updates.permissions.workspaceView !== undefined) {
+      attributes.field_perm_workspace_view = updates.permissions.workspaceView;
+    }
+    if (updates.permissions.workspaceEdit !== undefined) {
+      attributes.field_perm_workspace_edit = updates.permissions.workspaceEdit;
+    }
+    if (updates.permissions.workspaceDelete !== undefined) {
+      attributes.field_perm_workspace_delete = updates.permissions.workspaceDelete;
+    }
+    // Member management
     if (updates.permissions.memberManage !== undefined) {
       attributes.field_perm_member_manage = updates.permissions.memberManage;
     }
+    // Comment permissions
     if (updates.permissions.commentEdit !== undefined) {
       attributes.field_perm_comment_edit = updates.permissions.commentEdit;
     }

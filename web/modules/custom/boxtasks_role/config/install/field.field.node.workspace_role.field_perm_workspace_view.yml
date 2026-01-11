@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_workspace_view
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_workspace_view
+field_name: field_perm_workspace_view
+entity_type: node
+bundle: workspace_role
+label: 'View Workspace'
+description: 'Permission to view the workspace and its contents.'
+required: false
+translatable: false
+default_value:
+  - value: 'any'
+default_value_callback: ''
+settings: {}
+field_type: list_string

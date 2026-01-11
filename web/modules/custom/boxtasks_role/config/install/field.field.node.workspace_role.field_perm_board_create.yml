@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_board_create
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_board_create
+field_name: field_perm_board_create
+entity_type: node
+bundle: workspace_role
+label: 'Create Boards'
+description: 'Permission to create new boards in the workspace.'
+required: false
+translatable: false
+default_value:
+  - value: 'any'
+default_value_callback: ''
+settings: {}
+field_type: list_string

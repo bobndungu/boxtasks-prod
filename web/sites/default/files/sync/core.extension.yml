@@ -73,6 +73,7 @@ module:
   views_ui: 0
   views: 10
   standard: 1000
+  boxtasks_customfield: 0
 theme:
   olivero: 0
   claro: 0

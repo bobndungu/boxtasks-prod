@@ -25,33 +25,63 @@ function _boxtasks_role_create_default_roles() {
     'title' => 'Admin',
     'field_role_workspace' => NULL,
     'field_role_is_default' => FALSE,
+    // Card permissions
+    'field_perm_card_view' => 'any',
     'field_perm_card_create' => 'any',
     'field_perm_card_edit' => 'any',
     'field_perm_card_delete' => 'any',
     'field_perm_card_move' => 'any',
+    // List permissions
+    'field_perm_list_view' => 'any',
     'field_perm_list_create' => 'any',
     'field_perm_list_edit' => 'any',
     'field_perm_list_delete' => 'any',
+    // Board permissions
+    'field_perm_board_view' => 'any',
+    'field_perm_board_create' => 'any',
+    'field_perm_board_edit' => 'any',
+    'field_perm_board_delete' => 'any',
+    // Workspace permissions
+    'field_perm_workspace_view' => 'any',
+    'field_perm_workspace_edit' => 'any',
+    'field_perm_workspace_delete' => 'any',
+    // Member management
     'field_perm_member_manage' => 'any',
+    // Comment permissions
     'field_perm_comment_edit' => 'any',
     'field_perm_comment_delete' => 'any',
   ]);
   $admin_role->save();
 
-  // Editor role - can edit everything but not manage members.
+  // Editor role - can edit everything but not manage members or workspace.
   $editor_role = Node::create([
     'type' => 'workspace_role',
     'title' => 'Editor',
     'field_role_workspace' => NULL,
     'field_role_is_default' => TRUE, // Default role for new members.
+    // Card permissions
+    'field_perm_card_view' => 'any',
     'field_perm_card_create' => 'any',
     'field_perm_card_edit' => 'any',
     'field_perm_card_delete' => 'own',
     'field_perm_card_move' => 'any',
+    // List permissions
+    'field_perm_list_view' => 'any',
     'field_perm_list_create' => 'any',
     'field_perm_list_edit' => 'any',
     'field_perm_list_delete' => 'own',
+    // Board permissions
+    'field_perm_board_view' => 'any',
+    'field_perm_board_create' => 'any',
+    'field_perm_board_edit' => 'own',
+    'field_perm_board_delete' => 'own',
+    // Workspace permissions
+    'field_perm_workspace_view' => 'any',
+    'field_perm_workspace_edit' => 'none',
+    'field_perm_workspace_delete' => 'none',
+    // Member management
     'field_perm_member_manage' => 'none',
+    // Comment permissions
     'field_perm_comment_edit' => 'own',
     'field_perm_comment_delete' => 'own',
   ]);
@@ -63,18 +93,96 @@ function _boxtasks_role_create_default_roles() {
     'title' => 'Viewer',
     'field_role_workspace' => NULL,
     'field_role_is_default' => FALSE,
+    // Card permissions - view only
+    'field_perm_card_view' => 'any',
     'field_perm_card_create' => 'none',
     'field_perm_card_edit' => 'none',
     'field_perm_card_delete' => 'none',
     'field_perm_card_move' => 'none',
+    // List permissions - view only
+    'field_perm_list_view' => 'any',
     'field_perm_list_create' => 'none',
     'field_perm_list_edit' => 'none',
     'field_perm_list_delete' => 'none',
+    // Board permissions - view only
+    'field_perm_board_view' => 'any',
+    'field_perm_board_create' => 'none',
+    'field_perm_board_edit' => 'none',
+    'field_perm_board_delete' => 'none',
+    // Workspace permissions - view only
+    'field_perm_workspace_view' => 'any',
+    'field_perm_workspace_edit' => 'none',
+    'field_perm_workspace_delete' => 'none',
+    // Member management
     'field_perm_member_manage' => 'none',
+    // Comment permissions - can edit/delete own
     'field_perm_comment_edit' => 'own',
     'field_perm_comment_delete' => 'own',
   ]);
   $viewer_role->save();
 
   \Drupal::messenger()->addMessage(t('Created default workspace roles: Admin, Editor, Viewer.'));
+}
+
+/**
+ * Add view, board, and workspace permission fields to workspace roles.
+ */
+function boxtasks_role_update_10001() {
+  // Update existing default roles with new permissions.
+  // The fields should already exist from config sync.
+  // Use entity query with notExists() for NULL field values.
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $query = $storage->getQuery()
+    ->condition('type', 'workspace_role')
+    ->notExists('field_role_workspace')
+    ->accessCheck(FALSE);
+  $nids = $query->execute();
+
+  if (empty($nids)) {
+    return t('No global workspace roles found to update.');
+  }
+
+  $roles = $storage->loadMultiple($nids);
+
+  foreach ($roles as $role) {
+    $title = $role->getTitle();
+
+    if ($title === 'Admin') {
+      $role->set('field_perm_card_view', 'any');
+      $role->set('field_perm_list_view', 'any');
+      $role->set('field_perm_board_view', 'any');
+      $role->set('field_perm_board_create', 'any');
+      $role->set('field_perm_board_edit', 'any');
+      $role->set('field_perm_board_delete', 'any');
+      $role->set('field_perm_workspace_view', 'any');
+      $role->set('field_perm_workspace_edit', 'any');
+      $role->set('field_perm_workspace_delete', 'any');
+    }
+    elseif ($title === 'Editor') {
+      $role->set('field_perm_card_view', 'any');
+      $role->set('field_perm_list_view', 'any');
+      $role->set('field_perm_board_view', 'any');
+      $role->set('field_perm_board_create', 'any');
+      $role->set('field_perm_board_edit', 'own');
+      $role->set('field_perm_board_delete', 'own');
+      $role->set('field_perm_workspace_view', 'any');
+      $role->set('field_perm_workspace_edit', 'none');
+      $role->set('field_perm_workspace_delete', 'none');
+    }
+    elseif ($title === 'Viewer') {
+      $role->set('field_perm_card_view', 'any');
+      $role->set('field_perm_list_view', 'any');
+      $role->set('field_perm_board_view', 'any');
+      $role->set('field_perm_board_create', 'none');
+      $role->set('field_perm_board_edit', 'none');
+      $role->set('field_perm_board_delete', 'none');
+      $role->set('field_perm_workspace_view', 'any');
+      $role->set('field_perm_workspace_edit', 'none');
+      $role->set('field_perm_workspace_delete', 'none');
+    }
+
+    $role->save();
+  }
+
+  return t('Updated @count default workspace roles with new permission values.', ['@count' => count($roles)]);
 }

@@ -7,9 +7,10 @@ interface UsePermissionsReturn {
   permissions: WorkspaceRole['permissions'] | null;
   loading: boolean;
   error: string | null;
-  canCreate: (type: 'card' | 'list') => boolean;
-  canEdit: (type: 'card' | 'list' | 'comment', isOwner: boolean) => boolean;
-  canDelete: (type: 'card' | 'list' | 'comment', isOwner: boolean) => boolean;
+  canView: (type: 'card' | 'list' | 'board' | 'workspace', isOwner?: boolean) => boolean;
+  canCreate: (type: 'card' | 'list' | 'board') => boolean;
+  canEdit: (type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean) => boolean;
+  canDelete: (type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean) => boolean;
   canMove: (type: 'card', isOwner: boolean) => boolean;
   canManageMembers: () => boolean;
   refetch: () => Promise<void>;
@@ -45,13 +46,22 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
         } else {
           // Fallback to editor-like permissions if no roles exist
           setPermissions({
+            cardView: 'any',
             cardCreate: 'any',
             cardEdit: 'any',
             cardDelete: 'own',
             cardMove: 'any',
+            listView: 'any',
             listCreate: 'any',
             listEdit: 'any',
             listDelete: 'own',
+            boardView: 'any',
+            boardCreate: 'any',
+            boardEdit: 'own',
+            boardDelete: 'own',
+            workspaceView: 'any',
+            workspaceEdit: 'none',
+            workspaceDelete: 'none',
             memberManage: 'none',
             commentEdit: 'own',
             commentDelete: 'own',
@@ -63,13 +73,22 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
       setError(err instanceof Error ? err.message : 'Failed to fetch permissions');
       // Set permissive defaults on error to not block users
       setPermissions({
+        cardView: 'any',
         cardCreate: 'any',
         cardEdit: 'any',
         cardDelete: 'own',
         cardMove: 'any',
+        listView: 'any',
         listCreate: 'any',
         listEdit: 'any',
         listDelete: 'own',
+        boardView: 'any',
+        boardCreate: 'any',
+        boardEdit: 'own',
+        boardDelete: 'own',
+        workspaceView: 'any',
+        workspaceEdit: 'none',
+        workspaceDelete: 'none',
         memberManage: 'none',
         commentEdit: 'own',
         commentDelete: 'own',
@@ -83,14 +102,48 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     fetchPermissions();
   }, [fetchPermissions]);
 
-  const canCreate = useCallback((type: 'card' | 'list'): boolean => {
+  const canView = useCallback((type: 'card' | 'list' | 'board' | 'workspace', isOwner: boolean = false): boolean => {
     if (!permissions) return true; // Allow by default while loading
 
-    const permission = type === 'card' ? permissions.cardCreate : permissions.listCreate;
+    let permission: PermissionLevel;
+    switch (type) {
+      case 'card':
+        permission = permissions.cardView;
+        break;
+      case 'list':
+        permission = permissions.listView;
+        break;
+      case 'board':
+        permission = permissions.boardView;
+        break;
+      case 'workspace':
+        permission = permissions.workspaceView;
+        break;
+    }
+
+    return canPerformAction(permission, isOwner);
+  }, [permissions]);
+
+  const canCreate = useCallback((type: 'card' | 'list' | 'board'): boolean => {
+    if (!permissions) return true; // Allow by default while loading
+
+    let permission: PermissionLevel;
+    switch (type) {
+      case 'card':
+        permission = permissions.cardCreate;
+        break;
+      case 'list':
+        permission = permissions.listCreate;
+        break;
+      case 'board':
+        permission = permissions.boardCreate;
+        break;
+    }
+
     return permission === 'any';
   }, [permissions]);
 
-  const canEdit = useCallback((type: 'card' | 'list' | 'comment', isOwner: boolean): boolean => {
+  const canEdit = useCallback((type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean): boolean => {
     if (!permissions) return true; // Allow by default while loading
 
     let permission: PermissionLevel;
@@ -101,6 +154,12 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
       case 'list':
         permission = permissions.listEdit;
         break;
+      case 'board':
+        permission = permissions.boardEdit;
+        break;
+      case 'workspace':
+        permission = permissions.workspaceEdit;
+        break;
       case 'comment':
         permission = permissions.commentEdit;
         break;
@@ -109,7 +168,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     return canPerformAction(permission, isOwner);
   }, [permissions]);
 
-  const canDelete = useCallback((type: 'card' | 'list' | 'comment', isOwner: boolean): boolean => {
+  const canDelete = useCallback((type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean): boolean => {
     if (!permissions) return true; // Allow by default while loading
 
     let permission: PermissionLevel;
@@ -119,6 +178,12 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
         break;
       case 'list':
         permission = permissions.listDelete;
+        break;
+      case 'board':
+        permission = permissions.boardDelete;
+        break;
+      case 'workspace':
+        permission = permissions.workspaceDelete;
         break;
       case 'comment':
         permission = permissions.commentDelete;
@@ -148,6 +213,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     permissions,
     loading,
     error,
+    canView,
     canCreate,
     canEdit,
     canDelete,
