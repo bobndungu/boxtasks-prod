@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell, Check, CheckCheck, X, Clock, ExternalLink } from 'lucide-react';
+import { Bell, Check, CheckCheck, X, Clock, ExternalLink, Wifi, WifiOff } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
+import { useUserNotifications } from '../lib/hooks/useMercure';
 import {
   fetchNotifications,
   fetchUnreadCount,
@@ -21,7 +22,43 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasNewNotification, setHasNewNotification] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Handle real-time notification via Mercure
+  const handleRealtimeNotification = useCallback((notification: unknown) => {
+    const notif = notification as Notification;
+
+    // Add to the top of the list
+    setNotifications(prev => [notif, ...prev.filter(n => n.id !== notif.id)]);
+    setUnreadCount(prev => prev + 1);
+    setHasNewNotification(true);
+
+    // Play notification sound if supported
+    try {
+      const audio = new Audio('/notification.mp3');
+      audio.volume = 0.3;
+      audio.play().catch(() => {});
+    } catch {
+      // Ignore audio errors
+    }
+
+    // Show browser notification if permitted
+    if (Notification.permission === 'granted') {
+      const display = getNotificationDisplay(notif.type);
+      new Notification('BoxTasks', {
+        body: notif.message,
+        icon: '/icon-192.png',
+        tag: notif.id,
+      });
+    }
+
+    // Clear the new notification indicator after 3 seconds
+    setTimeout(() => setHasNewNotification(false), 3000);
+  }, []);
+
+  // Subscribe to real-time notifications via Mercure
+  const { connected: mercureConnected } = useUserNotifications(user?.id, handleRealtimeNotification);
 
   const loadNotifications = useCallback(async () => {
     if (!user?.id) return;
@@ -46,9 +83,16 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
     loadNotifications();
   }, [loadNotifications]);
 
-  // Poll for new notifications every 30 seconds
+  // Request browser notification permission
   useEffect(() => {
-    if (!user?.id) return;
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Fallback polling for when Mercure is not connected (every 60 seconds instead of 30)
+  useEffect(() => {
+    if (!user?.id || mercureConnected) return;
 
     const interval = setInterval(async () => {
       try {
@@ -57,10 +101,10 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
       } catch (error) {
         // Silently fail on polling errors
       }
-    }, 30000);
+    }, 60000);
 
     return () => clearInterval(interval);
-  }, [user?.id]);
+  }, [user?.id, mercureConnected]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -154,27 +198,42 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
       {/* Bell Button */}
       <button
         onClick={handleToggle}
-        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg relative"
+        className={`p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg relative ${hasNewNotification ? 'animate-pulse' : ''}`}
         aria-label="Notifications"
+        title={mercureConnected ? 'Real-time notifications active' : 'Checking for notifications...'}
       >
-        <Bell className="h-5 w-5" />
+        <Bell className={`h-5 w-5 ${hasNewNotification ? 'animate-bounce text-blue-600' : ''}`} />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center">
+          <span className={`absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center ${hasNewNotification ? 'animate-ping' : ''}`}>
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
+        {/* Connection status indicator */}
+        <span className={`absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full ${mercureConnected ? 'bg-green-500' : 'bg-gray-400'}`} title={mercureConnected ? 'Connected' : 'Disconnected'} />
       </button>
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[480px] flex flex-col">
+        <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-[480px] flex flex-col">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
-            <h3 className="font-semibold text-gray-900">Notifications</h3>
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+              {mercureConnected ? (
+                <span className="flex items-center text-xs text-green-600 dark:text-green-400" title="Real-time updates active">
+                  <Wifi className="h-3 w-3 mr-0.5" />
+                  Live
+                </span>
+              ) : (
+                <span className="flex items-center text-xs text-gray-400" title="Polling for updates">
+                  <WifiOff className="h-3 w-3 mr-0.5" />
+                </span>
+              )}
+            </div>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center"
+                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center"
               >
                 <CheckCheck className="h-4 w-4 mr-1" />
                 Mark all read
@@ -190,14 +249,14 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
               </div>
             ) : notifications.length === 0 ? (
               <div className="py-8 text-center">
-                <Bell className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">No notifications yet</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <Bell className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400">No notifications yet</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                   You'll see updates here when they happen
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {notifications.map((notification) => {
                   const display = getNotificationDisplay(notification.type);
 
@@ -205,8 +264,8 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
                     <div
                       key={notification.id}
                       onClick={() => handleNotificationClick(notification)}
-                      className={`px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${
-                        !notification.read ? 'bg-blue-50' : ''
+                      className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
+                        !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                       }`}
                     >
                       <div className="flex items-start">
@@ -215,18 +274,18 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm ${!notification.read ? 'font-medium' : ''} text-gray-900`}>
+                          <p className={`text-sm ${!notification.read ? 'font-medium' : ''} text-gray-900 dark:text-white`}>
                             {notification.message}
                           </p>
 
                           {notification.cardTitle && (
-                            <p className="text-sm text-blue-600 mt-0.5 flex items-center truncate">
+                            <p className="text-sm text-blue-600 dark:text-blue-400 mt-0.5 flex items-center truncate">
                               <ExternalLink className="h-3 w-3 mr-1 flex-shrink-0" />
                               {notification.cardTitle}
                             </p>
                           )}
 
-                          <div className="flex items-center mt-1 text-xs text-gray-500">
+                          <div className="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
                             <Clock className="h-3 w-3 mr-1" />
                             {formatTime(notification.createdAt)}
                             {notification.actorName && (
@@ -243,7 +302,7 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
                                 e.stopPropagation();
                                 handleMarkAsRead(notification);
                               }}
-                              className="p-1 text-gray-400 hover:text-blue-600 rounded"
+                              className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded"
                               title="Mark as read"
                             >
                               <Check className="h-4 w-4" />
@@ -251,7 +310,7 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
                           )}
                           <button
                             onClick={(e) => handleDelete(notification.id, e)}
-                            className="p-1 text-gray-400 hover:text-red-600 rounded"
+                            className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded"
                             title="Delete"
                           >
                             <X className="h-4 w-4" />
@@ -267,10 +326,10 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="px-4 py-2 border-t border-gray-100 flex-shrink-0">
+            <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-sm text-blue-600 hover:text-blue-700 w-full text-center"
+                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 w-full text-center"
               >
                 View all notifications
               </button>

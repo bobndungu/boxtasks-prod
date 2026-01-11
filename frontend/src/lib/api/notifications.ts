@@ -12,7 +12,13 @@ export type NotificationType =
   | 'card_completed'
   | 'checklist_completed'
   | 'due_date_approaching'
-  | 'label_added';
+  | 'label_added'
+  | 'goal_progress'
+  | 'goal_completed'
+  | 'goal_at_risk'
+  | 'milestone_due'
+  | 'milestone_completed'
+  | 'milestone_missed';
 
 export interface Notification {
   id: string;
@@ -227,6 +233,12 @@ export function getNotificationDisplay(type: NotificationType): { icon: string; 
     checklist_completed: { icon: '☑️', label: 'Checklist item completed', color: 'text-green-500' },
     due_date_approaching: { icon: '📅', label: 'Due date approaching', color: 'text-orange-600' },
     label_added: { icon: '🏷️', label: 'Label added', color: 'text-blue-500' },
+    goal_progress: { icon: '🎯', label: 'Goal progress updated', color: 'text-purple-600' },
+    goal_completed: { icon: '🏆', label: 'Goal completed', color: 'text-green-600' },
+    goal_at_risk: { icon: '⚠️', label: 'Goal at risk', color: 'text-orange-600' },
+    milestone_due: { icon: '🚩', label: 'Milestone due', color: 'text-amber-600' },
+    milestone_completed: { icon: '🎉', label: 'Milestone reached', color: 'text-green-600' },
+    milestone_missed: { icon: '❌', label: 'Milestone missed', color: 'text-red-600' },
   };
   return displays[type] || { icon: '🔔', label: 'Notification', color: 'text-gray-600' };
 }

@@ -27,6 +27,12 @@ class NotificationService {
   public const TYPE_CHECKLIST_ITEM_COMPLETED = 'checklist_completed';
   public const TYPE_DUE_DATE_APPROACHING = 'due_date_approaching';
   public const TYPE_LABEL_ADDED = 'label_added';
+  public const TYPE_GOAL_PROGRESS = 'goal_progress';
+  public const TYPE_GOAL_COMPLETED = 'goal_completed';
+  public const TYPE_GOAL_AT_RISK = 'goal_at_risk';
+  public const TYPE_MILESTONE_DUE = 'milestone_due';
+  public const TYPE_MILESTONE_COMPLETED = 'milestone_completed';
+  public const TYPE_MILESTONE_MISSED = 'milestone_missed';
 
   /**
    * The entity type manager.
@@ -395,6 +401,12 @@ class NotificationService {
         self::TYPE_CHECKLIST_ITEM_COMPLETED => 'checklist_completed',
         self::TYPE_DUE_DATE_APPROACHING => 'due_date_approaching',
         self::TYPE_LABEL_ADDED => 'label_added',
+        self::TYPE_GOAL_PROGRESS => 'goal_progress',
+        self::TYPE_GOAL_COMPLETED => 'goal_completed',
+        self::TYPE_GOAL_AT_RISK => 'goal_at_risk',
+        self::TYPE_MILESTONE_DUE => 'milestone_due',
+        self::TYPE_MILESTONE_COMPLETED => 'milestone_completed',
+        self::TYPE_MILESTONE_MISSED => 'milestone_missed',
       ];
 
       $pref_key = $key_map[$type] ?? $type;
@@ -405,6 +417,144 @@ class NotificationService {
     catch (\Exception $e) {
       // On error, default to sending the notification.
       return TRUE;
+    }
+  }
+
+  /**
+   * Notifies workspace members about a goal event.
+   *
+   * @param \Drupal\node\NodeInterface $goal
+   *   The goal entity.
+   * @param string $type
+   *   The notification type.
+   * @param string|null $message
+   *   Optional custom message.
+   */
+  public function notifyGoalUpdate(NodeInterface $goal, string $type, ?string $message = NULL): void {
+    if ($goal->bundle() !== 'goal') {
+      return;
+    }
+
+    // Get workspace members.
+    $workspace_id = $goal->get('field_goal_workspace')->target_id;
+    if (!$workspace_id) {
+      return;
+    }
+
+    $workspace = $this->entityTypeManager->getStorage('node')->load($workspace_id);
+    if (!$workspace) {
+      return;
+    }
+
+    $member_ids = [];
+    if ($workspace->hasField('field_workspace_members')) {
+      foreach ($workspace->get('field_workspace_members') as $item) {
+        $member_ids[] = (int) $item->target_id;
+      }
+    }
+
+    $actor_id = (int) $this->currentUser->id();
+    $member_ids = array_diff(array_unique($member_ids), [$actor_id]);
+
+    if (empty($member_ids)) {
+      return;
+    }
+
+    if (!$message) {
+      $actor = $this->entityTypeManager->getStorage('user')->load($actor_id);
+      $actor_name = $actor ? $actor->getDisplayName() : 'Someone';
+      $goal_title = $goal->getTitle();
+
+      switch ($type) {
+        case self::TYPE_GOAL_PROGRESS:
+          $progress = $goal->get('field_goal_progress')->value ?? 0;
+          $message = "Goal \"{$goal_title}\" is now {$progress}% complete";
+          break;
+
+        case self::TYPE_GOAL_COMPLETED:
+          $message = "{$actor_name} marked goal \"{$goal_title}\" as completed";
+          break;
+
+        case self::TYPE_GOAL_AT_RISK:
+          $message = "Goal \"{$goal_title}\" has been marked as at risk";
+          break;
+
+        default:
+          $message = "{$actor_name} updated goal \"{$goal_title}\"";
+      }
+    }
+
+    foreach ($member_ids as $member_id) {
+      $this->notify($member_id, $type, $message, NULL, $actor_id);
+    }
+  }
+
+  /**
+   * Notifies workspace members about a milestone event.
+   *
+   * @param \Drupal\node\NodeInterface $milestone
+   *   The milestone entity.
+   * @param string $type
+   *   The notification type.
+   * @param string|null $message
+   *   Optional custom message.
+   */
+  public function notifyMilestoneUpdate(NodeInterface $milestone, string $type, ?string $message = NULL): void {
+    if ($milestone->bundle() !== 'milestone') {
+      return;
+    }
+
+    // Get workspace members.
+    $workspace_id = $milestone->get('field_milestone_workspace')->target_id;
+    if (!$workspace_id) {
+      return;
+    }
+
+    $workspace = $this->entityTypeManager->getStorage('node')->load($workspace_id);
+    if (!$workspace) {
+      return;
+    }
+
+    $member_ids = [];
+    if ($workspace->hasField('field_workspace_members')) {
+      foreach ($workspace->get('field_workspace_members') as $item) {
+        $member_ids[] = (int) $item->target_id;
+      }
+    }
+
+    $actor_id = (int) $this->currentUser->id();
+    $member_ids = array_diff(array_unique($member_ids), [$actor_id]);
+
+    if (empty($member_ids)) {
+      return;
+    }
+
+    if (!$message) {
+      $actor = $this->entityTypeManager->getStorage('user')->load($actor_id);
+      $actor_name = $actor ? $actor->getDisplayName() : 'Someone';
+      $milestone_title = $milestone->getTitle();
+
+      switch ($type) {
+        case self::TYPE_MILESTONE_DUE:
+          $due_date = $milestone->get('field_milestone_due_date')->value ?? 'soon';
+          $message = "Milestone \"{$milestone_title}\" is due {$due_date}";
+          break;
+
+        case self::TYPE_MILESTONE_COMPLETED:
+          $message = "{$actor_name} completed milestone \"{$milestone_title}\"";
+          break;
+
+        case self::TYPE_MILESTONE_MISSED:
+          $message = "Milestone \"{$milestone_title}\" was missed";
+          break;
+
+        default:
+          $message = "{$actor_name} updated milestone \"{$milestone_title}\"";
+      }
+    }
+
+    foreach ($member_ids as $member_id) {
+      $this->notify($member_id, $type, $message, NULL, $actor_id);
     }
   }
 
