@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Target,
   Flag,
+  BarChart3,
 } from 'lucide-react';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { useBoardStore } from '../lib/stores/board';
@@ -134,6 +135,13 @@ export default function WorkspaceView() {
               >
                 <Flag className="h-5 w-5" />
                 <span className="text-sm font-medium">Milestones</span>
+              </Link>
+              <Link
+                to={`/workspace/${id}/reports`}
+                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              >
+                <BarChart3 className="h-5 w-5" />
+                <span className="text-sm font-medium">Reports</span>
               </Link>
               <Link
                 to={`/workspace/${id}/settings`}
