@@ -3227,6 +3227,7 @@ function CardDetailModal({
   const [editingItemDueDate, setEditingItemDueDate] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(true);
+  const [showAllActivities, setShowAllActivities] = useState(false);
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [availableBoards, setAvailableBoards] = useState<Board[]>([]);
   const [selectedBoardId, setSelectedBoardId] = useState<string>('');
@@ -5453,9 +5454,22 @@ function CardDetailModal({
 
               {/* Activity */}
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                  <Clock className="h-4 w-4 mr-2" />
-                  Activity
+                <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center justify-between">
+                  <span className="flex items-center">
+                    <Clock className="h-4 w-4 mr-2" />
+                    Activity
+                    {activities.length > 0 && (
+                      <span className="ml-2 text-xs text-gray-400 font-normal">({activities.length})</span>
+                    )}
+                  </span>
+                  {activities.length > 5 && (
+                    <button
+                      onClick={() => setShowAllActivities(!showAllActivities)}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-normal"
+                    >
+                      {showAllActivities ? 'Show less' : 'Show all'}
+                    </button>
+                  )}
                 </h4>
 
                 {isLoadingActivities ? (
@@ -5465,8 +5479,8 @@ function CardDetailModal({
                 ) : activities.length === 0 ? (
                   <p className="text-gray-500 text-sm text-center py-4">No activity yet</p>
                 ) : (
-                  <div className="space-y-3">
-                    {activities.slice(0, 10).map((activity) => {
+                  <div className={`space-y-3 ${showAllActivities ? 'max-h-96 overflow-y-auto pr-2' : ''}`}>
+                    {(showAllActivities ? activities : activities.slice(0, 5)).map((activity) => {
                       const display = getActivityDisplay(activity.type);
                       return (
                         <div key={activity.id} className="flex items-start">
@@ -5486,10 +5500,13 @@ function CardDetailModal({
                         </div>
                       );
                     })}
-                    {activities.length > 10 && (
-                      <p className="text-xs text-gray-500 text-center">
-                        +{activities.length - 10} more activities
-                      </p>
+                    {!showAllActivities && activities.length > 5 && (
+                      <button
+                        onClick={() => setShowAllActivities(true)}
+                        className="w-full text-xs text-blue-600 hover:text-blue-700 text-center py-2 hover:bg-blue-50 rounded"
+                      >
+                        Show {activities.length - 5} more activities
+                      </button>
                     )}
                   </div>
                 )}
