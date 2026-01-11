@@ -18,7 +18,7 @@ services:
         anonymous
         subscriptions
     ports:
-      - "3000:80"
+      - "3080:80"
     expose:
       - "80"
     networks:

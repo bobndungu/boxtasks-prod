@@ -19,22 +19,22 @@ class RateLimiter {
   protected const RATE_LIMITS = [
     // Authentication endpoints - stricter limits
     'auth' => [
-      'limit' => 5,
+      'limit' => 50,
       'window' => 300, // 5 minutes
     ],
     // API read endpoints
     'api_read' => [
-      'limit' => 100,
+      'limit' => 500,
       'window' => 60, // 1 minute
     ],
     // API write endpoints
     'api_write' => [
-      'limit' => 30,
+      'limit' => 100,
       'window' => 60, // 1 minute
     ],
     // General requests
     'default' => [
-      'limit' => 60,
+      'limit' => 200,
       'window' => 60, // 1 minute
     ],
   ];
