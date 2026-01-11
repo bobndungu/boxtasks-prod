@@ -18,6 +18,7 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const Workspaces = lazy(() => import('./pages/Workspaces'));
 const WorkspaceView = lazy(() => import('./pages/WorkspaceView'));
 const WorkspaceSettings = lazy(() => import('./pages/WorkspaceSettings'));
+const RoleManagement = lazy(() => import('./pages/RoleManagement'));
 const BoardView = lazy(() => import('./pages/BoardView'));
 const EverythingView = lazy(() => import('./pages/EverythingView'));
 const MyCards = lazy(() => import('./pages/MyCards'));
@@ -157,6 +158,7 @@ const router = createBrowserRouter([
       { path: 'workspaces', element: <ProtectedRoute><Workspaces /></ProtectedRoute> },
       { path: 'workspace/:id', element: <ProtectedRoute><WorkspaceView /></ProtectedRoute> },
       { path: 'workspace/:id/settings', element: <ProtectedRoute><WorkspaceSettings /></ProtectedRoute> },
+      { path: 'workspace/:id/roles', element: <ProtectedRoute><RoleManagement /></ProtectedRoute> },
       {
         path: 'board/:id',
         element: <ProtectedRoute><BoardErrorBoundary><BoardView /></BoardErrorBoundary></ProtectedRoute>

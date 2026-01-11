@@ -456,6 +456,49 @@ export default function WorkspaceSettings() {
           </div>
         </div>
 
+        {/* Roles Section */}
+        <div className="bg-white rounded-xl border border-gray-200 mb-6">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Shield className="h-5 w-5 text-gray-500 mr-2" />
+                <h2 className="text-lg font-semibold text-gray-900">Roles & Permissions</h2>
+              </div>
+              <Link
+                to={`/workspace/${id}/roles`}
+                className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center"
+              >
+                <Shield className="h-4 w-4 mr-1" />
+                Manage Roles
+              </Link>
+            </div>
+          </div>
+          <div className="p-6">
+            <p className="text-gray-600 text-sm mb-4">
+              Configure what members can do in this workspace by managing roles and permissions.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {roles.slice(0, 3).map((role) => (
+                <span
+                  key={role.id}
+                  className="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                >
+                  <Shield className="h-3 w-3 mr-1.5 text-gray-500" />
+                  {role.title}
+                  {role.isDefault && (
+                    <span className="ml-1 text-xs text-gray-400">(Default)</span>
+                  )}
+                </span>
+              ))}
+              {roles.length > 3 && (
+                <span className="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-sm">
+                  +{roles.length - 3} more
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Members Section */}
         <div className="bg-white rounded-xl border border-gray-200 mb-6">
           <div className="p-6 border-b border-gray-200">
