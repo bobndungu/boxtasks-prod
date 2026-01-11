@@ -57,7 +57,6 @@ import {
   LayoutTemplate,
   Filter,
   SmilePlus,
-  UserPlus,
   User,
   Settings,
   Settings2,
@@ -107,6 +106,7 @@ import { BoardSkeleton } from '../components/BoardSkeleton';
 import { highlightText } from '../lib/utils/highlight';
 import BoardSettingsModal from '../components/BoardSettingsModal';
 import BoardMembersModal from '../components/BoardMembersModal';
+import MemberDropdown from '../components/MemberDropdown';
 import ChatPanel from '../components/ChatPanel';
 import CardRelationships from '../components/CardRelationships';
 
@@ -3446,12 +3446,10 @@ function CardDetailModal({
   const [templateName, setTemplateName] = useState('');
 
   // Member state
-  const [showMemberPicker, setShowMemberPicker] = useState(false);
   const [cardMembers, setCardMembers] = useState<CardMember[]>(card.members || []);
   const [isTogglingMember, setIsTogglingMember] = useState(false);
 
   // Watchers state
-  const [showWatchersPicker, setShowWatchersPicker] = useState(false);
   const [isAddingWatcher, setIsAddingWatcher] = useState(false);
 
   // Department and Client picker state
@@ -3916,7 +3914,6 @@ function CardDetailModal({
     try {
       await watchCard(card.id, userId);
       toast.success(`${userName} added as watcher`);
-      setShowWatchersPicker(false);
     } catch (err) {
       console.error('Failed to add watcher:', err);
       toast.error('Failed to add watcher');
@@ -5301,44 +5298,43 @@ function CardDetailModal({
                                       </button>
                                     )}
                                     {editingItemAssignee === `${item.id}-${checklist.id}` && (
-                                      <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border p-2 z-50 min-w-48">
-                                        <div className="text-xs font-medium text-gray-500 mb-2">Assign to</div>
-                                        <div className="max-h-40 overflow-y-auto space-y-1">
-                                          {workspaceMembers.map((member) => (
-                                            <button
-                                              key={member.id}
-                                              onClick={() => handleUpdateChecklistItemAssignee(checklist.id, item.id, member.id)}
-                                              className={`w-full flex items-center px-2 py-1.5 rounded text-sm hover:bg-gray-100 ${
-                                                item.assigneeId === member.id ? 'bg-blue-50' : ''
-                                              }`}
-                                            >
-                                              <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium mr-2">
-                                                {member.displayName.charAt(0).toUpperCase()}
-                                              </div>
-                                              <span className="flex-1 text-left">{member.displayName}</span>
-                                              {item.assigneeId === member.id && (
-                                                <Check className="h-3 w-3 text-blue-500" />
-                                              )}
-                                            </button>
-                                          ))}
-                                        </div>
-                                        <div className="flex justify-between mt-2 pt-2 border-t">
+                                      <>
+                                        <div className="fixed inset-0 z-[51]" onClick={() => setEditingItemAssignee(null)} />
+                                        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[52] w-56">
+                                          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Assign to</p>
+                                          </div>
+                                          <div className="max-h-48 overflow-y-auto">
+                                            {workspaceMembers.map((member) => (
+                                              <button
+                                                key={member.id}
+                                                onClick={() => handleUpdateChecklistItemAssignee(checklist.id, item.id, member.id)}
+                                                className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-left ${
+                                                  item.assigneeId === member.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                                                }`}
+                                              >
+                                                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                                                  {member.displayName.charAt(0).toUpperCase()}
+                                                </div>
+                                                <span className="flex-1 text-sm text-gray-900 dark:text-white truncate">{member.displayName}</span>
+                                                {item.assigneeId === member.id && (
+                                                  <Check className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                                                )}
+                                              </button>
+                                            ))}
+                                          </div>
                                           {item.assignee && (
-                                            <button
-                                              onClick={() => handleUpdateChecklistItemAssignee(checklist.id, item.id, null)}
-                                              className="text-xs text-red-600 hover:text-red-700"
-                                            >
-                                              Remove
-                                            </button>
+                                            <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+                                              <button
+                                                onClick={() => handleUpdateChecklistItemAssignee(checklist.id, item.id, null)}
+                                                className="w-full text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-left px-1"
+                                              >
+                                                Remove assignee
+                                              </button>
+                                            </div>
                                           )}
-                                          <button
-                                            onClick={() => setEditingItemAssignee(null)}
-                                            className="text-xs text-gray-500 hover:text-gray-700 ml-auto"
-                                          >
-                                            Cancel
-                                          </button>
                                         </div>
-                                      </div>
+                                      </>
                                     )}
                                   </div>
                                   {/* Due date */}
@@ -5838,75 +5834,35 @@ function CardDetailModal({
                   )}
                 </h4>
                 <div className="space-y-2">
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowMemberPicker(!showMemberPicker)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
-                    >
-                      <span className="flex items-center">
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Members
-                      </span>
-                      {cardMembers.length > 0 && (
+                  {/* Member Assignment Dropdown */}
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Assign member (1 max)</p>
+                    {cardMembers.length > 0 ? (
+                      <div className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
                             {cardMembers[0].name.charAt(0).toUpperCase()}
                           </div>
+                          <span className="text-sm text-gray-700">{cardMembers[0].name}</span>
                         </div>
-                      )}
-                    </button>
-                    {showMemberPicker && (
-                      <>
-                        <div className="fixed inset-0 z-[51]" onClick={() => setShowMemberPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">Assign member (1 max)</h5>
-                        {cardMembers.length > 0 && (
-                          <div className="mb-3 p-2 bg-blue-50 rounded">
-                            <p className="text-xs text-blue-700 mb-2">Currently assigned:</p>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
-                                  {cardMembers[0].name.charAt(0).toUpperCase()}
-                                </div>
-                                <span className="text-sm text-gray-700">{cardMembers[0].name}</span>
-                              </div>
-                              <button
-                                onClick={() => handleToggleMember(cardMembers[0].id, cardMembers[0].name)}
-                                disabled={isTogglingMember}
-                                className="text-red-500 hover:text-red-700 text-xs"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                        <div className="space-y-1 max-h-48 overflow-y-auto">
-                          {currentUser && !cardMembers.some((m) => m.id === currentUser.id) && (
-                            <button
-                              onClick={() => handleToggleMember(currentUser.id, currentUser.displayName || currentUser.username)}
-                              disabled={isTogglingMember}
-                              className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-left disabled:opacity-50"
-                            >
-                              <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
-                                {(currentUser.displayName || currentUser.username).charAt(0).toUpperCase()}
-                              </div>
-                              <span className="flex-1 text-sm text-gray-700">
-                                {currentUser.displayName || currentUser.username}
-                              </span>
-                            </button>
-                          )}
-                          {cardMembers.length > 0 && !cardMembers.some((m) => m.id === currentUser?.id) && (
-                            <p className="text-xs text-gray-500 px-2 py-1">Remove current member to assign yourself</p>
-                          )}
-                        </div>
-                          <button
-                            onClick={() => setShowMemberPicker(false)}
-                            className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
-                          >
-                            Close
-                          </button>
-                        </div>
-                      </>
+                        <button
+                          onClick={() => handleToggleMember(cardMembers[0].id, cardMembers[0].name)}
+                          disabled={isTogglingMember}
+                          className="text-red-500 hover:text-red-700 text-xs font-medium"
+                        >
+                          {isTogglingMember ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Remove'}
+                        </button>
+                      </div>
+                    ) : (
+                      <MemberDropdown
+                        members={workspaceMembers}
+                        onSelect={(member) => handleToggleMember(member.id, member.displayName)}
+                        placeholder="Assign member..."
+                        buttonLabel="Assign Member"
+                        showSelectedInButton={false}
+                        disabled={isTogglingMember}
+                        emptyMessage="No members available"
+                      />
                     )}
                   </div>
                   <button
@@ -5927,91 +5883,43 @@ function CardDetailModal({
                     )}
                     {isWatching ? 'Watching' : 'Watch'}
                   </button>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowWatchersPicker(!showWatchersPicker)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
-                    >
-                      <span className="flex items-center">
-                        <Users className="h-4 w-4 mr-2" />
-                        Add Watchers
-                      </span>
-                      {card.watcherIds && card.watcherIds.length > 0 && (
-                        <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
-                          {card.watcherIds.length}
-                        </span>
-                      )}
-                    </button>
-                    {showWatchersPicker && (
-                      <>
-                        <div className="fixed inset-0 z-[51]" onClick={() => setShowWatchersPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">Add Watchers</h5>
-                        {/* Current watchers */}
-                        {card.watcherIds && card.watcherIds.length > 0 && (
-                          <div className="mb-3">
-                            <p className="text-xs text-gray-500 mb-2">Current watchers:</p>
-                            <div className="space-y-1">
-                              {workspaceMembers
-                                .filter((m) => card.watcherIds.includes(m.id))
-                                .map((member) => (
-                                  <div
-                                    key={member.id}
-                                    className="flex items-center justify-between py-1 px-2 bg-blue-50 rounded"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
-                                        {(member.displayName).charAt(0).toUpperCase()}
-                                      </div>
-                                      <span className="text-sm text-gray-700">
-                                        {member.displayName}
-                                      </span>
-                                    </div>
-                                    <button
-                                      onClick={() => handleRemoveWatcher(member.id, member.displayName)}
-                                      disabled={isAddingWatcher}
-                                      className="text-red-500 hover:text-red-700 text-xs"
-                                    >
-                                      Remove
-                                    </button>
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                        )}
-                        {/* Available members to add as watchers */}
-                        <p className="text-xs text-gray-500 mb-2">Add team member:</p>
-                        <div className="space-y-1 max-h-32 overflow-y-auto">
-                          {workspaceMembers
-                            .filter((m) => !card.watcherIds?.includes(m.id))
-                            .map((member) => (
+                  {/* Watchers Dropdown */}
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">
+                      Watchers {card.watcherIds && card.watcherIds.length > 0 && `(${card.watcherIds.length})`}
+                    </p>
+                    {/* Current watchers display */}
+                    {card.watcherIds && card.watcherIds.length > 0 && (
+                      <div className="mb-2 flex flex-wrap gap-1">
+                        {workspaceMembers
+                          .filter((m) => card.watcherIds.includes(m.id))
+                          .map((member) => (
+                            <span
+                              key={member.id}
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs"
+                            >
+                              {member.displayName.split(' ')[0]}
                               <button
-                                key={member.id}
-                                onClick={() => handleAddWatcher(member.id, member.displayName)}
+                                onClick={() => handleRemoveWatcher(member.id, member.displayName)}
                                 disabled={isAddingWatcher}
-                                className="w-full flex items-center gap-2 p-2 rounded hover:bg-gray-100 disabled:opacity-50"
+                                className="hover:bg-blue-200 rounded-full p-0.5"
                               >
-                                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium">
-                                  {(member.displayName).charAt(0).toUpperCase()}
-                                </div>
-                                <span className="text-sm text-gray-700">
-                                  {member.displayName}
-                                </span>
+                                <X className="h-3 w-3" />
                               </button>
-                            ))}
-                          {workspaceMembers.filter((m) => !card.watcherIds?.includes(m.id)).length === 0 && (
-                            <p className="text-xs text-gray-400 text-center py-2">All members are watching</p>
-                          )}
-                        </div>
-                          <button
-                            onClick={() => setShowWatchersPicker(false)}
-                            className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
-                          >
-                            Close
-                          </button>
-                        </div>
-                      </>
+                            </span>
+                          ))}
+                      </div>
                     )}
+                    <MemberDropdown
+                      members={workspaceMembers}
+                      excludeIds={card.watcherIds || []}
+                      onSelect={(member) => handleAddWatcher(member.id, member.displayName)}
+                      placeholder="Add watcher..."
+                      buttonLabel="Add Watcher"
+                      showSelectedInButton={false}
+                      disabled={isAddingWatcher}
+                      emptyMessage="All members are watching"
+                    />
                   </div>
                   <button className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center">
                     <Tag className="h-4 w-4 mr-2" />

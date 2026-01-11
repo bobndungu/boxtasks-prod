@@ -232,6 +232,41 @@ export async function updateWorkspaceMembers(
   return transformWorkspace(result.data);
 }
 
+// Fetch all users (for dropdowns)
+export async function fetchAllUsers(): Promise<WorkspaceMember[]> {
+  const response = await fetch(
+    `${API_URL}/jsonapi/user/user?filter[status]=1&page[limit]=100&sort=field_display_name`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const result = await response.json();
+  const users = result.data || [];
+
+  return users
+    .map((user: Record<string, unknown>) => {
+      const attrs = user.attributes as Record<string, unknown>;
+      const uid = attrs.drupal_internal__uid as number;
+      // Skip anonymous user (uid 0)
+      if (uid === 0) return null;
+      return {
+        id: user.id as string,
+        displayName: (attrs.field_display_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown',
+        email: (attrs.mail as string) || '',
+        isAdmin: false,
+      };
+    })
+    .filter((user: WorkspaceMember | null): user is WorkspaceMember => user !== null);
+}
+
 // Search users by name or email
 export async function searchUsers(query: string): Promise<WorkspaceMember[]> {
   if (!query || query.length < 2) return [];

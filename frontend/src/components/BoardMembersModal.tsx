@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, Search, UserPlus, Shield, Users, ExternalLink } from 'lucide-react';
-import { fetchWorkspaceMembers, searchUsers, updateWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspaces';
+import { X, Loader2, Shield, Users, ExternalLink } from 'lucide-react';
+import { fetchWorkspaceMembers, fetchAllUsers, updateWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspaces';
 import { toast } from '../lib/stores/toast';
 import { Link } from 'react-router-dom';
+import MemberDropdown from './MemberDropdown';
 
 interface BoardMembersModalProps {
   boardId: string;
@@ -17,11 +18,8 @@ export default function BoardMembersModal({
 }: BoardMembersModalProps) {
   void _boardId; // Used for future board-specific member filtering
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
+  const [allUsers, setAllUsers] = useState<WorkspaceMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<WorkspaceMember[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showAddMember, setShowAddMember] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
@@ -31,37 +29,18 @@ export default function BoardMembersModal({
   const loadMembers = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchWorkspaceMembers(workspaceId);
-      setMembers(data);
+      const [memberData, userData] = await Promise.all([
+        fetchWorkspaceMembers(workspaceId),
+        fetchAllUsers(),
+      ]);
+      setMembers(memberData);
+      setAllUsers(userData);
     } catch (err) {
       toast.error('Failed to load members');
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (searchQuery.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const results = await searchUsers(searchQuery);
-        // Filter out existing members
-        const existingIds = new Set(members.map(m => m.id));
-        setSearchResults(results.filter(r => !existingIds.has(r.id)));
-      } catch (err) {
-        console.error('Search failed:', err);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery, members]);
 
   const handleAddMember = async (user: WorkspaceMember) => {
     setIsUpdating(true);
@@ -70,8 +49,6 @@ export default function BoardMembersModal({
       const adminIds = members.filter(m => m.isAdmin).map(m => m.id);
       await updateWorkspaceMembers(workspaceId, memberIds, adminIds);
       setMembers([...members, { ...user, isAdmin: false }]);
-      setSearchQuery('');
-      setSearchResults([]);
       toast.success(`${user.displayName} added to workspace`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add member');
@@ -165,80 +142,20 @@ export default function BoardMembersModal({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          {/* Add Member Section */}
-          {showAddMember ? (
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by name or email..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  autoFocus
-                />
-              </div>
-
-              {isSearching && (
-                <div className="mt-2 flex items-center text-gray-500">
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Searching...
-                </div>
-              )}
-
-              {searchResults.length > 0 && (
-                <div className="mt-2 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                  {searchResults.map((user) => (
-                    <button
-                      key={user.id}
-                      onClick={() => handleAddMember(user)}
-                      disabled={isUpdating}
-                      className="w-full flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700 text-left"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium mr-3">
-                        {getInitials(user.displayName)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-white truncate">
-                          {user.displayName}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                          {user.email}
-                        </p>
-                      </div>
-                      <UserPlus className="h-4 w-4 text-gray-400" />
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  No users found matching "{searchQuery}"
-                </p>
-              )}
-
-              <button
-                onClick={() => {
-                  setShowAddMember(false);
-                  setSearchQuery('');
-                  setSearchResults([]);
-                }}
-                className="mt-3 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowAddMember(true)}
-              className="mb-6 w-full flex items-center justify-center px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-500 transition-colors"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Member
-            </button>
-          )}
+          {/* Add Member Dropdown */}
+          <div className="mb-6">
+            <MemberDropdown
+              members={allUsers}
+              excludeIds={members.map(m => m.id)}
+              onSelect={handleAddMember}
+              placeholder="Add member..."
+              buttonLabel="Add Member"
+              showSelectedInButton={false}
+              loading={isLoading}
+              disabled={isUpdating}
+              emptyMessage="No more users to add"
+            />
+          </div>
 
           {/* Members List */}
           {isLoading ? (

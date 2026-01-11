@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   Layout,
@@ -13,9 +13,6 @@ import {
   AlertTriangle,
   Crown,
   UserMinus,
-  UserPlus,
-  Search,
-  X,
   Shield,
   ChevronDown,
 } from 'lucide-react';
@@ -27,10 +24,11 @@ import {
   deleteWorkspace,
   fetchWorkspaceMembers,
   updateWorkspaceMembers,
-  searchUsers,
+  fetchAllUsers,
   type CreateWorkspaceData,
   type WorkspaceMember,
 } from '../lib/api/workspaces';
+import MemberDropdown from '../components/MemberDropdown';
 import {
   fetchWorkspaceRoles,
   fetchWorkspaceMemberRoles,
@@ -66,10 +64,8 @@ export default function WorkspaceSettings() {
 
   // Member management state
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
-  const [showAddMember, setShowAddMember] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<WorkspaceMember[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [allUsers, setAllUsers] = useState<WorkspaceMember[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isSavingMembers, setIsSavingMembers] = useState(false);
 
   // Role management state
@@ -87,6 +83,7 @@ export default function WorkspaceSettings() {
   const loadWorkspace = async () => {
     if (!id) return;
     setIsLoading(true);
+    setIsLoadingUsers(true);
     try {
       const workspace = await fetchWorkspace(id);
       setCurrentWorkspace(workspace);
@@ -96,42 +93,24 @@ export default function WorkspaceSettings() {
         visibility: workspace.visibility,
         color: workspace.color,
       });
-      // Load members
-      const membersList = await fetchWorkspaceMembers(id);
-      setMembers(membersList);
-      // Load roles and member role assignments
-      const [rolesList, memberRolesList] = await Promise.all([
+      // Load members, all users, roles and member role assignments
+      const [membersList, usersList, rolesList, memberRolesList] = await Promise.all([
+        fetchWorkspaceMembers(id),
+        fetchAllUsers(),
         fetchWorkspaceRoles(id),
         fetchWorkspaceMemberRoles(id),
       ]);
+      setMembers(membersList);
+      setAllUsers(usersList);
       setRoles(rolesList);
       setMemberRoles(memberRolesList);
     } catch (err) {
       setMessage({ type: 'error', text: 'Failed to load workspace' });
     } finally {
       setIsLoading(false);
+      setIsLoadingUsers(false);
     }
   };
-
-  // Search for users to add
-  const handleSearch = useCallback(async (query: string) => {
-    setSearchQuery(query);
-    if (query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    setIsSearching(true);
-    try {
-      const results = await searchUsers(query);
-      // Filter out existing members
-      const memberIds = new Set(members.map((m) => m.id));
-      setSearchResults(results.filter((u) => !memberIds.has(u.id)));
-    } catch {
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-  }, [members]);
 
   // Add a member to the workspace
   const handleAddMember = async (newMember: WorkspaceMember) => {
@@ -142,9 +121,6 @@ export default function WorkspaceSettings() {
       const adminIds = members.filter((m) => m.isAdmin).map((m) => m.id);
       await updateWorkspaceMembers(id, newMemberIds, adminIds);
       setMembers([...members, { ...newMember, isAdmin: false }]);
-      setShowAddMember(false);
-      setSearchQuery('');
-      setSearchResults([]);
       setMessage({ type: 'success', text: `${newMember.displayName} added to workspace` });
     } catch (err) {
       setMessage({ type: 'error', text: 'Failed to add member' });
@@ -508,13 +484,19 @@ export default function WorkspaceSettings() {
                 <h2 className="text-lg font-semibold text-gray-900">Members</h2>
                 <span className="ml-2 text-sm text-gray-500">({members.length})</span>
               </div>
-              <button
-                onClick={() => setShowAddMember(true)}
-                className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center"
-              >
-                <UserPlus className="h-4 w-4 mr-1" />
-                Add Member
-              </button>
+              <div className="w-64">
+                <MemberDropdown
+                  members={allUsers}
+                  excludeIds={members.map(m => m.id)}
+                  onSelect={handleAddMember}
+                  placeholder="Add member..."
+                  buttonLabel="Add Member"
+                  showSelectedInButton={false}
+                  loading={isLoadingUsers}
+                  disabled={isSavingMembers}
+                  emptyMessage="No more users to add"
+                />
+              </div>
             </div>
           </div>
 
@@ -708,88 +690,6 @@ export default function WorkspaceSettings() {
         </div>
       )}
 
-      {/* Add Member Modal */}
-      {showAddMember && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Add Member</h2>
-                <button
-                  onClick={() => {
-                    setShowAddMember(false);
-                    setSearchQuery('');
-                    setSearchResults([]);
-                  }}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <X className="h-5 w-5 text-gray-500" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  placeholder="Search by username..."
-                  autoFocus
-                />
-              </div>
-
-              {isSearching && (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                </div>
-              )}
-
-              {!isSearching && searchQuery.length >= 2 && searchResults.length === 0 && (
-                <div className="py-8 text-center text-gray-500">
-                  No users found matching "{searchQuery}"
-                </div>
-              )}
-
-              {searchResults.length > 0 && (
-                <div className="mt-4 border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-64 overflow-y-auto">
-                  {searchResults.map((result) => (
-                    <button
-                      key={result.id}
-                      onClick={() => handleAddMember(result)}
-                      disabled={isSavingMembers}
-                      className="w-full p-3 flex items-center justify-between hover:bg-gray-50 text-left disabled:opacity-50"
-                    >
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold mr-3">
-                          {result.displayName.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {result.displayName}
-                          </p>
-                          {result.email && (
-                            <p className="text-sm text-gray-500">{result.email}</p>
-                          )}
-                        </div>
-                      </div>
-                      <UserPlus className="h-4 w-4 text-blue-600" />
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {searchQuery.length < 2 && searchQuery.length > 0 && (
-                <div className="py-4 text-center text-gray-500 text-sm">
-                  Type at least 2 characters to search
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
