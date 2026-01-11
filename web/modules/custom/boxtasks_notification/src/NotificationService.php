@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\boxtasks_notification;
 
+use Drupal\boxtasks_realtime\Service\MercurePublisher;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\node\NodeInterface;
@@ -49,19 +50,30 @@ class NotificationService {
   protected AccountProxyInterface $currentUser;
 
   /**
+   * The Mercure publisher service.
+   *
+   * @var \Drupal\boxtasks_realtime\Service\MercurePublisher|null
+   */
+  protected ?MercurePublisher $mercurePublisher;
+
+  /**
    * Constructs a NotificationService object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    * @param \Drupal\Core\Session\AccountProxyInterface $current_user
    *   The current user.
+   * @param \Drupal\boxtasks_realtime\Service\MercurePublisher|null $mercure_publisher
+   *   The Mercure publisher service.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
     AccountProxyInterface $current_user,
+    ?MercurePublisher $mercure_publisher = NULL,
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->currentUser = $current_user;
+    $this->mercurePublisher = $mercure_publisher;
   }
 
   /**
@@ -121,6 +133,11 @@ class NotificationService {
 
       $notification = $storage->create($values);
       $notification->save();
+
+      // Publish real-time notification via Mercure.
+      if ($this->mercurePublisher) {
+        $this->mercurePublisher->publishNotification($user_id, $notification);
+      }
 
       return $notification;
     }

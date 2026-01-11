@@ -238,6 +238,66 @@ class MercurePublisher {
   }
 
   /**
+   * Publishes a notification to a user's notification topic.
+   *
+   * @param int $userId
+   *   The user ID to notify.
+   * @param \Drupal\node\NodeInterface $notification
+   *   The notification entity.
+   */
+  public function publishNotification(int $userId, NodeInterface $notification): void {
+    if ($notification->bundle() !== 'notification') {
+      return;
+    }
+
+    // Get user UUID
+    $userStorage = $this->entityTypeManager->getStorage('user');
+    $user = $userStorage->load($userId);
+    if (!$user) {
+      return;
+    }
+
+    $topic = "/users/{$user->uuid()}/notifications";
+
+    // Get card reference if exists
+    $cardId = NULL;
+    if ($notification->hasField('field_notification_card') && !$notification->get('field_notification_card')->isEmpty()) {
+      $card = $notification->get('field_notification_card')->entity;
+      if ($card) {
+        $cardId = $card->uuid();
+      }
+    }
+
+    // Get actor reference if exists
+    $actorId = NULL;
+    $actorName = NULL;
+    if ($notification->hasField('field_notification_actor') && !$notification->get('field_notification_actor')->isEmpty()) {
+      $actor = $notification->get('field_notification_actor')->entity;
+      if ($actor) {
+        $actorId = $actor->uuid();
+        $actorName = $actor->get('field_display_name')->value ?? $actor->getDisplayName();
+      }
+    }
+
+    $data = [
+      'type' => 'notification.created',
+      'data' => [
+        'id' => $notification->uuid(),
+        'type' => $notification->get('field_notification_type')->value,
+        'message' => $notification->get('field_notification_message')->value,
+        'cardId' => $cardId,
+        'actorId' => $actorId,
+        'actorName' => $actorName,
+        'read' => (bool) $notification->get('field_notification_read')->value,
+        'createdAt' => date('c', $notification->getCreatedTime()),
+      ],
+      'timestamp' => date('c'),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
    * Publishes data to a Mercure topic.
    */
   protected function publish(string $topic, array $data): void {

@@ -4,6 +4,7 @@ services:
     arguments:
       - '@entity_type.manager'
       - '@current_user'
+      - '@?boxtasks_realtime.mercure_publisher'
 
   boxtasks_notification.email:
     class: Drupal\boxtasks_notification\EmailNotificationService
