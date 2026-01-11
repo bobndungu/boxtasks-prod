@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_message_text
+    - node.type.chat_message
+  module:
+    - text
+id: node.chat_message.field_message_text
+field_name: field_message_text
+entity_type: node
+bundle: chat_message
+label: 'Message Text'
+description: 'The content of the chat message'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long

@@ -98,6 +98,7 @@ import { BoardSkeleton } from '../components/BoardSkeleton';
 import { highlightText } from '../lib/utils/highlight';
 import BoardSettingsModal from '../components/BoardSettingsModal';
 import BoardMembersModal from '../components/BoardMembersModal';
+import ChatPanel from '../components/ChatPanel';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
   green: '#61bd4f',
@@ -141,6 +142,7 @@ export default function BoardView() {
   const [showShareDropdown, setShowShareDropdown] = useState(false);
   const [showBoardSettings, setShowBoardSettings] = useState(false);
   const [showBoardMembers, setShowBoardMembers] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -1368,6 +1370,14 @@ export default function BoardView() {
               >
                 <Settings className="h-5 w-5" />
               </button>
+
+              <button
+                onClick={() => setShowChat(true)}
+                className="p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10"
+                title="Board Chat"
+              >
+                <MessageCircle className="h-5 w-5" />
+              </button>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -2056,6 +2066,17 @@ export default function BoardView() {
           boardId={currentBoard.id}
           workspaceId={currentBoard.workspaceId}
           onClose={() => setShowBoardMembers(false)}
+        />
+      )}
+
+      {/* Chat Panel */}
+      {currentBoard && (
+        <ChatPanel
+          isOpen={showChat}
+          onClose={() => setShowChat(false)}
+          channelType="board"
+          entityId={currentBoard.id}
+          entityName={currentBoard.title}
         />
       )}
     </div>

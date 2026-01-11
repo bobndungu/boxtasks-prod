@@ -1,0 +1,9 @@
+name: BoxTasks Chat
+type: module
+description: Real-time chat functionality for BoxTasks
+core_version_requirement: ^10 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - drupal:user
+  - drupal:jsonapi

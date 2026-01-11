@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_message_type
+    - node.type.chat_message
+  module:
+    - options
+id: node.chat_message.field_message_type
+field_name: field_message_type
+entity_type: node
+bundle: chat_message
+label: 'Message Type'
+description: 'The type of message'
+required: true
+translatable: false
+default_value:
+  - { value: text }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

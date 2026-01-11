@@ -1,0 +1,59 @@
+boxtasks_chat.send_message:
+  path: '/api/chat/send'
+  defaults:
+    _controller: '\Drupal\boxtasks_chat\Controller\ChatController::sendMessage'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+boxtasks_chat.get_messages:
+  path: '/api/chat/messages/{channel_id}'
+  defaults:
+    _controller: '\Drupal\boxtasks_chat\Controller\ChatController::getMessages'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+boxtasks_chat.mark_read:
+  path: '/api/chat/mark-read/{channel_id}'
+  defaults:
+    _controller: '\Drupal\boxtasks_chat\Controller\ChatController::markRead'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+boxtasks_chat.typing:
+  path: '/api/chat/typing/{channel_id}'
+  defaults:
+    _controller: '\Drupal\boxtasks_chat\Controller\ChatController::typing'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+boxtasks_chat.get_channels:
+  path: '/api/chat/channels'
+  defaults:
+    _controller: '\Drupal\boxtasks_chat\Controller\ChatController::getChannels'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+boxtasks_chat.create_channel:
+  path: '/api/chat/channels'
+  defaults:
+    _controller: '\Drupal\boxtasks_chat\Controller\ChatController::createChannel'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE

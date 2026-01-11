@@ -1,0 +1,29 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_channel_participants
+    - node.type.chat_channel
+  module:
+    - user
+id: node.chat_channel.field_channel_participants
+field_name: field_channel_participants
+entity_type: node
+bundle: chat_channel
+label: Participants
+description: 'Users participating in this channel (for direct messages)'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings:
+    include_anonymous: false
+    filter:
+      type: _none
+    sort:
+      field: name
+      direction: ASC
+    auto_create: false
+field_type: entity_reference

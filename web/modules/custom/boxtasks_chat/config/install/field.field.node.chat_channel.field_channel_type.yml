@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_channel_type
+    - node.type.chat_channel
+  module:
+    - options
+id: node.chat_channel.field_channel_type
+field_name: field_channel_type
+entity_type: node
+bundle: chat_channel
+label: 'Channel Type'
+description: 'The type of chat channel'
+required: true
+translatable: false
+default_value:
+  - { value: board }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

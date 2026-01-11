@@ -1,0 +1,27 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_message_channel
+    - node.type.chat_message
+    - node.type.chat_channel
+id: node.chat_message.field_message_channel
+field_name: field_message_channel
+entity_type: node
+bundle: chat_message
+label: Channel
+description: 'The channel this message belongs to'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      chat_channel: chat_channel
+    sort:
+      field: created
+      direction: DESC
+    auto_create: false
+field_type: entity_reference

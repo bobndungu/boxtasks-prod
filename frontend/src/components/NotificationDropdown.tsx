@@ -45,7 +45,6 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
 
     // Show browser notification if permitted
     if (Notification.permission === 'granted') {
-      const display = getNotificationDisplay(notif.type);
       new Notification('BoxTasks', {
         body: notif.message,
         icon: '/icon-192.png',

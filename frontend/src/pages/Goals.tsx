@@ -57,7 +57,7 @@ function Goals() {
     loadGoals();
   }, [loadGoals]);
 
-  const handleCreateGoal = async (data: CreateGoalData) => {
+  const handleCreateGoal = async (data: Omit<CreateGoalData, 'workspaceId'>) => {
     try {
       const newGoal = await createGoal({ ...data, workspaceId: workspaceId! });
       setGoals(prev => [newGoal, ...prev]);
@@ -367,10 +367,12 @@ function GoalCard({ goal, onSelect, onEdit, onDelete, formatDate }: GoalCardProp
   );
 }
 
+type GoalFormData = Omit<CreateGoalData, 'workspaceId'>;
+
 interface GoalFormModalProps {
   goal?: Goal;
   onClose: () => void;
-  onSubmit: (data: CreateGoalData) => Promise<void>;
+  onSubmit: (data: GoalFormData) => Promise<void>;
 }
 
 function GoalFormModal({ goal, onClose, onSubmit }: GoalFormModalProps) {

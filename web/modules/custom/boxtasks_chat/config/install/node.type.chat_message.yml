@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies: {  }
+name: Chat Message
+type: chat_message
+description: 'A chat message in a channel'
+help: ''
+new_revision: false
+preview_mode: 0
+display_submitted: false

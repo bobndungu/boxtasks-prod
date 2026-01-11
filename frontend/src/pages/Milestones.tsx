@@ -64,7 +64,7 @@ function Milestones() {
     loadData();
   }, [loadData]);
 
-  const handleCreateMilestone = async (data: CreateMilestoneData) => {
+  const handleCreateMilestone = async (data: Omit<CreateMilestoneData, 'workspaceId'>) => {
     try {
       const newMilestone = await createMilestone({ ...data, workspaceId: workspaceId! });
       setMilestones(prev => [newMilestone, ...prev]);
@@ -378,11 +378,13 @@ function MilestoneCard({ milestone, onSelect, onEdit, onDelete, formatDate }: Mi
   );
 }
 
+type MilestoneFormData = Omit<CreateMilestoneData, 'workspaceId'>;
+
 interface MilestoneFormModalProps {
   milestone?: Milestone;
   goals: Goal[];
   onClose: () => void;
-  onSubmit: (data: CreateMilestoneData) => Promise<void>;
+  onSubmit: (data: MilestoneFormData) => Promise<void>;
 }
 
 function MilestoneFormModal({ milestone, goals, onClose, onSubmit }: MilestoneFormModalProps) {

@@ -27,7 +27,9 @@ export type MercureEventType =
   | 'comment.deleted'
   | 'member.assigned'
   | 'member.unassigned'
-  | 'presence.update';
+  | 'presence.update'
+  | 'message.created'
+  | 'user.typing';
 
 export interface MercureMessage<T = unknown> {
   type: MercureEventType;
@@ -320,6 +322,61 @@ export function useUserNotifications(
       onNotification(message.data);
     },
     enabled: !!userId,
+  });
+}
+
+/**
+ * Hook for subscribing to chat channel messages
+ */
+export interface ChatMessageData {
+  id: string;
+  channelId: string;
+  text: string;
+  type: string;
+  sender: {
+    id: string;
+    name: string;
+    displayName: string;
+    avatar?: string | null;
+  };
+  createdAt: number;
+}
+
+export interface TypingData {
+  channelId: string;
+  user: {
+    id: string;
+    name: string;
+    displayName: string;
+    avatar?: string | null;
+  };
+  timestamp: number;
+}
+
+export function useChatSubscription(
+  channelId: string | undefined,
+  callbacks: {
+    onMessage?: (message: ChatMessageData) => void;
+    onTyping?: (data: TypingData) => void;
+  }
+) {
+  const topics = channelId ? [`/chat/${channelId}`] : [];
+
+  const handleMessage = useCallback((message: MercureMessage) => {
+    switch (message.type) {
+      case 'message.created':
+        callbacks.onMessage?.(message.data as ChatMessageData);
+        break;
+      case 'user.typing':
+        callbacks.onTyping?.(message.data as TypingData);
+        break;
+    }
+  }, [callbacks]);
+
+  return useMercure({
+    topics,
+    onMessage: handleMessage,
+    enabled: !!channelId,
   });
 }
 

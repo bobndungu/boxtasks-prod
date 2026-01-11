@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_message_type
+field_name: field_message_type
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    - { value: text, label: Text }
+    - { value: system, label: System }
+    - { value: file, label: File }
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
