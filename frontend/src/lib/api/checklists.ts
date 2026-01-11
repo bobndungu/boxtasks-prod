@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -104,12 +104,11 @@ export async function fetchChecklistsByCard(cardId: string): Promise<Checklist[]
 
 // Create a new checklist
 export async function createChecklist(cardId: string, title: string): Promise<Checklist> {
-  const response = await fetch(`${API_URL}/jsonapi/node/checklist`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/checklist`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -137,11 +136,8 @@ export async function createChecklist(cardId: string, title: string): Promise<Ch
 
 // Delete a checklist
 export async function deleteChecklist(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/checklist/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/checklist/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {
@@ -151,12 +147,11 @@ export async function deleteChecklist(id: string): Promise<void> {
 
 // Create a new checklist item
 export async function createChecklistItem(checklistId: string, title: string, position: number): Promise<ChecklistItem> {
-  const response = await fetch(`${API_URL}/jsonapi/node/checklist_item`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/checklist_item`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -192,12 +187,11 @@ export async function updateChecklistItem(id: string, updates: { title?: string;
   if (updates.position !== undefined) attributes.field_item_position = updates.position;
   if (updates.dueDate !== undefined) attributes.field_item_due_date = updates.dueDate;
 
-  const response = await fetch(`${API_URL}/jsonapi/node/checklist_item/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/checklist_item/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -219,11 +213,8 @@ export async function updateChecklistItem(id: string, updates: { title?: string;
 
 // Delete a checklist item
 export async function deleteChecklistItem(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/checklist_item/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/checklist_item/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {

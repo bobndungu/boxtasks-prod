@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -171,12 +171,11 @@ export async function createActivity(data: {
     };
   }
 
-  const response = await fetch(`${API_URL}/jsonapi/node/activity`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/activity`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {

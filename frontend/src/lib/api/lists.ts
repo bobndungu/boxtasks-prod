@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -67,12 +67,11 @@ export async function fetchListsByBoard(boardId: string, includeArchived = false
 
 // Create a new list
 export async function createList(data: CreateListData): Promise<BoardList> {
-  const response = await fetch(`${API_URL}/jsonapi/node/board_list`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board_list`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -109,12 +108,11 @@ export async function updateList(id: string, data: Partial<CreateListData>): Pro
   if (data.wipLimit !== undefined) attributes.field_list_wip_limit = data.wipLimit;
   if (data.color !== undefined) attributes.field_list_color = data.color;
 
-  const response = await fetch(`${API_URL}/jsonapi/node/board_list/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board_list/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -136,11 +134,8 @@ export async function updateList(id: string, data: Partial<CreateListData>): Pro
 
 // Delete a list
 export async function deleteList(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/board_list/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board_list/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {

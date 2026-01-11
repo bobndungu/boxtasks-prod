@@ -1,14 +1,20 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  const method = options?.method?.toUpperCase() || 'GET';
+  const isStateChanging = ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method);
+
+  // Use fetchWithCsrf for state-changing requests, regular fetch for GET
+  const fetchFn = isStateChanging ? fetchWithCsrf : fetch;
+
+  const response = await fetchFn(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
+      ...(isStateChanging ? {} : { 'Authorization': `Bearer ${getAccessToken()}` }),
       ...options?.headers,
     },
   });

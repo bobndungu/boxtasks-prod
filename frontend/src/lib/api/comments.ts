@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -90,12 +90,11 @@ export async function fetchCommentsByCard(cardId: string): Promise<CardComment[]
 
 // Create a new comment
 export async function createComment(data: CreateCommentData): Promise<CardComment> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card_comment`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_comment`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -124,12 +123,11 @@ export async function createComment(data: CreateCommentData): Promise<CardCommen
 
 // Update a comment
 export async function updateComment(id: string, text: string): Promise<CardComment> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card_comment/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_comment/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -153,11 +151,8 @@ export async function updateComment(id: string, text: string): Promise<CardComme
 
 // Delete a comment
 export async function deleteComment(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card_comment/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_comment/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {
@@ -193,12 +188,11 @@ export async function toggleReaction(commentId: string, reactionType: ReactionTy
   }
 
   // Save to backend
-  const response = await fetch(`${API_URL}/jsonapi/node/card_comment/${commentId}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_comment/${commentId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {

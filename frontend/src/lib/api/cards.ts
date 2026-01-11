@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -207,12 +207,11 @@ export async function fetchCard(id: string): Promise<Card> {
 
 // Create a new card
 export async function createCard(data: CreateCardData): Promise<Card> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -272,12 +271,11 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
     };
   }
 
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -300,11 +298,8 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
 
 // Delete a card
 export async function deleteCard(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {
@@ -325,14 +320,13 @@ export async function archiveCard(id: string): Promise<Card> {
 // Upload a cover image for a card
 export async function uploadCardCover(cardId: string, file: File): Promise<Card> {
   // Step 1: Upload the file
-  const uploadResponse = await fetch(
+  const uploadResponse = await fetchWithCsrf(
     `${API_URL}/jsonapi/node/card/${cardId}/field_card_cover`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/octet-stream',
         'Accept': 'application/vnd.api+json',
-        'Authorization': `Bearer ${getAccessToken()}`,
         'Content-Disposition': `file; filename="${encodeURIComponent(file.name)}"`,
       },
       body: file,
@@ -350,12 +344,11 @@ export async function uploadCardCover(cardId: string, file: File): Promise<Card>
 
 // Remove cover image from a card
 export async function removeCardCover(cardId: string): Promise<Card> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${cardId}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -393,12 +386,11 @@ export async function watchCard(cardId: string, userId: string): Promise<Card> {
 
   const newWatchers = [...currentWatchers, userId];
 
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${cardId}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -436,12 +428,11 @@ export async function unwatchCard(cardId: string, userId: string): Promise<Card>
 
   const newWatchers = currentWatchers.filter(id => id !== userId);
 
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${cardId}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -481,12 +472,11 @@ export async function assignMember(cardId: string, userId: string): Promise<Card
 
   const newMembers = [...currentMembers, userId];
 
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${cardId}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -523,12 +513,11 @@ export async function unassignMember(cardId: string, userId: string): Promise<Ca
 
   const newMembers = currentMembers.filter(id => id !== userId);
 
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${cardId}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {

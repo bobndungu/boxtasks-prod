@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -138,12 +138,11 @@ export async function createNotification(data: CreateNotificationData): Promise<
     };
   }
 
-  const response = await fetch(`${API_URL}/jsonapi/node/notification`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/notification`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -170,12 +169,11 @@ export async function createNotification(data: CreateNotificationData): Promise<
 
 // Mark a notification as read
 export async function markNotificationRead(id: string): Promise<Notification> {
-  const response = await fetch(`${API_URL}/jsonapi/node/notification/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/notification/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -207,11 +205,8 @@ export async function markAllNotificationsRead(userId: string): Promise<void> {
 
 // Delete a notification
 export async function deleteNotification(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/notification/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/notification/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {
@@ -312,12 +307,11 @@ export async function updateNotificationPreferences(
   userId: string,
   preferences: NotificationPreferences
 ): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/user/user/${userId}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/user/user/${userId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {

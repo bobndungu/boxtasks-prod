@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -156,12 +156,11 @@ export async function fetchBoard(id: string): Promise<Board> {
 
 // Create a new board
 export async function createBoard(data: CreateBoardData): Promise<Board> {
-  const response = await fetch(`${API_URL}/jsonapi/node/board`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -205,12 +204,11 @@ export async function updateBoard(id: string, data: Partial<CreateBoardData> & {
   if (data.starred !== undefined) attributes.field_board_starred = data.starred;
   if (data.archived !== undefined) attributes.field_board_archived = data.archived;
 
-  const response = await fetch(`${API_URL}/jsonapi/node/board/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -232,11 +230,8 @@ export async function updateBoard(id: string, data: Partial<CreateBoardData> & {
 
 // Delete a board
 export async function deleteBoard(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/board/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {

@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -84,14 +84,13 @@ export async function fetchAttachmentsByCard(cardId: string): Promise<CardAttach
 // Upload a file and create an attachment
 export async function createAttachment(cardId: string, file: File): Promise<CardAttachment> {
   // Step 1: Upload the file
-  const uploadResponse = await fetch(
+  const uploadResponse = await fetchWithCsrf(
     `${API_URL}/jsonapi/node/card_attachment/field_attachment_file`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/octet-stream',
         'Accept': 'application/vnd.api+json',
-        'Authorization': `Bearer ${getAccessToken()}`,
         'Content-Disposition': `file; filename="${encodeURIComponent(file.name)}"`,
       },
       body: file,
@@ -107,12 +106,11 @@ export async function createAttachment(cardId: string, file: File): Promise<Card
   const fileId = uploadResult.data.id;
 
   // Step 2: Create the attachment node referencing the file
-  const response = await fetch(`${API_URL}/jsonapi/node/card_attachment`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_attachment`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -143,11 +141,8 @@ export async function createAttachment(cardId: string, file: File): Promise<Card
 
 // Delete an attachment
 export async function deleteAttachment(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card_attachment/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_attachment/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {

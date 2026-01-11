@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -108,12 +108,11 @@ export async function fetchBoardView(id: string): Promise<BoardView> {
 
 // Create a board view
 export async function createBoardView(data: CreateBoardViewData): Promise<BoardView> {
-  const response = await fetch(`${API_URL}/jsonapi/node/board_view`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board_view`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -153,12 +152,11 @@ export async function updateBoardView(id: string, data: UpdateBoardViewData): Pr
   if (data.shared !== undefined) attributes.field_view_shared = data.shared;
   if (data.isDefault !== undefined) attributes.field_view_default = data.isDefault;
 
-  const response = await fetch(`${API_URL}/jsonapi/node/board_view/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board_view/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -180,11 +178,8 @@ export async function updateBoardView(id: string, data: UpdateBoardViewData): Pr
 
 // Delete a board view
 export async function deleteBoardView(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/board_view/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board_view/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {

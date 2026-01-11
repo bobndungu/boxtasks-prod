@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -120,12 +120,11 @@ export async function createTemplate(data: CreateTemplateData): Promise<CardTemp
     };
   }
 
-  const response = await fetch(`${API_URL}/jsonapi/node/card_template`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_template`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -166,12 +165,11 @@ export async function updateTemplate(id: string, data: Partial<CreateTemplateDat
       : { data: null };
   }
 
-  const response = await fetch(`${API_URL}/jsonapi/node/card_template/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_template/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -194,11 +192,8 @@ export async function updateTemplate(id: string, data: Partial<CreateTemplateDat
 
 // Delete a template
 export async function deleteTemplate(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card_template/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_template/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {

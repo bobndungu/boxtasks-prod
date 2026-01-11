@@ -1,4 +1,4 @@
-import { apiClient, getAccessToken } from './client';
+import { apiClient, getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -66,12 +66,11 @@ export async function fetchWorkspace(id: string): Promise<Workspace> {
 
 // Create a new workspace
 export async function createWorkspace(data: CreateWorkspaceData, userId: string): Promise<Workspace> {
-  const response = await fetch(`${API_URL}/jsonapi/node/workspace`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -114,12 +113,11 @@ export async function updateWorkspace(id: string, data: Partial<CreateWorkspaceD
   if (data.visibility) attributes.field_workspace_visibility = data.visibility;
   if (data.color) attributes.field_workspace_color = data.color;
 
-  const response = await fetch(`${API_URL}/jsonapi/node/workspace/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -141,11 +139,8 @@ export async function updateWorkspace(id: string, data: Partial<CreateWorkspaceD
 
 // Delete a workspace
 export async function deleteWorkspace(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/workspace/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {
@@ -206,12 +201,11 @@ export async function updateWorkspaceMembers(
   memberIds: string[],
   adminIds: string[]
 ): Promise<Workspace> {
-  const response = await fetch(`${API_URL}/jsonapi/node/workspace/${workspaceId}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace/${workspaceId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {

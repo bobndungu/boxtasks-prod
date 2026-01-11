@@ -278,4 +278,54 @@ export async function deleteJsonApi(endpoint: string, id: string): Promise<void>
   await apiClient.delete(`${endpoint}/${id}`);
 }
 
+// CSRF-aware fetch wrapper for use in API files that use raw fetch
+// This adds CSRF token to state-changing requests (POST, PATCH, PUT, DELETE)
+export async function fetchWithCsrf(
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const method = options.method?.toUpperCase() || 'GET';
+  const headers = new Headers(options.headers);
+
+  // Add Authorization header if we have a token
+  const token = getAccessToken();
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  // Add CSRF token for state-changing requests
+  if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
+    const csrf = await getCsrfToken();
+    if (csrf) {
+      headers.set('X-CSRF-Token', csrf);
+    }
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  // If we get a 403 with CSRF error, retry with fresh token
+  if (response.status === 403) {
+    const clonedResponse = response.clone();
+    try {
+      const errorData = await clonedResponse.json();
+      if (errorData?.message?.toLowerCase().includes('csrf') ||
+          errorData?.errors?.[0]?.detail?.toLowerCase().includes('csrf')) {
+        clearCsrfToken();
+        const freshCsrf = await getCsrfToken();
+        if (freshCsrf) {
+          headers.set('X-CSRF-Token', freshCsrf);
+          return fetch(url, { ...options, headers });
+        }
+      }
+    } catch {
+      // Not JSON, return original response
+    }
+  }
+
+  return response;
+}
+
 export default apiClient;

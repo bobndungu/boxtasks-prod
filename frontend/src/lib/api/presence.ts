@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -29,11 +29,10 @@ export async function announcePresence(boardId: string, action: 'join' | 'leave'
   }
 
   try {
-    await fetch(`${API_URL}/api/presence/announce`, {
+    await fetchWithCsrf(`${API_URL}/api/presence/announce`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ boardId, action }),
     });

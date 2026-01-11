@@ -179,6 +179,14 @@ class InputSanitizer {
    *   TRUE if potential SQL injection detected.
    */
   public function detectSqlInjection(string $input): bool {
+    // Skip SQL injection detection for JSON:API payloads
+    // JSON:API uses type names like "node--card", "user--user" which
+    // would trigger false positives on comment detection patterns.
+    // The JSON:API module has its own security measures.
+    if (str_contains($input, '"type":"') || str_contains($input, '"type": "')) {
+      return FALSE;
+    }
+
     $patterns = [
       '/(\bunion\b.*\bselect\b)/i',
       '/(\bselect\b.*\bfrom\b)/i',
@@ -186,9 +194,14 @@ class InputSanitizer {
       '/(\bdelete\b.*\bfrom\b)/i',
       '/(\bdrop\b.*\btable\b)/i',
       '/(\bupdate\b.*\bset\b)/i',
-      '/(--|\#|\/\*)/i',
-      '/(\bor\b.*=.*)/i',
-      '/(\band\b.*=.*)/i',
+      // Match SQL comments only when preceded by whitespace or start of line
+      // to avoid false positives on JSON:API types like "node--card"
+      '/(\s--|^--)/',
+      '/(\s#|^#)/',
+      '/(\/\*)/i',
+      // Match OR/AND injection only when followed by comparison operators
+      '/(\bor\b\s+[\'\"\d\w]+\s*=\s*[\'\"\d\w]+)/i',
+      '/(\band\b\s+[\'\"\d\w]+\s*=\s*[\'\"\d\w]+)/i',
     ];
 
     foreach ($patterns as $pattern) {

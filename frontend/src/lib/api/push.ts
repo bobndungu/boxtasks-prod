@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -165,12 +165,11 @@ async function savePushSubscription(userId: string, subscription: PushSubscripti
     },
   };
 
-  const response = await fetch(`${API_URL}/jsonapi/user/user/${userId}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/user/user/${userId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -192,12 +191,11 @@ async function savePushSubscription(userId: string, subscription: PushSubscripti
  * Remove push subscription from server
  */
 async function removePushSubscription(userId: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/user/user/${userId}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/user/user/${userId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {

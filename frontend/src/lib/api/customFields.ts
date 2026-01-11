@@ -1,4 +1,4 @@
-import { getAccessToken } from './client';
+import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -102,12 +102,11 @@ export async function fetchCustomFieldsByBoard(boardId: string): Promise<CustomF
 
 // Create a custom field definition
 export async function createCustomField(data: CreateCustomFieldData): Promise<CustomFieldDefinition> {
-  const response = await fetch(`${API_URL}/jsonapi/node/custom_field_definition`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/custom_field_definition`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -147,12 +146,11 @@ export async function updateCustomField(id: string, data: UpdateCustomFieldData)
   if (data.required !== undefined) attributes.field_customfield_required = data.required;
   if (data.position !== undefined) attributes.field_customfield_position = data.position;
 
-  const response = await fetch(`${API_URL}/jsonapi/node/custom_field_definition/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/custom_field_definition/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
       data: {
@@ -174,11 +172,8 @@ export async function updateCustomField(id: string, data: UpdateCustomFieldData)
 
 // Delete a custom field definition
 export async function deleteCustomField(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/custom_field_definition/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/custom_field_definition/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {
@@ -221,12 +216,11 @@ export async function setCardCustomFieldValue(
 
   if (existingValue) {
     // Update existing value
-    const response = await fetch(`${API_URL}/jsonapi/node/card_custom_field_value/${existingValue.id}`, {
+    const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_custom_field_value/${existingValue.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/vnd.api+json',
         'Accept': 'application/vnd.api+json',
-        'Authorization': `Bearer ${getAccessToken()}`,
       },
       body: JSON.stringify({
         data: {
@@ -248,12 +242,11 @@ export async function setCardCustomFieldValue(
     return transformFieldValue(result.data);
   } else {
     // Create new value
-    const response = await fetch(`${API_URL}/jsonapi/node/card_custom_field_value`, {
+    const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_custom_field_value`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/vnd.api+json',
         'Accept': 'application/vnd.api+json',
-        'Authorization': `Bearer ${getAccessToken()}`,
       },
       body: JSON.stringify({
         data: {
@@ -286,11 +279,8 @@ export async function setCardCustomFieldValue(
 
 // Delete a custom field value
 export async function deleteCardCustomFieldValue(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card_custom_field_value/${id}`, {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_custom_field_value/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
   });
 
   if (!response.ok && response.status !== 204) {
