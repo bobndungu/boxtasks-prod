@@ -1,0 +1,161 @@
+name: Deploy BoxTasks
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20'
+  PHP_VERSION: '8.3'
+
+jobs:
+  build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://boxtasks.boxraft.com' || 'https://staging.boxtasks.boxraft.com' }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+          retention-days: 1
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment:
+      name: staging
+      url: https://staging.boxtasks.boxraft.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 23.92.21.181 >> ~/.ssh/known_hosts
+
+      - name: Deploy to staging server
+        env:
+          DEPLOY_PATH: /var/www/websites/staging.boxtasks.boxraft.com
+          SERVER: root@23.92.21.181
+        run: |
+          # Create deployment directory structure
+          ssh $SERVER "mkdir -p $DEPLOY_PATH/{web,frontend,config,private,tmp}"
+
+          # Sync Drupal backend (excluding dev files and sensitive configs)
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='frontend' \
+            --exclude='.ddev' \
+            --exclude='vendor' \
+            --exclude='web/sites/default/files' \
+            --exclude='web/sites/default/settings.local.php' \
+            --exclude='.env' \
+            --exclude='node_modules' \
+            ./ $SERVER:$DEPLOY_PATH/
+
+          # Sync frontend build
+          rsync -avz --delete frontend/dist/ $SERVER:$DEPLOY_PATH/frontend/dist/
+
+          # Run deployment tasks on server
+          ssh $SERVER "cd $DEPLOY_PATH && bash scripts/deploy.sh staging"
+
+  deploy-production:
+    name: Deploy to Production
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: https://boxtasks.boxraft.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 23.92.21.181 >> ~/.ssh/known_hosts
+
+      - name: Deploy to production server
+        env:
+          DEPLOY_PATH: /var/www/websites/boxtasks.boxraft.com
+          SERVER: root@23.92.21.181
+        run: |
+          # Create deployment directory structure
+          ssh $SERVER "mkdir -p $DEPLOY_PATH/{web,frontend,config,private,tmp}"
+
+          # Sync Drupal backend (excluding dev files and sensitive configs)
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='frontend' \
+            --exclude='.ddev' \
+            --exclude='vendor' \
+            --exclude='web/sites/default/files' \
+            --exclude='web/sites/default/settings.local.php' \
+            --exclude='.env' \
+            --exclude='node_modules' \
+            ./ $SERVER:$DEPLOY_PATH/
+
+          # Sync frontend build
+          rsync -avz --delete frontend/dist/ $SERVER:$DEPLOY_PATH/frontend/dist/
+
+          # Run deployment tasks on server
+          ssh $SERVER "cd $DEPLOY_PATH && bash scripts/deploy.sh production"
