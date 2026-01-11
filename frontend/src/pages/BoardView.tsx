@@ -78,7 +78,7 @@ import { fetchCardsByList, createCard, updateCard, deleteCard, uploadCardCover, 
 import { fetchDepartments, fetchClients, type TaxonomyTerm } from '../lib/api/taxonomies';
 import { fetchCommentsByCard, createComment, updateComment, deleteComment, toggleReaction, type CardComment, type ReactionType } from '../lib/api/comments';
 import { fetchAttachmentsByCard, createAttachment, deleteAttachment, formatFileSize, type CardAttachment } from '../lib/api/attachments';
-import { fetchChecklistsByCard, createChecklist, deleteChecklist, createChecklistItem, updateChecklistItem, deleteChecklistItem, countChecklistItems, MAX_NESTING_DEPTH, type Checklist, type ChecklistItem } from '../lib/api/checklists';
+import { fetchChecklistsByCard, createChecklist, deleteChecklist, createChecklistItem, updateChecklistItem, deleteChecklistItem, updateChecklistItemAssignee, countChecklistItems, MAX_NESTING_DEPTH, type Checklist, type ChecklistItem } from '../lib/api/checklists';
 import { fetchActivitiesByCard, fetchActivitiesByBoard, getActivityDisplay, type Activity } from '../lib/api/activities';
 import { createTemplate, fetchTemplates, type CardTemplate, type ChecklistTemplate } from '../lib/api/templates';
 import { createNotification } from '../lib/api/notifications';
@@ -3225,6 +3225,7 @@ function CardDetailModal({
   const [addingSubItemTo, setAddingSubItemTo] = useState<{ checklistId: string; parentId: string } | null>(null);
   const [newItemTitle, setNewItemTitle] = useState('');
   const [editingItemDueDate, setEditingItemDueDate] = useState<string | null>(null);
+  const [editingItemAssignee, setEditingItemAssignee] = useState<string | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(true);
   const [showAllActivities, setShowAllActivities] = useState(false);
@@ -3996,6 +3997,24 @@ function CardDetailModal({
       setEditingItemDueDate(null);
     } catch (err) {
       console.error('Failed to update checklist item due date:', err);
+    }
+  };
+
+  const handleUpdateChecklistItemAssignee = async (checklistId: string, itemId: string, assigneeId: string | null) => {
+    try {
+      const updated = await updateChecklistItemAssignee(itemId, assigneeId);
+      setChecklists(checklists.map((c) =>
+        c.id === checklistId
+          ? { ...c, items: updateItemInList(c.items, itemId, (item) => ({
+              ...item,
+              assigneeId: updated.assigneeId,
+              assignee: updated.assignee,
+            })) }
+          : c
+      ));
+      setEditingItemAssignee(null);
+    } catch (err) {
+      console.error('Failed to update checklist item assignee:', err);
     }
   };
 
@@ -5018,16 +5037,70 @@ function CardDetailModal({
                                     {item.title}
                                   </span>
                                   {/* Assignee */}
-                                  {item.assignee && (
-                                    <div className="flex items-center mr-2" title={item.assignee.name}>
-                                      <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
-                                        {item.assignee.name.charAt(0).toUpperCase()}
+                                  <div className="relative mr-2">
+                                    {item.assignee ? (
+                                      <button
+                                        onClick={() => setEditingItemAssignee(`${item.id}-${checklist.id}`)}
+                                        className="flex items-center hover:bg-gray-100 rounded px-1 py-0.5"
+                                        title={`Assigned to ${item.assignee.name}`}
+                                      >
+                                        <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
+                                          {item.assignee.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="text-xs text-gray-500 ml-1 hidden sm:inline">
+                                          {item.assignee.name.split(' ')[0]}
+                                        </span>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => setEditingItemAssignee(`${item.id}-${checklist.id}`)}
+                                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 p-1"
+                                        title="Assign member"
+                                      >
+                                        <User className="h-3 w-3" />
+                                      </button>
+                                    )}
+                                    {editingItemAssignee === `${item.id}-${checklist.id}` && (
+                                      <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border p-2 z-50 min-w-48">
+                                        <div className="text-xs font-medium text-gray-500 mb-2">Assign to</div>
+                                        <div className="max-h-40 overflow-y-auto space-y-1">
+                                          {workspaceMembers.map((member) => (
+                                            <button
+                                              key={member.id}
+                                              onClick={() => handleUpdateChecklistItemAssignee(checklist.id, item.id, member.id)}
+                                              className={`w-full flex items-center px-2 py-1.5 rounded text-sm hover:bg-gray-100 ${
+                                                item.assigneeId === member.id ? 'bg-blue-50' : ''
+                                              }`}
+                                            >
+                                              <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium mr-2">
+                                                {member.displayName.charAt(0).toUpperCase()}
+                                              </div>
+                                              <span className="flex-1 text-left">{member.displayName}</span>
+                                              {item.assigneeId === member.id && (
+                                                <Check className="h-3 w-3 text-blue-500" />
+                                              )}
+                                            </button>
+                                          ))}
+                                        </div>
+                                        <div className="flex justify-between mt-2 pt-2 border-t">
+                                          {item.assignee && (
+                                            <button
+                                              onClick={() => handleUpdateChecklistItemAssignee(checklist.id, item.id, null)}
+                                              className="text-xs text-red-600 hover:text-red-700"
+                                            >
+                                              Remove
+                                            </button>
+                                          )}
+                                          <button
+                                            onClick={() => setEditingItemAssignee(null)}
+                                            className="text-xs text-gray-500 hover:text-gray-700 ml-auto"
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
                                       </div>
-                                      <span className="text-xs text-gray-500 ml-1 hidden sm:inline">
-                                        {item.assignee.name.split(' ')[0]}
-                                      </span>
-                                    </div>
-                                  )}
+                                    )}
+                                  </div>
                                   {/* Due date */}
                                   <div className="relative">
                                     {item.dueDate && !editingItemDueDate?.startsWith(item.id) && (

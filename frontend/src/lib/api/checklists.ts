@@ -298,6 +298,51 @@ export async function deleteChecklistItem(id: string): Promise<void> {
   }
 }
 
+// Update checklist item assignee
+export async function updateChecklistItemAssignee(id: string, assigneeId: string | null): Promise<ChecklistItem> {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/checklist_item/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--checklist_item',
+        id,
+        relationships: {
+          field_item_assignee: {
+            data: assigneeId ? { type: 'user--user', id: assigneeId } : null,
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to update checklist item assignee');
+  }
+
+  // Refetch to get included user data
+  const itemResponse = await fetch(
+    `${API_URL}/jsonapi/node/checklist_item/${id}?include=field_item_assignee`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!itemResponse.ok) {
+    throw new Error('Failed to fetch updated checklist item');
+  }
+
+  const itemResult = await itemResponse.json();
+  return transformChecklistItem(itemResult.data, itemResult.included);
+}
+
 // Helper: Count all items in a checklist (including nested)
 export function countChecklistItems(items: ChecklistItem[]): { total: number; completed: number } {
   let total = 0;
