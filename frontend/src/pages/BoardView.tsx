@@ -1430,7 +1430,7 @@ export default function BoardView() {
       style={{ backgroundColor: currentBoard?.background || '#0079BF' }}
     >
       {/* Board Header */}
-      <header className="bg-black/30 backdrop-blur-sm">
+      <header className="bg-black/30 backdrop-blur-sm relative z-20">
         <div className="px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -1687,8 +1687,10 @@ export default function BoardView() {
                   <span className="text-sm hidden sm:inline">Show/Hide</span>
                 </button>
                 {showFieldVisibilityMenu && (
-                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50 w-56">
-                    <h5 className="text-sm font-medium text-gray-700 mb-2 pb-2 border-b">Card Fields Visibility</h5>
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowFieldVisibilityMenu(false)} />
+                    <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50 w-56">
+                      <h5 className="text-sm font-medium text-gray-700 mb-2 pb-2 border-b">Card Fields Visibility</h5>
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -1750,13 +1752,14 @@ export default function BoardView() {
                         </div>
                       </label>
                     </div>
-                    <button
-                      onClick={() => setShowFieldVisibilityMenu(false)}
-                      className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
-                    >
-                      Close
-                    </button>
-                  </div>
+                      <button
+                        onClick={() => setShowFieldVisibilityMenu(false)}
+                        className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
               <button className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded">
@@ -2883,13 +2886,13 @@ function SortableCard({
 
       {/* Quick Actions - appear on hover */}
       {showQuickActions && !isDragging && (
-        <div className="absolute -top-2 right-1 flex items-center gap-1 z-10">
+        <div className="absolute top-1 right-1 flex items-center gap-0.5 z-10">
           <button
             onClick={onQuickComplete}
-            className={`p-1.5 rounded shadow-md transition-colors ${
+            className={`p-1 rounded transition-colors ${
               card.completed
                 ? 'bg-green-500 text-white hover:bg-green-600'
-                : 'bg-white text-gray-600 hover:bg-green-50 hover:text-green-600'
+                : 'bg-white/90 text-gray-600 hover:bg-green-50 hover:text-green-600 shadow-sm'
             }`}
             title={card.completed ? 'Mark incomplete' : 'Mark complete'}
           >
@@ -2897,14 +2900,14 @@ function SortableCard({
           </button>
           <button
             onClick={onQuickEdit}
-            className="p-1.5 bg-white text-gray-600 rounded shadow-md hover:bg-blue-50 hover:text-blue-600 transition-colors"
+            className="p-1 bg-white/90 text-gray-600 rounded shadow-sm hover:bg-blue-50 hover:text-blue-600 transition-colors"
             title="Edit card"
           >
             <Edit2 className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={onQuickArchive}
-            className="p-1.5 bg-white text-gray-600 rounded shadow-md hover:bg-orange-50 hover:text-orange-600 transition-colors"
+            className="p-1 bg-white/90 text-gray-600 rounded shadow-sm hover:bg-orange-50 hover:text-orange-600 transition-colors"
             title="Archive card"
           >
             <Archive className="h-3.5 w-3.5" />
@@ -5673,8 +5676,10 @@ function CardDetailModal({
                       )}
                     </button>
                     {showMemberPicker && (
-                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">Assign member (1 max)</h5>
+                      <>
+                        <div className="fixed inset-0 z-[5]" onClick={() => setShowMemberPicker(false)} />
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Assign member (1 max)</h5>
                         {cardMembers.length > 0 && (
                           <div className="mb-3 p-2 bg-blue-50 rounded">
                             <p className="text-xs text-blue-700 mb-2">Currently assigned:</p>
@@ -5714,13 +5719,14 @@ function CardDetailModal({
                             <p className="text-xs text-gray-500 px-2 py-1">Remove current member to assign yourself</p>
                           )}
                         </div>
-                        <button
-                          onClick={() => setShowMemberPicker(false)}
-                          className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
-                        >
-                          Close
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => setShowMemberPicker(false)}
+                            className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                   <button
@@ -5757,8 +5763,10 @@ function CardDetailModal({
                       )}
                     </button>
                     {showWatchersPicker && (
-                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">Add Watchers</h5>
+                      <>
+                        <div className="fixed inset-0 z-[5]" onClick={() => setShowWatchersPicker(false)} />
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Add Watchers</h5>
                         {/* Current watchers */}
                         {card.watcherIds && card.watcherIds.length > 0 && (
                           <div className="mb-3">
@@ -5815,13 +5823,14 @@ function CardDetailModal({
                             <p className="text-xs text-gray-400 text-center py-2">All members are watching</p>
                           )}
                         </div>
-                        <button
-                          onClick={() => setShowWatchersPicker(false)}
-                          className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
-                        >
-                          Close
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => setShowWatchersPicker(false)}
+                            className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                   <button className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center">
@@ -5845,8 +5854,10 @@ function CardDetailModal({
                       )}
                     </button>
                     {showDepartmentPicker && (
-                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">Select Department</h5>
+                      <>
+                        <div className="fixed inset-0 z-[5]" onClick={() => setShowDepartmentPicker(false)} />
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Select Department</h5>
                         <div className="space-y-1 max-h-48 overflow-y-auto">
                           {departments.map((dept) => (
                             <button
@@ -5877,13 +5888,14 @@ function CardDetailModal({
                             Remove Department
                           </button>
                         )}
-                        <button
-                          onClick={() => setShowDepartmentPicker(false)}
-                          className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
-                        >
-                          Close
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => setShowDepartmentPicker(false)}
+                            className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                   {/* Client Dropdown */}
@@ -5903,8 +5915,10 @@ function CardDetailModal({
                       )}
                     </button>
                     {showClientPicker && (
-                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">Select Client</h5>
+                      <>
+                        <div className="fixed inset-0 z-[5]" onClick={() => setShowClientPicker(false)} />
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Select Client</h5>
                         <div className="space-y-1 max-h-48 overflow-y-auto">
                           {clients.map((clnt) => (
                             <button
@@ -5935,13 +5949,14 @@ function CardDetailModal({
                             Remove Client
                           </button>
                         )}
-                        <button
-                          onClick={() => setShowClientPicker(false)}
-                          className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
-                        >
-                          Close
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => setShowClientPicker(false)}
+                            className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                   {/* Add Card-Scoped Custom Fields */}
