@@ -60,3 +60,4 @@ php_errors.log
 *.backup
 *.sql
 *.sql.gz
+test_results.json
