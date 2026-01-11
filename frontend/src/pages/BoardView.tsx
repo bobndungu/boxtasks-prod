@@ -81,7 +81,7 @@ import { fetchChecklistsByCard, createChecklist, deleteChecklist, createChecklis
 import { fetchActivitiesByCard, fetchActivitiesByBoard, getActivityDisplay, type Activity } from '../lib/api/activities';
 import { createTemplate, fetchTemplates, type CardTemplate, type ChecklistTemplate } from '../lib/api/templates';
 import { createNotification } from '../lib/api/notifications';
-import { fetchWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspaces';
+import { fetchWorkspaceMembers, fetchAllUsers, type WorkspaceMember } from '../lib/api/workspaces';
 import { useKeyboardShortcuts } from '../lib/hooks/useKeyboardShortcuts';
 import { useBoardUpdates } from '../lib/hooks/useMercure';
 import { usePresence } from '../lib/hooks/usePresence';
@@ -186,6 +186,8 @@ export default function BoardView() {
 
   // Workspace members for @mentions
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
+  // All users for member assignment dropdowns
+  const [allUsers, setAllUsers] = useState<WorkspaceMember[]>([]);
 
   // Department and Client taxonomy state
   const [departments, setDepartments] = useState<TaxonomyTerm[]>([]);
@@ -744,13 +746,17 @@ export default function BoardView() {
         console.error('Failed to load custom fields:', cfErr);
       }
 
-      // Load workspace members for @mentions
+      // Load workspace members for @mentions and all users for dropdowns
       if (board.workspaceId) {
         try {
-          const members = await fetchWorkspaceMembers(board.workspaceId);
+          const [members, users] = await Promise.all([
+            fetchWorkspaceMembers(board.workspaceId),
+            fetchAllUsers(),
+          ]);
           setWorkspaceMembers(members);
+          setAllUsers(users);
         } catch (memberErr) {
-          console.error('Failed to load workspace members:', memberErr);
+          console.error('Failed to load members:', memberErr);
         }
       }
 
@@ -2218,6 +2224,7 @@ export default function BoardView() {
           listTitle={lists.find((l) => l.id === selectedCard.listId)?.title || 'List'}
           boardId={currentBoard?.id}
           workspaceMembers={workspaceMembers}
+          allUsers={allUsers}
           onClose={() => setSelectedCard(null)}
           onUpdate={handleCardUpdate}
           onDelete={() => handleDeleteCard(selectedCard)}
@@ -3350,6 +3357,7 @@ function CardDetailModal({
   listTitle,
   boardId,
   workspaceMembers,
+  allUsers,
   onClose,
   onUpdate,
   onDelete,
@@ -3371,6 +3379,7 @@ function CardDetailModal({
   listTitle: string;
   boardId?: string;
   workspaceMembers: WorkspaceMember[];
+  allUsers: WorkspaceMember[];
   onClose: () => void;
   onUpdate: (cardId: string, updates: Partial<Card>) => void;
   onDelete: () => void;
@@ -5190,7 +5199,7 @@ function CardDetailModal({
                 ) : (
                   <div className="space-y-4">
                     {checklists.map((checklist) => (
-                      <div key={checklist.id} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                      <div key={checklist.id} className="bg-white border border-gray-200 rounded-xl shadow-sm">
                         {/* Checklist Header */}
                         <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
                           <div className="flex items-center gap-2">
@@ -5299,13 +5308,13 @@ function CardDetailModal({
                                     )}
                                     {editingItemAssignee === `${item.id}-${checklist.id}` && (
                                       <>
-                                        <div className="fixed inset-0 z-[51]" onClick={() => setEditingItemAssignee(null)} />
-                                        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[52] w-56">
+                                        <div className="fixed inset-0 z-[9998]" onClick={() => setEditingItemAssignee(null)} />
+                                        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-[9999] w-56">
                                           <div className="p-2 border-b border-gray-200 dark:border-gray-700">
                                             <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Assign to</p>
                                           </div>
                                           <div className="max-h-48 overflow-y-auto">
-                                            {workspaceMembers.map((member) => (
+                                            {allUsers.map((member) => (
                                               <button
                                                 key={member.id}
                                                 onClick={() => handleUpdateChecklistItemAssignee(checklist.id, item.id, member.id)}
@@ -5855,7 +5864,7 @@ function CardDetailModal({
                       </div>
                     ) : (
                       <MemberDropdown
-                        members={workspaceMembers}
+                        members={allUsers}
                         onSelect={(member) => handleToggleMember(member.id, member.displayName)}
                         placeholder="Assign member..."
                         buttonLabel="Assign Member"
@@ -5891,7 +5900,7 @@ function CardDetailModal({
                     {/* Current watchers display */}
                     {card.watcherIds && card.watcherIds.length > 0 && (
                       <div className="mb-2 flex flex-wrap gap-1">
-                        {workspaceMembers
+                        {allUsers
                           .filter((m) => card.watcherIds.includes(m.id))
                           .map((member) => (
                             <span
@@ -5911,7 +5920,7 @@ function CardDetailModal({
                       </div>
                     )}
                     <MemberDropdown
-                      members={workspaceMembers}
+                      members={allUsers}
                       excludeIds={card.watcherIds || []}
                       onSelect={(member) => handleAddWatcher(member.id, member.displayName)}
                       placeholder="Add watcher..."

@@ -147,7 +147,7 @@ export default function MemberDropdown({
         <div
           className={`absolute left-0 right-0 ${
             dropdownPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
-          } bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden`}
+          } bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-[9999] overflow-hidden`}
         >
           {/* Selected members (if multiple) */}
           {multiple && selectedMembers.length > 0 && (

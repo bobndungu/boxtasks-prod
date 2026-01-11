@@ -125,7 +125,7 @@ export default function BoardMembersModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col overflow-visible">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Board Members</h2>
@@ -141,22 +141,23 @@ export default function BoardMembersModal({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* Add Member Dropdown */}
-          <div className="mb-6">
-            <MemberDropdown
-              members={allUsers}
-              excludeIds={members.map(m => m.id)}
-              onSelect={handleAddMember}
-              placeholder="Add member..."
-              buttonLabel="Add Member"
-              showSelectedInButton={false}
-              loading={isLoading}
-              disabled={isUpdating}
-              emptyMessage="No more users to add"
-            />
-          </div>
+        {/* Add Member Dropdown - Outside scrollable area */}
+        <div className="px-6 pt-4 pb-2 relative z-10">
+          <MemberDropdown
+            members={allUsers}
+            excludeIds={members.map(m => m.id)}
+            onSelect={handleAddMember}
+            placeholder="Add member..."
+            buttonLabel="Add Member"
+            showSelectedInButton={false}
+            loading={isLoading}
+            disabled={isUpdating}
+            emptyMessage="No more users to add"
+            maxHeight="300px"
+          />
+        </div>
 
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
           {/* Members List */}
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
