@@ -2107,6 +2107,134 @@
       "status": "pending",
       "type": "both",
       "phase": "final-testing"
+    },
+    {
+      "id": 263,
+      "name": "Add custom @mention handle field to user profile",
+      "test": "User can set custom @handle in profile settings and it persists",
+      "status": "pending",
+      "type": "both",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 264,
+      "name": "Add board view field visibility settings",
+      "test": "User can toggle which fields (Priority, Status, etc.) are visible on board cards",
+      "status": "pending",
+      "type": "both",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 265,
+      "name": "Implement consistent expanded card view in board",
+      "test": "All cards show same field info consistently based on settings",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 266,
+      "name": "Increase card modal width by 25%",
+      "test": "Card modal is 25% wider than before",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 267,
+      "name": "Auto-assign checklist items to card assignee",
+      "test": "New checklist items automatically have card assignee assigned",
+      "status": "pending",
+      "type": "both",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 268,
+      "name": "Show assignee name and icon next to checklist items",
+      "test": "Each checklist item shows assignee avatar and name",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 269,
+      "name": "Improve checklist UI styling",
+      "test": "Checklists have improved visual design with better spacing and colors",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 270,
+      "name": "Add \"Add Watchers\" button with dropdown in sidebar",
+      "test": "Can click Add Watchers button and select team members from dropdown",
+      "status": "pending",
+      "type": "both",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 271,
+      "name": "Move Watching button to Add to Card section",
+      "test": "Watching button appears below Members in Add to Card section instead of Actions",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 272,
+      "name": "Show member name next to Members heading in sidebar",
+      "test": "Assigned member name shows next to Members heading, not in main content",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 273,
+      "name": "Limit card assignment to one member only",
+      "test": "Only one member can be assigned to a card at a time",
+      "status": "pending",
+      "type": "both",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 274,
+      "name": "Show time with Start Date and Due Date",
+      "test": "Start date and due date fields display both date and time",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 275,
+      "name": "Auto-set due date to +5 minutes for new cards",
+      "test": "New cards automatically have due date set to creation time + 5 minutes",
+      "status": "pending",
+      "type": "both",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 276,
+      "name": "Custom fields not in sidebar by default",
+      "test": "New custom fields appear in main content by default, not sidebar",
+      "status": "pending",
+      "type": "react",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 277,
+      "name": "Add custom field scope (workspace/board/card level)",
+      "test": "Custom fields can be scoped to workspace, board, or individual card",
+      "status": "pending",
+      "type": "both",
+      "phase": "ui-enhancements"
+    },
+    {
+      "id": 278,
+      "name": "Select which custom fields to add to specific card",
+      "test": "User can choose which custom fields to add to a specific card",
+      "status": "pending",
+      "type": "both",
+      "phase": "ui-enhancements"
     }
   ],
   "current_feature": null,

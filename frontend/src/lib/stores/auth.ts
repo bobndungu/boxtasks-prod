@@ -21,6 +21,7 @@ export interface User {
   bio?: string;
   jobTitle?: string;
   timezone?: string;
+  mentionHandle?: string;
 }
 
 interface AuthState {
@@ -77,6 +78,7 @@ export const useAuthStore = create<AuthState>()(
               bio: userData.attributes.field_bio?.value || '',
               jobTitle: userData.attributes.field_job_title || '',
               timezone: userData.attributes.field_timezone || userData.attributes.timezone || 'UTC',
+              mentionHandle: userData.attributes.field_mention_handle || '',
             };
             set({ user, isAuthenticated: true, isLoading: false });
             return true;

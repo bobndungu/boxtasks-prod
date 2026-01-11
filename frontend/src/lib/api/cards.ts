@@ -28,6 +28,11 @@ export interface Card {
   members: CardMember[];
   createdAt: string;
   updatedAt: string;
+  // Activity counts for expanded view
+  commentCount: number;
+  attachmentCount: number;
+  checklistCompleted: number;
+  checklistTotal: number;
 }
 
 export interface CreateCardData {
@@ -115,6 +120,11 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     members,
     createdAt: attrs.created as string,
     updatedAt: attrs.changed as string,
+    // Initialize counts to 0 - will be populated when loading board if needed
+    commentCount: 0,
+    attachmentCount: 0,
+    checklistCompleted: 0,
+    checklistTotal: 0,
   };
 }
 

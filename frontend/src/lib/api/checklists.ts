@@ -2,6 +2,11 @@ import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
+export interface ChecklistItemAssignee {
+  id: string;
+  name: string;
+}
+
 export interface ChecklistItem {
   id: string;
   title: string;
@@ -11,6 +16,8 @@ export interface ChecklistItem {
   dueDate?: string;
   parentId?: string;
   children?: ChecklistItem[];
+  assigneeId?: string;
+  assignee?: ChecklistItemAssignee;
 }
 
 export interface Checklist {
@@ -22,9 +29,23 @@ export interface Checklist {
 }
 
 // Transform JSON:API response to ChecklistItem
-function transformChecklistItem(data: Record<string, unknown>): ChecklistItem {
+function transformChecklistItem(data: Record<string, unknown>, included?: Record<string, unknown>[]): ChecklistItem {
   const attrs = data.attributes as Record<string, unknown>;
   const rels = data.relationships as Record<string, { data: { id: string } | null }> | undefined;
+
+  // Get assignee ID and details
+  const assigneeId = rels?.field_item_assignee?.data?.id;
+  let assignee: ChecklistItemAssignee | undefined;
+  if (included && assigneeId) {
+    const user = included.find((item) => item.id === assigneeId && item.type === 'user--user');
+    if (user) {
+      const userAttrs = user.attributes as Record<string, unknown>;
+      assignee = {
+        id: assigneeId,
+        name: (userAttrs.display_name as string) || (userAttrs.name as string) || 'Unknown',
+      };
+    }
+  }
 
   return {
     id: data.id as string,
@@ -35,6 +56,8 @@ function transformChecklistItem(data: Record<string, unknown>): ChecklistItem {
     dueDate: attrs.field_item_due_date as string | undefined,
     parentId: rels?.field_item_parent?.data?.id,
     children: [],
+    assigneeId,
+    assignee,
   };
 }
 
@@ -82,7 +105,7 @@ export async function fetchChecklistsByCard(cardId: string): Promise<Checklist[]
   ).join('&');
 
   const itemsResponse = await fetch(
-    `${API_URL}/jsonapi/node/checklist_item?${filterParams}&sort=field_item_position`,
+    `${API_URL}/jsonapi/node/checklist_item?${filterParams}&sort=field_item_position&include=field_item_assignee`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -94,8 +117,9 @@ export async function fetchChecklistsByCard(cardId: string): Promise<Checklist[]
   if (itemsResponse.ok) {
     const itemsResult = await itemsResponse.json();
     const itemsData = itemsResult.data;
+    const includedData = itemsResult.included as Record<string, unknown>[] | undefined;
     if (Array.isArray(itemsData)) {
-      const allItems = itemsData.map((item: Record<string, unknown>) => transformChecklistItem(item));
+      const allItems = itemsData.map((item: Record<string, unknown>) => transformChecklistItem(item, includedData));
 
       // Build nested structure
       const itemMap = new Map<string, ChecklistItem>();
@@ -182,7 +206,8 @@ export async function createChecklistItem(
   checklistId: string,
   title: string,
   position: number,
-  parentId?: string
+  parentId?: string,
+  assigneeId?: string
 ): Promise<ChecklistItem> {
   const relationships: Record<string, unknown> = {
     field_item_checklist: {
@@ -193,6 +218,12 @@ export async function createChecklistItem(
   if (parentId) {
     relationships.field_item_parent = {
       data: { type: 'node--checklist_item', id: parentId },
+    };
+  }
+
+  if (assigneeId) {
+    relationships.field_item_assignee = {
+      data: { type: 'user--user', id: assigneeId },
     };
   }
 

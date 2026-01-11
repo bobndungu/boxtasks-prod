@@ -188,6 +188,49 @@ export default function BoardView() {
   const [viewSettings, setViewSettings] = useState<ViewSettingsData>(DEFAULT_VIEW_SETTINGS);
   const [savedViews, setSavedViews] = useState<SavedView[]>([]);
 
+  // Field visibility settings
+  interface CardFieldVisibility {
+    labels: boolean;
+    startDate: boolean;
+    dueDate: boolean;
+    members: boolean;
+    customFields: boolean;
+    expanded: boolean; // Show expanded card view with more details
+  }
+
+  const defaultFieldVisibility: CardFieldVisibility = {
+    labels: true,
+    startDate: true,
+    dueDate: true,
+    members: true,
+    customFields: true,
+    expanded: false,
+  };
+
+  const [fieldVisibility, setFieldVisibility] = useState<CardFieldVisibility>(() => {
+    if (!id) return defaultFieldVisibility;
+    const stored = localStorage.getItem(`boxtasks_field_visibility_${id}`);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        // Merge with defaults to handle missing properties
+        return { ...defaultFieldVisibility, ...parsed };
+      } catch {
+        return defaultFieldVisibility;
+      }
+    }
+    return defaultFieldVisibility;
+  });
+
+  const [showFieldVisibilityMenu, setShowFieldVisibilityMenu] = useState(false);
+
+  // Save field visibility to localStorage
+  useEffect(() => {
+    if (id) {
+      localStorage.setItem(`boxtasks_field_visibility_${id}`, JSON.stringify(fieldVisibility));
+    }
+  }, [fieldVisibility, id]);
+
   // Load saved views from localStorage and parse URL params
   useEffect(() => {
     if (!id) return;
@@ -795,6 +838,10 @@ export default function BoardView() {
       members: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      commentCount: 0,
+      attachmentCount: 0,
+      checklistCompleted: 0,
+      checklistTotal: 0,
     };
 
     // Clear form immediately for better UX
@@ -810,12 +857,18 @@ export default function BoardView() {
         newMap.set(listId, [...cards, tempCard]);
         return newMap;
       },
-      apiCall: () => createCard({
-        title: titleToCreate,
-        listId,
-        position: listCards.length,
-        creatorId: currentUser?.id, // Auto-assign creator
-      }),
+      apiCall: () => {
+        // Auto-set due date to +5 minutes from now
+        const autodueDueDate = new Date();
+        autodueDueDate.setMinutes(autodueDueDate.getMinutes() + 5);
+        return createCard({
+          title: titleToCreate,
+          listId,
+          position: listCards.length,
+          dueDate: autodueDueDate.toISOString(),
+          creatorId: currentUser?.id, // Auto-assign creator
+        });
+      },
       onSuccess: (newCard) => {
         // Replace temp card with real card from server (or skip if Mercure already added it)
         setCardsByList((prev) => {
@@ -860,6 +913,10 @@ export default function BoardView() {
     try {
       const listCards = cardsByList.get(templatePickerListId) || [];
 
+      // Auto-set due date to +5 minutes from now
+      const autoDueDate = new Date();
+      autoDueDate.setMinutes(autoDueDate.getMinutes() + 5);
+
       // Create the card with template data
       const newCard = await createCard({
         title: template.title,
@@ -867,15 +924,16 @@ export default function BoardView() {
         description: template.description,
         labels: template.labels.length > 0 ? template.labels : undefined,
         position: listCards.length,
+        dueDate: autoDueDate.toISOString(),
         creatorId: currentUser?.id, // Auto-assign creator
       });
 
-      // Create checklists from template
+      // Create checklists from template (auto-assign items to card creator)
       for (const checklistTemplate of template.checklists) {
         const checklist = await createChecklist(newCard.id, checklistTemplate.title);
-        // Create checklist items
+        // Create checklist items with card creator as assignee
         for (let i = 0; i < checklistTemplate.items.length; i++) {
-          await createChecklistItem(checklist.id, checklistTemplate.items[i].title, i);
+          await createChecklistItem(checklist.id, checklistTemplate.items[i].title, i, undefined, currentUser?.id);
         }
       }
 
@@ -1072,12 +1130,18 @@ export default function BoardView() {
   const handleCopyCard = async (card: Card) => {
     try {
       const listCards = cardsByList.get(card.listId) || [];
+
+      // Auto-set due date to +5 minutes from now for copied cards
+      const autoDueDate = new Date();
+      autoDueDate.setMinutes(autoDueDate.getMinutes() + 5);
+
       const newCard = await createCard({
         title: `${card.title} (copy)`,
         listId: card.listId,
         description: card.description,
         position: listCards.length,
         labels: card.labels,
+        dueDate: autoDueDate.toISOString(),
         creatorId: currentUser?.id, // Auto-assign creator
       });
       const newCardsMap = new Map(cardsByList);
@@ -1567,6 +1631,88 @@ export default function BoardView() {
                 <Zap className="h-4 w-4" />
                 <span className="text-sm hidden sm:inline">Automation</span>
               </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowFieldVisibilityMenu(!showFieldVisibilityMenu)}
+                  className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded flex items-center gap-1"
+                  title="Card Field Visibility"
+                >
+                  <EyeOff className="h-4 w-4" />
+                  <span className="text-sm hidden sm:inline">Show/Hide</span>
+                </button>
+                {showFieldVisibilityMenu && (
+                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50 w-56">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2 pb-2 border-b">Card Fields Visibility</h5>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={fieldVisibility.labels}
+                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, labels: e.target.checked }))}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Labels</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={fieldVisibility.startDate}
+                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, startDate: e.target.checked }))}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Start Date</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={fieldVisibility.dueDate}
+                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, dueDate: e.target.checked }))}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Due Date</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={fieldVisibility.members}
+                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, members: e.target.checked }))}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Members</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={fieldVisibility.customFields}
+                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, customFields: e.target.checked }))}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Custom Fields</span>
+                      </label>
+                    </div>
+                    <div className="border-t border-gray-200 mt-3 pt-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={fieldVisibility.expanded}
+                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, expanded: e.target.checked }))}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-700">Expanded View</span>
+                          <span className="text-xs text-gray-500">Show description, badges, full labels</span>
+                        </div>
+                      </label>
+                    </div>
+                    <button
+                      onClick={() => setShowFieldVisibilityMenu(false)}
+                      className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
+                    >
+                      Close
+                    </button>
+                  </div>
+                )}
+              </div>
               <button className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded">
                 <MoreHorizontal className="h-5 w-5" />
               </button>
@@ -1728,6 +1874,7 @@ export default function BoardView() {
                   customFieldDefs={customFieldDefs}
                   customFieldValues={customFieldValues}
                   searchQuery={searchQuery}
+                  fieldVisibility={fieldVisibility}
                 />
               ))}
             </SortableContext>
@@ -2118,6 +2265,7 @@ function SortableList({
   customFieldDefs,
   customFieldValues,
   searchQuery = '',
+  fieldVisibility,
 }: {
   list: BoardList;
   cards: Card[];
@@ -2138,6 +2286,7 @@ function SortableList({
   customFieldDefs: CustomFieldDefinition[];
   customFieldValues: Map<string, CustomFieldValue[]>;
   searchQuery?: string;
+  fieldVisibility: CardFieldVisibilityProps;
 }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(list.title);
@@ -2460,6 +2609,7 @@ function SortableList({
                         customFieldDefs={customFieldDefs}
                         cardCustomFieldValues={customFieldValues.get(card.id) || []}
                         searchQuery={searchQuery}
+                        fieldVisibility={fieldVisibility}
                       />
                     </div>
                   );
@@ -2488,6 +2638,7 @@ function SortableList({
                     customFieldDefs={customFieldDefs}
                     cardCustomFieldValues={customFieldValues.get(card.id) || []}
                     searchQuery={searchQuery}
+                    fieldVisibility={fieldVisibility}
                   />
                 ))}
               </div>
@@ -2561,6 +2712,15 @@ function SortableList({
 }
 
 // Sortable Card Component
+interface CardFieldVisibilityProps {
+  labels: boolean;
+  startDate: boolean;
+  dueDate: boolean;
+  members: boolean;
+  customFields: boolean;
+  expanded: boolean;
+}
+
 function SortableCard({
   card,
   onClick,
@@ -2570,6 +2730,7 @@ function SortableCard({
   customFieldDefs,
   cardCustomFieldValues,
   searchQuery = '',
+  fieldVisibility,
 }: {
   card: Card;
   onClick: () => void;
@@ -2579,6 +2740,7 @@ function SortableCard({
   customFieldDefs: CustomFieldDefinition[];
   cardCustomFieldValues: CustomFieldValue[];
   searchQuery?: string;
+  fieldVisibility: CardFieldVisibilityProps;
 }) {
   const [showQuickActions, setShowQuickActions] = useState(false);
 
@@ -2656,14 +2818,24 @@ function SortableCard({
         onClick={onClick}
         className={`p-3 cursor-grab active:cursor-grabbing ${card.coverImageUrl ? 'pt-2' : ''}`}
       >
-        {card.labels.length > 0 && (
+        {fieldVisibility.labels && card.labels.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2">
             {card.labels.map((label) => (
-              <div
-                key={label}
-                className="w-10 h-2 rounded"
-                style={{ backgroundColor: LABEL_COLORS[label] }}
-              />
+              fieldVisibility.expanded ? (
+                <div
+                  key={label}
+                  className="px-2 py-0.5 rounded text-xs font-medium text-white"
+                  style={{ backgroundColor: LABEL_COLORS[label] }}
+                >
+                  {label.charAt(0).toUpperCase() + label.slice(1)}
+                </div>
+              ) : (
+                <div
+                  key={label}
+                  className="w-10 h-2 rounded"
+                  style={{ backgroundColor: LABEL_COLORS[label] }}
+                />
+              )
             ))}
           </div>
         )}
@@ -2677,9 +2849,42 @@ function SortableCard({
             {searchQuery ? highlightText(card.title, searchQuery) : card.title}
           </p>
         </div>
-        {(card.startDate || card.dueDate || card.description) && (
+        {/* Description preview - expanded view only */}
+        {fieldVisibility.expanded && card.description && (
+          <p className="text-xs text-gray-500 mt-2 line-clamp-2 leading-relaxed">
+            {card.description.length > 120 ? card.description.substring(0, 120) + '...' : card.description}
+          </p>
+        )}
+        {/* Activity badges - expanded view only */}
+        {fieldVisibility.expanded && (card.commentCount > 0 || card.attachmentCount > 0 || card.checklistTotal > 0) && (
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            {card.commentCount > 0 && (
+              <span className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                <MessageCircle className="h-3 w-3" />
+                {card.commentCount}
+              </span>
+            )}
+            {card.attachmentCount > 0 && (
+              <span className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                <Paperclip className="h-3 w-3" />
+                {card.attachmentCount}
+              </span>
+            )}
+            {card.checklistTotal > 0 && (
+              <span className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
+                card.checklistCompleted === card.checklistTotal
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+              }`}>
+                <CheckSquare className="h-3 w-3" />
+                {card.checklistCompleted}/{card.checklistTotal}
+              </span>
+            )}
+          </div>
+        )}
+        {((fieldVisibility.startDate && card.startDate) || (fieldVisibility.dueDate && card.dueDate) || card.description) && (
           <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-            {card.startDate && (() => {
+            {fieldVisibility.startDate && card.startDate && (() => {
               const startDate = new Date(card.startDate);
               const hasTime = startDate.getHours() !== 0 || startDate.getMinutes() !== 0;
               const dateStr = startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -2693,7 +2898,7 @@ function SortableCard({
                 </span>
               );
             })()}
-            {card.dueDate && (() => {
+            {fieldVisibility.dueDate && card.dueDate && (() => {
               const dueDate = new Date(card.dueDate);
               const now = new Date();
               const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -2735,9 +2940,9 @@ function SortableCard({
           </div>
         )}
         {/* Member Avatars with Names */}
-        {card.members && card.members.length > 0 && (
+        {fieldVisibility.members && card.members && card.members.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 mt-2">
-            {card.members.slice(0, 2).map((member) => (
+            {(fieldVisibility.expanded ? card.members : card.members.slice(0, 2)).map((member) => (
               <div
                 key={member.id}
                 className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-full pl-0.5 pr-2 py-0.5"
@@ -2747,11 +2952,11 @@ function SortableCard({
                   {member.name.charAt(0).toUpperCase()}
                 </div>
                 <span className="text-xs text-gray-700 dark:text-gray-300 truncate max-w-[80px]">
-                  {member.name.split(' ')[0]}
+                  {fieldVisibility.expanded ? member.name : member.name.split(' ')[0]}
                 </span>
               </div>
             ))}
-            {card.members.length > 2 && (
+            {!fieldVisibility.expanded && card.members.length > 2 && (
               <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-0.5">
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   +{card.members.length - 2} more
@@ -2761,14 +2966,15 @@ function SortableCard({
           </div>
         )}
         {/* Custom Fields */}
-        {cardCustomFieldValues.length > 0 && customFieldDefs.length > 0 && (
+        {fieldVisibility.customFields && cardCustomFieldValues.length > 0 && customFieldDefs.length > 0 && (
           <div className="mt-2 space-y-1">
-            {cardCustomFieldValues.slice(0, 2).map((cfv) => {
+            {(fieldVisibility.expanded ? cardCustomFieldValues : cardCustomFieldValues.slice(0, 2)).map((cfv) => {
               const fieldDef = customFieldDefs.find((d) => d.id === cfv.definitionId);
               if (!fieldDef || !cfv.value) return null;
 
               // Format value based on type
               let displayValue: React.ReactNode = cfv.value;
+              const truncateLength = fieldVisibility.expanded ? 60 : 30;
               if (fieldDef.type === 'date' && cfv.value) {
                 displayValue = new Date(cfv.value).toLocaleDateString();
               } else if (fieldDef.type === 'checkbox') {
@@ -2792,7 +2998,7 @@ function SortableCard({
                   </span>
                 );
               } else if (fieldDef.type === 'longtext' && cfv.value) {
-                displayValue = cfv.value.length > 30 ? cfv.value.substring(0, 30) + '...' : cfv.value;
+                displayValue = cfv.value.length > truncateLength ? cfv.value.substring(0, truncateLength) + '...' : cfv.value;
               } else if (fieldDef.type === 'url' && cfv.value) {
                 try {
                   const url = new URL(cfv.value);
@@ -2804,12 +3010,12 @@ function SortableCard({
 
               return (
                 <div key={cfv.id} className="flex items-center text-xs text-gray-500">
-                  <span className="font-medium text-gray-600 truncate max-w-[60px]">{fieldDef.title}:</span>
+                  <span className={`font-medium text-gray-600 truncate ${fieldVisibility.expanded ? 'max-w-[100px]' : 'max-w-[60px]'}`}>{fieldDef.title}:</span>
                   <span className="ml-1 truncate">{displayValue}</span>
                 </div>
               );
             })}
-            {cardCustomFieldValues.length > 2 && (
+            {!fieldVisibility.expanded && cardCustomFieldValues.length > 2 && (
               <div className="text-xs text-gray-400">
                 +{cardCustomFieldValues.length - 2} more fields
               </div>
@@ -2955,6 +3161,10 @@ function CardDetailModal({
   const [showMemberPicker, setShowMemberPicker] = useState(false);
   const [cardMembers, setCardMembers] = useState<CardMember[]>(card.members || []);
   const [isTogglingMember, setIsTogglingMember] = useState(false);
+
+  // Watchers state
+  const [showWatchersPicker, setShowWatchersPicker] = useState(false);
+  const [isAddingWatcher, setIsAddingWatcher] = useState(false);
 
   // Custom field state
   const [customFieldValueMap, setCustomFieldValueMap] = useState<Map<string, string>>(() => {
@@ -3319,6 +3529,37 @@ function CardDetailModal({
     }
   };
 
+  const handleAddWatcher = async (userId: string, userName: string) => {
+    if (!currentUser) return;
+
+    setIsAddingWatcher(true);
+    try {
+      await watchCard(card.id, userId);
+      toast.success(`${userName} added as watcher`);
+      setShowWatchersPicker(false);
+    } catch (err) {
+      console.error('Failed to add watcher:', err);
+      toast.error('Failed to add watcher');
+    } finally {
+      setIsAddingWatcher(false);
+    }
+  };
+
+  const handleRemoveWatcher = async (userId: string, userName: string) => {
+    if (!currentUser) return;
+
+    setIsAddingWatcher(true);
+    try {
+      await unwatchCard(card.id, userId);
+      toast.success(`${userName} removed as watcher`);
+    } catch (err) {
+      console.error('Failed to remove watcher:', err);
+      toast.error('Failed to remove watcher');
+    } finally {
+      setIsAddingWatcher(false);
+    }
+  };
+
   const handleToggleMember = async (userId: string, userName: string) => {
     if (!currentUser) return;
 
@@ -3471,7 +3712,9 @@ function CardDetailModal({
         position = checklist.items.length;
       }
 
-      const item = await createChecklistItem(checklistId, newItemTitle, position, parentId);
+      // Auto-assign to card's assignee (single member)
+      const cardAssigneeId = cardMembers.length > 0 ? cardMembers[0].id : undefined;
+      const item = await createChecklistItem(checklistId, newItemTitle, position, parentId, cardAssigneeId);
 
       // Update checklist items with new nested item
       const addItemToList = (items: ChecklistItem[]): ChecklistItem[] => {
@@ -3651,7 +3894,7 @@ function CardDetailModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl my-8">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl my-8">
         {/* Cover Image */}
         {coverImageUrl && (
           <div className="relative h-40 w-full">
@@ -3730,34 +3973,6 @@ function CardDetailModal({
                 </div>
               )}
 
-              {/* Members */}
-              {cardMembers.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Members</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {cardMembers.map((member) => (
-                      <div
-                        key={member.id}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full text-sm"
-                        title={member.email || member.name}
-                      >
-                        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
-                          {member.name.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-gray-700">{member.name}</span>
-                        <button
-                          onClick={() => handleToggleMember(member.id, member.name)}
-                          className="ml-1 text-gray-400 hover:text-red-500"
-                          disabled={isTogglingMember}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Start Date Display */}
               {startDate && (
                 <div>
@@ -3769,6 +3984,11 @@ function CardDetailModal({
                         month: 'short',
                         day: 'numeric',
                         year: new Date(startDate).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                      })}
+                      {' '}
+                      {new Date(startDate).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit'
                       })}
                     </span>
                     <button
@@ -3794,6 +4014,11 @@ function CardDetailModal({
                         month: 'short',
                         day: 'numeric',
                         year: new Date(dueDate).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                      })}
+                      {' '}
+                      {new Date(dueDate).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit'
                       })}
                       {new Date(dueDate) < new Date() && ' (overdue)'}
                     </span>
@@ -4174,12 +4399,16 @@ function CardDetailModal({
                 ) : (
                   <div className="space-y-4">
                     {checklists.map((checklist) => (
-                      <div key={checklist.id} className="bg-gray-50 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <h5 className="font-medium text-gray-800">{checklist.title}</h5>
+                      <div key={checklist.id} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                        {/* Checklist Header */}
+                        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                          <div className="flex items-center gap-2">
+                            <CheckSquare className="h-5 w-5 text-blue-600" />
+                            <h5 className="font-semibold text-gray-800">{checklist.title}</h5>
+                          </div>
                           <button
                             onClick={() => handleDeleteChecklist(checklist.id)}
-                            className="text-gray-400 hover:text-red-600 p-1"
+                            className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -4187,14 +4416,20 @@ function CardDetailModal({
 
                         {/* Progress bar */}
                         {checklist.items.length > 0 && (
-                          <div className="mb-3">
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                              <span>{getChecklistProgress(checklist)}%</span>
-                              <span>{getChecklistCounts(checklist).completed}/{getChecklistCounts(checklist).total}</span>
+                          <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1.5">
+                              <span className="font-medium">Progress</span>
+                              <span className="font-semibold text-blue-600">
+                                {getChecklistCounts(checklist).completed}/{getChecklistCounts(checklist).total} completed
+                              </span>
                             </div>
-                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-blue-600 transition-all duration-300"
+                                className={`h-full transition-all duration-500 ease-out rounded-full ${
+                                  getChecklistProgress(checklist) === 100
+                                    ? 'bg-gradient-to-r from-green-500 to-green-400'
+                                    : 'bg-gradient-to-r from-blue-600 to-blue-400'
+                                }`}
                                 style={{ width: `${getChecklistProgress(checklist)}%` }}
                               />
                             </div>
@@ -4202,27 +4437,46 @@ function CardDetailModal({
                         )}
 
                         {/* Items - Recursive renderer */}
-                        <div className="space-y-1">
+                        <div className="px-2 py-2">
                           {(function renderItems(items: ChecklistItem[], depth = 0): React.ReactNode {
                             return items.map((item) => (
                               <div key={item.id}>
                                 <div
-                                  className="flex items-center group"
-                                  style={{ paddingLeft: `${depth * 24}px` }}
+                                  className={`flex items-center group py-2 px-2 rounded-lg transition-colors ${
+                                    item.completed ? 'bg-green-50/50' : 'hover:bg-gray-50'
+                                  }`}
+                                  style={{ marginLeft: `${depth * 20}px` }}
                                 >
+                                  {/* Nested indicator line */}
+                                  {depth > 0 && (
+                                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-200 rounded-full" />
+                                  )}
                                   <button
                                     onClick={() => handleToggleChecklistItem(checklist.id, item.id, item.completed)}
-                                    className={`flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center mr-2 ${
+                                    className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center mr-3 transition-all duration-200 ${
                                       item.completed
-                                        ? 'bg-blue-600 border-blue-600 text-white'
-                                        : 'border-gray-300 hover:border-blue-500'
+                                        ? 'bg-green-500 border-green-500 text-white shadow-sm'
+                                        : 'border-gray-300 hover:border-blue-500 hover:shadow-sm'
                                     }`}
                                   >
-                                    {item.completed && <Check className="h-3 w-3" />}
+                                    {item.completed && <Check className="h-3 w-3" strokeWidth={3} />}
                                   </button>
-                                  <span className={`flex-1 text-sm ${item.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                                  <span className={`flex-1 text-sm transition-colors ${
+                                    item.completed ? 'line-through text-gray-400' : 'text-gray-700 font-medium'
+                                  }`}>
                                     {item.title}
                                   </span>
+                                  {/* Assignee */}
+                                  {item.assignee && (
+                                    <div className="flex items-center mr-2" title={item.assignee.name}>
+                                      <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
+                                        {item.assignee.name.charAt(0).toUpperCase()}
+                                      </div>
+                                      <span className="text-xs text-gray-500 ml-1 hidden sm:inline">
+                                        {item.assignee.name.split(' ')[0]}
+                                      </span>
+                                    </div>
+                                  )}
                                   {/* Due date */}
                                   <div className="relative">
                                     {item.dueDate && !editingItemDueDate?.startsWith(item.id) && (
@@ -4342,21 +4596,21 @@ function CardDetailModal({
                               onKeyDown={(e) => e.key === 'Enter' && handleAddChecklistItem(checklist.id)}
                               placeholder="Add an item..."
                               autoFocus
-                              className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
                             />
-                            <div className="flex space-x-2 mt-1">
+                            <div className="flex space-x-2 mt-2">
                               <button
                                 onClick={() => handleAddChecklistItem(checklist.id)}
-                                className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium hover:bg-blue-700"
+                                className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
                               >
-                                Add
+                                Add item
                               </button>
                               <button
                                 onClick={() => {
                                   setAddingItemToChecklist(null);
                                   setNewItemTitle('');
                                 }}
-                                className="text-gray-600 px-2 py-1 text-xs"
+                                className="text-gray-600 hover:text-gray-800 px-3 py-1.5 text-sm hover:bg-gray-100 rounded-lg transition-colors"
                               >
                                 Cancel
                               </button>
@@ -4365,9 +4619,9 @@ function CardDetailModal({
                         ) : (
                           <button
                             onClick={() => setAddingItemToChecklist(checklist.id)}
-                            className="mt-2 text-sm text-gray-500 hover:text-gray-700 flex items-center"
+                            className="mt-2 w-full py-2 px-3 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center rounded-lg border border-dashed border-gray-300 hover:border-gray-400 transition-colors"
                           >
-                            <Plus className="h-3 w-3 mr-1" />
+                            <Plus className="h-4 w-4 mr-2 text-gray-400" />
                             Add an item
                           </button>
                         )}
@@ -4695,21 +4949,57 @@ function CardDetailModal({
             {/* Sidebar Actions */}
             <div className="space-y-4">
               <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Add to card</h4>
+                <h4 className="text-xs font-medium text-gray-500 uppercase mb-2 flex items-center gap-2">
+                  Add to card
+                  {cardMembers.length > 0 && (
+                    <span className="text-blue-600 normal-case font-normal">
+                      • {cardMembers[0].name}
+                    </span>
+                  )}
+                </h4>
                 <div className="space-y-2">
                   <div className="relative">
                     <button
                       onClick={() => setShowMemberPicker(!showMemberPicker)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center"
+                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
                     >
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Members
+                      <span className="flex items-center">
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Members
+                      </span>
+                      {cardMembers.length > 0 && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
+                            {cardMembers[0].name.charAt(0).toUpperCase()}
+                          </div>
+                        </div>
+                      )}
                     </button>
                     {showMemberPicker && (
                       <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">Assign members</h5>
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Assign member (1 max)</h5>
+                        {cardMembers.length > 0 && (
+                          <div className="mb-3 p-2 bg-blue-50 rounded">
+                            <p className="text-xs text-blue-700 mb-2">Currently assigned:</p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
+                                  {cardMembers[0].name.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="text-sm text-gray-700">{cardMembers[0].name}</span>
+                              </div>
+                              <button
+                                onClick={() => handleToggleMember(cardMembers[0].id, cardMembers[0].name)}
+                                disabled={isTogglingMember}
+                                className="text-red-500 hover:text-red-700 text-xs"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        )}
                         <div className="space-y-1 max-h-48 overflow-y-auto">
-                          {currentUser && (
+                          {currentUser && !cardMembers.some((m) => m.id === currentUser.id) && (
                             <button
                               onClick={() => handleToggleMember(currentUser.id, currentUser.displayName || currentUser.username)}
                               disabled={isTogglingMember}
@@ -4721,14 +5011,115 @@ function CardDetailModal({
                               <span className="flex-1 text-sm text-gray-700">
                                 {currentUser.displayName || currentUser.username}
                               </span>
-                              {cardMembers.some((m) => m.id === currentUser.id) && (
-                                <Check className="h-4 w-4 text-green-500" />
-                              )}
                             </button>
+                          )}
+                          {cardMembers.length > 0 && !cardMembers.some((m) => m.id === currentUser?.id) && (
+                            <p className="text-xs text-gray-500 px-2 py-1">Remove current member to assign yourself</p>
                           )}
                         </div>
                         <button
                           onClick={() => setShowMemberPicker(false)}
+                          className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleToggleWatch}
+                    disabled={isTogglingWatch || !currentUser}
+                    className={`w-full px-3 py-2 rounded text-left text-sm flex items-center ${
+                      isWatching
+                        ? 'bg-blue-100 hover:bg-blue-200 text-blue-700'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    } disabled:opacity-50`}
+                  >
+                    {isTogglingWatch ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : isWatching ? (
+                      <Eye className="h-4 w-4 mr-2" />
+                    ) : (
+                      <EyeOff className="h-4 w-4 mr-2" />
+                    )}
+                    {isWatching ? 'Watching' : 'Watch'}
+                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowWatchersPicker(!showWatchersPicker)}
+                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
+                    >
+                      <span className="flex items-center">
+                        <Users className="h-4 w-4 mr-2" />
+                        Add Watchers
+                      </span>
+                      {card.watcherIds && card.watcherIds.length > 0 && (
+                        <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
+                          {card.watcherIds.length}
+                        </span>
+                      )}
+                    </button>
+                    {showWatchersPicker && (
+                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Add Watchers</h5>
+                        {/* Current watchers */}
+                        {card.watcherIds && card.watcherIds.length > 0 && (
+                          <div className="mb-3">
+                            <p className="text-xs text-gray-500 mb-2">Current watchers:</p>
+                            <div className="space-y-1">
+                              {workspaceMembers
+                                .filter((m) => card.watcherIds.includes(m.id))
+                                .map((member) => (
+                                  <div
+                                    key={member.id}
+                                    className="flex items-center justify-between py-1 px-2 bg-blue-50 rounded"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
+                                        {(member.displayName).charAt(0).toUpperCase()}
+                                      </div>
+                                      <span className="text-sm text-gray-700">
+                                        {member.displayName}
+                                      </span>
+                                    </div>
+                                    <button
+                                      onClick={() => handleRemoveWatcher(member.id, member.displayName)}
+                                      disabled={isAddingWatcher}
+                                      className="text-red-500 hover:text-red-700 text-xs"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                        {/* Available members to add as watchers */}
+                        <p className="text-xs text-gray-500 mb-2">Add team member:</p>
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {workspaceMembers
+                            .filter((m) => !card.watcherIds?.includes(m.id))
+                            .map((member) => (
+                              <button
+                                key={member.id}
+                                onClick={() => handleAddWatcher(member.id, member.displayName)}
+                                disabled={isAddingWatcher}
+                                className="w-full flex items-center gap-2 p-2 rounded hover:bg-gray-100 disabled:opacity-50"
+                              >
+                                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium">
+                                  {(member.displayName).charAt(0).toUpperCase()}
+                                </div>
+                                <span className="text-sm text-gray-700">
+                                  {member.displayName}
+                                </span>
+                              </button>
+                            ))}
+                          {workspaceMembers.filter((m) => !card.watcherIds?.includes(m.id)).length === 0 && (
+                            <p className="text-xs text-gray-400 text-center py-2">All members are watching</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => setShowWatchersPicker(false)}
                           className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
                         >
                           Close
@@ -4749,10 +5140,10 @@ function CardDetailModal({
                       Due date
                     </button>
                     {showDatePicker && (
-                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">Set due date</h5>
+                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-72">
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Set due date & time</h5>
                         <input
-                          type="date"
+                          type="datetime-local"
                           value={dueDate}
                           onChange={(e) => setDueDate(e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
@@ -4791,10 +5182,10 @@ function CardDetailModal({
                       Start date
                     </button>
                     {showStartDatePicker && (
-                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">Set start date</h5>
+                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-72">
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Set start date & time</h5>
                         <input
-                          type="date"
+                          type="datetime-local"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
@@ -5121,24 +5512,6 @@ function CardDetailModal({
               <div>
                 <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Actions</h4>
                 <div className="space-y-1">
-                  <button
-                    onClick={handleToggleWatch}
-                    disabled={isTogglingWatch || !currentUser}
-                    className={`w-full px-3 py-2 rounded text-left text-sm flex items-center ${
-                      isWatching
-                        ? 'bg-blue-100 hover:bg-blue-200 text-blue-700'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                    } disabled:opacity-50`}
-                  >
-                    {isTogglingWatch ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : isWatching ? (
-                      <Eye className="h-4 w-4 mr-2" />
-                    ) : (
-                      <EyeOff className="h-4 w-4 mr-2" />
-                    )}
-                    {isWatching ? 'Watching' : 'Watch'}
-                  </button>
                   <button
                     onClick={handleOpenMoveModal}
                     className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"

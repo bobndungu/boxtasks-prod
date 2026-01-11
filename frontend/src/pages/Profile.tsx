@@ -13,6 +13,7 @@ import {
   Camera,
   Bell,
   MailIcon,
+  AtSign,
 } from 'lucide-react';
 import { useAuthStore, type User as UserType } from '../lib/stores/auth';
 import { getAccessToken } from '../lib/api/client';
@@ -54,6 +55,7 @@ export default function Profile() {
     displayName: user?.displayName || '',
     email: user?.email || '',
     jobTitle: user?.jobTitle || '',
+    mentionHandle: user?.mentionHandle || '',
     bio: user?.bio || '',
     timezone: user?.timezone || 'UTC',
   });
@@ -104,6 +106,7 @@ export default function Profile() {
               attributes: {
                 field_display_name: formData.displayName,
                 field_job_title: formData.jobTitle,
+                field_mention_handle: formData.mentionHandle,
                 field_bio: { value: formData.bio },
                 field_timezone: formData.timezone,
               },
@@ -118,6 +121,7 @@ export default function Profile() {
           ...user!,
           displayName: formData.displayName,
           jobTitle: formData.jobTitle,
+          mentionHandle: formData.mentionHandle,
           bio: formData.bio,
           timezone: formData.timezone,
         };
@@ -236,6 +240,25 @@ export default function Profile() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   placeholder="e.g. Product Manager"
                 />
+              </div>
+
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                  <AtSign className="h-4 w-4 mr-2 text-gray-400" />
+                  @Mention Handle
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                  <input
+                    type="text"
+                    value={formData.mentionHandle}
+                    onChange={(e) => setFormData({ ...formData, mentionHandle: e.target.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase() })}
+                    className="w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                    placeholder="your_handle"
+                    maxLength={30}
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Used for @mentions in cards. Letters, numbers, and underscores only.</p>
               </div>
 
               <div>

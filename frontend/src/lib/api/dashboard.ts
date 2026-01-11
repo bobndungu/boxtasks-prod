@@ -305,7 +305,7 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
 }
 
 // Fetch blocked cards count (requires relationships)
-export async function fetchBlockedCardsCount(workspaceId: string): Promise<number> {
+export async function fetchBlockedCardsCount(_workspaceId: string): Promise<number> {
   const token = getAccessToken();
 
   const response = await fetch(
