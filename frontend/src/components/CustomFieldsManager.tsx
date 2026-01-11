@@ -21,6 +21,9 @@ import {
   Phone,
   PanelLeft,
   PanelRight,
+  Globe,
+  LayoutGrid,
+  FileBox,
 } from 'lucide-react';
 import {
   DndContext,
@@ -51,15 +54,35 @@ import {
   type CustomFieldDefinition,
   type CustomFieldType,
   type CustomFieldDisplayLocation,
+  type CustomFieldScope,
   type CreateCustomFieldData,
 } from '../lib/api/customFields';
 import { toast } from '../lib/stores/toast';
 
 interface CustomFieldsManagerProps {
   boardId: string;
+  workspaceId?: string; // For workspace-scoped fields
   isOpen: boolean;
   onClose: () => void;
 }
+
+const SCOPE_LABELS: Record<CustomFieldScope, string> = {
+  workspace: 'Workspace',
+  board: 'Board',
+  card: 'Card',
+};
+
+const SCOPE_DESCRIPTIONS: Record<CustomFieldScope, string> = {
+  workspace: 'Available to all boards in this workspace',
+  board: 'Available to all cards in this board',
+  card: 'Can be selectively added to individual cards',
+};
+
+const SCOPE_ICONS: Record<CustomFieldScope, React.ReactNode> = {
+  workspace: <Globe className="h-4 w-4" />,
+  board: <LayoutGrid className="h-4 w-4" />,
+  card: <FileBox className="h-4 w-4" />,
+};
 
 const FIELD_TYPE_ICONS: Record<CustomFieldType, React.ReactNode> = {
   text: <Type className="h-4 w-4" />,
@@ -134,6 +157,14 @@ function SortableFieldItem({ field, onEdit, onDelete, isDragging }: SortableFiel
         <span className="text-xs text-gray-500 px-2 py-0.5 bg-gray-100 rounded flex-shrink-0">
           {FIELD_TYPE_LABELS[field.type]}
         </span>
+        {field.scope && field.scope !== 'board' && (
+          <span className={`text-xs px-2 py-0.5 rounded flex-shrink-0 flex items-center gap-1 ${
+            field.scope === 'workspace' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+          }`}>
+            {SCOPE_ICONS[field.scope]}
+            {SCOPE_LABELS[field.scope]}
+          </span>
+        )}
         {field.required && (
           <span className="text-xs text-red-500 flex-shrink-0">Required</span>
         )}
@@ -224,7 +255,7 @@ function DroppableSection({ id, title, icon, fields, onEdit, onDelete, isOver }:
   );
 }
 
-export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsManagerProps) {
+export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: CustomFieldsManagerProps) {
   const [fields, setFields] = useState<CustomFieldDefinition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -238,6 +269,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
   const [newFieldRequired, setNewFieldRequired] = useState(false);
   const [newOptionInput, setNewOptionInput] = useState('');
   const [newFieldDisplayLocation, setNewFieldDisplayLocation] = useState<CustomFieldDisplayLocation>('main');
+  const [newFieldScope, setNewFieldScope] = useState<CustomFieldScope>('board');
 
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -246,6 +278,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
   const [editRequired, setEditRequired] = useState(false);
   const [editOptionInput, setEditOptionInput] = useState('');
   const [editDisplayLocation, setEditDisplayLocation] = useState<CustomFieldDisplayLocation>('main');
+  const [editScope, setEditScope] = useState<CustomFieldScope>('board');
 
   // Drag and drop state
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -312,11 +345,13 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
       const data: CreateCustomFieldData = {
         title: newFieldName.trim(),
         boardId,
+        workspaceId: newFieldScope === 'workspace' ? workspaceId : undefined,
         type: newFieldType,
         options: newFieldType === 'dropdown' ? newFieldOptions : undefined,
         required: newFieldRequired,
         position: fields.length,
         displayLocation: newFieldDisplayLocation,
+        scope: newFieldScope,
       };
 
       const newField = await createCustomField(data);
@@ -330,6 +365,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
       setNewFieldOptions([]);
       setNewFieldRequired(false);
       setNewFieldDisplayLocation('main');
+      setNewFieldScope('board');
     } catch (error) {
       console.error('Failed to create custom field:', error);
       toast.error('Failed to create custom field');
@@ -345,6 +381,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
     setEditOptions(field.options || []);
     setEditRequired(field.required);
     setEditDisplayLocation(field.displayLocation || 'main');
+    setEditScope(field.scope || 'board');
   };
 
   const handleSaveEdit = async () => {
@@ -366,6 +403,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
         options: editType === 'dropdown' ? editOptions : undefined,
         required: editRequired,
         displayLocation: editDisplayLocation,
+        scope: editScope,
       });
 
       setFields(fields.map((f) => (f.id === editingField.id ? updated : f)));
@@ -702,6 +740,33 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
                       </div>
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Scope</label>
+                      <div className="flex gap-2">
+                        {(['board', 'workspace', 'card'] as CustomFieldScope[]).map((scope) => (
+                          <button
+                            key={scope}
+                            type="button"
+                            onClick={() => setEditScope(scope)}
+                            disabled={scope === 'workspace' && !workspaceId}
+                            className={`flex-1 flex flex-col items-center gap-1 px-3 py-2 rounded-md border transition-colors ${
+                              editScope === scope
+                                ? scope === 'workspace'
+                                  ? 'bg-blue-50 border-blue-500 text-blue-700'
+                                  : scope === 'card'
+                                  ? 'bg-purple-50 border-purple-500 text-purple-700'
+                                  : 'bg-green-50 border-green-500 text-green-700'
+                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                            }`}
+                          >
+                            {SCOPE_ICONS[scope]}
+                            <span className="text-xs">{SCOPE_LABELS[scope]}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">{SCOPE_DESCRIPTIONS[editScope]}</p>
+                    </div>
+
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -833,6 +898,33 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
                       </div>
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Scope</label>
+                      <div className="flex gap-2">
+                        {(['board', 'workspace', 'card'] as CustomFieldScope[]).map((scope) => (
+                          <button
+                            key={scope}
+                            type="button"
+                            onClick={() => setNewFieldScope(scope)}
+                            disabled={scope === 'workspace' && !workspaceId}
+                            className={`flex-1 flex flex-col items-center gap-1 px-3 py-2 rounded-md border transition-colors ${
+                              newFieldScope === scope
+                                ? scope === 'workspace'
+                                  ? 'bg-blue-50 border-blue-500 text-blue-700'
+                                  : scope === 'card'
+                                  ? 'bg-purple-50 border-purple-500 text-purple-700'
+                                  : 'bg-green-50 border-green-500 text-green-700'
+                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                            }`}
+                          >
+                            {SCOPE_ICONS[scope]}
+                            <span className="text-xs">{SCOPE_LABELS[scope]}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">{SCOPE_DESCRIPTIONS[newFieldScope]}</p>
+                    </div>
+
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -852,6 +944,7 @@ export function CustomFieldsManager({ boardId, isOpen, onClose }: CustomFieldsMa
                           setNewFieldOptions([]);
                           setNewFieldRequired(false);
                           setNewFieldDisplayLocation('main');
+                          setNewFieldScope('board');
                         }}
                         className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
                       >

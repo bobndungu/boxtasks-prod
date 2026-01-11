@@ -6,15 +6,19 @@ export type CustomFieldType = 'text' | 'longtext' | 'number' | 'date' | 'dropdow
 
 export type CustomFieldDisplayLocation = 'main' | 'sidebar';
 
+export type CustomFieldScope = 'workspace' | 'board' | 'card';
+
 export interface CustomFieldDefinition {
   id: string;
   title: string;
   boardId: string;
+  workspaceId?: string; // For workspace-scoped fields
   type: CustomFieldType;
   options: string[]; // For dropdown type
   required: boolean;
   position: number;
   displayLocation: CustomFieldDisplayLocation; // Where the field appears in card modal
+  scope: CustomFieldScope; // workspace, board, or card scope
 }
 
 export interface CustomFieldValue {
@@ -27,11 +31,13 @@ export interface CustomFieldValue {
 export interface CreateCustomFieldData {
   title: string;
   boardId: string;
+  workspaceId?: string; // Required for workspace-scoped fields
   type: CustomFieldType;
   options?: string[];
   required?: boolean;
   position?: number;
   displayLocation?: CustomFieldDisplayLocation;
+  scope?: CustomFieldScope;
 }
 
 export interface UpdateCustomFieldData {
@@ -41,6 +47,7 @@ export interface UpdateCustomFieldData {
   required?: boolean;
   position?: number;
   displayLocation?: CustomFieldDisplayLocation;
+  scope?: CustomFieldScope;
 }
 
 // Transform JSON:API response to CustomFieldDefinition
@@ -62,11 +69,13 @@ function transformFieldDefinition(data: Record<string, unknown>): CustomFieldDef
     id: data.id as string,
     title: attrs.title as string,
     boardId: rels?.field_customfield_board?.data?.id || '',
+    workspaceId: rels?.field_customfield_workspace?.data?.id,
     type: (attrs.field_customfield_type as CustomFieldType) || 'text',
     options,
     required: (attrs.field_customfield_required as boolean) || false,
     position: (attrs.field_customfield_position as number) || 0,
     displayLocation: (attrs.field_cf_display_loc as CustomFieldDisplayLocation) || 'main',
+    scope: (attrs.field_cf_scope as CustomFieldScope) || 'board',
   };
 }
 
@@ -83,7 +92,7 @@ function transformFieldValue(data: Record<string, unknown>): CustomFieldValue {
   };
 }
 
-// Fetch custom field definitions for a board
+// Fetch custom field definitions for a board (includes board-scoped and card-scoped fields)
 export async function fetchCustomFieldsByBoard(boardId: string): Promise<CustomFieldDefinition[]> {
   const response = await fetch(
     `${API_URL}/jsonapi/node/custom_field_definition?filter[field_customfield_board.id]=${boardId}&sort=field_customfield_position`,
@@ -106,8 +115,60 @@ export async function fetchCustomFieldsByBoard(boardId: string): Promise<CustomF
   return data.map(transformFieldDefinition);
 }
 
+// Fetch workspace-scoped custom field definitions
+export async function fetchCustomFieldsByWorkspace(workspaceId: string): Promise<CustomFieldDefinition[]> {
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/custom_field_definition?filter[field_customfield_workspace.id]=${workspaceId}&filter[field_cf_scope]=workspace&sort=field_customfield_position`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch workspace custom fields');
+  }
+
+  const result = await response.json();
+  const data = result.data;
+  if (!Array.isArray(data)) return [];
+
+  return data.map(transformFieldDefinition);
+}
+
+// Fetch all custom fields available for a board (board-scoped + workspace-scoped)
+export async function fetchAllCustomFieldsForBoard(boardId: string, workspaceId: string): Promise<CustomFieldDefinition[]> {
+  // Fetch both board-scoped and workspace-scoped fields in parallel
+  const [boardFields, workspaceFields] = await Promise.all([
+    fetchCustomFieldsByBoard(boardId),
+    fetchCustomFieldsByWorkspace(workspaceId).catch(() => [] as CustomFieldDefinition[]), // Gracefully handle if workspace fields don't exist
+  ]);
+
+  // Combine and sort by position, with board fields taking precedence
+  const allFields = [...boardFields, ...workspaceFields];
+  allFields.sort((a, b) => a.position - b.position);
+
+  return allFields;
+}
+
 // Create a custom field definition
 export async function createCustomField(data: CreateCustomFieldData): Promise<CustomFieldDefinition> {
+  // Build relationships based on scope
+  const relationships: Record<string, unknown> = {
+    field_customfield_board: {
+      data: { type: 'node--board', id: data.boardId },
+    },
+  };
+
+  // Add workspace relationship for workspace-scoped fields
+  if (data.scope === 'workspace' && data.workspaceId) {
+    relationships.field_customfield_workspace = {
+      data: { type: 'node--workspace', id: data.workspaceId },
+    };
+  }
+
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/custom_field_definition`, {
     method: 'POST',
     headers: {
@@ -124,12 +185,9 @@ export async function createCustomField(data: CreateCustomFieldData): Promise<Cu
           field_customfield_required: data.required || false,
           field_customfield_position: data.position || 0,
           field_cf_display_loc: data.displayLocation || 'main',
+          field_cf_scope: data.scope || 'board',
         },
-        relationships: {
-          field_customfield_board: {
-            data: { type: 'node--board', id: data.boardId },
-          },
-        },
+        relationships,
       },
     }),
   });
@@ -153,6 +211,7 @@ export async function updateCustomField(id: string, data: UpdateCustomFieldData)
   if (data.required !== undefined) attributes.field_customfield_required = data.required;
   if (data.position !== undefined) attributes.field_customfield_position = data.position;
   if (data.displayLocation !== undefined) attributes.field_cf_display_loc = data.displayLocation;
+  if (data.scope !== undefined) attributes.field_cf_scope = data.scope;
 
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/custom_field_definition/${id}`, {
     method: 'PATCH',
