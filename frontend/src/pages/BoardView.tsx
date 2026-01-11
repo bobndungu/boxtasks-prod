@@ -99,6 +99,7 @@ import { highlightText } from '../lib/utils/highlight';
 import BoardSettingsModal from '../components/BoardSettingsModal';
 import BoardMembersModal from '../components/BoardMembersModal';
 import ChatPanel from '../components/ChatPanel';
+import CardRelationships from '../components/CardRelationships';
 
 const LABEL_COLORS: Record<CardLabel, string> = {
   green: '#61bd4f',
@@ -1903,6 +1904,7 @@ export default function BoardView() {
         <CardDetailModal
           card={selectedCard}
           listTitle={lists.find((l) => l.id === selectedCard.listId)?.title || 'List'}
+          boardId={currentBoard?.id}
           workspaceMembers={workspaceMembers}
           onClose={() => setSelectedCard(null)}
           onUpdate={handleCardUpdate}
@@ -2871,6 +2873,7 @@ function ListDragOverlay({ list, cards }: { list: BoardList | null; cards: Card[
 function CardDetailModal({
   card,
   listTitle,
+  boardId,
   workspaceMembers,
   onClose,
   onUpdate,
@@ -2883,6 +2886,7 @@ function CardDetailModal({
 }: {
   card: Card;
   listTitle: string;
+  boardId?: string;
   workspaceMembers: WorkspaceMember[];
   onClose: () => void;
   onUpdate: (cardId: string, updates: Partial<Card>) => void;
@@ -3841,6 +3845,11 @@ function CardDetailModal({
                     {card.description || 'Add a more detailed description...'}
                   </button>
                 )}
+              </div>
+
+              {/* Card Relationships */}
+              <div className="border-t pt-4 mt-4">
+                <CardRelationships cardId={card.id} boardId={boardId} />
               </div>
 
               {/* Checklists */}

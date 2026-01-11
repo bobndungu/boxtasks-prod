@@ -1,0 +1,8 @@
+name: BoxTasks Relationships
+type: module
+description: Card relationships and dependencies for BoxTasks
+core_version_requirement: ^10 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - drupal:jsonapi

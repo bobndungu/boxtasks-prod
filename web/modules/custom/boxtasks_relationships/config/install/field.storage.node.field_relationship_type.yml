@@ -1,0 +1,33 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_relationship_type
+field_name: field_relationship_type
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    - label: 'Relates To'
+      value: relates_to
+    - label: 'Blocks'
+      value: blocks
+    - label: 'Is Blocked By'
+      value: blocked_by
+    - label: 'Duplicates'
+      value: duplicates
+    - label: 'Is Duplicated By'
+      value: duplicated_by
+    - label: 'Parent Of'
+      value: parent_of
+    - label: 'Child Of'
+      value: child_of
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: false
+indexes: {}
+persist_with_no_fields: false
+custom_storage: false

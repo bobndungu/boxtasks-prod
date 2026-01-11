@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_relationship_type
+    - node.type.card_relationship
+id: node.card_relationship.field_relationship_type
+field_name: field_relationship_type
+entity_type: node
+bundle: card_relationship
+label: 'Relationship Type'
+description: 'The type of relationship between the cards'
+required: true
+translatable: false
+default_value:
+  - value: relates_to
+default_value_callback: ''
+settings: {}
+field_type: list_string

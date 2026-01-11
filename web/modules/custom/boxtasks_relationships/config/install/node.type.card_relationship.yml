@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies: {}
+name: 'Card Relationship'
+type: card_relationship
+description: 'A relationship between two cards in BoxTasks'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false
