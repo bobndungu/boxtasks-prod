@@ -126,7 +126,11 @@ export default function BoardView() {
   const { user: currentUser } = useAuthStore();
 
   // Role-based permissions
-  const { canCreate, canEdit, canDelete, canMove } = usePermissions(currentBoard?.workspaceId);
+  const { canView, canCreate, canEdit, canDelete, canMove, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
+
+  // Check if user can view this board (after permissions are loaded)
+  // Note: Board ownership is not tracked individually - workspace membership determines access
+  const canViewBoard = permissionsLoading || !currentBoard ? true : canView('board', false);
 
   const [lists, setLists] = useState<BoardList[]>([]);
   const [cardsByList, setCardsByList] = useState<Map<string, Card[]>>(new Map());
@@ -1505,6 +1509,30 @@ export default function BoardView() {
         style={{ backgroundColor: currentBoard?.background || '#0079BF' }}
       >
         <BoardSkeleton />
+      </div>
+    );
+  }
+
+  // Access denied if user cannot view the board
+  if (!canViewBoard) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="h-8 w-8 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-6">
+            You don&apos;t have permission to view this board. Contact the workspace admin to request access.
+          </p>
+          <Link
+            to="/workspaces"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Workspaces
+          </Link>
+        </div>
       </div>
     );
   }
