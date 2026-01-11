@@ -870,12 +870,15 @@ export default function BoardView() {
     const tempId = `temp_${Date.now()}`;
     const titleToCreate = newCardTitle;
 
+    // Calculate position after pinned cards (new cards go to top, after pinned)
+    const pinnedCount = listCards.filter(c => c.pinned).length;
+
     // Create temporary optimistic card
     const tempCard: Card = {
       id: tempId,
       title: titleToCreate,
       listId,
-      position: listCards.length,
+      position: pinnedCount, // Position after pinned cards (at top of non-pinned)
       labels: [],
       archived: false,
       completed: false,
@@ -900,21 +903,35 @@ export default function BoardView() {
       currentState: cardsByList,
       optimisticUpdate: (current) => {
         const newMap = new Map(current);
-        const cards = newMap.get(listId) || [];
-        newMap.set(listId, [...cards, tempCard]);
+        const cards = [...(newMap.get(listId) || [])];
+        // Insert after pinned cards (at the top of non-pinned cards)
+        cards.splice(pinnedCount, 0, tempCard);
+        newMap.set(listId, cards);
         return newMap;
       },
-      apiCall: () => {
+      apiCall: async () => {
         // Auto-set due date to +5 minutes from now
         const autodueDueDate = new Date();
         autodueDueDate.setMinutes(autodueDueDate.getMinutes() + 5);
-        return createCard({
+
+        // Create the new card at the top (after pinned cards)
+        const newCard = await createCard({
           title: titleToCreate,
           listId,
-          position: listCards.length,
+          position: pinnedCount, // Position after pinned cards (at top of non-pinned)
           dueDate: autodueDueDate.toISOString(),
           creatorId: currentUser?.id, // Auto-assign creator
         });
+
+        // Update positions of other cards (shift them down)
+        const existingNonPinnedCards = listCards.filter(c => !c.pinned);
+        await Promise.all(
+          existingNonPinnedCards.map((card, index) =>
+            updateCard(card.id, { position: pinnedCount + 1 + index })
+          )
+        );
+
+        return newCard;
       },
       onSuccess: (newCard) => {
         // Replace temp card with real card from server (or skip if Mercure already added it)
@@ -960,6 +977,9 @@ export default function BoardView() {
     try {
       const listCards = cardsByList.get(templatePickerListId) || [];
 
+      // Calculate position after pinned cards (new cards go to top, after pinned)
+      const pinnedCount = listCards.filter(c => c.pinned).length;
+
       // Auto-set due date to +5 minutes from now
       const autoDueDate = new Date();
       autoDueDate.setMinutes(autoDueDate.getMinutes() + 5);
@@ -970,10 +990,18 @@ export default function BoardView() {
         listId: templatePickerListId,
         description: template.description,
         labels: template.labels.length > 0 ? template.labels : undefined,
-        position: listCards.length,
+        position: pinnedCount, // Position after pinned cards (at top of non-pinned)
         dueDate: autoDueDate.toISOString(),
         creatorId: currentUser?.id, // Auto-assign creator
       });
+
+      // Update positions of other cards (shift them down)
+      const existingNonPinnedCards = listCards.filter(c => !c.pinned);
+      await Promise.all(
+        existingNonPinnedCards.map((card, index) =>
+          updateCard(card.id, { position: pinnedCount + 1 + index })
+        )
+      );
 
       // Create checklists from template (auto-assign items to card creator)
       for (const checklistTemplate of template.checklists) {
@@ -984,9 +1012,11 @@ export default function BoardView() {
         }
       }
 
-      // Update the cards map
+      // Update the cards map - insert after pinned cards (at top of non-pinned)
       const newCardsMap = new Map(cardsByList);
-      newCardsMap.set(templatePickerListId, [...listCards, newCard]);
+      const updatedCards = [...listCards];
+      updatedCards.splice(pinnedCount, 0, newCard);
+      newCardsMap.set(templatePickerListId, updatedCards);
       setCardsByList(newCardsMap);
 
       setShowTemplatePicker(false);
@@ -1178,6 +1208,9 @@ export default function BoardView() {
     try {
       const listCards = cardsByList.get(card.listId) || [];
 
+      // Calculate position after pinned cards (copied cards go to top, after pinned)
+      const pinnedCount = listCards.filter(c => c.pinned).length;
+
       // Auto-set due date to +5 minutes from now for copied cards
       const autoDueDate = new Date();
       autoDueDate.setMinutes(autoDueDate.getMinutes() + 5);
@@ -1186,13 +1219,25 @@ export default function BoardView() {
         title: `${card.title} (copy)`,
         listId: card.listId,
         description: card.description,
-        position: listCards.length,
+        position: pinnedCount, // Position after pinned cards (at top of non-pinned)
         labels: card.labels,
         dueDate: autoDueDate.toISOString(),
         creatorId: currentUser?.id, // Auto-assign creator
       });
+
+      // Update positions of other cards (shift them down)
+      const existingNonPinnedCards = listCards.filter(c => !c.pinned);
+      await Promise.all(
+        existingNonPinnedCards.map((c, index) =>
+          updateCard(c.id, { position: pinnedCount + 1 + index })
+        )
+      );
+
       const newCardsMap = new Map(cardsByList);
-      newCardsMap.set(card.listId, [...listCards, newCard]);
+      // Insert after pinned cards (at top of non-pinned)
+      const updatedCards = [...listCards];
+      updatedCards.splice(pinnedCount, 0, newCard);
+      newCardsMap.set(card.listId, updatedCards);
       setCardsByList(newCardsMap);
       setSelectedCard(newCard);
     } catch {
@@ -2192,7 +2237,13 @@ export default function BoardView() {
           canEditCard={canEdit('card', selectedCard.authorId === currentUser?.id)}
           canDeleteCard={canDelete('card', selectedCard.authorId === currentUser?.id)}
           canMoveCard={canMove('card', selectedCard.authorId === currentUser?.id)}
-          onMove={(cardId, fromListId, toListId) => {
+          onMove={async (cardId, fromListId, toListId) => {
+            // Get the destination list cards BEFORE updating state
+            const destCards = cardsByList.get(toListId) || [];
+            const pinnedCount = destCards.filter(c => c.pinned).length;
+            const existingNonPinnedCards = destCards.filter(c => !c.pinned);
+
+            // Update UI immediately
             setCardsByList((prev) => {
               const newMap = new Map(prev);
 
@@ -2205,16 +2256,27 @@ export default function BoardView() {
               newMap.set(fromListId, sourceCards);
 
               // Get the destination list and add the card at the top (after pinned cards)
-              const destCards = [...(newMap.get(toListId) || [])];
-              const pinnedCount = destCards.filter(c => c.pinned).length;
+              const destCardsCopy = [...(newMap.get(toListId) || [])];
+              const destPinnedCount = destCardsCopy.filter(c => c.pinned).length;
 
               // Update the card's listId and insert at the correct position
-              const updatedCard = { ...movedCard, listId: toListId, position: pinnedCount };
-              destCards.splice(pinnedCount, 0, updatedCard);
-              newMap.set(toListId, destCards);
+              const updatedCard = { ...movedCard, listId: toListId, position: destPinnedCount };
+              destCardsCopy.splice(destPinnedCount, 0, updatedCard);
+              newMap.set(toListId, destCardsCopy);
 
               return newMap;
             });
+
+            // Update backend positions of other cards in destination list (shift them down)
+            try {
+              await Promise.all(
+                existingNonPinnedCards.map((card, index) =>
+                  updateCard(card.id, { position: pinnedCount + 1 + index })
+                )
+              );
+            } catch (err) {
+              console.error('Failed to update card positions:', err);
+            }
           }}
         />
       )}
