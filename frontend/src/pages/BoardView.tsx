@@ -67,6 +67,7 @@ import {
   Mail,
   Phone,
   Link2,
+  Pin,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { fetchBoard, updateBoard, toggleBoardStar, fetchAllBoards, type Board } from '../lib/api/boards';
@@ -585,6 +586,17 @@ export default function BoardView() {
   // User presence tracking
   const { activeUsers, handlePresenceUpdate } = usePresence({ boardId: id, enabled: !!id });
 
+  // Helper function to sort cards: pinned first, then by position
+  const sortCards = useCallback((cards: Card[]): Card[] => {
+    return [...cards].sort((a, b) => {
+      // Pinned cards first
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      // Then by position
+      return (a.position ?? 0) - (b.position ?? 0);
+    });
+  }, []);
+
   // Filter cards based on search query and advanced filters
   const filteredCardsByList = useMemo(() => {
     const hasSearchQuery = searchQuery.trim().length > 0;
@@ -595,12 +607,18 @@ export default function BoardView() {
       advancedFilters.completionStatus !== null ||
       advancedFilters.customFields.length > 0;
 
-    if (!hasSearchQuery && !hasAdvancedFilters) return cardsByList;
+    // Apply sorting to all cards (pinned first, then by position)
+    const sortedCardsByList = new Map<string, Card[]>();
+    for (const [listId, cards] of cardsByList.entries()) {
+      sortedCardsByList.set(listId, sortCards(cards));
+    }
+
+    if (!hasSearchQuery && !hasAdvancedFilters) return sortedCardsByList;
 
     const query = searchQuery.toLowerCase();
     const filtered = new Map<string, Card[]>();
 
-    for (const [listId, cards] of cardsByList.entries()) {
+    for (const [listId, cards] of sortedCardsByList.entries()) {
       const matchingCards = cards.filter((card) => {
         // Check search query
         const matchesSearch = !hasSearchQuery ||
@@ -627,7 +645,7 @@ export default function BoardView() {
     }
 
     return filtered;
-  }, [cardsByList, searchQuery, advancedFilters, customFieldValues, customFieldDefs]);
+  }, [cardsByList, searchQuery, advancedFilters, customFieldValues, customFieldDefs, sortCards]);
 
   // Flat array of all filtered cards for alternative views
   const allFilteredCards = useMemo(() => {
@@ -2771,10 +2789,19 @@ function SortableCard({
       style={style}
       className={`relative group bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow ${
         card.completed ? 'opacity-60' : ''
-      }`}
+      } ${card.pinned ? 'ring-2 ring-amber-400' : ''}`}
       onMouseEnter={() => setShowQuickActions(true)}
       onMouseLeave={() => setShowQuickActions(false)}
     >
+      {/* Pin Indicator */}
+      {card.pinned && (
+        <div className="absolute -top-1 -left-1 z-10">
+          <div className="bg-amber-400 text-white p-1 rounded-full shadow-md" title="Pinned to top">
+            <Pin className="h-3 w-3 fill-current" />
+          </div>
+        </div>
+      )}
+
       {/* Quick Actions - appear on hover */}
       {showQuickActions && !isDragging && (
         <div className="absolute -top-2 right-1 flex items-center gap-1 z-10">
@@ -6085,6 +6112,17 @@ function CardDetailModal({
               <div>
                 <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Actions</h4>
                 <div className="space-y-1">
+                  <button
+                    onClick={() => onUpdate(card.id, { pinned: !card.pinned })}
+                    className={`w-full px-3 py-2 rounded text-left text-sm flex items-center ${
+                      card.pinned
+                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-700'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    <Pin className={`h-4 w-4 mr-2 ${card.pinned ? 'fill-current' : ''}`} />
+                    {card.pinned ? 'Unpin from Top' : 'Pin to Top'}
+                  </button>
                   <button
                     onClick={handleOpenMoveModal}
                     className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"

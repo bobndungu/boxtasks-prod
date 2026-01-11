@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_pinned
+    - node.type.card
+id: node.card.field_card_pinned
+field_name: field_card_pinned
+entity_type: node
+bundle: card
+label: Pinned
+description: 'Whether this card is pinned to the top of its list'
+required: false
+translatable: true
+default_value:
+  - value: 0
+default_value_callback: ''
+settings: {}
+field_type: boolean

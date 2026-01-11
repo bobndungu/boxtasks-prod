@@ -2272,7 +2272,7 @@
       "id": 283,
       "name": "Pin cards to top of list",
       "test": "Cards can be pinned to stay at top of list above moved cards",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
       "phase": "card-features"
     },

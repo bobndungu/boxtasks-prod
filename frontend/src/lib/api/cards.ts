@@ -21,6 +21,7 @@ export interface Card {
   labels: CardLabel[];
   archived: boolean;
   completed: boolean;
+  pinned: boolean;
   coverImageUrl?: string;
   coverImageId?: string;
   watcherIds: string[];
@@ -113,6 +114,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     labels: (attrs.field_card_labels as CardLabel[]) || [],
     archived: (attrs.field_card_archived as boolean) || false,
     completed: (attrs.field_card_completed as boolean) || false,
+    pinned: (attrs.field_card_pinned as boolean) || false,
     coverImageUrl,
     coverImageId,
     watcherIds,
@@ -265,7 +267,7 @@ export async function createCard(data: CreateCardData): Promise<Card> {
 }
 
 // Update a card
-export async function updateCard(id: string, data: Partial<CreateCardData> & { archived?: boolean; completed?: boolean }): Promise<Card> {
+export async function updateCard(id: string, data: Partial<CreateCardData> & { archived?: boolean; completed?: boolean; pinned?: boolean }): Promise<Card> {
   const attributes: Record<string, unknown> = {};
   const relationships: Record<string, unknown> = {};
 
@@ -285,6 +287,7 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
   if (data.labels) attributes.field_card_labels = data.labels;
   if (data.archived !== undefined) attributes.field_card_archived = data.archived;
   if (data.completed !== undefined) attributes.field_card_completed = data.completed;
+  if (data.pinned !== undefined) attributes.field_card_pinned = data.pinned;
 
   if (data.listId) {
     relationships.field_card_list = {
