@@ -10,6 +10,8 @@ import {
   LogOut,
   ChevronDown,
   Search,
+  LayoutGrid,
+  User,
 } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
@@ -163,6 +165,20 @@ export default function Dashboard() {
                     </div>
                   )}
                 </div>
+                <Link
+                  to="/everything"
+                  className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                >
+                  <LayoutGrid className="h-4 w-4 mr-1" aria-hidden="true" />
+                  Everything
+                </Link>
+                <Link
+                  to="/my-cards"
+                  className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                >
+                  <User className="h-4 w-4 mr-1" aria-hidden="true" />
+                  My Cards
+                </Link>
                 <button
                   onClick={() => setShowCreateBoardModal(true)}
                   className="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 flex items-center"
@@ -325,6 +341,18 @@ export default function Dashboard() {
             <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h2>
               <ul className="space-y-3">
+                <li>
+                  <Link to="/everything" className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                    <LayoutGrid className="h-4 w-4 mr-3" />
+                    View all cards
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/my-cards" className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                    <User className="h-4 w-4 mr-3" />
+                    My cards
+                  </Link>
+                </li>
                 <li>
                   <button
                     onClick={() => setShowCreateBoardModal(true)}

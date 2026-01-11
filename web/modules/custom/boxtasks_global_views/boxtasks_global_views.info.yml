@@ -1,0 +1,11 @@
+name: 'BoxTasks Global Views'
+type: module
+description: 'Provides API endpoints for Everything View and My Cards global views'
+core_version_requirement: ^10 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - drupal:user
+  - boxtasks_card:boxtasks_card
+  - boxtasks_board:boxtasks_board
+  - boxtasks_list:boxtasks_list

@@ -5,6 +5,8 @@ import {
   X,
   Home,
   Layout,
+  LayoutGrid,
+  User,
   Star,
   Clock,
   Users,
@@ -128,6 +130,30 @@ export default function MobileNav({ onSearchClick }: MobileNavProps) {
                   <Users className="h-5 w-5 mr-3" />
                   Workspaces
                 </Link>
+                <Link
+                  to="/everything"
+                  onClick={closeNav}
+                  className={`flex items-center px-3 py-2 rounded-lg ${
+                    isActive('/everything')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <LayoutGrid className="h-5 w-5 mr-3" />
+                  Everything
+                </Link>
+                <Link
+                  to="/my-cards"
+                  onClick={closeNav}
+                  className={`flex items-center px-3 py-2 rounded-lg ${
+                    isActive('/my-cards')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <User className="h-5 w-5 mr-3" />
+                  My Cards
+                </Link>
               </div>
 
               {/* Workspaces Section */}
@@ -213,7 +239,8 @@ export function MobileBottomNav() {
 
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Home' },
-    { path: '/workspaces', icon: Users, label: 'Workspaces' },
+    { path: '/my-cards', icon: User, label: 'My Cards' },
+    { path: '/workspaces', icon: Users, label: 'Spaces' },
     { path: '/profile', icon: Settings, label: 'Profile' },
   ];
 

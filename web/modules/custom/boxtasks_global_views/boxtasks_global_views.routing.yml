@@ -1,0 +1,23 @@
+# Everything View - all cards user has access to
+boxtasks_global_views.everything:
+  path: '/api/views/everything'
+  defaults:
+    _controller: '\Drupal\boxtasks_global_views\Controller\GlobalViewsController::everything'
+  methods: [GET]
+  requirements:
+    _permission: 'access content'
+  options:
+    no_cache: TRUE
+    _auth: ['oauth2', 'cookie']
+
+# My Cards - cards assigned to current user
+boxtasks_global_views.my_cards:
+  path: '/api/views/my-cards'
+  defaults:
+    _controller: '\Drupal\boxtasks_global_views\Controller\GlobalViewsController::myCards'
+  methods: [GET]
+  requirements:
+    _permission: 'access content'
+  options:
+    no_cache: TRUE
+    _auth: ['oauth2', 'cookie']
