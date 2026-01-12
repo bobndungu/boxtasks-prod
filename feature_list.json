@@ -2416,7 +2416,7 @@
       "id": 301,
       "name": "Add custom field changed trigger to automation system",
       "test": "Automation rules can be triggered when a custom field value changes",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2424,7 +2424,7 @@
       "id": 302,
       "name": "Add comment added trigger to automation system",
       "test": "Automation rules can be triggered when a comment is added to a card",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2432,7 +2432,7 @@
       "id": 303,
       "name": "Add watcher added/removed triggers to automation system",
       "test": "Automation rules can be triggered when watchers are added or removed from a card",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2440,7 +2440,7 @@
       "id": 304,
       "name": "Add department condition to automation system",
       "test": "Automation conditions can check if card has specific department",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2448,7 +2448,7 @@
       "id": 305,
       "name": "Add client condition to automation system",
       "test": "Automation conditions can check if card has specific client",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2456,7 +2456,7 @@
       "id": 306,
       "name": "Add custom field value condition to automation system",
       "test": "Automation conditions can check custom field values",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2464,7 +2464,7 @@
       "id": 307,
       "name": "Add has watcher condition to automation system",
       "test": "Automation conditions can check if card has specific watchers",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2472,7 +2472,7 @@
       "id": 308,
       "name": "Add has comment condition to automation system",
       "test": "Automation conditions can check if card has comments",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2480,7 +2480,7 @@
       "id": 309,
       "name": "Add send email action to automation system",
       "test": "Automation actions can send email to card members, watchers, or specific addresses",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2488,7 +2488,7 @@
       "id": 310,
       "name": "Add add comment action to automation system",
       "test": "Automation actions can add a comment to the card",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2496,7 +2496,7 @@
       "id": 311,
       "name": "Add set custom field value action to automation system",
       "test": "Automation actions can set a custom field value on the card",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2504,7 +2504,7 @@
       "id": 312,
       "name": "Add set department action to automation system",
       "test": "Automation actions can set the department on a card",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2512,7 +2512,7 @@
       "id": 313,
       "name": "Add set client action to automation system",
       "test": "Automation actions can set the client on a card",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2520,7 +2520,7 @@
       "id": 314,
       "name": "Add add watcher action to automation system",
       "test": "Automation actions can add a watcher to a card",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
       "phase": "automation-extended"
     },
@@ -2528,7 +2528,7 @@
       "id": 315,
       "name": "Update React automation UI with new triggers",
       "test": "Automation rules UI shows custom field, comment, watcher triggers",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "automation-extended"
     },
@@ -2536,7 +2536,7 @@
       "id": 316,
       "name": "Update React automation UI with new conditions",
       "test": "Automation rules UI shows department, client, custom field, watcher, comment conditions",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "automation-extended"
     },
@@ -2544,7 +2544,7 @@
       "id": 317,
       "name": "Update React automation UI with new actions",
       "test": "Automation rules UI shows send email, add comment, set custom field, set department, set client, add watcher actions",
-      "status": "pending",
+      "status": "completed",
       "type": "react",
       "phase": "automation-extended"
     },
@@ -2552,12 +2552,12 @@
       "id": 318,
       "name": "Test extended automation system end-to-end",
       "test": "All new automation triggers, conditions, and actions work correctly together",
-      "status": "pending",
+      "status": "in_progress",
       "type": "both",
       "phase": "automation-extended"
     }
   ],
-  "current_feature": 300,
+  "current_feature": 318,
   "browser_retries": 0,
   "phase": "card-display-enhancement",
   "created_at": "2026-01-10",

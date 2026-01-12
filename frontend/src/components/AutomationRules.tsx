@@ -679,6 +679,25 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                     />
                   )}
 
+                  {(condition.type === 'card_has_watcher' || condition.type === 'card_has_member') && (
+                    <select
+                      value={(condition.config.user_id as string) || ''}
+                      onChange={e =>
+                        updateCondition(index, {
+                          config: { ...condition.config, user_id: e.target.value },
+                        })
+                      }
+                      className="flex-1 px-2 py-1 border rounded"
+                    >
+                      <option value="">Any user (or select specific)</option>
+                      {members.map(m => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => removeCondition(index)}
@@ -810,6 +829,93 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                     <option value="true">Mark as complete</option>
                     <option value="false">Mark as incomplete</option>
                   </select>
+                )}
+
+                {(action.type === 'add_watcher' || action.type === 'remove_watcher') && (
+                  <select
+                    value={(action.config.user_id as string) || ''}
+                    onChange={e =>
+                      updateAction(index, {
+                        config: { ...action.config, user_id: e.target.value },
+                      })
+                    }
+                    className="flex-1 px-2 py-1 border rounded"
+                  >
+                    <option value="">Select user...</option>
+                    {members.map(m => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {action.type === 'add_comment' && (
+                  <input
+                    type="text"
+                    value={(action.config.text as string) || ''}
+                    onChange={e =>
+                      updateAction(index, {
+                        config: { ...action.config, text: e.target.value },
+                      })
+                    }
+                    placeholder="Comment text... (use {card_title}, {board_name})"
+                    className="flex-1 px-2 py-1 border rounded"
+                  />
+                )}
+
+                {action.type === 'send_email' && (
+                  <div className="flex-1 flex flex-col gap-2">
+                    <select
+                      value={(action.config.recipient_type as string) || 'members'}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, recipient_type: e.target.value },
+                        })
+                      }
+                      className="w-full px-2 py-1 border rounded"
+                    >
+                      <option value="members">Send to card members</option>
+                      <option value="watchers">Send to card watchers</option>
+                      <option value="creator">Send to card creator</option>
+                      <option value="specific">Send to specific emails</option>
+                    </select>
+                    {action.config.recipient_type === 'specific' && (
+                      <input
+                        type="text"
+                        value={(action.config.emails as string) || ''}
+                        onChange={e =>
+                          updateAction(index, {
+                            config: { ...action.config, emails: e.target.value },
+                          })
+                        }
+                        placeholder="email1@example.com, email2@example.com"
+                        className="w-full px-2 py-1 border rounded"
+                      />
+                    )}
+                    <input
+                      type="text"
+                      value={(action.config.subject as string) || ''}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, subject: e.target.value },
+                        })
+                      }
+                      placeholder="Email subject (use {card_title}, {board_name})"
+                      className="w-full px-2 py-1 border rounded"
+                    />
+                    <textarea
+                      value={(action.config.message as string) || ''}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, message: e.target.value },
+                        })
+                      }
+                      placeholder="Email message (use {card_title}, {board_name})"
+                      className="w-full px-2 py-1 border rounded"
+                      rows={2}
+                    />
+                  </div>
                 )}
 
                 <button

@@ -86,6 +86,12 @@ export const TRIGGER_TYPES = [
   { id: 'member_added', label: 'Member Added', description: 'When a member is assigned to a card' },
   { id: 'checklist_completed', label: 'Checklist Completed', description: 'When all checklist items are completed' },
   { id: 'scheduled', label: 'Scheduled', description: 'Run on a schedule (daily, weekly, monthly)' },
+  { id: 'comment_added', label: 'Comment Added', description: 'When a comment is added to a card' },
+  { id: 'watcher_added', label: 'Watcher Added', description: 'When a watcher is added to a card' },
+  { id: 'watcher_removed', label: 'Watcher Removed', description: 'When a watcher is removed from a card' },
+  { id: 'custom_field_changed', label: 'Custom Field Changed', description: 'When a custom field value changes' },
+  { id: 'department_changed', label: 'Department Changed', description: 'When the department is changed' },
+  { id: 'client_changed', label: 'Client Changed', description: 'When the client is changed' },
 ] as const;
 
 // Schedule interval options for scheduled trigger
@@ -121,6 +127,13 @@ export const CONDITION_TYPES = [
   { id: 'card_has_due_date', label: 'Card Has Due Date', description: 'Card has a due date set', configFields: [] },
   { id: 'card_is_overdue', label: 'Card Is Overdue', description: 'Card is past its due date', configFields: [] },
   { id: 'card_title_contains', label: 'Title Contains', description: 'Card title contains text', configFields: ['text'] },
+  { id: 'card_has_department', label: 'Card Has Department', description: 'Card has a specific department', configFields: ['department_id'] },
+  { id: 'card_has_client', label: 'Card Has Client', description: 'Card has a specific client', configFields: ['client_id'] },
+  { id: 'custom_field_equals', label: 'Custom Field Equals', description: 'Custom field has a specific value', configFields: ['field_id', 'value'] },
+  { id: 'custom_field_not_empty', label: 'Custom Field Not Empty', description: 'Custom field has any value', configFields: ['field_id'] },
+  { id: 'card_has_watcher', label: 'Card Has Watcher', description: 'Card has a specific watcher', configFields: ['user_id'] },
+  { id: 'card_has_comments', label: 'Card Has Comments', description: 'Card has one or more comments', configFields: [] },
+  { id: 'card_has_member', label: 'Card Has Member', description: 'Card has a specific member assigned', configFields: ['user_id'] },
 ] as const;
 
 // Available action types
@@ -131,6 +144,21 @@ export const ACTION_TYPES = [
   { id: 'mark_complete', label: 'Mark Complete', description: 'Mark the card as complete', configFields: ['completed'] },
   { id: 'set_due_date', label: 'Set Due Date', description: 'Set or change the due date', configFields: ['date'] },
   { id: 'add_member', label: 'Add Member', description: 'Assign a member to the card', configFields: ['user_id'] },
+  { id: 'send_email', label: 'Send Email', description: 'Send an email notification', configFields: ['recipient_type', 'subject', 'message', 'emails'] },
+  { id: 'add_comment', label: 'Add Comment', description: 'Add a comment to the card', configFields: ['text'] },
+  { id: 'set_custom_field', label: 'Set Custom Field', description: 'Set a custom field value', configFields: ['field_id', 'value'] },
+  { id: 'set_department', label: 'Set Department', description: 'Set the card department', configFields: ['department_id'] },
+  { id: 'set_client', label: 'Set Client', description: 'Set the card client', configFields: ['client_id'] },
+  { id: 'add_watcher', label: 'Add Watcher', description: 'Add a watcher to the card', configFields: ['user_id'] },
+  { id: 'remove_watcher', label: 'Remove Watcher', description: 'Remove a watcher from the card', configFields: ['user_id'] },
+] as const;
+
+// Email recipient types for send_email action
+export const EMAIL_RECIPIENT_TYPES = [
+  { id: 'members', label: 'Card Members', description: 'Send to all assigned members' },
+  { id: 'watchers', label: 'Card Watchers', description: 'Send to all watchers' },
+  { id: 'creator', label: 'Card Creator', description: 'Send to the card creator' },
+  { id: 'specific', label: 'Specific Emails', description: 'Send to specific email addresses' },
 ] as const;
 
 function transformRuleFromApi(data: any): AutomationRule {

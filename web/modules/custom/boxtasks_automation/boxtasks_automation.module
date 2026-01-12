@@ -11,6 +11,26 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeInterface;
 
 /**
+ * Implements hook_mail().
+ *
+ * Prepares automation notification emails.
+ */
+function boxtasks_automation_mail($key, &$message, $params): void {
+  switch ($key) {
+    case 'automation_notification':
+      $message['subject'] = $params['subject'] ?? 'BoxTasks Automation Notification';
+      $message['body'][] = $params['message'] ?? 'An automation was triggered.';
+
+      // Add card link if card_id is provided.
+      if (!empty($params['card_id'])) {
+        $message['body'][] = '';
+        $message['body'][] = 'View the card: ' . \Drupal::request()->getSchemeAndHttpHost() . '/board/' . $params['card_id'];
+      }
+      break;
+  }
+}
+
+/**
  * Implements hook_ENTITY_TYPE_insert() for node entities.
  *
  * Fires the 'card_created' trigger when a new card is created.
@@ -84,6 +104,41 @@ function boxtasks_automation_node_update(NodeInterface $node): void {
     _boxtasks_automation_fire_card_trigger($node, 'member_added', ['user_id' => $member_id]);
   }
 
+  // Check for watcher added/removed.
+  $current_watchers = _boxtasks_automation_get_watchers($node);
+  $original_watchers = _boxtasks_automation_get_watchers($original);
+
+  $added_watchers = array_diff($current_watchers, $original_watchers);
+  $removed_watchers = array_diff($original_watchers, $current_watchers);
+
+  foreach ($added_watchers as $watcher_id) {
+    _boxtasks_automation_fire_card_trigger($node, 'watcher_added', ['user_id' => $watcher_id]);
+  }
+
+  foreach ($removed_watchers as $watcher_id) {
+    _boxtasks_automation_fire_card_trigger($node, 'watcher_removed', ['user_id' => $watcher_id]);
+  }
+
+  // Check for department change.
+  $current_department = $node->hasField('field_card_department') ? $node->get('field_card_department')->target_id : NULL;
+  $original_department = $original->hasField('field_card_department') ? $original->get('field_card_department')->target_id : NULL;
+  if ($current_department !== $original_department) {
+    _boxtasks_automation_fire_card_trigger($node, 'department_changed', [
+      'from_department' => $original_department,
+      'to_department' => $current_department,
+    ]);
+  }
+
+  // Check for client change.
+  $current_client = $node->hasField('field_card_client') ? $node->get('field_card_client')->target_id : NULL;
+  $original_client = $original->hasField('field_card_client') ? $original->get('field_card_client')->target_id : NULL;
+  if ($current_client !== $original_client) {
+    _boxtasks_automation_fire_card_trigger($node, 'client_changed', [
+      'from_client' => $original_client,
+      'to_client' => $current_client,
+    ]);
+  }
+
   // Check for due date approaching (this would typically be handled by cron).
   // Here we fire it if due date was just set within the next 24 hours.
   $current_due = $node->get('field_card_due_date')->value;
@@ -100,6 +155,83 @@ function boxtasks_automation_node_update(NodeInterface $node): void {
         'due_date' => $current_due,
       ]);
     }
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for node entities.
+ *
+ * Fires 'comment_added' trigger when a comment is added to a card.
+ */
+function boxtasks_automation_node_insert_comment(NodeInterface $node): void {
+  if ($node->bundle() !== 'card_comment') {
+    return;
+  }
+
+  // Get the card this comment is for.
+  $card_id = $node->hasField('field_comment_card') ? $node->get('field_comment_card')->target_id : NULL;
+  if (!$card_id) {
+    return;
+  }
+
+  $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
+  if (!$card || $card->bundle() !== 'card') {
+    return;
+  }
+
+  _boxtasks_automation_fire_card_trigger($card, 'comment_added', [
+    'comment_id' => $node->id(),
+    'comment_text' => $node->hasField('field_comment_text') ? $node->get('field_comment_text')->value : '',
+    'comment_author' => $node->getOwnerId(),
+  ]);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for custom_field_value entities.
+ *
+ * Fires 'custom_field_changed' trigger when a custom field value is set.
+ */
+function boxtasks_automation_custom_field_value_insert(EntityInterface $entity): void {
+  _boxtasks_automation_handle_custom_field_change($entity, NULL);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for custom_field_value entities.
+ *
+ * Fires 'custom_field_changed' trigger when a custom field value changes.
+ */
+function boxtasks_automation_custom_field_value_update(EntityInterface $entity): void {
+  $original = $entity->original ?? NULL;
+  _boxtasks_automation_handle_custom_field_change($entity, $original);
+}
+
+/**
+ * Handles custom field value changes.
+ */
+function _boxtasks_automation_handle_custom_field_change(EntityInterface $entity, ?EntityInterface $original): void {
+  // Get the card ID.
+  $card_id = $entity->get('card_id')->target_id ?? NULL;
+  if (!$card_id) {
+    return;
+  }
+
+  $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
+  if (!$card || $card->bundle() !== 'card') {
+    return;
+  }
+
+  // Get field definition ID and values.
+  $definition_id = $entity->get('definition_id')->target_id ?? NULL;
+  $new_value = $entity->get('value')->value ?? '';
+  $old_value = $original ? ($original->get('value')->value ?? '') : '';
+
+  // Only fire trigger if value actually changed (or is new).
+  if ($original === NULL || $new_value !== $old_value) {
+    _boxtasks_automation_fire_card_trigger($card, 'custom_field_changed', [
+      'field_id' => $definition_id,
+      'old_value' => $old_value,
+      'new_value' => $new_value,
+    ]);
   }
 }
 
@@ -460,6 +592,25 @@ function _boxtasks_automation_get_members(NodeInterface $card): array {
     }
   }
   return $members;
+}
+
+/**
+ * Gets watcher IDs from a card node.
+ *
+ * @param \Drupal\node\NodeInterface $card
+ *   The card node.
+ *
+ * @return array
+ *   Array of watcher user IDs.
+ */
+function _boxtasks_automation_get_watchers(NodeInterface $card): array {
+  $watchers = [];
+  if ($card->hasField('field_card_watchers')) {
+    foreach ($card->get('field_card_watchers') as $item) {
+      $watchers[] = $item->target_id;
+    }
+  }
+  return $watchers;
 }
 
 /**

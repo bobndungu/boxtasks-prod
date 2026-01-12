@@ -242,6 +242,72 @@ class AutomationExecutor {
         $search_text = $config['text'] ?? '';
         return stripos($card_title, $search_text) !== FALSE;
 
+      case 'card_has_department':
+        $card_department = $trigger_data['card']['department_id'] ?? NULL;
+        $required_department = $config['department_id'] ?? '';
+        if (empty($required_department)) {
+          return !empty($card_department);
+        }
+        return (string) $card_department === (string) $required_department;
+
+      case 'card_has_client':
+        $card_client = $trigger_data['card']['client_id'] ?? NULL;
+        $required_client = $config['client_id'] ?? '';
+        if (empty($required_client)) {
+          return !empty($card_client);
+        }
+        return (string) $card_client === (string) $required_client;
+
+      case 'custom_field_equals':
+        $field_id = $config['field_id'] ?? '';
+        $expected_value = $config['value'] ?? '';
+        $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+        if (!$card_id || !$field_id) {
+          return FALSE;
+        }
+        $custom_field_values = $trigger_data['card']['custom_field_values'] ?? [];
+        foreach ($custom_field_values as $cfv) {
+          if (($cfv['definition_id'] ?? '') === $field_id) {
+            return ($cfv['value'] ?? '') === $expected_value;
+          }
+        }
+        return FALSE;
+
+      case 'custom_field_not_empty':
+        $field_id = $config['field_id'] ?? '';
+        $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+        if (!$card_id || !$field_id) {
+          return FALSE;
+        }
+        $custom_field_values = $trigger_data['card']['custom_field_values'] ?? [];
+        foreach ($custom_field_values as $cfv) {
+          if (($cfv['definition_id'] ?? '') === $field_id) {
+            return !empty($cfv['value']);
+          }
+        }
+        return FALSE;
+
+      case 'card_has_watcher':
+        $card_watchers = $trigger_data['card']['watchers'] ?? [];
+        $required_watcher = $config['user_id'] ?? '';
+        if (empty($required_watcher)) {
+          return !empty($card_watchers);
+        }
+        return in_array($required_watcher, $card_watchers);
+
+      case 'card_has_comments':
+        $comment_count = $trigger_data['card']['comment_count'] ?? 0;
+        return $comment_count > 0;
+
+      case 'card_has_member':
+        $card_members = $trigger_data['card']['members'] ?? [];
+        $required_member = $config['user_id'] ?? '';
+        if (empty($required_member)) {
+          return !empty($card_members);
+        }
+        $member_ids = array_column($card_members, 'id');
+        return in_array($required_member, $member_ids);
+
       default:
         // Unknown condition type, skip (return TRUE to not block).
         return TRUE;
@@ -288,6 +354,34 @@ class AutomationExecutor {
 
         case 'add_member':
           $result = $this->executeAddMember($config, $trigger_data);
+          break;
+
+        case 'send_email':
+          $result = $this->executeSendEmail($config, $trigger_data);
+          break;
+
+        case 'add_comment':
+          $result = $this->executeAddComment($config, $trigger_data);
+          break;
+
+        case 'set_custom_field':
+          $result = $this->executeSetCustomField($config, $trigger_data);
+          break;
+
+        case 'set_department':
+          $result = $this->executeSetDepartment($config, $trigger_data);
+          break;
+
+        case 'set_client':
+          $result = $this->executeSetClient($config, $trigger_data);
+          break;
+
+        case 'add_watcher':
+          $result = $this->executeAddWatcher($config, $trigger_data);
+          break;
+
+        case 'remove_watcher':
+          $result = $this->executeRemoveWatcher($config, $trigger_data);
           break;
 
         default:
@@ -484,6 +578,353 @@ class AutomationExecutor {
     if (!in_array($user_id, $member_ids)) {
       $members[] = ['target_id' => $user_id];
       $card->set('field_card_members', $members);
+      $card->save();
+    }
+
+    return ['success' => TRUE, 'user_id' => $user_id];
+  }
+
+  /**
+   * Executes send email action.
+   */
+  protected function executeSendEmail(array $config, array $trigger_data): array {
+    $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+    $card_title = $trigger_data['card']['title'] ?? 'Card';
+    $board_name = $trigger_data['board']['name'] ?? 'Board';
+
+    $recipient_type = $config['recipient_type'] ?? 'members';
+    $subject = $config['subject'] ?? "BoxTasks: Action required on \"$card_title\"";
+    $message = $config['message'] ?? "An automation was triggered on the card \"$card_title\" in \"$board_name\".";
+
+    // Replace placeholders in subject and message.
+    $replacements = [
+      '{card_title}' => $card_title,
+      '{board_name}' => $board_name,
+      '{card_id}' => $card_id,
+    ];
+    $subject = str_replace(array_keys($replacements), array_values($replacements), $subject);
+    $message = str_replace(array_keys($replacements), array_values($replacements), $message);
+
+    $recipients = [];
+
+    switch ($recipient_type) {
+      case 'members':
+        // Get card members.
+        if ($card_id) {
+          $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+          if ($card && $card->hasField('field_card_members')) {
+            $members = $card->get('field_card_members')->referencedEntities();
+            foreach ($members as $member) {
+              $recipients[] = $member->getEmail();
+            }
+          }
+        }
+        break;
+
+      case 'watchers':
+        // Get card watchers.
+        if ($card_id) {
+          $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+          if ($card && $card->hasField('field_card_watchers')) {
+            $watchers = $card->get('field_card_watchers')->referencedEntities();
+            foreach ($watchers as $watcher) {
+              $recipients[] = $watcher->getEmail();
+            }
+          }
+        }
+        break;
+
+      case 'specific':
+        $emails = $config['emails'] ?? '';
+        $recipients = array_map('trim', explode(',', $emails));
+        break;
+
+      case 'creator':
+        if ($card_id) {
+          $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+          if ($card) {
+            $creator = $card->getOwner();
+            if ($creator) {
+              $recipients[] = $creator->getEmail();
+            }
+          }
+        }
+        break;
+    }
+
+    // Filter out empty emails.
+    $recipients = array_filter($recipients, fn($email) => !empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL));
+    $recipients = array_unique($recipients);
+
+    if (empty($recipients)) {
+      return ['success' => FALSE, 'error' => 'No valid recipients found'];
+    }
+
+    // Send emails using Drupal's mail system.
+    $mail_manager = \Drupal::service('plugin.manager.mail');
+    $module = 'boxtasks_automation';
+    $key = 'automation_notification';
+    $langcode = \Drupal::currentUser()->getPreferredLangcode();
+    $send = TRUE;
+
+    $sent_count = 0;
+    foreach ($recipients as $to) {
+      $params = [
+        'subject' => $subject,
+        'message' => $message,
+        'card_id' => $card_id,
+      ];
+
+      $result = $mail_manager->mail($module, $key, $to, $langcode, $params, NULL, $send);
+      if ($result['result']) {
+        $sent_count++;
+      }
+    }
+
+    return [
+      'success' => $sent_count > 0,
+      'recipients' => $recipients,
+      'sent_count' => $sent_count,
+    ];
+  }
+
+  /**
+   * Executes add comment action.
+   */
+  protected function executeAddComment(array $config, array $trigger_data): array {
+    $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+    if (!$card_id) {
+      return ['success' => FALSE, 'error' => 'No card ID'];
+    }
+
+    $comment_text = $config['text'] ?? '';
+    if (empty($comment_text)) {
+      return ['success' => FALSE, 'error' => 'No comment text specified'];
+    }
+
+    // Replace placeholders.
+    $card_title = $trigger_data['card']['title'] ?? 'Card';
+    $board_name = $trigger_data['board']['name'] ?? 'Board';
+    $replacements = [
+      '{card_title}' => $card_title,
+      '{board_name}' => $board_name,
+      '{trigger_type}' => $trigger_data['trigger_type'] ?? 'automation',
+    ];
+    $comment_text = str_replace(array_keys($replacements), array_values($replacements), $comment_text);
+
+    // Create comment node.
+    $comment = $this->entityTypeManager->getStorage('node')->create([
+      'type' => 'card_comment',
+      'title' => substr($comment_text, 0, 50) . '...',
+      'field_comment_text' => [
+        'value' => $comment_text,
+        'format' => 'basic_html',
+      ],
+      'field_comment_card' => $card_id,
+      'uid' => 1, // System user for automated comments.
+    ]);
+    $comment->save();
+
+    return ['success' => TRUE, 'comment_id' => $comment->id()];
+  }
+
+  /**
+   * Executes set custom field action.
+   */
+  protected function executeSetCustomField(array $config, array $trigger_data): array {
+    $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+    if (!$card_id) {
+      return ['success' => FALSE, 'error' => 'No card ID'];
+    }
+
+    $field_id = $config['field_id'] ?? '';
+    if (empty($field_id)) {
+      return ['success' => FALSE, 'error' => 'No field ID specified'];
+    }
+
+    $value = $config['value'] ?? '';
+
+    // Load or create custom field value entity.
+    $storage = $this->entityTypeManager->getStorage('custom_field_value');
+    $existing = $storage->loadByProperties([
+      'card_id' => $card_id,
+      'definition_id' => $field_id,
+    ]);
+
+    if (!empty($existing)) {
+      $cfv = reset($existing);
+      $cfv->set('value', $value);
+    }
+    else {
+      $cfv = $storage->create([
+        'card_id' => $card_id,
+        'definition_id' => $field_id,
+        'value' => $value,
+      ]);
+    }
+    $cfv->save();
+
+    return ['success' => TRUE, 'field_id' => $field_id, 'value' => $value];
+  }
+
+  /**
+   * Executes set department action.
+   */
+  protected function executeSetDepartment(array $config, array $trigger_data): array {
+    $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+    if (!$card_id) {
+      return ['success' => FALSE, 'error' => 'No card ID'];
+    }
+
+    $department_id = $config['department_id'] ?? '';
+    if (empty($department_id)) {
+      return ['success' => FALSE, 'error' => 'No department specified'];
+    }
+
+    $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+    if (!$card) {
+      return ['success' => FALSE, 'error' => 'Card not found'];
+    }
+
+    // Convert UUID to TID if necessary.
+    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $department_id)) {
+      $terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadByProperties([
+        'uuid' => $department_id,
+        'vid' => 'department',
+      ]);
+      if (!empty($terms)) {
+        $term = reset($terms);
+        $department_id = $term->id();
+      }
+    }
+
+    if ($card->hasField('field_card_department')) {
+      $card->set('field_card_department', $department_id);
+      $card->save();
+    }
+
+    return ['success' => TRUE, 'department_id' => $department_id];
+  }
+
+  /**
+   * Executes set client action.
+   */
+  protected function executeSetClient(array $config, array $trigger_data): array {
+    $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+    if (!$card_id) {
+      return ['success' => FALSE, 'error' => 'No card ID'];
+    }
+
+    $client_id = $config['client_id'] ?? '';
+    if (empty($client_id)) {
+      return ['success' => FALSE, 'error' => 'No client specified'];
+    }
+
+    $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+    if (!$card) {
+      return ['success' => FALSE, 'error' => 'Card not found'];
+    }
+
+    // Convert UUID to TID if necessary.
+    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $client_id)) {
+      $terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadByProperties([
+        'uuid' => $client_id,
+        'vid' => 'client',
+      ]);
+      if (!empty($terms)) {
+        $term = reset($terms);
+        $client_id = $term->id();
+      }
+    }
+
+    if ($card->hasField('field_card_client')) {
+      $card->set('field_card_client', $client_id);
+      $card->save();
+    }
+
+    return ['success' => TRUE, 'client_id' => $client_id];
+  }
+
+  /**
+   * Executes add watcher action.
+   */
+  protected function executeAddWatcher(array $config, array $trigger_data): array {
+    $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+    if (!$card_id) {
+      return ['success' => FALSE, 'error' => 'No card ID'];
+    }
+
+    $user_id = $config['user_id'] ?? '';
+    if (empty($user_id)) {
+      return ['success' => FALSE, 'error' => 'No user specified'];
+    }
+
+    $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+    if (!$card) {
+      return ['success' => FALSE, 'error' => 'Card not found'];
+    }
+
+    // Convert UUID to numeric ID if necessary.
+    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $user_id)) {
+      $users = $this->entityTypeManager->getStorage('user')->loadByProperties([
+        'uuid' => $user_id,
+      ]);
+      if (empty($users)) {
+        return ['success' => FALSE, 'error' => 'User not found'];
+      }
+      $user = reset($users);
+      $user_id = $user->id();
+    }
+
+    if ($card->hasField('field_card_watchers')) {
+      $watchers = $card->get('field_card_watchers')->getValue();
+      $watcher_ids = array_column($watchers, 'target_id');
+
+      if (!in_array($user_id, $watcher_ids)) {
+        $watchers[] = ['target_id' => $user_id];
+        $card->set('field_card_watchers', $watchers);
+        $card->save();
+      }
+    }
+
+    return ['success' => TRUE, 'user_id' => $user_id];
+  }
+
+  /**
+   * Executes remove watcher action.
+   */
+  protected function executeRemoveWatcher(array $config, array $trigger_data): array {
+    $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+    if (!$card_id) {
+      return ['success' => FALSE, 'error' => 'No card ID'];
+    }
+
+    $user_id = $config['user_id'] ?? '';
+    if (empty($user_id)) {
+      return ['success' => FALSE, 'error' => 'No user specified'];
+    }
+
+    $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+    if (!$card) {
+      return ['success' => FALSE, 'error' => 'Card not found'];
+    }
+
+    // Convert UUID to numeric ID if necessary.
+    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $user_id)) {
+      $users = $this->entityTypeManager->getStorage('user')->loadByProperties([
+        'uuid' => $user_id,
+      ]);
+      if (empty($users)) {
+        return ['success' => FALSE, 'error' => 'User not found'];
+      }
+      $user = reset($users);
+      $user_id = $user->id();
+    }
+
+    if ($card->hasField('field_card_watchers')) {
+      $watchers = $card->get('field_card_watchers')->getValue();
+      $watchers = array_filter($watchers, fn($w) => (string) $w['target_id'] !== (string) $user_id);
+      $card->set('field_card_watchers', array_values($watchers));
       $card->save();
     }
 
