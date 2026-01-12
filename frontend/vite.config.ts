@@ -59,6 +59,19 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // Exclude Drupal backend routes from service worker interception
+        navigateFallbackDenylist: [
+          /^\/user\//,      // Social auth routes (login, logout, callback)
+          /^\/admin\//,     // Admin routes
+          /^\/jsonapi\//,   // JSON:API routes
+          /^\/oauth\//,     // OAuth routes
+          /^\/node\//,      // Node routes
+          /^\/system\//,    // System routes
+          /^\/batch/,       // Batch routes
+          /^\/entity\//,    // Entity routes
+          /^\/media\//,     // Media routes
+          /^\/sites\//,     // Sites files
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/boxtasks2\.ddev\.site\/jsonapi\/.*/i,
