@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle, Layout, Users, Zap } from 'lucide-react';
+import { Layout, Users, Zap } from 'lucide-react';
 
 interface ApiStatus {
   connected: boolean;
@@ -21,7 +21,7 @@ export default function Home() {
           },
         });
         if (response.ok) {
-          setApiStatus({ connected: true, message: 'Connected to Drupal API' });
+          setApiStatus({ connected: true, message: 'Connected' });
         } else {
           setApiStatus({ connected: false, message: `API Error: ${response.status}` });
         }
@@ -125,31 +125,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Tech Stack */}
-      <section className="bg-gray-50 py-12">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-gray-500 mb-6">Built with modern technology</p>
-          <div className="flex flex-wrap justify-center gap-8 text-gray-600">
-            <span className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              Drupal 11
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              React + TypeScript
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              JSON:API
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              Real-time with Mercure
-            </span>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-8">
         <div className="container mx-auto px-4 text-center">
@@ -157,7 +132,7 @@ export default function Home() {
             <Layout className="h-6 w-6" />
             <span className="text-xl font-bold text-white">BoxTasks</span>
           </div>
-          <p>© 2024 BoxTasks. Built with Drupal 11 + React.</p>
+          <p>© {new Date().getFullYear()} BoxTasks. Built by Boxraft Digital.</p>
         </div>
       </footer>
     </div>

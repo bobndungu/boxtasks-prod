@@ -1,0 +1,7 @@
+services:
+  social_auth_microsoft.manager:
+    class: Drupal\social_auth_microsoft\MicrosoftAuthManager
+    arguments:
+      - '@config.factory'
+      - '@logger.factory'
+      - '@request_stack'

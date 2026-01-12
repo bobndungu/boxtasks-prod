@@ -135,7 +135,7 @@ export default function ForgotPassword() {
 
       {/* Footer */}
       <footer className="text-center py-6 text-blue-200 text-sm">
-        © 2024 BoxTasks. All rights reserved.
+        © {new Date().getFullYear()} BoxTasks. Built by Boxraft Digital.
       </footer>
     </div>
   );

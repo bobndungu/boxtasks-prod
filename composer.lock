@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d564a2ffd69c13e850381f99a5dcff2b",
+    "content-hash": "51e37775111e6d85b5bfccfbf87f95c5",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -1561,6 +1561,143 @@
             }
         },
         {
+            "name": "drupal/migrate_plus",
+            "version": "6.0.9",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/migrate_plus.git",
+                "reference": "6.0.9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/migrate_plus-6.0.9.zip",
+                "reference": "6.0.9",
+                "shasum": "e441f9d370fe8d71c4d168b8075a9826503ff231"
+            },
+            "require": {
+                "drupal/core": "^10.5 || ^11",
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "drupal/migrate_example_advanced_setup": "*",
+                "drupal/migrate_example_setup": "*",
+                "sainsburys/guzzle-oauth2-plugin": "^3"
+            },
+            "suggest": {
+                "ext-soap": "*",
+                "sainsburys/guzzle-oauth2-plugin": "3.0 required for the OAuth2 authentication plugin"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "6.0.9",
+                    "datestamp": "1767308832",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Mike Ryan",
+                    "homepage": "https://www.drupal.org/u/mikeryan",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Lucas Hedding",
+                    "homepage": "https://www.drupal.org/u/heddn",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "mikeryan",
+                    "homepage": "https://www.drupal.org/user/4420"
+                }
+            ],
+            "description": "Enhancements to core migration support.",
+            "homepage": "https://www.drupal.org/project/migrate_plus",
+            "support": {
+                "source": "https://git.drupalcode.org/project/migrate_plus",
+                "issues": "https://www.drupal.org/project/issues/migrate_plus",
+                "slack": "#migrate"
+            }
+        },
+        {
+            "name": "drupal/migrate_tools",
+            "version": "6.1.3",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/migrate_tools.git",
+                "reference": "6.1.3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/migrate_tools-6.1.3.zip",
+                "reference": "6.1.3",
+                "shasum": "1bb5b07575dfdd35d01362f30081853458c56cd7"
+            },
+            "require": {
+                "drupal/core": "^9.1 || ^10 || ^11",
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "drupal/migrate_plus": "^5 || ^6",
+                "drupal/migrate_source_csv": "^3",
+                "drush/drush": "^11 || ^12 || ^13"
+            },
+            "suggest": {
+                "drupal/migrate_plus": "^5 || ^6",
+                "drush/drush": "^11 || ^12 || ^13"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "6.1.3",
+                    "datestamp": "1767203937",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                },
+                "drush": {
+                    "services": {
+                        "drush.services.yml": "^11 || ^12 || ^13"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Mike Ryan",
+                    "homepage": "https://www.drupal.org/u/mikeryan",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Lucas Hedding",
+                    "homepage": "https://www.drupal.org/u/heddn",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "mikeryan",
+                    "homepage": "https://www.drupal.org/user/4420"
+                }
+            ],
+            "description": "Tools to assist in developing and running migrations.",
+            "homepage": "http://drupal.org/project/migrate_tools",
+            "support": {
+                "source": "https://git.drupalcode.org/project/migrate_tools",
+                "issues": "https://www.drupal.org/project/issues/migrate_tools",
+                "slack": "#migrate"
+            }
+        },
+        {
             "name": "drupal/restui",
             "version": "1.22.0",
             "source": {
@@ -1745,6 +1882,372 @@
             "homepage": "https://www.drupal.org/project/simple_oauth_password_grant",
             "support": {
                 "source": "https://git.drupalcode.org/project/simple_oauth_password_grant"
+            }
+        },
+        {
+            "name": "drupal/smtp",
+            "version": "1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/smtp.git",
+                "reference": "8.x-1.4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/smtp-8.x-1.4.zip",
+                "reference": "8.x-1.4",
+                "shasum": "963b4670dc609f30a8c003d888d88893d0841b21"
+            },
+            "require": {
+                "drupal/core": "^9.5 || ^10 || ^11",
+                "phpmailer/phpmailer": "^6.1.7"
+            },
+            "suggest": {
+                "drupal/mailsystem": "Allows using SMTP alongside other mail modules."
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "8.x-1.4",
+                    "datestamp": "1722032780",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                },
+                "branch-alias": {
+                    "dev-8.x-1.x": "1.x-dev"
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "bluegeek9",
+                    "homepage": "https://www.drupal.org/user/1286304"
+                },
+                {
+                    "name": "japerry",
+                    "homepage": "https://www.drupal.org/user/45640"
+                },
+                {
+                    "name": "joseph.olstad",
+                    "homepage": "https://www.drupal.org/user/1321830"
+                },
+                {
+                    "name": "LukeLast",
+                    "homepage": "https://www.drupal.org/user/30151"
+                },
+                {
+                    "name": "oadaeh",
+                    "homepage": "https://www.drupal.org/user/4649"
+                },
+                {
+                    "name": "sadashiv",
+                    "homepage": "https://www.drupal.org/user/1773304"
+                },
+                {
+                    "name": "vikingew",
+                    "homepage": "https://www.drupal.org/user/93281"
+                },
+                {
+                    "name": "wundo",
+                    "homepage": "https://www.drupal.org/user/25523"
+                }
+            ],
+            "description": "Allow for site emails to be sent through an SMTP server of your choice.",
+            "homepage": "https://www.drupal.org/project/smtp",
+            "support": {
+                "source": "https://git.drupalcode.org/project/smtp",
+                "issues": "https://www.drupal.org/project/issues/smtp"
+            }
+        },
+        {
+            "name": "drupal/social_api",
+            "version": "4.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/social_api.git",
+                "reference": "4.0.2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/social_api-4.0.2.zip",
+                "reference": "4.0.2",
+                "shasum": "8da084f0262080b2dfbbaa0ffb72cc386c6221dc"
+            },
+            "require": {
+                "drupal/core": "^9.5 || ^10 || ^11",
+                "ext-openssl": "*",
+                "league/oauth2-client": "^2.0"
+            },
+            "require-dev": {
+                "drupal/coder": "^8.3",
+                "phpcompatibility/php-compatibility": "^9.3"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "4.0.2",
+                    "datestamp": "1725453406",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Getulio Sánchez (gvso)",
+                    "homepage": "https://www.drupal.org/u/gvso",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Himansh Dixit (himanshu-dixit)",
+                    "homepage": "https://www.drupal.org/user/3510098",
+                    "email": "hudixt@gmail.com"
+                },
+                {
+                    "name": "Chrsitopher C. Wells (wells)",
+                    "homepage": "https://www.drupal.org/user/550110",
+                    "email": "drupal.org@chris-wells.net"
+                },
+                {
+                    "name": "gvso",
+                    "homepage": "https://www.drupal.org/user/3101285"
+                },
+                {
+                    "name": "himanshu-dixit",
+                    "homepage": "https://www.drupal.org/user/3513954"
+                },
+                {
+                    "name": "wells",
+                    "homepage": "https://www.drupal.org/user/2452278"
+                }
+            ],
+            "description": "Harmonizes social networking services in Drupal",
+            "homepage": "https://www.drupal.org/project/social_api",
+            "keywords": [
+                "Drupal"
+            ],
+            "support": {
+                "source": "https://git.drupalcode.org/project/social_api",
+                "issues": "https://www.drupal.org/project/issues/social_api"
+            }
+        },
+        {
+            "name": "drupal/social_auth",
+            "version": "4.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/social_auth.git",
+                "reference": "4.1.2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/social_auth-4.1.2.zip",
+                "reference": "4.1.2",
+                "shasum": "84dca21b4bce83ef9a1e6887d507f15829f9b6bc"
+            },
+            "require": {
+                "drupal/core": "^9.5 || ^10 || ^11",
+                "drupal/social_api": "^4.0",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "drupal/coder": "^8.3",
+                "phpcompatibility/php-compatibility": "^9.3"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "4.1.2",
+                    "datestamp": "1731637091",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Getulio Valentin Sánchez (gvso)",
+                    "homepage": "https://www.drupal.org/user/3510098",
+                    "email": "valentin2507@gmail.com"
+                },
+                {
+                    "name": "Himansh Dixit (himanshu-dixit)",
+                    "homepage": "https://www.drupal.org/user/550110",
+                    "email": "hudixt@gmail.com"
+                },
+                {
+                    "name": "Chrsitopher C. Wells (wells)",
+                    "homepage": "https://www.drupal.org/user/3101285",
+                    "email": "drupal.org@chris-wells.net"
+                },
+                {
+                    "name": "himanshu-dixit",
+                    "homepage": "https://www.drupal.org/user/3513954"
+                },
+                {
+                    "name": "wells",
+                    "homepage": "https://www.drupal.org/user/2452278"
+                }
+            ],
+            "description": "Social Auth ",
+            "homepage": "https://www.drupal.org/project/social_auth",
+            "keywords": [
+                "Drupal"
+            ],
+            "support": {
+                "source": "https://git.drupalcode.org/project/social_auth",
+                "issues": "https://www.drupal.org/project/issues/social_auth"
+            }
+        },
+        {
+            "name": "drupal/social_auth_google",
+            "version": "4.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/social_auth_google.git",
+                "reference": "4.0.3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/social_auth_google-4.0.3.zip",
+                "reference": "4.0.3",
+                "shasum": "83df4179f3dd86e6e7168864ed108c240d010c4c"
+            },
+            "require": {
+                "drupal/core": "^9.5 || ^10 || ^11",
+                "drupal/social_auth": "^4.1",
+                "league/oauth2-google": "^4.0",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "drupal/coder": "^8.3",
+                "phpcompatibility/php-compatibility": "^9.3"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "4.0.3",
+                    "datestamp": "1725460103",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Getulio Valentin Sánchez (gvso)",
+                    "homepage": "https://www.drupal.org/user/3101285",
+                    "email": "valentin2507@gmail.com"
+                },
+                {
+                    "name": "Himanshu Dixit (himanshu-dixit)",
+                    "homepage": "https://www.drupal.org/user/3513954",
+                    "email": "hudixt@gmail.com"
+                },
+                {
+                    "name": "Christopher C. Wells (wells)",
+                    "homepage": "https://www.drupal.org/user/2452278",
+                    "email": "drupal.org@chris-wells.net"
+                }
+            ],
+            "description": "Social Auth integration for Google.",
+            "homepage": "https://www.drupal.org/project/social_auth_google",
+            "keywords": [
+                "Drupal"
+            ],
+            "support": {
+                "source": "https://git.drupalcode.org/project/social_auth_google",
+                "issues": "https://www.drupal.org/project/issues/social_auth_google"
+            }
+        },
+        {
+            "name": "drupal/social_auth_microsoft",
+            "version": "4.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/social_auth_microsoft.git",
+                "reference": "4.0.1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/social_auth_microsoft-4.0.1.zip",
+                "reference": "4.0.1",
+                "shasum": "a13f0bd242c95e13d33f9868e991632ca2adcfb1"
+            },
+            "require": {
+                "drupal/core": "^9.5 || ^10 || ^11",
+                "drupal/social_auth": "^4.1",
+                "php": ">=8.1",
+                "stevenmaguire/oauth2-microsoft": "^2.0"
+            },
+            "require-dev": {
+                "drupal/coder": "^8.3",
+                "phpcompatibility/php-compatibility": "10.x-dev"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "4.0.1",
+                    "datestamp": "1725712017",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Getulio Valentin Sánchez (gvso)",
+                    "homepage": "https://www.drupal.org/user/3101285",
+                    "email": "valentin2507@gmail.com"
+                },
+                {
+                    "name": "Himanshu Dixit (himanshu-dixit)",
+                    "homepage": "https://www.drupal.org/user/3513954",
+                    "email": "hudixt@gmail.com"
+                },
+                {
+                    "name": "Christopher C. Wells (wells)",
+                    "homepage": "https://www.drupal.org/user/3509455",
+                    "email": "drupal.org@chris-wells.net"
+                },
+                {
+                    "name": "wells",
+                    "homepage": "https://www.drupal.org/user/2452278"
+                }
+            ],
+            "description": "Social Auth integration for Microsoft.",
+            "homepage": "https://www.drupal.org/project/social_auth_microsoft",
+            "keywords": [
+                "Drupal"
+            ],
+            "support": {
+                "source": "https://git.drupalcode.org/project/social_auth_microsoft",
+                "issues": "https://www.drupal.org/project/issues/social_auth_microsoft"
             }
         },
         {
@@ -2918,6 +3421,126 @@
             "time": "2024-09-04T16:06:53+00:00"
         },
         {
+            "name": "league/oauth2-client",
+            "version": "2.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/oauth2-client.git",
+                "reference": "26e8c5da4f3d78cede7021e09b1330a0fc093d5e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/oauth2-client/zipball/26e8c5da4f3d78cede7021e09b1330a0fc093d5e",
+                "reference": "26e8c5da4f3d78cede7021e09b1330a0fc093d5e",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "^6.5.8 || ^7.4.5",
+                "php": "^7.1 || >=8.0.0 <8.6.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.3.5",
+                "php-parallel-lint/php-parallel-lint": "^1.4",
+                "phpunit/phpunit": "^7 || ^8 || ^9 || ^10 || ^11",
+                "squizlabs/php_codesniffer": "^3.11"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "League\\OAuth2\\Client\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alex Bilbie",
+                    "email": "hello@alexbilbie.com",
+                    "homepage": "http://www.alexbilbie.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Woody Gilk",
+                    "homepage": "https://github.com/shadowhand",
+                    "role": "Contributor"
+                }
+            ],
+            "description": "OAuth 2.0 Client Library",
+            "keywords": [
+                "Authentication",
+                "SSO",
+                "authorization",
+                "identity",
+                "idp",
+                "oauth",
+                "oauth2",
+                "single sign on"
+            ],
+            "support": {
+                "issues": "https://github.com/thephpleague/oauth2-client/issues",
+                "source": "https://github.com/thephpleague/oauth2-client/tree/2.9.0"
+            },
+            "time": "2025-11-25T22:17:17+00:00"
+        },
+        {
+            "name": "league/oauth2-google",
+            "version": "4.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/oauth2-google.git",
+                "reference": "8b9bb43740ac6d994aca881a35f7bacbe98c0ffb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/oauth2-google/zipball/8b9bb43740ac6d994aca881a35f7bacbe98c0ffb",
+                "reference": "8b9bb43740ac6d994aca881a35f7bacbe98c0ffb",
+                "shasum": ""
+            },
+            "require": {
+                "league/oauth2-client": "^2.0",
+                "php": "^7.3 || ^8.0"
+            },
+            "require-dev": {
+                "eloquent/phony-phpunit": "^6.0 || ^7.1",
+                "phpunit/phpunit": "^8.0 || ^9.0",
+                "squizlabs/php_codesniffer": "^3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "League\\OAuth2\\Client\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Woody Gilk",
+                    "email": "hello@shadowhand.com",
+                    "homepage": "https://shadowhand.com"
+                }
+            ],
+            "description": "Google OAuth 2.0 Client Provider for The PHP League OAuth2-Client",
+            "keywords": [
+                "Authentication",
+                "authorization",
+                "client",
+                "google",
+                "oauth",
+                "oauth2"
+            ],
+            "support": {
+                "issues": "https://github.com/thephpleague/oauth2-google/issues",
+                "source": "https://github.com/thephpleague/oauth2-google/tree/4.1.0"
+            },
+            "time": "2025-12-15T12:24:14+00:00"
+        },
+        {
             "name": "league/oauth2-server",
             "version": "9.3.0",
             "source": {
@@ -3899,6 +4522,87 @@
             "time": "2025-11-17T14:51:07+00:00"
         },
         {
+            "name": "phpmailer/phpmailer",
+            "version": "v6.12.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHPMailer/PHPMailer.git",
+                "reference": "d1ac35d784bf9f5e61b424901d5a014967f15b12"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/d1ac35d784bf9f5e61b424901d5a014967f15b12",
+                "reference": "d1ac35d784bf9f5e61b424901d5a014967f15b12",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ctype": "*",
+                "ext-filter": "*",
+                "ext-hash": "*",
+                "php": ">=5.5.0"
+            },
+            "require-dev": {
+                "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+                "doctrine/annotations": "^1.2.6 || ^1.13.3",
+                "php-parallel-lint/php-console-highlighter": "^1.0.0",
+                "php-parallel-lint/php-parallel-lint": "^1.3.2",
+                "phpcompatibility/php-compatibility": "^9.3.5",
+                "roave/security-advisories": "dev-latest",
+                "squizlabs/php_codesniffer": "^3.7.2",
+                "yoast/phpunit-polyfills": "^1.0.4"
+            },
+            "suggest": {
+                "decomplexity/SendOauth2": "Adapter for using XOAUTH2 authentication",
+                "ext-mbstring": "Needed to send email in multibyte encoding charset or decode encoded addresses",
+                "ext-openssl": "Needed for secure SMTP sending and DKIM signing",
+                "greew/oauth2-azure-provider": "Needed for Microsoft Azure XOAUTH2 authentication",
+                "hayageek/oauth2-yahoo": "Needed for Yahoo XOAUTH2 authentication",
+                "league/oauth2-google": "Needed for Google XOAUTH2 authentication",
+                "psr/log": "For optional PSR-3 debug logging",
+                "symfony/polyfill-mbstring": "To support UTF-8 if the Mbstring PHP extension is not enabled (^1.2)",
+                "thenetworg/oauth2-azure": "Needed for Microsoft XOAUTH2 authentication"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PHPMailer\\PHPMailer\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-2.1-only"
+            ],
+            "authors": [
+                {
+                    "name": "Marcus Bointon",
+                    "email": "phpmailer@synchromedia.co.uk"
+                },
+                {
+                    "name": "Jim Jagielski",
+                    "email": "jimjag@gmail.com"
+                },
+                {
+                    "name": "Andy Prevost",
+                    "email": "codeworxtech@users.sourceforge.net"
+                },
+                {
+                    "name": "Brent R. Matzelle"
+                }
+            ],
+            "description": "PHPMailer is a full-featured email creation and transfer class for PHP",
+            "support": {
+                "issues": "https://github.com/PHPMailer/PHPMailer/issues",
+                "source": "https://github.com/PHPMailer/PHPMailer/tree/v6.12.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/Synchro",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-10-15T16:49:08+00:00"
+        },
+        {
             "name": "phpowermove/docblock",
             "version": "v4.0",
             "source": {
@@ -4741,6 +5445,60 @@
                 }
             ],
             "time": "2025-02-07T04:55:46+00:00"
+        },
+        {
+            "name": "stevenmaguire/oauth2-microsoft",
+            "version": "2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/stevenmaguire/oauth2-microsoft.git",
+                "reference": "f24f79d8c47224d24a1240270ca3b0a4c1521ed4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/stevenmaguire/oauth2-microsoft/zipball/f24f79d8c47224d24a1240270ca3b0a4c1521ed4",
+                "reference": "f24f79d8c47224d24a1240270ca3b0a4c1521ed4",
+                "shasum": ""
+            },
+            "require": {
+                "league/oauth2-client": "^2.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "~0.9",
+                "phpunit/phpunit": "~4.0",
+                "squizlabs/php_codesniffer": "~2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Stevenmaguire\\OAuth2\\Client\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Steven Maguire",
+                    "email": "stevenmaguire@gmail.com",
+                    "homepage": "https://github.com/stevenmaguire"
+                }
+            ],
+            "description": "Microsoft OAuth 2.0 Client Provider for The PHP League OAuth2-Client",
+            "keywords": [
+                "authorisation",
+                "authorization",
+                "client",
+                "microsoft",
+                "oauth",
+                "oauth2"
+            ],
+            "support": {
+                "issues": "https://github.com/stevenmaguire/oauth2-microsoft/issues",
+                "source": "https://github.com/stevenmaguire/oauth2-microsoft/tree/master"
+            },
+            "time": "2017-06-07T13:42:47+00:00"
         },
         {
             "name": "steverhoades/oauth2-openid-connect-server",

@@ -1,0 +1,15 @@
+name: Social Auth Microsoft
+type: module
+description: 'Social Auth integration for Microsoft.'
+core_version_requirement: ^9.5 || ^10 || ^11
+package: Social
+
+configure: social_auth_microsoft.settings_form
+
+dependencies:
+  - social_auth:social_auth
+
+# Information added by Drupal.org packaging script on 2024-09-07
+version: '4.0.1'
+project: 'social_auth_microsoft'
+datestamp: 1725712019

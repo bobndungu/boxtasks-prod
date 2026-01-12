@@ -1,0 +1,6 @@
+social_auth_microsoft.settings.tab:
+  title: 'Microsoft'
+  route_name: social_auth.network.settings_form
+  route_parameters:
+    network: 'microsoft'
+  base_route: social_auth.integrations
