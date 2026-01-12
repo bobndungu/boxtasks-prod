@@ -3215,30 +3215,17 @@ function SortableCard({
             })()}
           </div>
         )}
-        {/* Member Avatars with Names */}
+        {/* Member Names - displayed at lower right */}
         {fieldVisibility.members && card.members && card.members.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 mt-2">
-            {(fieldVisibility.expanded ? card.members : card.members.slice(0, 2)).map((member) => (
-              <div
-                key={member.id}
-                className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-full pl-0.5 pr-2 py-0.5"
-                title={member.name}
-              >
-                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
-                  {member.name.charAt(0).toUpperCase()}
-                </div>
-                <span className="text-xs text-gray-700 dark:text-gray-300 truncate max-w-[80px]">
-                  {fieldVisibility.expanded ? member.name : member.name.split(' ')[0]}
+          <div className="flex justify-end mt-2">
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+              {card.members.map((member, index) => (
+                <span key={member.id}>
+                  {member.name}
+                  {index < card.members.length - 1 && ', '}
                 </span>
-              </div>
-            ))}
-            {!fieldVisibility.expanded && card.members.length > 2 && (
-              <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-0.5">
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  +{card.members.length - 2} more
-                </span>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         )}
         {/* Custom Fields */}
