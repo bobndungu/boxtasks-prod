@@ -2552,7 +2552,7 @@
       "id": 318,
       "name": "Test extended automation system end-to-end",
       "test": "All new automation triggers, conditions, and actions work correctly together",
-      "status": "in_progress",
+      "status": "completed",
       "type": "both",
       "phase": "automation-extended"
     }
