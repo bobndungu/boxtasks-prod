@@ -142,6 +142,7 @@ export function useIsPWA(): boolean {
 export function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const isPWA = useIsPWA();
 
   useEffect(() => {
@@ -182,15 +183,76 @@ export function PWAInstallPrompt() {
 
     setDeferredPrompt(null);
     setShowPrompt(false);
+    setIsMinimized(false);
   };
 
-  const handleDismiss = () => {
+  const handleMinimize = () => {
+    setIsMinimized(true);
+  };
+
+  const handleExpand = () => {
+    setIsMinimized(false);
+  };
+
+  const handleDontShowAgain = () => {
     localStorage.setItem('pwa-install-dismissed', new Date().toISOString());
     setShowPrompt(false);
+    setIsMinimized(false);
   };
 
   if (!showPrompt) return null;
 
+  // Minimized view
+  if (isMinimized) {
+    return (
+      <div className="fixed bottom-20 md:bottom-4 right-4 z-50 animate-slide-up">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExpand}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              title="Expand"
+            >
+              <img
+                src="/pwa-192x192.png"
+                alt="BoxTasks"
+                className="w-8 h-8 rounded-lg"
+              />
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                Install App
+              </span>
+            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleInstall}
+                className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
+                title="Install"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </button>
+              <button
+                onClick={handleDontShowAgain}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                title="Don't show again for 7 days"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <button
+            onClick={handleDontShowAgain}
+            className="mt-2 w-full text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          >
+            Don't show again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Full view
   return (
     <div className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50 animate-slide-up">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
@@ -217,7 +279,7 @@ export function PWAInstallPrompt() {
                 Install
               </button>
               <button
-                onClick={handleDismiss}
+                onClick={handleMinimize}
                 className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
               >
                 Not now
@@ -225,9 +287,10 @@ export function PWAInstallPrompt() {
             </div>
           </div>
           <button
-            onClick={handleDismiss}
+            onClick={handleMinimize}
             className="flex-shrink-0 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-            aria-label="Dismiss"
+            aria-label="Minimize"
+            title="Minimize"
           >
             <X className="h-4 w-4" />
           </button>
