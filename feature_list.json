@@ -2979,11 +2979,227 @@
       "status": "pending",
       "type": "both",
       "phase": "dashboard-fixes"
+    },
+    {
+      "id": 372,
+      "name": "Update activity descriptions to use full display names",
+      "test": "All activity mentions show user's full name instead of username",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "activity-full-names"
+    },
+    {
+      "id": 373,
+      "name": "Update frontend activity display to use full names",
+      "test": "Activity feed shows full names throughout",
+      "status": "pending",
+      "type": "react",
+      "phase": "activity-full-names"
+    },
+    {
+      "id": 374,
+      "name": "Create mind_map content type in Drupal",
+      "test": "Mind map nodes can be created via JSON:API",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "mind-maps"
+    },
+    {
+      "id": 375,
+      "name": "Create mind_map_node content type for individual nodes",
+      "test": "Mind map nodes with parent/child relationships work",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "mind-maps"
+    },
+    {
+      "id": 376,
+      "name": "Build mind map canvas component with React Flow",
+      "test": "Mind map displays nodes visually with connections",
+      "status": "pending",
+      "type": "react",
+      "phase": "mind-maps"
+    },
+    {
+      "id": 377,
+      "name": "Add mind map node CRUD operations",
+      "test": "Can add, edit, delete, and move nodes on mind map",
+      "status": "pending",
+      "type": "react",
+      "phase": "mind-maps"
+    },
+    {
+      "id": 378,
+      "name": "Implement convert mind map node to card feature",
+      "test": "Mind map node can be converted to a card with description",
+      "status": "pending",
+      "type": "both",
+      "phase": "mind-maps"
+    },
+    {
+      "id": 379,
+      "name": "Add dependency visualization between mind map nodes",
+      "test": "Dependencies shown as arrows between connected nodes",
+      "status": "pending",
+      "type": "react",
+      "phase": "mind-maps"
+    },
+    {
+      "id": 380,
+      "name": "Create mind map page and navigation",
+      "test": "Mind maps accessible from board menu",
+      "status": "pending",
+      "type": "react",
+      "phase": "mind-maps"
+    },
+    {
+      "id": 381,
+      "name": "Create time_entry content type in Drupal",
+      "test": "Time entries can be created with start/end times",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "time-tracking"
+    },
+    {
+      "id": 382,
+      "name": "Add time tracking fields to card content type",
+      "test": "Cards have total time tracked and active timer fields",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "time-tracking"
+    },
+    {
+      "id": 383,
+      "name": "Build time tracking timer component",
+      "test": "Timer can start, pause, stop and shows elapsed time",
+      "status": "pending",
+      "type": "react",
+      "phase": "time-tracking"
+    },
+    {
+      "id": 384,
+      "name": "Add manual time entry form",
+      "test": "Can manually add time entries with date/duration",
+      "status": "pending",
+      "type": "react",
+      "phase": "time-tracking"
+    },
+    {
+      "id": 385,
+      "name": "Display time tracking summary on cards",
+      "test": "Card shows total time tracked with breakdown",
+      "status": "pending",
+      "type": "react",
+      "phase": "time-tracking"
+    },
+    {
+      "id": 386,
+      "name": "Add estimate fields to card content type",
+      "test": "Cards have estimate hours/points fields",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "estimates"
+    },
+    {
+      "id": 387,
+      "name": "Build estimate input UI on cards",
+      "test": "Can set time or story point estimates on cards",
+      "status": "pending",
+      "type": "react",
+      "phase": "estimates"
+    },
+    {
+      "id": 388,
+      "name": "Show estimate vs actual time comparison",
+      "test": "Card displays estimate accuracy and remaining time",
+      "status": "pending",
+      "type": "react",
+      "phase": "estimates"
+    },
+    {
+      "id": 389,
+      "name": "Add list/board estimate totals",
+      "test": "Lists show total estimates, board shows aggregate",
+      "status": "pending",
+      "type": "react",
+      "phase": "estimates"
+    },
+    {
+      "id": 390,
+      "name": "Create google_doc_embed content type",
+      "test": "Google doc references can be stored with URL/embed code",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "google-docs"
+    },
+    {
+      "id": 391,
+      "name": "Build Google Docs embed component",
+      "test": "Google Docs display inline with view/edit options",
+      "status": "pending",
+      "type": "react",
+      "phase": "google-docs"
+    },
+    {
+      "id": 392,
+      "name": "Add Google Docs attachment option to cards",
+      "test": "Can attach Google Doc link to card and view inline",
+      "status": "pending",
+      "type": "react",
+      "phase": "google-docs"
+    },
+    {
+      "id": 393,
+      "name": "Create board reports API endpoint",
+      "test": "API returns board analytics data",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "board-reports"
+    },
+    {
+      "id": 394,
+      "name": "Build BoardReports page component",
+      "test": "Board reports page displays analytics dashboard",
+      "status": "pending",
+      "type": "react",
+      "phase": "board-reports"
+    },
+    {
+      "id": 395,
+      "name": "Add card completion metrics to board reports",
+      "test": "Reports show cards completed over time with charts",
+      "status": "pending",
+      "type": "react",
+      "phase": "board-reports"
+    },
+    {
+      "id": 396,
+      "name": "Add member productivity metrics",
+      "test": "Reports show cards per member, time tracked",
+      "status": "pending",
+      "type": "react",
+      "phase": "board-reports"
+    },
+    {
+      "id": 397,
+      "name": "Add time tracking analytics to reports",
+      "test": "Reports show time spent per list, card, member",
+      "status": "pending",
+      "type": "react",
+      "phase": "board-reports"
+    },
+    {
+      "id": 398,
+      "name": "Add estimate accuracy analytics",
+      "test": "Reports show estimate vs actual comparisons",
+      "status": "pending",
+      "type": "react",
+      "phase": "board-reports"
     }
   ],
   "current_feature": 358,
   "browser_retries": 0,
-  "phase": "activity-enhancements",
+  "phase": "activity-full-names",
   "created_at": "2026-01-10",
   "updated_at": "2026-01-13",
   "source_project": "~/Sites/DrupalDev/BoxTasks/"

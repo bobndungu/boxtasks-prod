@@ -70,6 +70,7 @@ import {
   Briefcase,
   Building2,
   Layout,
+  GitBranch,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { fetchBoard, updateBoard, toggleBoardStar, fetchAllBoards, type Board } from '../lib/api/boards';
@@ -102,6 +103,7 @@ import TimelineView from '../components/TimelineView';
 import TableView from '../components/TableView';
 import DashboardView from '../components/DashboardView';
 import { AutomationRules } from '../components/AutomationRules';
+import { MindMapsPanel } from '../components/MindMapsPanel';
 import { AdvancedFilters, DEFAULT_FILTER_STATE, matchesFilters, type FilterState } from '../components/AdvancedFilters';
 import { BoardSkeleton } from '../components/BoardSkeleton';
 import { highlightText } from '../lib/utils/highlight';
@@ -204,6 +206,7 @@ export default function BoardView() {
 
   // Automation rules state
   const [showAutomationRules, setShowAutomationRules] = useState(false);
+  const [showMindMaps, setShowMindMaps] = useState(false);
 
   // Custom field data for cards display
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
@@ -2116,6 +2119,16 @@ export default function BoardView() {
                         <Zap className="h-4 w-4 mr-3 text-gray-500" />
                         Automation Rules
                       </button>
+                      <button
+                        onClick={() => {
+                          setShowMindMaps(true);
+                          setShowBoardOptionsMenu(false);
+                        }}
+                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <GitBranch className="h-4 w-4 mr-3 text-gray-500" />
+                        Mind Maps
+                      </button>
                       <div className="border-t border-gray-200 my-1" />
                       <button
                         onClick={() => {
@@ -2895,6 +2908,14 @@ export default function BoardView() {
           />
           </div>
         </div>
+      )}
+
+      {/* Mind Maps Panel */}
+      {showMindMaps && id && (
+        <MindMapsPanel
+          boardId={id}
+          onClose={() => setShowMindMaps(false)}
+        />
       )}
 
       {/* Board Settings Modal */}
