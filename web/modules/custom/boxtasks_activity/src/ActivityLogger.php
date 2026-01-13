@@ -89,6 +89,31 @@ class ActivityLogger {
   }
 
   /**
+   * Gets the full display name for a user.
+   *
+   * @param int|null $user_id
+   *   The user ID. If NULL, uses current user.
+   *
+   * @return string
+   *   The user's full display name from field_display_name, or fallback to account name.
+   */
+  public function getUserFullName(?int $user_id = NULL): string {
+    $uid = $user_id ?? $this->currentUser->id();
+
+    try {
+      $user = $this->entityTypeManager->getStorage('user')->load($uid);
+      if ($user && $user->hasField('field_display_name') && !$user->get('field_display_name')->isEmpty()) {
+        return $user->get('field_display_name')->value;
+      }
+      // Fallback to display name
+      return $user ? $user->getDisplayName() : 'Unknown User';
+    }
+    catch (\Exception $e) {
+      return $this->currentUser->getDisplayName() ?: 'Unknown User';
+    }
+  }
+
+  /**
    * Logs an activity.
    *
    * @param string $type
@@ -270,7 +295,7 @@ class ActivityLogger {
    *   The generated description.
    */
   protected function generateCardDescription(string $type, NodeInterface $card, array $data): string {
-    $user_name = $this->currentUser->getDisplayName();
+    $user_name = $this->getUserFullName();
     $card_title = $card->getTitle();
 
     switch ($type) {

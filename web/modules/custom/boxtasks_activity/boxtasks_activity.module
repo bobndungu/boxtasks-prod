@@ -9,6 +9,34 @@
 
 use Drupal\boxtasks_activity\ActivityLogger;
 use Drupal\node\NodeInterface;
+use Drupal\user\UserInterface;
+
+/**
+ * Gets the full display name for a user.
+ *
+ * @param \Drupal\user\UserInterface|int|null $user
+ *   The user entity or user ID. If NULL, uses current user.
+ *
+ * @return string
+ *   The user's full display name from field_display_name, or fallback.
+ */
+function _boxtasks_activity_get_user_full_name(UserInterface|int|null $user = NULL): string {
+  if ($user === NULL) {
+    $user = \Drupal::entityTypeManager()->getStorage('user')->load(\Drupal::currentUser()->id());
+  }
+  elseif (is_int($user)) {
+    $user = \Drupal::entityTypeManager()->getStorage('user')->load($user);
+  }
+
+  if ($user instanceof UserInterface) {
+    if ($user->hasField('field_display_name') && !$user->get('field_display_name')->isEmpty()) {
+      return $user->get('field_display_name')->value;
+    }
+    return $user->getDisplayName();
+  }
+
+  return 'Unknown User';
+}
 
 /**
  * Implements hook_ENTITY_TYPE_insert() for node entities.
@@ -27,7 +55,7 @@ function boxtasks_activity_node_insert(NodeInterface $node): void {
       $board_id = $node->get('field_list_board')->target_id;
       $logger->log(
         ActivityLogger::TYPE_LIST_CREATED,
-        \Drupal::currentUser()->getDisplayName() . ' created list "' . $node->getTitle() . '"',
+        _boxtasks_activity_get_user_full_name() . ' created list "' . $node->getTitle() . '"',
         $board_id
       );
       break;
@@ -144,22 +172,20 @@ function boxtasks_activity_node_update(NodeInterface $node): void {
   $removed_members = array_diff($original_members, $current_members);
 
   foreach ($added_members as $member_id) {
-    $member = \Drupal::entityTypeManager()->getStorage('user')->load($member_id);
     $logger->logCardActivity(
       ActivityLogger::TYPE_MEMBER_ADDED,
       $node,
       NULL,
-      ['member_name' => $member ? $member->getDisplayName() : 'Unknown']
+      ['member_name' => _boxtasks_activity_get_user_full_name((int) $member_id)]
     );
   }
 
   foreach ($removed_members as $member_id) {
-    $member = \Drupal::entityTypeManager()->getStorage('user')->load($member_id);
     $logger->logCardActivity(
       ActivityLogger::TYPE_MEMBER_REMOVED,
       $node,
       NULL,
-      ['member_name' => $member ? $member->getDisplayName() : 'Unknown']
+      ['member_name' => _boxtasks_activity_get_user_full_name((int) $member_id)]
     );
   }
 
