@@ -109,13 +109,19 @@ export async function fetchMyTimeEntries(options?: {
   return data.map((item: Record<string, unknown>) => transformTimeEntry(item, result.included));
 }
 
+// Format date for Drupal (RFC 3339 format with timezone offset)
+function formatDateForDrupal(date: Date): string {
+  // Remove milliseconds and convert Z to +00:00 for Drupal compatibility
+  return date.toISOString().replace(/\.\d{3}Z$/, '+00:00');
+}
+
 // Start a time entry (create with start time only)
 export async function startTimeEntry(data: {
   cardId: string;
   description?: string;
   billable?: boolean;
 }): Promise<TimeEntry> {
-  const startTime = new Date().toISOString();
+  const startTime = formatDateForDrupal(new Date());
 
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/time_entry`, {
     method: 'POST',
@@ -182,7 +188,7 @@ export async function stopTimeEntry(id: string): Promise<TimeEntry> {
         type: 'node--time_entry',
         id,
         attributes: {
-          field_time_end: endTime.toISOString(),
+          field_time_end: formatDateForDrupal(endTime),
           field_time_duration: durationMinutes,
         },
       },
@@ -222,8 +228,8 @@ export async function createTimeEntry(data: {
         type: 'node--time_entry',
         attributes: {
           title: `Time entry for ${data.startTime}`,
-          field_time_start: data.startTime,
-          field_time_end: data.endTime,
+          field_time_start: formatDateForDrupal(start),
+          field_time_end: formatDateForDrupal(end),
           field_time_duration: durationMinutes,
           field_time_description: data.description ? { value: data.description } : null,
           field_time_billable: data.billable ?? false,
@@ -259,8 +265,8 @@ export async function updateTimeEntry(
 ): Promise<TimeEntry> {
   const attributes: Record<string, unknown> = {};
 
-  if (data.startTime) attributes.field_time_start = data.startTime;
-  if (data.endTime !== undefined) attributes.field_time_end = data.endTime || null;
+  if (data.startTime) attributes.field_time_start = formatDateForDrupal(new Date(data.startTime));
+  if (data.endTime !== undefined) attributes.field_time_end = data.endTime ? formatDateForDrupal(new Date(data.endTime)) : null;
   if (data.duration !== undefined) attributes.field_time_duration = data.duration;
   if (data.description !== undefined) {
     attributes.field_time_description = data.description ? { value: data.description } : null;
