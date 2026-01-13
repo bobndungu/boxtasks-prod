@@ -39,6 +39,13 @@ class ActivityLogger {
   public const TYPE_CHECKLIST_ITEM_UNCOMPLETED = 'checklist_item_uncompleted';
   public const TYPE_ATTACHMENT_ADDED = 'attachment_added';
   public const TYPE_ATTACHMENT_REMOVED = 'attachment_removed';
+  public const TYPE_DESCRIPTION_UPDATED = 'description_updated';
+  public const TYPE_TITLE_UPDATED = 'title_updated';
+  public const TYPE_CUSTOM_FIELD_UPDATED = 'custom_field_updated';
+  public const TYPE_DUE_DATE_UPDATED = 'due_date_updated';
+  public const TYPE_START_DATE_SET = 'start_date_set';
+  public const TYPE_START_DATE_REMOVED = 'start_date_removed';
+  public const TYPE_START_DATE_UPDATED = 'start_date_updated';
 
   /**
    * The entity type manager.
@@ -237,6 +244,13 @@ class ActivityLogger {
       self::TYPE_CHECKLIST_ITEM_UNCOMPLETED => 'Checklist item uncompleted',
       self::TYPE_ATTACHMENT_ADDED => 'Attachment added',
       self::TYPE_ATTACHMENT_REMOVED => 'Attachment removed',
+      self::TYPE_DESCRIPTION_UPDATED => 'Description updated',
+      self::TYPE_TITLE_UPDATED => 'Title updated',
+      self::TYPE_CUSTOM_FIELD_UPDATED => 'Custom field updated',
+      self::TYPE_DUE_DATE_UPDATED => 'Due date updated',
+      self::TYPE_START_DATE_SET => 'Start date set',
+      self::TYPE_START_DATE_REMOVED => 'Start date removed',
+      self::TYPE_START_DATE_UPDATED => 'Start date updated',
     ];
 
     return $titles[$type] ?? 'Activity';
@@ -315,9 +329,102 @@ class ActivityLogger {
         $filename = $data['filename'] ?? 'a file';
         return "$user_name attached $filename to \"$card_title\"";
 
+      case self::TYPE_DESCRIPTION_UPDATED:
+        // Store old/new values in JSON format for diff display
+        $old_desc = $data['old_value'] ?? '';
+        $new_desc = $data['new_value'] ?? '';
+        return json_encode([
+          'message' => "$user_name updated description on \"$card_title\"",
+          'old' => $old_desc,
+          'new' => $new_desc,
+          'field' => 'description',
+        ]);
+
+      case self::TYPE_TITLE_UPDATED:
+        $old_title = $data['old_value'] ?? '';
+        $new_title = $data['new_value'] ?? $card_title;
+        return json_encode([
+          'message' => "$user_name renamed card",
+          'old' => $old_title,
+          'new' => $new_title,
+          'field' => 'title',
+        ]);
+
+      case self::TYPE_CUSTOM_FIELD_UPDATED:
+        $field_name = $data['field_name'] ?? 'a field';
+        $old_value = $data['old_value'] ?? '';
+        $new_value = $data['new_value'] ?? '';
+        return json_encode([
+          'message' => "$user_name updated $field_name on \"$card_title\"",
+          'old' => $old_value,
+          'new' => $new_value,
+          'field' => $field_name,
+        ]);
+
+      case self::TYPE_DUE_DATE_UPDATED:
+        $old_date = $data['old_value'] ?? '';
+        $new_date = $data['new_value'] ?? '';
+        return json_encode([
+          'message' => "$user_name changed due date on \"$card_title\"",
+          'old' => $old_date,
+          'new' => $new_date,
+          'field' => 'due_date',
+        ]);
+
+      case self::TYPE_START_DATE_SET:
+        $date = $data['start_date'] ?? '';
+        return "$user_name set start date to $date on \"$card_title\"";
+
+      case self::TYPE_START_DATE_REMOVED:
+        return "$user_name removed start date from \"$card_title\"";
+
+      case self::TYPE_START_DATE_UPDATED:
+        $old_date = $data['old_value'] ?? '';
+        $new_date = $data['new_value'] ?? '';
+        return json_encode([
+          'message' => "$user_name changed start date on \"$card_title\"",
+          'old' => $old_date,
+          'new' => $new_date,
+          'field' => 'start_date',
+        ]);
+
       default:
         return "$user_name updated \"$card_title\"";
     }
+  }
+
+  /**
+   * Logs a field change activity with old and new values.
+   *
+   * @param \Drupal\node\NodeInterface $card
+   *   The card node.
+   * @param string $field_name
+   *   The name of the field that changed.
+   * @param mixed $old_value
+   *   The old value.
+   * @param mixed $new_value
+   *   The new value.
+   *
+   * @return \Drupal\node\NodeInterface|null
+   *   The created activity node.
+   */
+  public function logFieldChange(NodeInterface $card, string $field_name, mixed $old_value, mixed $new_value): ?NodeInterface {
+    // Determine activity type based on field
+    $type = match($field_name) {
+      'description', 'field_card_description' => self::TYPE_DESCRIPTION_UPDATED,
+      'title' => self::TYPE_TITLE_UPDATED,
+      'due_date', 'field_card_due_date' => self::TYPE_DUE_DATE_UPDATED,
+      'start_date', 'field_card_start_date' => self::TYPE_START_DATE_UPDATED,
+      default => self::TYPE_CUSTOM_FIELD_UPDATED,
+    };
+
+    $data = [
+      'field_name' => $field_name,
+      'old_value' => is_string($old_value) ? $old_value : json_encode($old_value),
+      'new_value' => is_string($new_value) ? $new_value : json_encode($new_value),
+    ];
+
+    return $this->logCardActivity($type, $card, NULL, $data);
   }
 
 }
