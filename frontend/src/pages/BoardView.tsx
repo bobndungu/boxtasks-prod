@@ -69,16 +69,17 @@ import {
   Pin,
   Briefcase,
   Building2,
+  Layout,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { fetchBoard, updateBoard, toggleBoardStar, fetchAllBoards, type Board } from '../lib/api/boards';
 import { fetchListsByBoard, createList, updateList, deleteList, archiveList, type BoardList } from '../lib/api/lists';
-import { fetchCardsByList, createCard, updateCard, deleteCard, uploadCardCover, removeCardCover, watchCard, unwatchCard, assignMember, unassignMember, updateCardDepartment, updateCardClient, type Card, type CardLabel, type CardMember } from '../lib/api/cards';
+import { fetchCardsByList, createCard, updateCard, deleteCard, uploadCardCover, removeCardCover, watchCard, unwatchCard, assignMember, unassignMember, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, type Card, type CardLabel, type CardMember } from '../lib/api/cards';
 import { fetchDepartments, fetchClients, type TaxonomyTerm } from '../lib/api/taxonomies';
 import { fetchCommentsByCard, createComment, updateComment, deleteComment, toggleReaction, type CardComment, type ReactionType } from '../lib/api/comments';
 import { fetchAttachmentsByCard, createAttachment, deleteAttachment, formatFileSize, type CardAttachment } from '../lib/api/attachments';
 import { fetchChecklistsByCard, createChecklist, deleteChecklist, createChecklistItem, updateChecklistItem, deleteChecklistItem, updateChecklistItemAssignee, countChecklistItems, MAX_NESTING_DEPTH, type Checklist, type ChecklistItem } from '../lib/api/checklists';
-import { fetchActivitiesByCard, fetchActivitiesByBoard, getActivityDisplay, type Activity } from '../lib/api/activities';
+import { fetchActivitiesByCard, fetchActivitiesByBoard, getActivityDisplay, createActivity, type Activity } from '../lib/api/activities';
 import { createTemplate, fetchTemplates, type CardTemplate, type ChecklistTemplate } from '../lib/api/templates';
 import { createNotification } from '../lib/api/notifications';
 import { fetchWorkspaceMembers, fetchAllUsers, type WorkspaceMember } from '../lib/api/workspaces';
@@ -126,7 +127,7 @@ export default function BoardView() {
   const { user: currentUser } = useAuthStore();
 
   // Role-based permissions
-  const { canView, canCreate, canEdit, canDelete, canMove, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
+  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
 
   // Check if user can view this board (after permissions are loaded)
   // Note: Board ownership is not tracked individually - workspace membership determines access
@@ -143,6 +144,11 @@ export default function BoardView() {
   const [addingCardToList, setAddingCardToList] = useState<string | null>(null);
   const [newCardTitle, setNewCardTitle] = useState('');
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+
+  // Archived cards state
+  const [showArchivedPanel, setShowArchivedPanel] = useState(false);
+  const [archivedCards, setArchivedCards] = useState<Card[]>([]);
+  const [loadingArchived, setLoadingArchived] = useState(false);
 
   // Drag and drop state
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -219,6 +225,8 @@ export default function BoardView() {
     members: boolean;
     customFields: boolean;
     expanded: boolean; // Show expanded card view with more details
+    checklists: boolean; // Show checklist count
+    comments: boolean; // Show comment count
   }
 
   const defaultFieldVisibility: CardFieldVisibility = {
@@ -228,6 +236,8 @@ export default function BoardView() {
     members: true,
     customFields: true,
     expanded: false,
+    checklists: true,
+    comments: true,
   };
 
   const [fieldVisibility, setFieldVisibility] = useState<CardFieldVisibility>(() => {
@@ -246,6 +256,7 @@ export default function BoardView() {
   });
 
   const [showFieldVisibilityMenu, setShowFieldVisibilityMenu] = useState(false);
+  const [showBoardOptionsMenu, setShowBoardOptionsMenu] = useState(false);
 
   // Save field visibility to localStorage
   useEffect(() => {
@@ -405,6 +416,8 @@ export default function BoardView() {
         setShowKeyboardHelp(false);
       } else if (showActivitySidebar) {
         setShowActivitySidebar(false);
+      } else if (showArchivedPanel) {
+        setShowArchivedPanel(false);
       } else if (addingCardToList) {
         setAddingCardToList(null);
         setNewCardTitle('');
@@ -446,14 +459,27 @@ export default function BoardView() {
       }
     },
     onCardUpdated: (cardData) => {
-      const card = cardData as Card;
+      const incomingCard = cardData as Card;
       setCardsByList((prev) => {
         const newMap = new Map(prev);
         for (const [listId, cards] of newMap.entries()) {
-          const index = cards.findIndex((c) => c.id === card.id);
+          const index = cards.findIndex((c) => c.id === incomingCard.id);
           if (index !== -1) {
             const newCards = [...cards];
-            newCards[index] = card;
+            const existingCard = newCards[index];
+            // Merge incoming card data with existing card, preserving approval/rejection data
+            // if not present in the incoming update
+            newCards[index] = {
+              ...existingCard,
+              ...incomingCard,
+              // Preserve approval data if incoming doesn't have it
+              isApproved: incomingCard.isApproved ?? existingCard.isApproved,
+              approvedBy: incomingCard.approvedBy ?? existingCard.approvedBy,
+              approvedAt: incomingCard.approvedAt ?? existingCard.approvedAt,
+              isRejected: incomingCard.isRejected ?? existingCard.isRejected,
+              rejectedBy: incomingCard.rejectedBy ?? existingCard.rejectedBy,
+              rejectedAt: incomingCard.rejectedAt ?? existingCard.rejectedAt,
+            };
             // Sort by position to handle reordering within the list
             newCards.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
             newMap.set(listId, newCards);
@@ -463,8 +489,18 @@ export default function BoardView() {
         return newMap;
       });
       // Update selected card if it's being viewed
-      if (selectedCard?.id === card.id) {
-        setSelectedCard(card);
+      if (selectedCard?.id === incomingCard.id) {
+        setSelectedCard((prev) => prev ? {
+          ...prev,
+          ...incomingCard,
+          // Preserve approval data
+          isApproved: incomingCard.isApproved ?? prev.isApproved,
+          approvedBy: incomingCard.approvedBy ?? prev.approvedBy,
+          approvedAt: incomingCard.approvedAt ?? prev.approvedAt,
+          isRejected: incomingCard.isRejected ?? prev.isRejected,
+          rejectedBy: incomingCard.rejectedBy ?? prev.rejectedBy,
+          rejectedAt: incomingCard.rejectedAt ?? prev.rejectedAt,
+        } : null);
       }
     },
     onCardDeleted: (cardId) => {
@@ -753,8 +789,12 @@ export default function BoardView() {
             fetchWorkspaceMembers(board.workspaceId),
             fetchAllUsers(),
           ]);
-          setWorkspaceMembers(members);
-          setAllUsers(users);
+          // Filter out system users from dropdowns (Boxraft Admin, n8n_api)
+          const systemUserNames = ['boxraft admin', 'n8n_api', 'n8n api'];
+          const filterSystemUsers = (userList: typeof members) =>
+            userList.filter(u => !systemUserNames.includes(u.displayName.toLowerCase()));
+          setWorkspaceMembers(filterSystemUsers(members));
+          setAllUsers(filterSystemUsers(users));
         } catch (memberErr) {
           console.error('Failed to load members:', memberErr);
         }
@@ -902,6 +942,8 @@ export default function BoardView() {
       attachmentCount: 0,
       checklistCompleted: 0,
       checklistTotal: 0,
+      isApproved: false,
+      isRejected: false,
     };
 
     // Clear form immediately for better UX
@@ -959,6 +1001,9 @@ export default function BoardView() {
           }
           return newMap;
         });
+        // Show activity notification for card creation
+        const listName = lists.find(l => l.id === listId)?.title || 'list';
+        toast.info(`Card "${newCard.title}" added to "${listName}"`, 3000);
       },
       rollbackState: setCardsByList,
       options: { errorMessage: 'Failed to create card' },
@@ -1133,6 +1178,7 @@ export default function BoardView() {
     if (!confirm('Delete this card?')) return;
 
     try {
+      const listName = lists.find(l => l.id === card.listId)?.title || 'list';
       await deleteCard(card.id);
       const newCardsMap = new Map(cardsByList);
       const listCards = newCardsMap.get(card.listId) || [];
@@ -1142,6 +1188,8 @@ export default function BoardView() {
       );
       setCardsByList(newCardsMap);
       setSelectedCard(null);
+      // Show activity notification for card deletion
+      toast.info(`Card "${card.title}" deleted from "${listName}"`, 3000);
     } catch {
       setError('Failed to delete card');
     }
@@ -1149,6 +1197,7 @@ export default function BoardView() {
 
   const handleArchiveCard = async (card: Card) => {
     try {
+      const listName = lists.find(l => l.id === card.listId)?.title || 'list';
       await updateCard(card.id, { archived: true });
       const newCardsMap = new Map(cardsByList);
       const listCards = newCardsMap.get(card.listId) || [];
@@ -1158,8 +1207,149 @@ export default function BoardView() {
       );
       setCardsByList(newCardsMap);
       setSelectedCard(null);
+
+      // Create activity record for archiving
+      try {
+        await createActivity({
+          type: 'card_archived',
+          description: `${currentUser?.displayName || 'User'} archived "${card.title}" from ${listName}`,
+          cardId: card.id,
+          boardId: id || undefined,
+        });
+      } catch (activityErr) {
+        console.error('Failed to create archive activity:', activityErr);
+      }
+
+      // Send notifications to card members and watchers (excluding current user)
+      const usersToNotify = new Set<string>();
+      // Add assigned members
+      if (card.memberIds) {
+        card.memberIds.forEach(memberId => usersToNotify.add(memberId));
+      }
+      // Add watchers
+      if (card.watcherIds) {
+        card.watcherIds.forEach(watcherId => usersToNotify.add(watcherId));
+      }
+      // Remove current user from notification list
+      if (currentUser?.id) {
+        usersToNotify.delete(currentUser.id);
+      }
+
+      // Send notifications
+      for (const userId of usersToNotify) {
+        try {
+          await createNotification({
+            userId,
+            type: 'card_archived',
+            message: `${currentUser?.displayName || 'Someone'} archived "${card.title}"`,
+            cardId: card.id,
+            actorId: currentUser?.id,
+          });
+        } catch (notifyErr) {
+          console.error('Failed to send archive notification:', notifyErr);
+        }
+      }
+
+      // Show activity notification for card archiving
+      toast.info(`Card "${card.title}" archived from "${listName}"`, 3000);
+
+      // Add to archived cards list if panel is open
+      if (showArchivedPanel) {
+        setArchivedCards(prev => [{ ...card, archived: true }, ...prev]);
+      }
     } catch {
       setError('Failed to archive card');
+    }
+  };
+
+  // Load archived cards for the board
+  const loadArchivedCards = useCallback(async () => {
+    if (!id || lists.length === 0) return;
+
+    setLoadingArchived(true);
+    try {
+      const listIds = lists.map(l => l.id);
+      const archived = await fetchArchivedCardsByBoard(id, listIds);
+      setArchivedCards(archived);
+    } catch (err) {
+      console.error('Failed to load archived cards:', err);
+      toast.error('Failed to load archived cards');
+    } finally {
+      setLoadingArchived(false);
+    }
+  }, [id, lists]);
+
+  // Load archived cards when panel is opened
+  useEffect(() => {
+    if (showArchivedPanel && archivedCards.length === 0) {
+      loadArchivedCards();
+    }
+  }, [showArchivedPanel, loadArchivedCards, archivedCards.length]);
+
+  // Handle restoring an archived card
+  const handleRestoreCard = async (card: Card) => {
+    try {
+      const listName = lists.find(l => l.id === card.listId)?.title || 'list';
+
+      // Restore the card (set archived = false)
+      const restoredCard = await restoreCard(card.id);
+
+      // Remove from archived cards list
+      setArchivedCards(prev => prev.filter(c => c.id !== card.id));
+
+      // Add to the appropriate list in cardsByList
+      const newCardsMap = new Map(cardsByList);
+      const listCards = newCardsMap.get(card.listId) || [];
+      // Add to the top of the list
+      newCardsMap.set(card.listId, [{ ...restoredCard, archived: false }, ...listCards]);
+      setCardsByList(newCardsMap);
+
+      // Create activity record for restoring
+      try {
+        await createActivity({
+          type: 'card_restored',
+          description: `${currentUser?.displayName || 'User'} restored "${card.title}" to ${listName}`,
+          cardId: card.id,
+          boardId: id || undefined,
+        });
+      } catch (activityErr) {
+        console.error('Failed to create restore activity:', activityErr);
+      }
+
+      // Show success message
+      toast.success(`Card "${card.title}" restored to "${listName}"`);
+    } catch {
+      setError('Failed to restore card');
+      toast.error('Failed to restore card');
+    }
+  };
+
+  // Handle permanently deleting an archived card
+  const handleDeleteArchivedCard = async (card: Card) => {
+    if (!window.confirm(`Are you sure you want to permanently delete "${card.title}"? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await deleteCard(card.id);
+
+      // Remove from archived cards list
+      setArchivedCards(prev => prev.filter(c => c.id !== card.id));
+
+      // Create activity record
+      try {
+        await createActivity({
+          type: 'card_deleted',
+          description: `${currentUser?.displayName || 'User'} permanently deleted "${card.title}"`,
+          boardId: id || undefined,
+        });
+      } catch (activityErr) {
+        console.error('Failed to create delete activity:', activityErr);
+      }
+
+      toast.success(`Card "${card.title}" permanently deleted`);
+    } catch {
+      toast.error('Failed to delete card');
     }
   };
 
@@ -1468,6 +1658,14 @@ export default function BoardView() {
             return Promise.resolve();
           })
         );
+
+        // Show activity notification for card movement
+        const movedCard = newCardOrder.find(c => c.id === activeIdStr);
+        const fromList = lists.find(l => l.id === sourceListId);
+        const toList = lists.find(l => l.id === currentListId);
+        if (movedCard && fromList && toList) {
+          toast.info(`Card "${movedCard.title}" moved from "${fromList.title}" to "${toList.title}"`, 3000);
+        }
       } catch {
         setError('Failed to move card');
       }
@@ -1548,11 +1746,18 @@ export default function BoardView() {
       className="min-h-screen flex flex-col"
       style={{ backgroundColor: currentBoard?.background || '#0079BF' }}
     >
-      {/* Board Header */}
+      {/* Board Header - Two Row Layout */}
       <header className="bg-black/30 backdrop-blur-sm relative z-20">
-        <div className="px-4 py-2">
+        {/* Row 1: Primary Navigation */}
+        <div className="px-4 py-2 border-b border-white/10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              {/* BoxTasks Logo */}
+              <Link to="/dashboard" className="flex items-center space-x-2 text-white hover:text-white/90">
+                <Layout className="h-6 w-6" />
+                <span className="font-bold text-lg hidden sm:inline">BoxTasks</span>
+              </Link>
+
               <Link to={`/workspace/${currentBoard?.workspaceId}`} className="text-white/80 hover:text-white">
                 <ArrowLeft className="h-5 w-5" />
               </Link>
@@ -1610,6 +1815,26 @@ export default function BoardView() {
               </button>
             </div>
 
+            {/* Connection Status & Active Users on Row 1 */}
+            <div className="flex items-center space-x-2">
+              {activeUsers.length > 0 && (
+                <div className="bg-white/10 rounded px-2 py-1">
+                  <ActiveUsers users={activeUsers} maxDisplay={3} />
+                </div>
+              )}
+              <ConnectionStatus
+                state={mercureConnection}
+                onReconnect={mercureConnection.reconnect}
+                className="text-white/80 p-1.5"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: Board Actions */}
+        <div className="px-4 py-1.5">
+          <div className="flex items-center justify-between">
+            {/* Left: Search & Filters */}
             <div className="flex items-center space-x-2">
               {/* Search */}
               {showSearch ? (
@@ -1656,7 +1881,7 @@ export default function BoardView() {
                   Search
                 </button>
               )}
-              {/* Advanced Filters - unified filter panel */}
+              {/* Advanced Filters */}
               <AdvancedFilters
                 filters={advancedFilters}
                 onFiltersChange={setAdvancedFilters}
@@ -1687,6 +1912,11 @@ export default function BoardView() {
                   My Cards
                 </button>
               )}
+            </div>
+
+            {/* Right: Actions & Settings */}
+            <div className="flex items-center space-x-2">
+              {/* Share Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setShowShareDropdown(!showShareDropdown)}
@@ -1698,49 +1928,54 @@ export default function BoardView() {
                   Share
                 </button>
                 {showShareDropdown && (
-                  <div className="absolute top-full right-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
-                    <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="font-medium text-gray-900 dark:text-white text-sm">Share Board</h3>
-                    </div>
-                    <div className="p-3 space-y-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                          Board Link
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            readOnly
-                            value={window.location.href}
-                            className="flex-1 text-sm px-2 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-gray-700 dark:text-gray-200"
-                          />
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(window.location.href);
-                              toast.success('Link copied to clipboard');
-                              setShowShareDropdown(false);
-                            }}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                            title="Copy link"
-                          >
-                            <Copy className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                          </button>
-                        </div>
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowShareDropdown(false)} />
+                    <div className="absolute top-full right-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                      <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                        <h3 className="font-medium text-gray-900 dark:text-white text-sm">Share Board</h3>
                       </div>
-                      <button
-                        onClick={() => {
-                          window.open(window.location.href, '_blank');
-                          setShowShareDropdown(false);
-                        }}
-                        className="w-full flex items-center px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2 text-gray-400" />
-                        Open in new tab
-                      </button>
+                      <div className="p-3 space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                            Board Link
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              readOnly
+                              value={window.location.href}
+                              className="flex-1 text-sm px-2 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-gray-700 dark:text-gray-200"
+                            />
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(window.location.href);
+                                toast.success('Link copied to clipboard');
+                                setShowShareDropdown(false);
+                              }}
+                              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                              title="Copy link"
+                            >
+                              <Copy className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            window.open(window.location.href, '_blank');
+                            setShowShareDropdown(false);
+                          }}
+                          className="w-full flex items-center px-2 py-1.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2 text-gray-400" />
+                          Open in new tab
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
+
+              {/* Activity Button */}
               <button
                 onClick={toggleActivitySidebar}
                 className={`px-3 py-1.5 rounded flex items-center text-sm ${
@@ -1750,16 +1985,22 @@ export default function BoardView() {
                 <Clock className="h-4 w-4 mr-2" />
                 Activity
               </button>
-              {activeUsers.length > 0 && (
-                <div className="bg-white/10 rounded px-2 py-1">
-                  <ActiveUsers users={activeUsers} maxDisplay={3} />
-                </div>
-              )}
-              <ConnectionStatus
-                state={mercureConnection}
-                onReconnect={mercureConnection.reconnect}
-                className="text-white/80 p-1.5"
-              />
+
+              {/* Archived Cards Button */}
+              <button
+                onClick={() => setShowArchivedPanel(!showArchivedPanel)}
+                className={`px-3 py-1.5 rounded flex items-center text-sm ${
+                  showArchivedPanel ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                Archived
+              </button>
+
+              {/* Divider */}
+              <div className="h-6 w-px bg-white/20" />
+
+              {/* View Controls */}
               <ViewSelector
                 currentView={currentView}
                 onViewChange={setCurrentView}
@@ -1780,113 +2021,158 @@ export default function BoardView() {
                 onDeleteView={handleDeleteView}
                 onSetDefault={handleSetDefaultView}
               />
-              <button
-                onClick={() => setShowCustomFields(true)}
-                className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded flex items-center gap-1"
-                title="Custom Fields"
-              >
-                <Settings className="h-4 w-4" />
-                <span className="text-sm hidden sm:inline">Fields</span>
-              </button>
-              <button
-                onClick={() => setShowAutomationRules(true)}
-                className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded flex items-center gap-1"
-                title="Automation Rules"
-              >
-                <Zap className="h-4 w-4" />
-                <span className="text-sm hidden sm:inline">Automation</span>
-              </button>
+
+              {/* Divider */}
+              <div className="h-6 w-px bg-white/20" />
+
+              {/* Board Options Dropdown */}
               <div className="relative">
                 <button
-                  onClick={() => setShowFieldVisibilityMenu(!showFieldVisibilityMenu)}
-                  className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded flex items-center gap-1"
-                  title="Card Field Visibility"
+                  onClick={() => setShowBoardOptionsMenu(!showBoardOptionsMenu)}
+                  className={`px-3 py-1.5 rounded flex items-center text-sm ${
+                    showBoardOptionsMenu ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}
                 >
-                  <EyeOff className="h-4 w-4" />
-                  <span className="text-sm hidden sm:inline">Show/Hide</span>
+                  <MoreHorizontal className="h-4 w-4 mr-2" />
+                  Options
                 </button>
-                {showFieldVisibilityMenu && (
+                {showBoardOptionsMenu && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowFieldVisibilityMenu(false)} />
-                    <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50 w-56">
-                      <h5 className="text-sm font-medium text-gray-700 mb-2 pb-2 border-b">Card Fields Visibility</h5>
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={fieldVisibility.labels}
-                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, labels: e.target.checked }))}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">Labels</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={fieldVisibility.startDate}
-                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, startDate: e.target.checked }))}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">Start Date</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={fieldVisibility.dueDate}
-                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, dueDate: e.target.checked }))}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">Due Date</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={fieldVisibility.members}
-                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, members: e.target.checked }))}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">Members</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={fieldVisibility.customFields}
-                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, customFields: e.target.checked }))}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">Custom Fields</span>
-                      </label>
-                    </div>
-                    <div className="border-t border-gray-200 mt-3 pt-3">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={fieldVisibility.expanded}
-                          onChange={(e) => setFieldVisibility((prev) => ({ ...prev, expanded: e.target.checked }))}
-                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                        />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-700">Expanded View</span>
-                          <span className="text-xs text-gray-500">Show description, badges, full labels</span>
-                        </div>
-                      </label>
-                    </div>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowBoardOptionsMenu(false)} />
+                    <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 w-56">
                       <button
-                        onClick={() => setShowFieldVisibilityMenu(false)}
-                        className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
+                        onClick={() => {
+                          setShowCustomFields(true);
+                          setShowBoardOptionsMenu(false);
+                        }}
+                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        Close
+                        <Settings className="h-4 w-4 mr-3 text-gray-500" />
+                        Custom Fields
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowAutomationRules(true);
+                          setShowBoardOptionsMenu(false);
+                        }}
+                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <Zap className="h-4 w-4 mr-3 text-gray-500" />
+                        Automation Rules
+                      </button>
+                      <div className="border-t border-gray-200 my-1" />
+                      <button
+                        onClick={() => {
+                          setShowFieldVisibilityMenu(true);
+                          setShowBoardOptionsMenu(false);
+                        }}
+                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <EyeOff className="h-4 w-4 mr-3 text-gray-500" />
+                        Show/Hide Fields
                       </button>
                     </div>
                   </>
                 )}
               </div>
-              <button className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded">
-                <MoreHorizontal className="h-5 w-5" />
-              </button>
             </div>
           </div>
         </div>
+
+        {/* Field Visibility Menu (Separate Modal) */}
+        {showFieldVisibilityMenu && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setShowFieldVisibilityMenu(false)} />
+            <div className="fixed right-4 top-28 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50 w-56">
+              <h5 className="text-sm font-medium text-gray-700 mb-2 pb-2 border-b">Card Fields Visibility</h5>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={fieldVisibility.labels}
+                    onChange={(e) => setFieldVisibility((prev) => ({ ...prev, labels: e.target.checked }))}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Labels</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={fieldVisibility.startDate}
+                    onChange={(e) => setFieldVisibility((prev) => ({ ...prev, startDate: e.target.checked }))}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Start Date</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={fieldVisibility.dueDate}
+                    onChange={(e) => setFieldVisibility((prev) => ({ ...prev, dueDate: e.target.checked }))}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Due Date</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={fieldVisibility.members}
+                    onChange={(e) => setFieldVisibility((prev) => ({ ...prev, members: e.target.checked }))}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Members</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={fieldVisibility.customFields}
+                    onChange={(e) => setFieldVisibility((prev) => ({ ...prev, customFields: e.target.checked }))}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Custom Fields</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={fieldVisibility.checklists}
+                    onChange={(e) => setFieldVisibility((prev) => ({ ...prev, checklists: e.target.checked }))}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Checklist Count</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={fieldVisibility.comments}
+                    onChange={(e) => setFieldVisibility((prev) => ({ ...prev, comments: e.target.checked }))}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Comment Count</span>
+                </label>
+              </div>
+              <div className="border-t border-gray-200 mt-3 pt-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={fieldVisibility.expanded}
+                    onChange={(e) => setFieldVisibility((prev) => ({ ...prev, expanded: e.target.checked }))}
+                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-700">Expanded View</span>
+                    <span className="text-xs text-gray-500">Show description, badges, full labels</span>
+                  </div>
+                </label>
+              </div>
+              <button
+                onClick={() => setShowFieldVisibilityMenu(false)}
+                className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
+              >
+                Close
+              </button>
+            </div>
+          </>
+        )}
       </header>
 
       {/* Error Banner */}
@@ -2046,6 +2332,7 @@ export default function BoardView() {
                   canCreateCard={canCreate('card')}
                   canEditList={canEdit('list', false)}
                   canDeleteList={canDelete('list', false)}
+                  canArchiveCard={(authorId: string) => canArchive('card', authorId === currentUser?.id)}
                 />
               ))}
             </SortableContext>
@@ -2169,6 +2456,78 @@ export default function BoardView() {
           </div>
         </div>
       )}
+
+      {/* Archived Cards Panel */}
+      {showArchivedPanel && (
+        <div className="w-80 bg-white shadow-lg overflow-hidden flex flex-col">
+          <div className="p-4 border-b flex items-center justify-between">
+            <h3 className="font-semibold text-gray-800">Archived Cards</h3>
+            <button
+              onClick={() => setShowArchivedPanel(false)}
+              className="p-1 hover:bg-gray-100 rounded"
+            >
+              <X className="h-5 w-5 text-gray-500" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            {loadingArchived ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              </div>
+            ) : archivedCards.length === 0 ? (
+              <div className="text-center py-8">
+                <Archive className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">No archived cards</p>
+                <p className="text-gray-400 text-xs mt-1">Archived cards will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {archivedCards.map((card) => {
+                  const listName = lists.find(l => l.id === card.listId)?.title || 'Unknown list';
+                  return (
+                    <div
+                      key={card.id}
+                      className="bg-gray-50 rounded-lg p-3 border border-gray-200"
+                    >
+                      <h4 className="font-medium text-gray-800 text-sm">{card.title}</h4>
+                      <p className="text-xs text-gray-500 mt-1">From: {listName}</p>
+                      {card.description && (
+                        <p className="text-xs text-gray-400 mt-1 line-clamp-2">{card.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-3">
+                        <button
+                          onClick={() => handleRestoreCard(card)}
+                          className="flex-1 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded transition-colors flex items-center justify-center"
+                        >
+                          <Archive className="h-3 w-3 mr-1 rotate-180" />
+                          Restore
+                        </button>
+                        {canDelete('card', card.authorId === currentUser?.id) && (
+                          <button
+                            onClick={() => handleDeleteArchivedCard(card)}
+                            className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-medium rounded transition-colors flex items-center justify-center"
+                            title="Delete permanently"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <div className="p-3 border-t">
+            <button
+              onClick={loadArchivedCards}
+              className="w-full text-sm text-blue-600 hover:text-blue-700 py-2"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      )}
       </div>
 
       {/* Keyboard Shortcuts Help */}
@@ -2271,7 +2630,49 @@ export default function BoardView() {
           }}
           canEditCard={canEdit('card', selectedCard.authorId === currentUser?.id)}
           canDeleteCard={canDelete('card', selectedCard.authorId === currentUser?.id)}
+          canArchiveCard={canArchive('card', selectedCard.authorId === currentUser?.id)}
           canMoveCard={canMove('card', selectedCard.authorId === currentUser?.id)}
+          onApprove={async (cardId) => {
+            if (!currentUser) return;
+            const updatedCard = await approveCard(cardId, currentUser.id);
+            setCardsByList((prev) => {
+              const newMap = new Map(prev);
+              const listCards = newMap.get(updatedCard.listId) || [];
+              const updatedCards = listCards.map((c) =>
+                c.id === cardId ? { ...c, isApproved: true, isRejected: false, approvedBy: { id: currentUser.id, name: currentUser.displayName }, approvedAt: new Date().toISOString(), rejectedBy: undefined, rejectedAt: undefined } : c
+              );
+              newMap.set(updatedCard.listId, updatedCards);
+              return newMap;
+            });
+            setSelectedCard((prev) => prev ? { ...prev, isApproved: true, isRejected: false, approvedBy: { id: currentUser.id, name: currentUser.displayName }, approvedAt: new Date().toISOString(), rejectedBy: undefined, rejectedAt: undefined } : null);
+          }}
+          onReject={async (cardId) => {
+            if (!currentUser) return;
+            const updatedCard = await rejectCard(cardId, currentUser.id);
+            setCardsByList((prev) => {
+              const newMap = new Map(prev);
+              const listCards = newMap.get(updatedCard.listId) || [];
+              const updatedCards = listCards.map((c) =>
+                c.id === cardId ? { ...c, isApproved: false, isRejected: true, approvedBy: undefined, approvedAt: undefined, rejectedBy: { id: currentUser.id, name: currentUser.displayName }, rejectedAt: new Date().toISOString() } : c
+              );
+              newMap.set(updatedCard.listId, updatedCards);
+              return newMap;
+            });
+            setSelectedCard((prev) => prev ? { ...prev, isApproved: false, isRejected: true, approvedBy: undefined, approvedAt: undefined, rejectedBy: { id: currentUser.id, name: currentUser.displayName }, rejectedAt: new Date().toISOString() } : null);
+          }}
+          onClearStatus={async (cardId) => {
+            const updatedCard = await clearApprovalStatus(cardId);
+            setCardsByList((prev) => {
+              const newMap = new Map(prev);
+              const listCards = newMap.get(updatedCard.listId) || [];
+              const updatedCards = listCards.map((c) =>
+                c.id === cardId ? { ...c, isApproved: false, isRejected: false, approvedBy: undefined, approvedAt: undefined, rejectedBy: undefined, rejectedAt: undefined } : c
+              );
+              newMap.set(updatedCard.listId, updatedCards);
+              return newMap;
+            });
+            setSelectedCard((prev) => prev ? { ...prev, isApproved: false, isRejected: false, approvedBy: undefined, approvedAt: undefined, rejectedBy: undefined, rejectedAt: undefined } : null);
+          }}
           onMove={async (cardId, fromListId, toListId) => {
             // Get the destination list cards BEFORE updating state
             const destCards = cardsByList.get(toListId) || [];
@@ -2517,6 +2918,7 @@ function SortableList({
   canCreateCard,
   canEditList,
   canDeleteList,
+  canArchiveCard,
 }: {
   list: BoardList;
   cards: Card[];
@@ -2542,6 +2944,7 @@ function SortableList({
   canCreateCard: boolean;
   canEditList: boolean;
   canDeleteList: boolean;
+  canArchiveCard: (authorId: string) => boolean;
 }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(list.title);
@@ -2931,6 +3334,7 @@ function SortableList({
                         cardCustomFieldValues={customFieldValues.get(card.id) || []}
                         searchQuery={searchQuery}
                         fieldVisibility={fieldVisibility}
+                        canArchiveCard={canArchiveCard(card.authorId || '')}
                       />
                     </div>
                   );
@@ -2960,6 +3364,7 @@ function SortableList({
                     cardCustomFieldValues={customFieldValues.get(card.id) || []}
                     searchQuery={searchQuery}
                     fieldVisibility={fieldVisibility}
+                    canArchiveCard={canArchiveCard(card.authorId || '')}
                   />
                 ))}
               </div>
@@ -2986,6 +3391,8 @@ interface CardFieldVisibilityProps {
   members: boolean;
   customFields: boolean;
   expanded: boolean;
+  checklists: boolean;
+  comments: boolean;
 }
 
 function SortableCard({
@@ -2998,6 +3405,7 @@ function SortableCard({
   cardCustomFieldValues,
   searchQuery = '',
   fieldVisibility,
+  canArchiveCard,
 }: {
   card: Card;
   onClick: () => void;
@@ -3008,6 +3416,7 @@ function SortableCard({
   cardCustomFieldValues: CustomFieldValue[];
   searchQuery?: string;
   fieldVisibility: CardFieldVisibilityProps;
+  canArchiveCard: boolean;
 }) {
   const [showQuickActions, setShowQuickActions] = useState(false);
 
@@ -3066,13 +3475,15 @@ function SortableCard({
           >
             <Edit2 className="h-3.5 w-3.5" />
           </button>
-          <button
-            onClick={onQuickArchive}
-            className="p-1 bg-white/90 text-gray-600 rounded shadow-sm hover:bg-orange-50 hover:text-orange-600 transition-colors"
-            title="Archive card"
-          >
-            <Archive className="h-3.5 w-3.5" />
-          </button>
+          {canArchiveCard && (
+            <button
+              onClick={onQuickArchive}
+              className="p-1 bg-white/90 text-gray-600 rounded shadow-sm hover:bg-orange-50 hover:text-orange-600 transition-colors"
+              title="Archive card"
+            >
+              <Archive className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       )}
 
@@ -3125,11 +3536,55 @@ function SortableCard({
             {searchQuery ? highlightText(card.title, searchQuery) : card.title}
           </p>
         </div>
+        {/* Approval/Rejection Status Badge */}
+        {(card.isApproved || card.isRejected) && (
+          <div className={`mt-2 flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
+            card.isApproved
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}>
+            {card.isApproved ? (
+              <>
+                <Check className="h-3 w-3" />
+                <span>Approved{card.approvedBy?.name ? ` by ${card.approvedBy.name}` : ''}</span>
+              </>
+            ) : (
+              <>
+                <X className="h-3 w-3" />
+                <span>Rejected{card.rejectedBy?.name ? ` by ${card.rejectedBy.name}` : ''}</span>
+              </>
+            )}
+          </div>
+        )}
         {/* Description preview - expanded view only */}
         {fieldVisibility.expanded && card.description && (
           <p className="text-xs text-gray-500 mt-2 line-clamp-2 leading-relaxed">
             {card.description.length > 120 ? card.description.substring(0, 120) + '...' : card.description}
           </p>
+        )}
+        {/* Checklist and Comment counts - controlled by Show/Hide settings */}
+        {!fieldVisibility.expanded && (
+          (fieldVisibility.checklists && card.checklistTotal > 0) ||
+          (fieldVisibility.comments && card.commentCount > 0)
+        ) && (
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            {fieldVisibility.checklists && card.checklistTotal > 0 && (
+              <span className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
+                card.checklistCompleted === card.checklistTotal
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+              }`}>
+                <CheckSquare className="h-3 w-3" />
+                {card.checklistCompleted}/{card.checklistTotal}
+              </span>
+            )}
+            {fieldVisibility.comments && card.commentCount > 0 && (
+              <span className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                <MessageCircle className="h-3 w-3" />
+                {card.commentCount}
+              </span>
+            )}
+          </div>
         )}
         {/* Activity badges - expanded view only */}
         {fieldVisibility.expanded && (card.commentCount > 0 || card.attachmentCount > 0 || card.checklistTotal > 0) && (
@@ -3202,7 +3657,7 @@ function SortableCard({
               }
 
               const hasTime = dueDate.getHours() !== 0 || dueDate.getMinutes() !== 0;
-              const dateStr = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+              const dateStr = `Due: ${dueDate.getDate()} ${dueDate.toLocaleDateString('en-US', { month: 'short' })} ${dueDate.getFullYear()}`;
               const timeStr = hasTime ? dueDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
 
               return (
@@ -3359,8 +3814,12 @@ function CardDetailModal({
   onClientChange,
   canEditCard,
   canDeleteCard,
+  canArchiveCard,
   canMoveCard,
   onMove,
+  onApprove,
+  onReject,
+  onClearStatus,
 }: {
   card: Card;
   listTitle: string;
@@ -3382,8 +3841,13 @@ function CardDetailModal({
   // Permission checks
   canEditCard: boolean;
   canDeleteCard: boolean;
+  canArchiveCard: boolean;
   canMoveCard: boolean;
   onMove: (cardId: string, fromListId: string, toListId: string) => void;
+  // Approval/Rejection
+  onApprove: (cardId: string) => Promise<void>;
+  onReject: (cardId: string) => Promise<void>;
+  onClearStatus: (cardId: string) => Promise<void>;
 }) {
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description || '');
@@ -3440,6 +3904,9 @@ function CardDetailModal({
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
   const [showTemplateNameModal, setShowTemplateNameModal] = useState(false);
   const [templateName, setTemplateName] = useState('');
+
+  // Approval state
+  const [isApproving, setIsApproving] = useState(false);
 
   // Member state
   const [cardMembers, setCardMembers] = useState<CardMember[]>(card.members || []);
@@ -3908,8 +4375,24 @@ function CardDetailModal({
 
     setIsAddingWatcher(true);
     try {
-      await watchCard(card.id, userId);
+      const updatedCard = await watchCard(card.id, userId);
+      // Update the card's watcherIds in the parent state
+      onUpdate(card.id, { watcherIds: updatedCard.watcherIds });
       toast.success(`${userName} added as watcher`);
+      // Create activity for watcher added and refresh activities
+      try {
+        await createActivity({
+          type: 'watcher_added',
+          description: `${currentUser?.displayName || 'User'} added ${userName} as watcher on "${card.title}"`,
+          cardId: card.id,
+          boardId: boardId || undefined,
+        });
+        // Refresh activities list
+        const cardActivities = await fetchActivitiesByCard(card.id);
+        setActivities(cardActivities);
+      } catch (activityErr) {
+        console.error('Failed to create watcher activity:', activityErr);
+      }
     } catch (err) {
       console.error('Failed to add watcher:', err);
       toast.error('Failed to add watcher');
@@ -3923,8 +4406,24 @@ function CardDetailModal({
 
     setIsAddingWatcher(true);
     try {
-      await unwatchCard(card.id, userId);
+      const updatedCard = await unwatchCard(card.id, userId);
+      // Update the card's watcherIds in the parent state
+      onUpdate(card.id, { watcherIds: updatedCard.watcherIds });
       toast.success(`${userName} removed as watcher`);
+      // Create activity for watcher removed and refresh activities
+      try {
+        await createActivity({
+          type: 'watcher_removed',
+          description: `${currentUser?.displayName || 'User'} removed ${userName} as watcher from "${card.title}"`,
+          cardId: card.id,
+          boardId: boardId || undefined,
+        });
+        // Refresh activities list
+        const cardActivities = await fetchActivitiesByCard(card.id);
+        setActivities(cardActivities);
+      } catch (activityErr) {
+        console.error('Failed to create watcher activity:', activityErr);
+      }
     } catch (err) {
       console.error('Failed to remove watcher:', err);
       toast.error('Failed to remove watcher');
@@ -3975,10 +4474,24 @@ function CardDetailModal({
   const handleDepartmentChange = async (departmentId: string | null) => {
     setIsUpdatingDepartment(true);
     try {
+      const hadDepartment = !!card.department;
       await onDepartmentChange(card.id, departmentId);
       const dept = departments.find((d) => d.id === departmentId);
       toast.success(departmentId ? `Department set to ${dept?.name}` : 'Department removed');
       setShowDepartmentPicker(false);
+      // Create activity for department change
+      const activityType = departmentId
+        ? (hadDepartment ? 'department_changed' : 'department_set')
+        : 'department_removed';
+      const description = departmentId
+        ? `set department to "${dept?.name}"`
+        : 'removed department';
+      createActivity({
+        type: activityType,
+        description: `${currentUser?.displayName || 'User'} ${description} on "${card.title}"`,
+        cardId: card.id,
+        boardId: boardId || undefined,
+      }).catch(console.error);
     } catch (err) {
       console.error('Failed to update department:', err);
       toast.error('Failed to update department');
@@ -3990,10 +4503,24 @@ function CardDetailModal({
   const handleClientChange = async (clientId: string | null) => {
     setIsUpdatingClient(true);
     try {
+      const hadClient = !!card.client;
       await onClientChange(card.id, clientId);
       const clnt = clients.find((c) => c.id === clientId);
       toast.success(clientId ? `Client set to ${clnt?.name}` : 'Client removed');
       setShowClientPicker(false);
+      // Create activity for client change
+      const activityType = clientId
+        ? (hadClient ? 'client_changed' : 'client_set')
+        : 'client_removed';
+      const description = clientId
+        ? `set client to "${clnt?.name}"`
+        : 'removed client';
+      createActivity({
+        type: activityType,
+        description: `${currentUser?.displayName || 'User'} ${description} on "${card.title}"`,
+        cardId: card.id,
+        boardId: boardId || undefined,
+      }).catch(console.error);
     } catch (err) {
       console.error('Failed to update client:', err);
       toast.error('Failed to update client');
@@ -4299,15 +4826,32 @@ function CardDetailModal({
   };
 
   const handleStartDateSave = (date: string) => {
+    const hadStartDate = !!card.startDate;
     setStartDate(date);
     onUpdate(card.id, { startDate: date || undefined });
     setShowStartDatePicker(false);
+    // Create activity for start date change
+    const activityType = hadStartDate ? 'start_date_updated' : 'start_date_set';
+    const formattedDate = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    createActivity({
+      type: activityType,
+      description: `${currentUser?.displayName || 'User'} ${hadStartDate ? 'changed' : 'set'} start date to ${formattedDate} on "${card.title}"`,
+      cardId: card.id,
+      boardId: boardId || undefined,
+    }).catch(console.error);
   };
 
   const handleRemoveStartDate = () => {
     setStartDate('');
     onUpdate(card.id, { startDate: undefined });
     setShowStartDatePicker(false);
+    // Create activity for start date removed
+    createActivity({
+      type: 'start_date_removed',
+      description: `${currentUser?.displayName || 'User'} removed start date from "${card.title}"`,
+      cardId: card.id,
+      boardId: boardId || undefined,
+    }).catch(console.error);
   };
 
   const toggleLabel = (label: CardLabel) => {
@@ -4364,10 +4908,17 @@ function CardDetailModal({
                     card.completed ? 'text-gray-400 line-through' : 'text-gray-900'
                   }`}
                 />
-                <p className="text-sm text-gray-500 mt-1">
-                  in list <span className="underline">{listTitle}</span>
-                  {card.completed && <span className="ml-2 text-green-600 font-medium">Completed</span>}
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-sm text-gray-500">in list</span>
+                  <button
+                    onClick={onClose}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-sm rounded border border-blue-200 transition-colors"
+                    title="Click to view list"
+                  >
+                    {listTitle}
+                  </button>
+                  {card.completed && <span className="text-green-600 font-medium text-sm">Completed</span>}
+                </div>
               </div>
             </div>
             <button
@@ -4430,17 +4981,12 @@ function CardDetailModal({
               {/* Due Date Display */}
               {dueDate && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Due Date</h4>
                   <div className="flex items-center gap-2">
                     <span className={`inline-flex items-center px-3 py-1.5 rounded text-sm font-medium ${
                       new Date(dueDate) < new Date() ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
                     }`}>
                       <Calendar className="h-4 w-4 mr-2" />
-                      {new Date(dueDate).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: new Date(dueDate).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-                      })}
+                      Due: {new Date(dueDate).getDate()} {new Date(dueDate).toLocaleDateString('en-US', { month: 'short' })} {new Date(dueDate).getFullYear()}
                       {' '}
                       {new Date(dueDate).toLocaleTimeString('en-US', {
                         hour: 'numeric',
@@ -4458,9 +5004,187 @@ function CardDetailModal({
                 </div>
               )}
 
+              {/* Approval/Rejection Section */}
+              <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                <div className="flex flex-col gap-2">
+                  {/* Status Display */}
+                  {(card.isApproved || card.isRejected) && (
+                    <div className={`flex items-center justify-between p-2 rounded-lg ${
+                      card.isApproved ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        {card.isApproved ? (
+                          <>
+                            <Check className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-700">Approved</span>
+                            {card.approvedBy && (
+                              <span className="text-sm text-green-600">
+                                by <span className="font-medium">{card.approvedBy.name}</span>
+                                {card.approvedAt && (
+                                  <span className="text-green-500 ml-1">
+                                    • {(() => {
+                                      const d = new Date(card.approvedAt);
+                                      const day = d.getDate();
+                                      const month = d.toLocaleDateString('en-US', { month: 'short' });
+                                      const year = d.getFullYear();
+                                      const hours = d.getHours();
+                                      const mins = d.getMinutes().toString().padStart(2, '0');
+                                      const ampm = hours >= 12 ? 'pm' : 'am';
+                                      const hour12 = hours % 12 || 12;
+                                      return `${day} ${month} ${year} - ${hour12}:${mins}${ampm}`;
+                                    })()}
+                                  </span>
+                                )}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-4 w-4 text-red-600" />
+                            <span className="text-sm font-medium text-red-700">Rejected</span>
+                            {card.rejectedBy && (
+                              <span className="text-sm text-red-600">
+                                by <span className="font-medium">{card.rejectedBy.name}</span>
+                                {card.rejectedAt && (
+                                  <span className="text-red-500 ml-1">
+                                    • {(() => {
+                                      const d = new Date(card.rejectedAt);
+                                      const day = d.getDate();
+                                      const month = d.toLocaleDateString('en-US', { month: 'short' });
+                                      const year = d.getFullYear();
+                                      const hours = d.getHours();
+                                      const mins = d.getMinutes().toString().padStart(2, '0');
+                                      const ampm = hours >= 12 ? 'pm' : 'am';
+                                      const hour12 = hours % 12 || 12;
+                                      return `${day} ${month} ${year} - ${hour12}:${mins}${ampm}`;
+                                    })()}
+                                  </span>
+                                )}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (isApproving) return;
+                          setIsApproving(true);
+                          try {
+                            await onClearStatus(card.id);
+                            toast.success('Status cleared');
+                            try {
+                              await createActivity({
+                                type: card.isApproved ? 'card_approval_removed' : 'card_rejection_removed',
+                                description: `${currentUser?.displayName || 'User'} cleared ${card.isApproved ? 'approval' : 'rejection'} from "${card.title}"`,
+                                cardId: card.id,
+                                boardId: boardId || undefined,
+                              });
+                              // Refresh activities list
+                              const cardActivities = await fetchActivitiesByCard(card.id);
+                              setActivities(cardActivities);
+                            } catch (activityErr) {
+                              console.error('Failed to create activity:', activityErr);
+                            }
+                          } catch (err) {
+                            toast.error('Failed to clear status');
+                          } finally {
+                            setIsApproving(false);
+                          }
+                        }}
+                        disabled={isApproving}
+                        className={`text-xs hover:underline ${card.isApproved ? 'text-green-600 hover:text-green-800' : 'text-red-600 hover:text-red-800'}`}
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  {!card.isApproved && !card.isRejected && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={async () => {
+                          if (isApproving) return;
+                          setIsApproving(true);
+                          try {
+                            await onApprove(card.id);
+                            toast.success('Card approved');
+                            try {
+                              await createActivity({
+                                type: 'card_approved',
+                                description: `${currentUser?.displayName || 'User'} approved "${card.title}"`,
+                                cardId: card.id,
+                                boardId: boardId || undefined,
+                              });
+                              // Refresh activities list
+                              const cardActivities = await fetchActivitiesByCard(card.id);
+                              setActivities(cardActivities);
+                            } catch (activityErr) {
+                              console.error('Failed to create activity:', activityErr);
+                            }
+                          } catch (err) {
+                            toast.error('Failed to approve card');
+                          } finally {
+                            setIsApproving(false);
+                          }
+                        }}
+                        disabled={isApproving || !currentUser}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-700 hover:border-green-300 border border-gray-300 disabled:opacity-50"
+                      >
+                        {isApproving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4" />
+                        )}
+                        Approve
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (isApproving) return;
+                          setIsApproving(true);
+                          try {
+                            await onReject(card.id);
+                            toast.success('Card rejected');
+                            try {
+                              await createActivity({
+                                type: 'card_rejected',
+                                description: `${currentUser?.displayName || 'User'} rejected "${card.title}"`,
+                                cardId: card.id,
+                                boardId: boardId || undefined,
+                              });
+                              // Refresh activities list
+                              const cardActivities = await fetchActivitiesByCard(card.id);
+                              setActivities(cardActivities);
+                            } catch (activityErr) {
+                              console.error('Failed to create activity:', activityErr);
+                            }
+                          } catch (err) {
+                            toast.error('Failed to reject card');
+                          } finally {
+                            setIsApproving(false);
+                          }
+                        }}
+                        disabled={isApproving || !currentUser}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700 hover:border-red-300 border border-gray-300 disabled:opacity-50"
+                      >
+                        {isApproving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <X className="h-4 w-4" />
+                        )}
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Description */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Description</h4>
+              <div className="pt-2">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-gray-500" />
+                  Description
+                </h4>
                 {editingDescription ? (
                   <div>
                     <textarea
@@ -5758,19 +6482,21 @@ function CardDetailModal({
               </div>
 
               {/* Activity */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center justify-between">
-                  <span className="flex items-center">
-                    <Clock className="h-4 w-4 mr-2" />
+              <div className="border-t border-gray-100 pt-4 mt-2">
+                <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-gray-500" />
                     Activity
                     {activities.length > 0 && (
-                      <span className="ml-2 text-xs text-gray-400 font-normal">({activities.length})</span>
+                      <span className="text-xs font-normal text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                        {activities.length}
+                      </span>
                     )}
                   </span>
                   {activities.length > 5 && (
                     <button
                       onClick={() => setShowAllActivities(!showAllActivities)}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-normal"
+                      className="text-xs text-blue-600 hover:text-blue-700 font-normal hover:underline"
                     >
                       {showAllActivities ? 'Show less' : 'Show all'}
                     </button>
@@ -5784,18 +6510,18 @@ function CardDetailModal({
                 ) : activities.length === 0 ? (
                   <p className="text-gray-500 text-sm text-center py-4">No activity yet</p>
                 ) : (
-                  <div className={`space-y-3 ${showAllActivities ? 'max-h-96 overflow-y-auto pr-2' : ''}`}>
+                  <div className={`space-y-2 ${showAllActivities ? 'max-h-96 overflow-y-auto pr-2' : ''}`}>
                     {(showAllActivities ? activities : activities.slice(0, 5)).map((activity) => {
                       const display = getActivityDisplay(activity.type);
                       return (
-                        <div key={activity.id} className="flex items-start">
-                          <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs mr-2 flex-shrink-0">
+                        <div key={activity.id} className="flex items-start p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 flex items-center justify-center text-xs mr-2.5 flex-shrink-0 font-medium">
                             {activity.authorName.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm text-gray-700">
-                              <span className="font-medium">{activity.authorName}</span>{' '}
-                              <span>{display.label}</span>
+                              <span className="font-medium text-gray-800">{activity.authorName}</span>{' '}
+                              <span className="text-gray-600">{display.label}</span>
                             </p>
                             {activity.description && (
                               <p className="text-xs text-gray-500 mt-0.5 truncate">{activity.description}</p>
@@ -5894,7 +6620,7 @@ function CardDetailModal({
                               key={member.id}
                               className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs"
                             >
-                              {member.displayName.split(' ')[0]}
+                              {member.displayName}
                               <button
                                 onClick={() => handleRemoveWatcher(member.id, member.displayName)}
                                 disabled={isAddingWatcher}
@@ -5921,128 +6647,6 @@ function CardDetailModal({
                     <Tag className="h-4 w-4 mr-2" />
                     Labels
                   </button>
-                  {/* Department Dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowDepartmentPicker(!showDepartmentPicker)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
-                    >
-                      <span className="flex items-center">
-                        <Briefcase className="h-4 w-4 mr-2" />
-                        Department
-                      </span>
-                      {card.department && (
-                        <span className="bg-purple-100 text-purple-700 text-xs px-1.5 py-0.5 rounded">
-                          {card.department.name}
-                        </span>
-                      )}
-                    </button>
-                    {showDepartmentPicker && (
-                      <>
-                        <div className="fixed inset-0 z-[51]" onClick={() => setShowDepartmentPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">Select Department</h5>
-                        <div className="space-y-1 max-h-48 overflow-y-auto">
-                          {departments.map((dept) => (
-                            <button
-                              key={dept.id}
-                              onClick={() => handleDepartmentChange(dept.id)}
-                              disabled={isUpdatingDepartment}
-                              className={`w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 text-left disabled:opacity-50 ${
-                                card.department?.id === dept.id ? 'bg-purple-50 border border-purple-200' : ''
-                              }`}
-                            >
-                              <Briefcase className="h-4 w-4 text-purple-600" />
-                              <span className="text-sm text-gray-700">{dept.name}</span>
-                              {card.department?.id === dept.id && (
-                                <Check className="h-4 w-4 text-purple-600 ml-auto" />
-                              )}
-                            </button>
-                          ))}
-                          {departments.length === 0 && (
-                            <p className="text-xs text-gray-400 text-center py-2">No departments available</p>
-                          )}
-                        </div>
-                        {card.department && (
-                          <button
-                            onClick={() => handleDepartmentChange(null)}
-                            disabled={isUpdatingDepartment}
-                            className="w-full mt-2 text-red-600 hover:text-red-700 text-sm"
-                          >
-                            Remove Department
-                          </button>
-                        )}
-                          <button
-                            onClick={() => setShowDepartmentPicker(false)}
-                            className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
-                          >
-                            Close
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  {/* Client Dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowClientPicker(!showClientPicker)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
-                    >
-                      <span className="flex items-center">
-                        <Building2 className="h-4 w-4 mr-2" />
-                        Client
-                      </span>
-                      {card.client && (
-                        <span className="bg-teal-100 text-teal-700 text-xs px-1.5 py-0.5 rounded">
-                          {card.client.name}
-                        </span>
-                      )}
-                    </button>
-                    {showClientPicker && (
-                      <>
-                        <div className="fixed inset-0 z-[51]" onClick={() => setShowClientPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">Select Client</h5>
-                        <div className="space-y-1 max-h-48 overflow-y-auto">
-                          {clients.map((clnt) => (
-                            <button
-                              key={clnt.id}
-                              onClick={() => handleClientChange(clnt.id)}
-                              disabled={isUpdatingClient}
-                              className={`w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 text-left disabled:opacity-50 ${
-                                card.client?.id === clnt.id ? 'bg-teal-50 border border-teal-200' : ''
-                              }`}
-                            >
-                              <Building2 className="h-4 w-4 text-teal-600" />
-                              <span className="text-sm text-gray-700">{clnt.name}</span>
-                              {card.client?.id === clnt.id && (
-                                <Check className="h-4 w-4 text-teal-600 ml-auto" />
-                              )}
-                            </button>
-                          ))}
-                          {clients.length === 0 && (
-                            <p className="text-xs text-gray-400 text-center py-2">No clients available</p>
-                          )}
-                        </div>
-                        {card.client && (
-                          <button
-                            onClick={() => handleClientChange(null)}
-                            disabled={isUpdatingClient}
-                            className="w-full mt-2 text-red-600 hover:text-red-700 text-sm"
-                          >
-                            Remove Client
-                          </button>
-                        )}
-                          <button
-                            onClick={() => setShowClientPicker(false)}
-                            className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
-                          >
-                            Close
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
                   {/* Add Card-Scoped Custom Fields */}
                   {availableCardFields.length > 0 && (
                     <div className="relative">
@@ -6103,6 +6707,48 @@ function CardDetailModal({
                   )}
                   <div className="relative">
                     <button
+                      onClick={() => setShowStartDatePicker(!showStartDatePicker)}
+                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center"
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      Start date
+                    </button>
+                    {showStartDatePicker && (
+                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-72">
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Set start date & time</h5>
+                        <input
+                          type="datetime-local"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                        />
+                        <div className="flex space-x-2 mt-3">
+                          <button
+                            onClick={() => handleStartDateSave(startDate)}
+                            className="flex-1 bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700"
+                          >
+                            Save
+                          </button>
+                          {card.startDate && (
+                            <button
+                              onClick={handleRemoveStartDate}
+                              className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded text-sm"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => setShowStartDatePicker(false)}
+                          className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <button
                       onClick={() => setShowDatePicker(!showDatePicker)}
                       className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center"
                     >
@@ -6143,46 +6789,126 @@ function CardDetailModal({
                       </div>
                     )}
                   </div>
+                  {/* Department Dropdown */}
                   <div className="relative">
                     <button
-                      onClick={() => setShowStartDatePicker(!showStartDatePicker)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center"
+                      onClick={() => setShowDepartmentPicker(!showDepartmentPicker)}
+                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
                     >
-                      <Clock className="h-4 w-4 mr-2" />
-                      Start date
+                      <span className="flex items-center">
+                        <Briefcase className="h-4 w-4 mr-2" />
+                        Department
+                      </span>
+                      {card.department && (
+                        <span className="bg-purple-100 text-purple-700 text-xs px-1.5 py-0.5 rounded">
+                          {card.department.name}
+                        </span>
+                      )}
                     </button>
-                    {showStartDatePicker && (
-                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-72">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">Set start date & time</h5>
-                        <input
-                          type="datetime-local"
-                          value={startDate}
-                          onChange={(e) => setStartDate(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
-                        />
-                        <div className="flex space-x-2 mt-3">
-                          <button
-                            onClick={() => handleStartDateSave(startDate)}
-                            className="flex-1 bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700"
-                          >
-                            Save
-                          </button>
-                          {card.startDate && (
+                    {showDepartmentPicker && (
+                      <>
+                        <div className="fixed inset-0 z-[51]" onClick={() => setShowDepartmentPicker(false)} />
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Select Department</h5>
+                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                            {departments.map((dept) => (
+                              <button
+                                key={dept.id}
+                                onClick={() => handleDepartmentChange(dept.id)}
+                                disabled={isUpdatingDepartment}
+                                className={`w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 text-left disabled:opacity-50 ${
+                                  card.department?.id === dept.id ? 'bg-purple-50 border border-purple-200' : ''
+                                }`}
+                              >
+                                <Briefcase className="h-4 w-4 text-purple-600" />
+                                <span className="text-sm text-gray-700">{dept.name}</span>
+                                {card.department?.id === dept.id && (
+                                  <Check className="h-4 w-4 text-purple-600 ml-auto" />
+                                )}
+                              </button>
+                            ))}
+                            {departments.length === 0 && (
+                              <p className="text-xs text-gray-400 text-center py-2">No departments available</p>
+                            )}
+                          </div>
+                          {card.department && (
                             <button
-                              onClick={handleRemoveStartDate}
-                              className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded text-sm"
+                              onClick={() => handleDepartmentChange(null)}
+                              disabled={isUpdatingDepartment}
+                              className="w-full mt-2 text-red-600 hover:text-red-700 text-sm"
                             >
-                              Remove
+                              Remove Department
                             </button>
                           )}
+                          <button
+                            onClick={() => setShowDepartmentPicker(false)}
+                            className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Close
+                          </button>
                         </div>
-                        <button
-                          onClick={() => setShowStartDatePicker(false)}
-                          className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      </>
+                    )}
+                  </div>
+                  {/* Client Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowClientPicker(!showClientPicker)}
+                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
+                    >
+                      <span className="flex items-center">
+                        <Building2 className="h-4 w-4 mr-2" />
+                        Client
+                      </span>
+                      {card.client && (
+                        <span className="bg-teal-100 text-teal-700 text-xs px-1.5 py-0.5 rounded">
+                          {card.client.name}
+                        </span>
+                      )}
+                    </button>
+                    {showClientPicker && (
+                      <>
+                        <div className="fixed inset-0 z-[51]" onClick={() => setShowClientPicker(false)} />
+                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Select Client</h5>
+                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                            {clients.map((clnt) => (
+                              <button
+                                key={clnt.id}
+                                onClick={() => handleClientChange(clnt.id)}
+                                disabled={isUpdatingClient}
+                                className={`w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 text-left disabled:opacity-50 ${
+                                  card.client?.id === clnt.id ? 'bg-teal-50 border border-teal-200' : ''
+                                }`}
+                              >
+                                <Building2 className="h-4 w-4 text-teal-600" />
+                                <span className="text-sm text-gray-700">{clnt.name}</span>
+                                {card.client?.id === clnt.id && (
+                                  <Check className="h-4 w-4 text-teal-600 ml-auto" />
+                                )}
+                              </button>
+                            ))}
+                            {clients.length === 0 && (
+                              <p className="text-xs text-gray-400 text-center py-2">No clients available</p>
+                            )}
+                          </div>
+                          {card.client && (
+                            <button
+                              onClick={() => handleClientChange(null)}
+                              disabled={isUpdatingClient}
+                              className="w-full mt-2 text-red-600 hover:text-red-700 text-sm"
+                            >
+                              Remove Client
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setShowClientPicker(false)}
+                            className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                   <div className="relative">
@@ -6599,15 +7325,17 @@ function CardDetailModal({
                     </svg>
                     Copy
                   </button>
+                  {canArchiveCard && (
+                    <button
+                      onClick={onArchive}
+                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
+                    >
+                      <Archive className="h-4 w-4 mr-2" />
+                      Archive
+                    </button>
+                  )}
                   {canDeleteCard && (
                     <>
-                      <button
-                        onClick={onArchive}
-                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
-                      >
-                        <Archive className="h-4 w-4 mr-2" />
-                        Archive
-                      </button>
                       <button
                         onClick={() => {
                           setTemplateName(card.title + ' Template');

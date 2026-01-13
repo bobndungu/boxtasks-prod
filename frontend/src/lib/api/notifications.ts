@@ -18,7 +18,9 @@ export type NotificationType =
   | 'goal_at_risk'
   | 'milestone_due'
   | 'milestone_completed'
-  | 'milestone_missed';
+  | 'milestone_missed'
+  | 'card_archived'
+  | 'card_restored';
 
 export interface Notification {
   id: string;
@@ -239,6 +241,8 @@ export function getNotificationDisplay(type: NotificationType): { icon: string; 
     milestone_due: { icon: '🚩', label: 'Milestone due', color: 'text-amber-600' },
     milestone_completed: { icon: '🎉', label: 'Milestone reached', color: 'text-green-600' },
     milestone_missed: { icon: '❌', label: 'Milestone missed', color: 'text-red-600' },
+    card_archived: { icon: '📦', label: 'Card archived', color: 'text-orange-600' },
+    card_restored: { icon: '♻️', label: 'Card restored', color: 'text-green-600' },
   };
   return displays[type] || { icon: '🔔', label: 'Notification', color: 'text-gray-600' };
 }

@@ -22,13 +22,28 @@ export type ActivityType =
   | 'label_removed'
   | 'due_date_set'
   | 'due_date_removed'
+  | 'due_date_updated'
+  | 'start_date_set'
+  | 'start_date_removed'
+  | 'start_date_updated'
   | 'checklist_added'
   | 'checklist_item_completed'
   | 'checklist_item_uncompleted'
   | 'attachment_added'
   | 'attachment_removed'
   | 'description_updated'
-  | 'due_date_updated';
+  | 'department_set'
+  | 'department_changed'
+  | 'department_removed'
+  | 'client_set'
+  | 'client_changed'
+  | 'client_removed'
+  | 'watcher_added'
+  | 'watcher_removed'
+  | 'card_approved'
+  | 'card_approval_removed'
+  | 'card_rejected'
+  | 'card_rejection_removed';
 
 export interface Activity {
   id: string;
@@ -92,12 +107,27 @@ export function getActivityDisplay(type: ActivityType): { icon: string; label: s
     due_date_set: { icon: '📅', label: 'set the due date' },
     due_date_removed: { icon: '📅', label: 'removed the due date' },
     due_date_updated: { icon: '📅', label: 'changed the due date' },
+    start_date_set: { icon: '📅', label: 'set the start date' },
+    start_date_removed: { icon: '📅', label: 'removed the start date' },
+    start_date_updated: { icon: '📅', label: 'changed the start date' },
     description_updated: { icon: '📄', label: 'updated the description' },
     checklist_added: { icon: '☑️', label: 'added a checklist' },
     checklist_item_completed: { icon: '✅', label: 'completed a checklist item' },
     checklist_item_uncompleted: { icon: '⬜', label: 'uncompleted a checklist item' },
     attachment_added: { icon: '📎', label: 'added an attachment' },
     attachment_removed: { icon: '📎', label: 'removed an attachment' },
+    department_set: { icon: '🏢', label: 'set the department' },
+    department_changed: { icon: '🏢', label: 'changed the department' },
+    department_removed: { icon: '🏢', label: 'removed the department' },
+    client_set: { icon: '👥', label: 'set the client' },
+    client_changed: { icon: '👥', label: 'changed the client' },
+    client_removed: { icon: '👥', label: 'removed the client' },
+    watcher_added: { icon: '👁️', label: 'added a watcher' },
+    watcher_removed: { icon: '👁️', label: 'removed a watcher' },
+    card_approved: { icon: '✅', label: 'approved this card' },
+    card_approval_removed: { icon: '❌', label: 'removed approval' },
+    card_rejected: { icon: '🚫', label: 'rejected this card' },
+    card_rejection_removed: { icon: '↩️', label: 'removed rejection' },
   };
   return displays[type] || { icon: '•', label: 'performed an action' };
 }

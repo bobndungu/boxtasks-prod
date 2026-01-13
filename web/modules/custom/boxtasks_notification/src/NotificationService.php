@@ -34,6 +34,8 @@ class NotificationService {
   public const TYPE_MILESTONE_DUE = 'milestone_due';
   public const TYPE_MILESTONE_COMPLETED = 'milestone_completed';
   public const TYPE_MILESTONE_MISSED = 'milestone_missed';
+  public const TYPE_CARD_ARCHIVED = 'card_archived';
+  public const TYPE_CARD_RESTORED = 'card_restored';
 
   /**
    * The entity type manager.
@@ -323,6 +325,12 @@ class NotificationService {
       case self::TYPE_LABEL_ADDED:
         return "{$actor_name} added a label to \"{$card_title}\"";
 
+      case self::TYPE_CARD_ARCHIVED:
+        return "{$actor_name} archived card \"{$card_title}\"";
+
+      case self::TYPE_CARD_RESTORED:
+        return "{$actor_name} restored card \"{$card_title}\" from archive";
+
       default:
         return "{$actor_name} updated card \"{$card_title}\"";
     }
@@ -424,6 +432,8 @@ class NotificationService {
         self::TYPE_MILESTONE_DUE => 'milestone_due',
         self::TYPE_MILESTONE_COMPLETED => 'milestone_completed',
         self::TYPE_MILESTONE_MISSED => 'milestone_missed',
+        self::TYPE_CARD_ARCHIVED => 'card_archived',
+        self::TYPE_CARD_RESTORED => 'card_restored',
       ];
 
       $pref_key = $key_map[$type] ?? $type;

@@ -42,6 +42,14 @@ export interface Card {
   attachmentCount: number;
   checklistCompleted: number;
   checklistTotal: number;
+  // Approval fields
+  isApproved: boolean;
+  approvedBy?: CardMember;
+  approvedAt?: string;
+  // Rejection fields
+  isRejected: boolean;
+  rejectedBy?: CardMember;
+  rejectedAt?: string;
 }
 
 export interface CreateCardData {
@@ -149,6 +157,40 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
   const authorData = rels?.uid?.data;
   const authorId = authorData && !Array.isArray(authorData) ? authorData.id : undefined;
 
+  // Get approval data
+  const isApproved = (attrs.field_card_approved as boolean) || false;
+  let approvedBy: CardMember | undefined;
+  const approvedByData = rels?.field_card_approved_by?.data;
+  const approvedById = approvedByData && !Array.isArray(approvedByData) ? approvedByData.id : undefined;
+  if (included && approvedById) {
+    const approverUser = included.find((item) => item.id === approvedById && (item.type as string) === 'user--user');
+    if (approverUser) {
+      const userAttrs = approverUser.attributes as Record<string, unknown>;
+      approvedBy = {
+        id: approvedById,
+        name: (userAttrs.field_display_name as string) || (userAttrs.display_name as string) || (userAttrs.name as string) || 'Unknown',
+      };
+    }
+  }
+  const approvedAt = (attrs.field_card_approved_at as string) || undefined;
+
+  // Get rejection data
+  const isRejected = (attrs.field_card_rejected as boolean) || false;
+  let rejectedBy: CardMember | undefined;
+  const rejectedByData = rels?.field_card_rejected_by?.data;
+  const rejectedById = rejectedByData && !Array.isArray(rejectedByData) ? rejectedByData.id : undefined;
+  if (included && rejectedById) {
+    const rejecterUser = included.find((item) => item.id === rejectedById && (item.type as string) === 'user--user');
+    if (rejecterUser) {
+      const userAttrs = rejecterUser.attributes as Record<string, unknown>;
+      rejectedBy = {
+        id: rejectedById,
+        name: (userAttrs.field_display_name as string) || (userAttrs.display_name as string) || (userAttrs.name as string) || 'Unknown',
+      };
+    }
+  }
+  const rejectedAt = (attrs.field_card_rejected_at as string) || undefined;
+
   return {
     id: data.id as string,
     title: attrs.title as string,
@@ -176,13 +218,21 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     attachmentCount: 0,
     checklistCompleted: 0,
     checklistTotal: 0,
+    // Approval fields
+    isApproved,
+    approvedBy,
+    approvedAt,
+    // Rejection fields
+    isRejected,
+    rejectedBy,
+    rejectedAt,
   };
 }
 
 // Fetch all cards for a list
 export async function fetchCardsByList(listId: string): Promise<Card[]> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?filter[field_card_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_cover,field_card_members,field_card_department,field_card_client`,
+    `${API_URL}/jsonapi/node/card?filter[field_card_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_cover,field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -251,7 +301,7 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
 
 // Fetch a single card
 export async function fetchCard(id: string): Promise<Card> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_cover,field_card_members,field_card_department,field_card_client`, {
+  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_cover,field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by`, {
     headers: {
       'Accept': 'application/vnd.api+json',
       'Authorization': `Bearer ${getAccessToken()}`,
@@ -400,6 +450,41 @@ export async function moveCard(cardId: string, targetListId: string, position: n
 // Archive a card
 export async function archiveCard(id: string): Promise<Card> {
   return updateCard(id, { archived: true });
+}
+
+// Restore (unarchive) a card
+export async function restoreCard(id: string): Promise<Card> {
+  return updateCard(id, { archived: false });
+}
+
+// Fetch archived cards for a board (across all lists)
+export async function fetchArchivedCardsByBoard(_boardId: string, listIds: string[]): Promise<Card[]> {
+  if (listIds.length === 0) return [];
+
+  const filterParams = listIds.map((id, index) =>
+    `filter[list-filter-${index}][condition][path]=field_card_list.id&filter[list-filter-${index}][condition][value]=${id}`
+  ).join('&');
+
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=1&sort=-changed&include=field_card_cover,field_card_members,field_card_department,field_card_client`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch archived cards');
+  }
+
+  const result = await response.json();
+  const data = result.data;
+  const included = result.included as Record<string, unknown>[] | undefined;
+  if (!Array.isArray(data)) return [];
+
+  return data.map((item) => transformCard(item, included));
 }
 
 // Update card department
@@ -683,5 +768,118 @@ export async function unassignMember(cardId: string, userId: string): Promise<Ca
   }
 
   // Fetch the updated card to get member details
+  return fetchCard(cardId);
+}
+
+// Approve a card (sets approval status, approver, and timestamp; clears rejection)
+export async function approveCard(cardId: string, approverId: string): Promise<Card> {
+  // Format datetime for Drupal (RFC 3339 without milliseconds: Y-m-d\TH:i:sP)
+  const drupalDatetime = new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
+
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        attributes: {
+          field_card_approved: true,
+          field_card_approved_at: drupalDatetime,
+          field_card_rejected: false,
+          field_card_rejected_at: null,
+        },
+        relationships: {
+          field_card_approved_by: {
+            data: { type: 'user--user', id: approverId },
+          },
+          field_card_rejected_by: {
+            data: null,
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to approve card');
+  }
+
+  return fetchCard(cardId);
+}
+
+// Reject a card (sets rejection status and clears approval)
+export async function rejectCard(cardId: string, rejecterId: string): Promise<Card> {
+  // Format datetime for Drupal (RFC 3339 without milliseconds: Y-m-d\TH:i:sP)
+  const drupalDatetime = new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
+
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        attributes: {
+          field_card_approved: false,
+          field_card_approved_at: null,
+          field_card_rejected: true,
+          field_card_rejected_at: drupalDatetime,
+        },
+        relationships: {
+          field_card_approved_by: {
+            data: null,
+          },
+          field_card_rejected_by: {
+            data: { type: 'user--user', id: rejecterId },
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to reject card');
+  }
+
+  return fetchCard(cardId);
+}
+
+// Clear approval/rejection status (reset to neither approved nor rejected)
+export async function clearApprovalStatus(cardId: string): Promise<Card> {
+  // Clear the boolean flags - this is what determines approval/rejection status
+  // The 'by' and 'at' fields will remain as historical record but won't matter since the status is cleared
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        attributes: {
+          field_card_approved: false,
+          field_card_rejected: false,
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('Failed to clear approval status:', error);
+    throw new Error(error.errors?.[0]?.detail || 'Failed to clear approval status');
+  }
+
   return fetchCard(cardId);
 }

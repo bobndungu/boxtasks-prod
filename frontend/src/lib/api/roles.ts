@@ -15,6 +15,7 @@ export interface WorkspaceRole {
     cardCreate: PermissionLevel;
     cardEdit: PermissionLevel;
     cardDelete: PermissionLevel;
+    cardArchive: PermissionLevel;
     cardMove: PermissionLevel;
     // List permissions
     listView: PermissionLevel;
@@ -62,6 +63,7 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       cardCreate: (attrs.field_perm_card_create as PermissionLevel) || 'none',
       cardEdit: (attrs.field_perm_card_edit as PermissionLevel) || 'none',
       cardDelete: (attrs.field_perm_card_delete as PermissionLevel) || 'none',
+      cardArchive: (attrs.field_perm_card_archive as PermissionLevel) || 'own',
       cardMove: (attrs.field_perm_card_move as PermissionLevel) || 'none',
       // List permissions
       listView: (attrs.field_perm_list_view as PermissionLevel) || 'none',
@@ -379,6 +381,7 @@ export async function createWorkspaceRole(
           field_perm_card_create: permissions.cardCreate,
           field_perm_card_edit: permissions.cardEdit,
           field_perm_card_delete: permissions.cardDelete,
+          field_perm_card_archive: permissions.cardArchive,
           field_perm_card_move: permissions.cardMove,
           // List permissions
           field_perm_list_view: permissions.listView,
@@ -444,6 +447,9 @@ export async function updateWorkspaceRole(
     }
     if (updates.permissions.cardDelete !== undefined) {
       attributes.field_perm_card_delete = updates.permissions.cardDelete;
+    }
+    if (updates.permissions.cardArchive !== undefined) {
+      attributes.field_perm_card_archive = updates.permissions.cardArchive;
     }
     if (updates.permissions.cardMove !== undefined) {
       attributes.field_perm_card_move = updates.permissions.cardMove;

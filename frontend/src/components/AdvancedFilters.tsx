@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Filter,
   X,
@@ -74,6 +74,18 @@ export function AdvancedFilters({
 }: AdvancedFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['labels', 'dueDate']));
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsExpanded(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -142,24 +154,24 @@ export function AdvancedFilters({
   };
 
   return (
-    <div className="relative">
+    <div ref={dropdownRef} className="relative">
       {/* Filter Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
           activeFilterCount > 0
-            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-white/20 text-white hover:bg-white/30'
+            : 'bg-white/10 text-white hover:bg-white/20'
         }`}
       >
         <Filter className="h-4 w-4" />
         Filters
         {activeFilterCount > 0 && (
-          <span className="flex items-center justify-center h-5 w-5 bg-blue-600 text-white text-xs rounded-full">
+          <span className="flex items-center justify-center h-5 w-5 bg-white/30 text-white text-xs rounded-full">
             {activeFilterCount}
           </span>
         )}
-        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Filter Panel */}

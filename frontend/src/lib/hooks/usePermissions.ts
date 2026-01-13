@@ -11,6 +11,7 @@ interface UsePermissionsReturn {
   canCreate: (type: 'card' | 'list' | 'board') => boolean;
   canEdit: (type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean) => boolean;
   canDelete: (type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean) => boolean;
+  canArchive: (type: 'card', isOwner: boolean) => boolean;
   canMove: (type: 'card', isOwner: boolean) => boolean;
   canManageMembers: () => boolean;
   refetch: () => Promise<void>;
@@ -50,6 +51,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
             cardCreate: 'any',
             cardEdit: 'any',
             cardDelete: 'own',
+            cardArchive: 'any',
             cardMove: 'any',
             listView: 'any',
             listCreate: 'any',
@@ -77,6 +79,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
         cardCreate: 'any',
         cardEdit: 'any',
         cardDelete: 'own',
+        cardArchive: 'any',
         cardMove: 'any',
         listView: 'any',
         listCreate: 'any',
@@ -193,6 +196,16 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     return canPerformAction(permission, isOwner);
   }, [permissions]);
 
+  const canArchive = useCallback((type: 'card', isOwner: boolean): boolean => {
+    if (!permissions) return true; // Allow by default while loading
+
+    if (type === 'card') {
+      return canPerformAction(permissions.cardArchive, isOwner);
+    }
+
+    return true;
+  }, [permissions]);
+
   const canMove = useCallback((type: 'card', isOwner: boolean): boolean => {
     if (!permissions) return true; // Allow by default while loading
 
@@ -217,6 +230,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canCreate,
     canEdit,
     canDelete,
+    canArchive,
     canMove,
     canManageMembers,
     refetch: fetchPermissions,

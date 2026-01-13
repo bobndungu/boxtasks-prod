@@ -66,6 +66,18 @@ function boxtasks_notification_node_update(NodeInterface $node): void {
   if ($current_list !== $original_list) {
     $notifier->notifyCardMembers($node, NotificationService::TYPE_CARD_MOVED);
   }
+
+  // Check for card archived.
+  $current_archived = (bool) $node->get('field_card_archived')->value;
+  $original_archived = (bool) $original->get('field_card_archived')->value;
+  if ($current_archived && !$original_archived) {
+    // Card was archived - notify members and watchers.
+    $notifier->notifyCardMembers($node, NotificationService::TYPE_CARD_ARCHIVED);
+  }
+  elseif (!$current_archived && $original_archived) {
+    // Card was restored from archive - notify members and watchers.
+    $notifier->notifyCardMembers($node, NotificationService::TYPE_CARD_RESTORED);
+  }
 }
 
 /**

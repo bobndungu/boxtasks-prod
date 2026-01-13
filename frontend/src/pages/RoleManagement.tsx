@@ -72,6 +72,7 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
   cardCreate: 'any',
   cardEdit: 'own',
   cardDelete: 'own',
+  cardArchive: 'any',
   cardMove: 'own',
   listView: 'any',
   listCreate: 'any',

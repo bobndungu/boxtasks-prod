@@ -15,9 +15,11 @@ module:
   boxtasks_chat: 0
   boxtasks_checklist: 0
   boxtasks_comment: 0
+  boxtasks_customfield: 0
   boxtasks_global_views: 0
   boxtasks_goal: 0
   boxtasks_list: 0
+  boxtasks_migrate: 0
   boxtasks_milestone: 0
   boxtasks_monitoring: 0
   boxtasks_notification: 0
@@ -51,6 +53,9 @@ module:
   menu_link_content: 0
   menu_ui: 0
   mercure: 0
+  migrate: 0
+  migrate_plus: 0
+  migrate_tools: 0
   mysql: 0
   node: 0
   options: 0
@@ -64,6 +69,11 @@ module:
   shortcut: 0
   simple_oauth: 0
   simple_oauth_password_grant: 0
+  smtp: 0
+  social_api: 0
+  social_auth: 0
+  social_auth_google: 0
+  social_auth_microsoft: 0
   system: 0
   taxonomy: 0
   text: 0
@@ -73,7 +83,6 @@ module:
   views_ui: 0
   views: 10
   standard: 1000
-  boxtasks_customfield: 0
 theme:
   olivero: 0
   claro: 0
