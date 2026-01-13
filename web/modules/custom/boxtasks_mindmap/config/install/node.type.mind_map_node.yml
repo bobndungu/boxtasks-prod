@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - boxtasks_mindmap
+name: Mind Map Node
+type: mind_map_node
+description: 'An individual node within a mind map'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

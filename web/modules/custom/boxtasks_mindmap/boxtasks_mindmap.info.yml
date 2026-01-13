@@ -1,0 +1,10 @@
+name: BoxTasks Mind Map
+type: module
+description: Mind map functionality for brainstorming and planning in BoxTasks
+package: BoxTasks
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:node
+  - drupal:jsonapi
+  - boxtasks_workspace:boxtasks_workspace
+  - boxtasks_card:boxtasks_card

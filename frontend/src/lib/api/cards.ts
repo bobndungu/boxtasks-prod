@@ -54,6 +54,8 @@ export interface Card {
   estimate?: number;
   estimateType?: 'hours' | 'points' | 'tshirt';
   complexity?: 'trivial' | 'low' | 'medium' | 'high' | 'very_high';
+  // Google Docs
+  googleDocs: { url: string; title: string }[];
 }
 
 export interface CreateCardData {
@@ -234,6 +236,13 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     estimate: (attrs.field_card_estimate as number) || undefined,
     estimateType: (attrs.field_card_estimate_type as 'hours' | 'points' | 'tshirt') || undefined,
     complexity: (attrs.field_card_complexity as 'trivial' | 'low' | 'medium' | 'high' | 'very_high') || undefined,
+    // Google Docs
+    googleDocs: Array.isArray(attrs.field_card_google_docs)
+      ? (attrs.field_card_google_docs as { uri: string; title: string }[]).map((doc) => ({
+          url: doc.uri,
+          title: doc.title || 'Google Document',
+        }))
+      : [],
   };
 }
 
@@ -891,6 +900,92 @@ export async function clearApprovalStatus(cardId: string): Promise<Card> {
     const error = await response.json();
     console.error('Failed to clear approval status:', error);
     throw new Error(error.errors?.[0]?.detail || 'Failed to clear approval status');
+  }
+
+  return fetchCard(cardId);
+}
+
+// Add a Google Doc to a card
+export async function addGoogleDoc(cardId: string, url: string, title: string): Promise<Card> {
+  // First fetch current Google Docs
+  const card = await fetchCard(cardId);
+  const currentDocs = card.googleDocs || [];
+
+  // Check if already exists
+  if (currentDocs.some(doc => doc.url === url)) {
+    return card;
+  }
+
+  // Add the new doc
+  const newDocs = [...currentDocs, { url, title }];
+
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        attributes: {
+          field_card_google_docs: newDocs.map(doc => ({
+            uri: doc.url,
+            title: doc.title,
+          })),
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to add Google Doc');
+  }
+
+  return fetchCard(cardId);
+}
+
+// Remove a Google Doc from a card
+export async function removeGoogleDoc(cardId: string, url: string): Promise<Card> {
+  // First fetch current Google Docs
+  const card = await fetchCard(cardId);
+  const currentDocs = card.googleDocs || [];
+
+  // Check if exists
+  if (!currentDocs.some(doc => doc.url === url)) {
+    return card;
+  }
+
+  // Remove the doc
+  const newDocs = currentDocs.filter(doc => doc.url !== url);
+
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        attributes: {
+          field_card_google_docs: newDocs.length > 0
+            ? newDocs.map(doc => ({
+                uri: doc.url,
+                title: doc.title,
+              }))
+            : [],
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to remove Google Doc');
   }
 
   return fetchCard(cardId);

@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_google_docs
+    - node.type.card
+  enforced:
+    module:
+      - boxtasks_card
+id: node.card.field_card_google_docs
+field_name: field_card_google_docs
+entity_type: node
+bundle: card
+label: 'Google Docs'
+description: 'Links to Google Docs, Sheets, Slides, or other Google documents'
+required: false
+translatable: false
+default_value: []
+default_value_callback: ''
+settings:
+  link_type: 16
+  title: 1
+field_type: link

@@ -21,6 +21,7 @@ module:
   boxtasks_list: 0
   boxtasks_migrate: 0
   boxtasks_milestone: 0
+  boxtasks_mindmap: 0
   boxtasks_monitoring: 0
   boxtasks_notification: 0
   boxtasks_realtime: 0
@@ -28,6 +29,7 @@ module:
   boxtasks_role: 0
   boxtasks_security: 0
   boxtasks_template: 0
+  boxtasks_time: 0
   boxtasks_user: 0
   boxtasks_workspace: 0
   breakpoint: 0

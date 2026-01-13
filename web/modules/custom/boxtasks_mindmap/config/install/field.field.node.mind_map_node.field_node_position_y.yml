@@ -1,0 +1,26 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_node_position_y
+    - node.type.mind_map_node
+  enforced:
+    module:
+      - boxtasks_mindmap
+id: node.mind_map_node.field_node_position_y
+field_name: field_node_position_y
+entity_type: node
+bundle: mind_map_node
+label: Position Y
+description: 'Y coordinate on the canvas'
+required: false
+translatable: false
+default_value:
+  - value: 0
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: float

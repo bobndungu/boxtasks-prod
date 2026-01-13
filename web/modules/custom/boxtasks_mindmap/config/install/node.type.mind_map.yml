@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - boxtasks_mindmap
+name: Mind Map
+type: mind_map
+description: 'A visual mind map for brainstorming and planning'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

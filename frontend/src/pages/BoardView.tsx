@@ -75,7 +75,7 @@ import {
 import { useBoardStore } from '../lib/stores/board';
 import { fetchBoard, updateBoard, toggleBoardStar, fetchAllBoards, type Board } from '../lib/api/boards';
 import { fetchListsByBoard, createList, updateList, deleteList, archiveList, type BoardList } from '../lib/api/lists';
-import { fetchCardsByList, createCard, updateCard, deleteCard, uploadCardCover, removeCardCover, watchCard, unwatchCard, assignMember, unassignMember, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, type Card, type CardLabel, type CardMember } from '../lib/api/cards';
+import { fetchCardsByList, createCard, updateCard, deleteCard, uploadCardCover, removeCardCover, watchCard, unwatchCard, assignMember, unassignMember, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, addGoogleDoc, removeGoogleDoc, type Card, type CardLabel, type CardMember } from '../lib/api/cards';
 import { fetchDepartments, fetchClients, type TaxonomyTerm } from '../lib/api/taxonomies';
 import { fetchCommentsByCard, createComment, updateComment, deleteComment, toggleReaction, type CardComment, type ReactionType } from '../lib/api/comments';
 import { fetchAttachmentsByCard, createAttachment, deleteAttachment, formatFileSize, type CardAttachment } from '../lib/api/attachments';
@@ -106,6 +106,7 @@ import { AutomationRules } from '../components/AutomationRules';
 import { MindMapsPanel } from '../components/MindMapsPanel';
 import { TimeTracker } from '../components/TimeTracker';
 import { EstimateEditor } from '../components/EstimateEditor';
+import { GoogleDocsEmbed } from '../components/GoogleDocsEmbed';
 import { AdvancedFilters, DEFAULT_FILTER_STATE, matchesFilters, type FilterState } from '../components/AdvancedFilters';
 import { BoardSkeleton } from '../components/BoardSkeleton';
 import { highlightText } from '../lib/utils/highlight';
@@ -1005,6 +1006,7 @@ export default function BoardView() {
       checklistTotal: 0,
       isApproved: false,
       isRejected: false,
+      googleDocs: [],
     };
 
     // Clear form immediately for better UX
@@ -2744,6 +2746,32 @@ export default function BoardView() {
             });
             setSelectedCard((prev) => prev ? { ...prev, isApproved: false, isRejected: false, approvedBy: undefined, approvedAt: undefined, rejectedBy: undefined, rejectedAt: undefined } : null);
           }}
+          onGoogleDocAdd={async (cardId, url, title) => {
+            const updatedCard = await addGoogleDoc(cardId, url, title);
+            setCardsByList((prev) => {
+              const newMap = new Map(prev);
+              const listCards = newMap.get(updatedCard.listId) || [];
+              const updatedCards = listCards.map((c) =>
+                c.id === cardId ? { ...c, googleDocs: updatedCard.googleDocs } : c
+              );
+              newMap.set(updatedCard.listId, updatedCards);
+              return newMap;
+            });
+            setSelectedCard((prev) => prev ? { ...prev, googleDocs: updatedCard.googleDocs } : null);
+          }}
+          onGoogleDocRemove={async (cardId, url) => {
+            const updatedCard = await removeGoogleDoc(cardId, url);
+            setCardsByList((prev) => {
+              const newMap = new Map(prev);
+              const listCards = newMap.get(updatedCard.listId) || [];
+              const updatedCards = listCards.map((c) =>
+                c.id === cardId ? { ...c, googleDocs: updatedCard.googleDocs } : c
+              );
+              newMap.set(updatedCard.listId, updatedCards);
+              return newMap;
+            });
+            setSelectedCard((prev) => prev ? { ...prev, googleDocs: updatedCard.googleDocs } : null);
+          }}
           onMove={async (cardId, fromListId, toListId) => {
             // Get the destination list cards BEFORE updating state
             const destCards = cardsByList.get(toListId) || [];
@@ -3899,6 +3927,8 @@ function CardDetailModal({
   onApprove,
   onReject,
   onClearStatus,
+  onGoogleDocAdd,
+  onGoogleDocRemove,
 }: {
   card: Card;
   listTitle: string;
@@ -3927,6 +3957,8 @@ function CardDetailModal({
   onApprove: (cardId: string) => Promise<void>;
   onReject: (cardId: string) => Promise<void>;
   onClearStatus: (cardId: string) => Promise<void>;
+  onGoogleDocAdd: (cardId: string, url: string, title: string) => Promise<void>;
+  onGoogleDocRemove: (cardId: string, url: string) => Promise<void>;
 }) {
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description || '');
@@ -6381,6 +6413,18 @@ function CardDetailModal({
                 card={card}
                 onUpdate={() => {
                   // Update local state - card will be refreshed from parent
+                }}
+                canEdit={canEditCard}
+              />
+
+              {/* Google Docs */}
+              <GoogleDocsEmbed
+                docs={card.googleDocs || []}
+                onAdd={async (url, title) => {
+                  await onGoogleDocAdd(card.id, url, title);
+                }}
+                onRemove={async (url) => {
+                  await onGoogleDocRemove(card.id, url);
                 }}
                 canEdit={canEditCard}
               />

@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_mindmap_description
+    - node.type.mind_map
+  enforced:
+    module:
+      - boxtasks_mindmap
+id: node.mind_map.field_mindmap_description
+field_name: field_mindmap_description
+entity_type: node
+bundle: mind_map
+label: Description
+description: 'A description for this mind map'
+required: false
+translatable: false
+default_value: []
+default_value_callback: ''
+settings: {}
+field_type: text_long
