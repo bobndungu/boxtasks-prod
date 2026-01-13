@@ -1,0 +1,10 @@
+name: 'BoxTasks Time Tracking'
+description: 'Time tracking functionality for BoxTasks cards'
+type: module
+core_version_requirement: ^10 || ^11
+package: BoxTasks
+dependencies:
+  - drupal:node
+  - drupal:datetime
+  - drupal:text
+  - boxtasks_card:boxtasks_card

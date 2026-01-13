@@ -1,0 +1,26 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_time_duration
+    - node.type.time_entry
+  enforced:
+    module:
+      - boxtasks_time
+id: node.time_entry.field_time_duration
+field_name: field_time_duration
+entity_type: node
+bundle: time_entry
+label: 'Duration (minutes)'
+description: 'Total tracked time in minutes'
+required: false
+translatable: false
+default_value:
+  - value: 0
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ' min'
+field_type: integer

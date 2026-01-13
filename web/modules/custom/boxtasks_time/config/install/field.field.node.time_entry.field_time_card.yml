@@ -1,0 +1,29 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_time_card
+    - node.type.time_entry
+  enforced:
+    module:
+      - boxtasks_time
+id: node.time_entry.field_time_card
+field_name: field_time_card
+entity_type: node
+bundle: time_entry
+label: Card
+description: 'The card this time entry is for'
+required: true
+translatable: false
+default_value: []
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      card: card
+    sort:
+      field: _none
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference
