@@ -16,6 +16,8 @@ import {
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { useBoardStore } from '../lib/stores/board';
+import { fetchStarredBoards, fetchRecentBoards } from '../lib/api/boards';
+import { fetchActivitiesByBoard, type Activity } from '../lib/api/activities';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
 import SearchModal from '../components/SearchModal';
 import NotificationDropdown from '../components/NotificationDropdown';
@@ -23,17 +25,89 @@ import MobileNav, { MobileBottomNav } from '../components/MobileNav';
 import { useIsMobile } from '../lib/hooks/useMediaQuery';
 import { ThemeToggle } from '../components/ThemeToggle';
 import CreateBoardModal from '../components/CreateBoardModal';
+import { getActivityDisplay, type ActivityType } from '../lib/api/activities';
+
+// Helper function to get activity label
+function getActivityLabel(type: ActivityType): string {
+  const display = getActivityDisplay(type);
+  return display.label;
+}
+
+// Helper function to format activity time
+function formatActivityTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+}
 
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
   const { workspaces } = useWorkspaceStore();
-  const { addBoard, starredBoards, recentBoards } = useBoardStore();
+  const { addBoard, starredBoards, recentBoards, setStarredBoards, setRecentBoards } = useBoardStore();
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
   const [showCreateBoardModal, setShowCreateBoardModal] = useState(false);
   const [showRecentDropdown, setShowRecentDropdown] = useState(false);
   const [showStarredDropdown, setShowStarredDropdown] = useState(false);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(false);
   const isMobile = useIsMobile();
+
+  // Load starred and recent boards on mount
+  useEffect(() => {
+    const loadBoardData = async () => {
+      try {
+        const [starred, recent] = await Promise.all([
+          fetchStarredBoards(),
+          fetchRecentBoards(5),
+        ]);
+        setStarredBoards(starred);
+        setRecentBoards(recent);
+      } catch (error) {
+        console.error('Failed to load board data:', error);
+      }
+    };
+    loadBoardData();
+  }, [setStarredBoards, setRecentBoards]);
+
+  // Load recent activities from boards
+  useEffect(() => {
+    const loadActivities = async () => {
+      if (recentBoards.length === 0) return;
+
+      setLoadingActivities(true);
+      try {
+        // Fetch activities from the most recent boards (limit to first 3)
+        const boardsToFetch = recentBoards.slice(0, 3);
+        const activityPromises = boardsToFetch.map(board =>
+          fetchActivitiesByBoard(board.id).catch(() => [])
+        );
+        const allActivities = await Promise.all(activityPromises);
+
+        // Flatten and sort by date
+        const flatActivities = allActivities
+          .flat()
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 10); // Show latest 10 activities
+
+        setActivities(flatActivities);
+      } catch (error) {
+        console.error('Failed to load activities:', error);
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+    loadActivities();
+  }, [recentBoards]);
 
   // Keyboard shortcut for search (Cmd+K or Ctrl+K)
   useEffect(() => {
@@ -252,10 +326,29 @@ export default function Dashboard() {
                 <Star className="h-5 w-5 text-yellow-500 mr-2" />
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Starred Boards</h2>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
-                <Star className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400 mb-4">Star your favorite boards to access them quickly</p>
-              </div>
+              {starredBoards.length === 0 ? (
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+                  <Star className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">Star your favorite boards to access them quickly</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {starredBoards.map((board) => (
+                    <Link
+                      key={board.id}
+                      to={`/board/${board.id}`}
+                      className="relative h-24 rounded-lg overflow-hidden hover:opacity-90 transition-opacity group"
+                      style={{ backgroundColor: board.background || '#0079BF' }}
+                    >
+                      <div className="absolute inset-0 bg-black/20" />
+                      <div className="relative h-full p-3 flex flex-col justify-between">
+                        <h3 className="text-white font-semibold text-sm line-clamp-2">{board.title}</h3>
+                        <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </section>
 
             {/* Recent Boards */}
@@ -264,16 +357,37 @@ export default function Dashboard() {
                 <Clock className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recently Viewed</h2>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
-                <Clock className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400 mb-4">No recently viewed boards yet</p>
-                <button
-                  onClick={() => setShowCreateBoardModal(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                  Create your first board
-                </button>
-              </div>
+              {recentBoards.length === 0 ? (
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+                  <Clock className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">No recently viewed boards yet</p>
+                  <button
+                    onClick={() => setShowCreateBoardModal(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    Create your first board
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {recentBoards.map((board) => (
+                    <Link
+                      key={board.id}
+                      to={`/board/${board.id}`}
+                      className="relative h-24 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
+                      style={{ backgroundColor: board.background || '#0079BF' }}
+                    >
+                      <div className="absolute inset-0 bg-black/20" />
+                      <div className="relative h-full p-3 flex flex-col justify-between">
+                        <h3 className="text-white font-semibold text-sm line-clamp-2">{board.title}</h3>
+                        <span className="text-white/70 text-xs">
+                          {new Date(board.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </section>
 
             {/* Workspaces */}
@@ -377,16 +491,49 @@ export default function Dashboard() {
               </ul>
             </section>
 
-            {/* Activity Feed Placeholder */}
+            {/* Activity Feed */}
             <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Activity</h2>
-              <div className="text-center py-8">
-                <Clock className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">No recent activity</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  When you or your team take action, it will show up here
-                </p>
-              </div>
+              {loadingActivities ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                </div>
+              ) : activities.length === 0 ? (
+                <div className="text-center py-8">
+                  <Clock className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No recent activity</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    When you or your team take action, it will show up here
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {activities.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm font-medium flex-shrink-0">
+                        {activity.authorName.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          <span className="font-medium">{activity.authorName}</span>
+                          {' '}
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {getActivityLabel(activity.type)}
+                          </span>
+                        </p>
+                        {activity.description && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
+                            {activity.description}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                          {formatActivityTime(activity.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           </div>
         </div>

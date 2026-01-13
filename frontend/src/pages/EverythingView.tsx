@@ -9,6 +9,7 @@ import {
   type WorkspaceRef
 } from '../lib/api/globalViews';
 import { Layers, CheckCircle2, Clock, Filter, SortAsc, SortDesc, ChevronDown, ExternalLink } from 'lucide-react';
+import MainHeader from '../components/MainHeader';
 
 interface GroupedCards {
   [workspaceId: string]: {
@@ -119,19 +120,17 @@ function EverythingView() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16 md:pb-0">
+      {/* Main Header */}
+      <MainHeader />
+
+      {/* Everything Page Subheader */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 md:top-16 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
-              <Link
-                to="/dashboard"
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <Layers className="h-6 w-6" />
-              </Link>
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Everything</h1>
+              <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Everything</h1>
               <span className="text-sm text-gray-500 dark:text-gray-400">
                 {total} cards
               </span>
@@ -251,7 +250,7 @@ function EverythingView() {
             </div>
           )}
         </div>
-      </header>
+      </div>
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

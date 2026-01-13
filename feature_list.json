@@ -2811,12 +2811,180 @@
       "status": "completed",
       "type": "react",
       "phase": "automation-approval"
+    },
+    {
+      "id": 351,
+      "name": "Fix dashboard starred boards - load starred boards from API on page load",
+      "test": "Starred boards section shows boards that user has starred, dropdown works",
+      "status": "completed",
+      "type": "react",
+      "phase": "dashboard-fixes"
+    },
+    {
+      "id": 352,
+      "name": "Fix dashboard recently viewed - track and persist recent boards",
+      "test": "Recently viewed section shows boards user has visited, dropdown works",
+      "status": "completed",
+      "type": "react",
+      "phase": "dashboard-fixes"
+    },
+    {
+      "id": 353,
+      "name": "Fix dashboard activity feed - connect to real activity API",
+      "test": "Activity section shows real recent activity from user's workspaces",
+      "status": "completed",
+      "type": "react",
+      "phase": "dashboard-fixes"
+    },
+    {
+      "id": 354,
+      "name": "Fix dashboard search functionality",
+      "test": "Search modal opens with Cmd+K, search returns results",
+      "status": "completed",
+      "type": "react",
+      "phase": "dashboard-fixes"
+    },
+    {
+      "id": 355,
+      "name": "Fix dashboard top menu links - verify all navigation items work",
+      "test": "All menu items (Workspaces, Recent, Starred, Everything, My Cards, Create) work correctly",
+      "status": "completed",
+      "type": "react",
+      "phase": "dashboard-fixes"
+    },
+    {
+      "id": 356,
+      "name": "Add main navigation menu to Everything page",
+      "test": "Everything page has full navigation with WorkspaceSwitcher, Recent, Starred, theme toggle",
+      "status": "completed",
+      "type": "react",
+      "phase": "dashboard-fixes"
+    },
+    {
+      "id": 357,
+      "name": "Fix dark mode toggle button functionality",
+      "test": "Dark mode button toggles theme correctly, persists across sessions",
+      "status": "completed",
+      "type": "react",
+      "phase": "dashboard-fixes"
+    },
+    {
+      "id": 358,
+      "name": "Create ActivityDiff component for text change visualization",
+      "test": "Text changes display with diff format showing old vs new text with highlighting",
+      "status": "in_progress",
+      "type": "react",
+      "phase": "activity-enhancements"
+    },
+    {
+      "id": 359,
+      "name": "Update Drupal to track card movement with source and destination list",
+      "test": "Activity records include source_list and destination_list in description",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "activity-enhancements"
+    },
+    {
+      "id": 360,
+      "name": "Update React activity display to show card movements with list names",
+      "test": "Card moved activity shows 'moved from List A to List B' with visual indicator",
+      "status": "pending",
+      "type": "react",
+      "phase": "activity-enhancements"
+    },
+    {
+      "id": 361,
+      "name": "Track card field changes in activity with old and new values",
+      "test": "Field changes show diff of old vs new value in activity",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "activity-enhancements"
+    },
+    {
+      "id": 362,
+      "name": "Display card field change diffs in React activity section",
+      "test": "Activity shows field changes with visual diff highlighting",
+      "status": "pending",
+      "type": "react",
+      "phase": "activity-enhancements"
+    },
+    {
+      "id": 363,
+      "name": "Track custom field value changes in activity",
+      "test": "Custom field value changes recorded with field name and old/new values",
+      "status": "pending",
+      "type": "drupal",
+      "phase": "activity-enhancements"
+    },
+    {
+      "id": 364,
+      "name": "Display custom field value changes in activity section",
+      "test": "Activity shows custom field changes with field name and diff",
+      "status": "pending",
+      "type": "react",
+      "phase": "activity-enhancements"
+    },
+    {
+      "id": 365,
+      "name": "Implement real-time member assignment via Mercure",
+      "test": "Member assignment updates appear instantly without refresh",
+      "status": "pending",
+      "type": "both",
+      "phase": "realtime-member"
+    },
+    {
+      "id": 366,
+      "name": "Handle member assignment for unassigned cards",
+      "test": "Can assign member to card with no current assignee in real-time",
+      "status": "pending",
+      "type": "react",
+      "phase": "realtime-member"
+    },
+    {
+      "id": 367,
+      "name": "Handle member reassignment in real-time",
+      "test": "Changing member on assigned card updates immediately across all clients",
+      "status": "pending",
+      "type": "react",
+      "phase": "realtime-member"
+    },
+    {
+      "id": 368,
+      "name": "Build enhanced ActivityFeed component with diff support",
+      "test": "Activity feed component displays all activity types with appropriate formatting",
+      "status": "pending",
+      "type": "react",
+      "phase": "activity-enhancements"
+    },
+    {
+      "id": 369,
+      "name": "Add ActivityFeed to card modal sidebar",
+      "test": "Card modal shows activity timeline with all changes",
+      "status": "pending",
+      "type": "react",
+      "phase": "activity-enhancements"
+    },
+    {
+      "id": 370,
+      "name": "Add board activity feed panel",
+      "test": "Board has activity panel showing all board-level activities",
+      "status": "pending",
+      "type": "react",
+      "phase": "activity-enhancements"
+    },
+    {
+      "id": 371,
+      "name": "Test all dashboard and activity fixes end-to-end",
+      "test": "All dashboard features work, activity displays correctly with diffs",
+      "status": "pending",
+      "type": "both",
+      "phase": "dashboard-fixes"
     }
   ],
-  "current_feature": 319,
+  "current_feature": 358,
   "browser_retries": 0,
-  "phase": "dashboard-improvements",
+  "phase": "activity-enhancements",
   "created_at": "2026-01-10",
-  "updated_at": "2026-01-12",
+  "updated_at": "2026-01-13",
   "source_project": "~/Sites/DrupalDev/BoxTasks/"
 }
