@@ -635,6 +635,62 @@ export default function BoardView() {
       // Handle presence updates via usePresence hook
       handlePresenceUpdate(presenceData);
     },
+    onMemberAssigned: (data) => {
+      // Update the card with new member assignment
+      setCardsByList((prev) => {
+        const newMap = new Map(prev);
+        for (const [listId, cards] of newMap.entries()) {
+          const index = cards.findIndex((c) => c.id === data.cardId);
+          if (index !== -1) {
+            const newCards = [...cards];
+            newCards[index] = {
+              ...newCards[index],
+              memberIds: data.memberIds,
+              members: data.members,
+            };
+            newMap.set(listId, newCards);
+            break;
+          }
+        }
+        return newMap;
+      });
+      // Update selected card if it's being viewed
+      if (selectedCard?.id === data.cardId) {
+        setSelectedCard((prev) => prev ? {
+          ...prev,
+          memberIds: data.memberIds,
+          members: data.members,
+        } : null);
+      }
+    },
+    onMemberUnassigned: (data) => {
+      // Update the card with member removal
+      setCardsByList((prev) => {
+        const newMap = new Map(prev);
+        for (const [listId, cards] of newMap.entries()) {
+          const index = cards.findIndex((c) => c.id === data.cardId);
+          if (index !== -1) {
+            const newCards = [...cards];
+            newCards[index] = {
+              ...newCards[index],
+              memberIds: data.memberIds,
+              members: data.members,
+            };
+            newMap.set(listId, newCards);
+            break;
+          }
+        }
+        return newMap;
+      });
+      // Update selected card if it's being viewed
+      if (selectedCard?.id === data.cardId) {
+        setSelectedCard((prev) => prev ? {
+          ...prev,
+          memberIds: data.memberIds,
+          members: data.members,
+        } : null);
+      }
+    },
   });
 
   // User presence tracking

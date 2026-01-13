@@ -241,6 +241,19 @@ export interface PresenceUpdateData {
   timestamp: string;
 }
 
+export interface MemberAssignmentData {
+  cardId: string;
+  userId: string;
+  userName: string;
+  userDisplayName: string;
+  memberIds: string[];
+  members: Array<{
+    id: string;
+    name: string;
+    email?: string;
+  }>;
+}
+
 /**
  * Hook for subscribing to board-specific updates
  */
@@ -258,6 +271,8 @@ export function useBoardUpdates(
     onListReordered?: (listPositions: Record<string, number>) => void;
     onCommentCreated?: (commentData: unknown) => void;
     onPresenceUpdate?: (presenceData: PresenceUpdateData) => void;
+    onMemberAssigned?: (data: MemberAssignmentData) => void;
+    onMemberUnassigned?: (data: MemberAssignmentData) => void;
   }
 ) {
   const topics = boardId ? [`/boards/${boardId}`] : [];
@@ -296,6 +311,12 @@ export function useBoardUpdates(
         break;
       case 'presence.update':
         callbacks.onPresenceUpdate?.(message.data as PresenceUpdateData);
+        break;
+      case 'member.assigned':
+        callbacks.onMemberAssigned?.(message.data as MemberAssignmentData);
+        break;
+      case 'member.unassigned':
+        callbacks.onMemberUnassigned?.(message.data as MemberAssignmentData);
         break;
     }
   }, [callbacks]);

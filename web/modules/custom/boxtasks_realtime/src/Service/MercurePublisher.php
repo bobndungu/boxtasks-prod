@@ -209,6 +209,90 @@ class MercurePublisher {
   }
 
   /**
+   * Publishes a member assigned event to Mercure.
+   *
+   * @param \Drupal\node\NodeInterface $card
+   *   The card entity.
+   * @param int $userId
+   *   The user ID that was assigned.
+   */
+  public function publishMemberAssigned(NodeInterface $card, int $userId): void {
+    $boardId = $this->getBoardIdFromCard($card);
+    if (!$boardId) {
+      return;
+    }
+
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'member.assigned',
+      'data' => $this->serializeMemberAssignment($card, $userId),
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
+   * Publishes a member unassigned event to Mercure.
+   *
+   * @param \Drupal\node\NodeInterface $card
+   *   The card entity.
+   * @param int $userId
+   *   The user ID that was unassigned.
+   */
+  public function publishMemberUnassigned(NodeInterface $card, int $userId): void {
+    $boardId = $this->getBoardIdFromCard($card);
+    if (!$boardId) {
+      return;
+    }
+
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'member.unassigned',
+      'data' => $this->serializeMemberAssignment($card, $userId),
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
+   * Serializes member assignment data for publishing.
+   */
+  protected function serializeMemberAssignment(NodeInterface $card, int $changedUserId): array {
+    $userStorage = $this->entityTypeManager->getStorage('user');
+    $changedUser = $userStorage->load($changedUserId);
+
+    // Get all current members
+    $memberIds = [];
+    $members = [];
+    if ($card->hasField('field_card_members')) {
+      foreach ($card->get('field_card_members') as $memberRef) {
+        if ($memberRef->entity) {
+          $user = $memberRef->entity;
+          $memberIds[] = $user->uuid();
+          $members[] = [
+            'id' => $user->uuid(),
+            'name' => $user->get('field_display_name')->value ?? $user->getDisplayName(),
+            'email' => $user->getEmail(),
+          ];
+        }
+      }
+    }
+
+    return [
+      'cardId' => $card->uuid(),
+      'userId' => $changedUser ? $changedUser->uuid() : (string) $changedUserId,
+      'userName' => $changedUser ? $changedUser->getAccountName() : 'Unknown',
+      'userDisplayName' => $changedUser ? ($changedUser->get('field_display_name')->value ?? $changedUser->getDisplayName()) : 'Unknown',
+      'memberIds' => $memberIds,
+      'members' => $members,
+    ];
+  }
+
+  /**
    * Publishes a comment event to Mercure.
    */
   public function publishCommentEvent(NodeInterface $comment, string $eventType): void {

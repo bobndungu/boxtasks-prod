@@ -62,6 +62,45 @@ function boxtasks_realtime_entity_update(EntityInterface $entity) {
           $publisher->publishCardMoved($entity, $oldListId, $newListId, $position);
           return;
         }
+
+        // Check if members changed
+        if ($entity->hasField('field_card_members')) {
+          $oldMemberIds = [];
+          $newMemberIds = [];
+
+          // Get old member IDs
+          if ($original->hasField('field_card_members')) {
+            foreach ($original->get('field_card_members') as $memberRef) {
+              if ($memberRef->target_id) {
+                $oldMemberIds[] = (int) $memberRef->target_id;
+              }
+            }
+          }
+
+          // Get new member IDs
+          foreach ($entity->get('field_card_members') as $memberRef) {
+            if ($memberRef->target_id) {
+              $newMemberIds[] = (int) $memberRef->target_id;
+            }
+          }
+
+          // Find added members
+          $addedMembers = array_diff($newMemberIds, $oldMemberIds);
+          foreach ($addedMembers as $userId) {
+            $publisher->publishMemberAssigned($entity, $userId);
+          }
+
+          // Find removed members
+          $removedMembers = array_diff($oldMemberIds, $newMemberIds);
+          foreach ($removedMembers as $userId) {
+            $publisher->publishMemberUnassigned($entity, $userId);
+          }
+
+          // If members changed, don't publish general update (member events are sufficient)
+          if (!empty($addedMembers) || !empty($removedMembers)) {
+            return;
+          }
+        }
       }
       $publisher->publishCardEvent($entity, 'card.updated');
       break;
