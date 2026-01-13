@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_complexity
+    - node.type.card
+  enforced:
+    module:
+      - boxtasks_card
+id: node.card.field_card_complexity
+field_name: field_card_complexity
+entity_type: node
+bundle: card
+label: Complexity
+description: 'The complexity level of this card'
+required: false
+translatable: false
+default_value: []
+default_value_callback: ''
+settings: []
+field_type: list_string

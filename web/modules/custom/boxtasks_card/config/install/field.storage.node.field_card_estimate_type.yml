@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - options
+  enforced:
+    module:
+      - boxtasks_card
+id: node.field_card_estimate_type
+field_name: field_card_estimate_type
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    - { value: 'hours', label: 'Hours' }
+    - { value: 'points', label: 'Story Points' }
+    - { value: 'tshirt', label: 'T-Shirt Size' }
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: []
+persist_with_no_fields: false
+custom_storage: false

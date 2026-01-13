@@ -50,6 +50,10 @@ export interface Card {
   isRejected: boolean;
   rejectedBy?: CardMember;
   rejectedAt?: string;
+  // Estimate fields
+  estimate?: number;
+  estimateType?: 'hours' | 'points' | 'tshirt';
+  complexity?: 'trivial' | 'low' | 'medium' | 'high' | 'very_high';
 }
 
 export interface CreateCardData {
@@ -226,6 +230,10 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     isRejected,
     rejectedBy,
     rejectedAt,
+    // Estimate fields
+    estimate: (attrs.field_card_estimate as number) || undefined,
+    estimateType: (attrs.field_card_estimate_type as 'hours' | 'points' | 'tshirt') || undefined,
+    complexity: (attrs.field_card_complexity as 'trivial' | 'low' | 'medium' | 'high' | 'very_high') || undefined,
   };
 }
 
@@ -370,7 +378,7 @@ export async function createCard(data: CreateCardData): Promise<Card> {
 }
 
 // Update a card
-export async function updateCard(id: string, data: Partial<CreateCardData> & { archived?: boolean; completed?: boolean; pinned?: boolean }): Promise<Card> {
+export async function updateCard(id: string, data: Partial<CreateCardData> & { archived?: boolean; completed?: boolean; pinned?: boolean; estimate?: number | null; estimateType?: 'hours' | 'points' | 'tshirt' | null; complexity?: 'trivial' | 'low' | 'medium' | 'high' | 'very_high' | null }): Promise<Card> {
   const attributes: Record<string, unknown> = {};
   const relationships: Record<string, unknown> = {};
 
@@ -399,6 +407,10 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
   if (data.archived !== undefined) attributes.field_card_archived = data.archived;
   if (data.completed !== undefined) attributes.field_card_completed = data.completed;
   if (data.pinned !== undefined) attributes.field_card_pinned = data.pinned;
+  // Estimate fields
+  if (data.estimate !== undefined) attributes.field_card_estimate = data.estimate;
+  if (data.estimateType !== undefined) attributes.field_card_estimate_type = data.estimateType;
+  if (data.complexity !== undefined) attributes.field_card_complexity = data.complexity;
 
   if (data.listId) {
     relationships.field_card_list = {
