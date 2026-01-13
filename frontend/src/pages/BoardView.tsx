@@ -71,6 +71,7 @@ import {
   Building2,
   Layout,
   GitBranch,
+  BarChart3,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { fetchBoard, updateBoard, toggleBoardStar, fetchAllBoards, type Board } from '../lib/api/boards';
@@ -2133,6 +2134,14 @@ export default function BoardView() {
                         <GitBranch className="h-4 w-4 mr-3 text-gray-500" />
                         Mind Maps
                       </button>
+                      <Link
+                        to={`/board/${id}/reports`}
+                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowBoardOptionsMenu(false)}
+                      >
+                        <BarChart3 className="h-4 w-4 mr-3 text-gray-500" />
+                        Reports
+                      </Link>
                       <div className="border-t border-gray-200 my-1" />
                       <button
                         onClick={() => {

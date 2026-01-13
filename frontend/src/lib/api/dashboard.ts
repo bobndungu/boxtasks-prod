@@ -304,6 +304,375 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
   };
 }
 
+// Board Report Data Types
+export interface BoardReportStats {
+  totalCards: number;
+  completedCards: number;
+  overdueCards: number;
+  dueSoonCards: number;
+  unassignedCards: number;
+  archivedCards: number;
+  cardsByLabel: { label: string; count: number; color: string }[];
+  totalEstimatedHours: number;
+  totalTrackedTime: number;
+  totalBillableTime: number;
+}
+
+export interface BoardListStats {
+  id: string;
+  title: string;
+  position: number;
+  cardCount: number;
+  completedCount: number;
+  wipLimit?: number;
+}
+
+export interface BoardMemberStats {
+  id: string;
+  name: string;
+  avatar?: string;
+  assignedCards: number;
+  completedCards: number;
+  overdueCards: number;
+  trackedTime: number;
+}
+
+export interface BoardReportData {
+  boardId: string;
+  boardTitle: string;
+  stats: BoardReportStats;
+  lists: BoardListStats[];
+  memberStats: BoardMemberStats[];
+  cardsByDueDate: { date: string; count: number }[];
+  recentActivity: ActivityItem[];
+  completionTrend: { date: string; completed: number; created: number }[];
+}
+
+// Fetch board-specific report data
+export async function fetchBoardReportData(boardId: string): Promise<BoardReportData> {
+  const token = getAccessToken();
+  const headers = {
+    'Accept': 'application/vnd.api+json',
+    'Authorization': `Bearer ${token}`,
+  };
+
+  // Fetch board details
+  const boardResponse = await fetch(
+    `${API_URL}/jsonapi/node/board/${boardId}`,
+    { headers }
+  );
+
+  if (!boardResponse.ok) {
+    throw new Error('Failed to fetch board data');
+  }
+
+  const boardResult = await boardResponse.json();
+  const boardData = boardResult.data;
+  const boardAttrs = boardData.attributes as Record<string, unknown>;
+
+  // Fetch lists for this board (content type is board_list)
+  const listsResponse = await fetch(
+    `${API_URL}/jsonapi/node/board_list?filter[field_list_board.id]=${boardId}&filter[field_list_archived][value]=0&sort=field_list_position`,
+    { headers }
+  );
+
+  let listsData: Array<Record<string, unknown>> = [];
+  if (listsResponse.ok) {
+    const listsResult = await listsResponse.json();
+    listsData = listsResult.data || [];
+  }
+
+  // Fetch all cards for this board
+  const cardsResponse = await fetch(
+    `${API_URL}/jsonapi/node/card?filter[field_card_list.field_list_board.id]=${boardId}&include=field_card_members,field_card_list`,
+    { headers }
+  );
+
+  let cardsData: Array<Record<string, unknown>> = [];
+  let cardsIncluded: Array<Record<string, unknown>> = [];
+  if (cardsResponse.ok) {
+    const cardsResult = await cardsResponse.json();
+    cardsData = cardsResult.data || [];
+    cardsIncluded = cardsResult.included || [];
+  }
+
+  // Fetch archived cards count
+  const archivedResponse = await fetch(
+    `${API_URL}/jsonapi/node/card?filter[field_card_list.field_list_board.id]=${boardId}&filter[field_card_archived][value]=1`,
+    { headers }
+  );
+
+  let archivedCount = 0;
+  if (archivedResponse.ok) {
+    const archivedResult = await archivedResponse.json();
+    archivedCount = (archivedResult.data || []).length;
+  }
+
+  // Calculate stats
+  const now = new Date();
+  const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  let completedCards = 0;
+  let overdueCards = 0;
+  let dueSoonCards = 0;
+  let unassignedCards = 0;
+  const labelCounts: Map<string, number> = new Map();
+  let totalEstimatedHours = 0;
+
+  // Extract unique members from included data
+  const memberMap = new Map<string, { name: string; id: string }>();
+  cardsIncluded.forEach((item) => {
+    if (item.type === 'user--user') {
+      const attrs = item.attributes as Record<string, unknown>;
+      memberMap.set(item.id as string, {
+        id: item.id as string,
+        name: (attrs.field_display_name as string) || (attrs.name as string) || 'Unknown',
+      });
+    }
+  });
+
+  // Track member stats
+  const memberCardCounts = new Map<string, { assigned: number; completed: number; overdue: number }>();
+
+  // Non-archived cards only for stats
+  const activeCards = cardsData.filter((card) => {
+    const attrs = card.attributes as Record<string, unknown>;
+    return !attrs.field_card_archived;
+  });
+
+  activeCards.forEach((card) => {
+    const attrs = card.attributes as Record<string, unknown>;
+    const rels = card.relationships as Record<string, { data: unknown }>;
+
+    // Check completion
+    if (attrs.field_card_completed) {
+      completedCards++;
+    }
+
+    // Check due date
+    const dueDate = attrs.field_card_due_date as string | null;
+    if (dueDate) {
+      const due = new Date(dueDate);
+      if (due < now && !attrs.field_card_completed) {
+        overdueCards++;
+      } else if (due <= sevenDaysFromNow && due >= now && !attrs.field_card_completed) {
+        dueSoonCards++;
+      }
+    }
+
+    // Check assigned
+    const members = rels?.field_card_members?.data as Array<{ id: string }> | null;
+    if (!members || members.length === 0) {
+      unassignedCards++;
+    } else {
+      // Track member stats
+      members.forEach((member) => {
+        const current = memberCardCounts.get(member.id) || { assigned: 0, completed: 0, overdue: 0 };
+        current.assigned++;
+        if (attrs.field_card_completed) {
+          current.completed++;
+        }
+        if (dueDate && new Date(dueDate) < now && !attrs.field_card_completed) {
+          current.overdue++;
+        }
+        memberCardCounts.set(member.id, current);
+      });
+    }
+
+    // Count labels
+    const labels = attrs.field_card_labels as string[] | null;
+    if (labels && Array.isArray(labels)) {
+      labels.forEach((label) => {
+        labelCounts.set(label, (labelCounts.get(label) || 0) + 1);
+      });
+    }
+
+    // Sum estimates (convert to hours)
+    const estimate = attrs.field_card_estimate as number | null;
+    const estimateType = attrs.field_card_estimate_type as string | null;
+    if (estimate) {
+      if (estimateType === 'hours') {
+        totalEstimatedHours += estimate;
+      } else if (estimateType === 'points') {
+        // Assume 1 point = 2 hours for conversion
+        totalEstimatedHours += estimate * 2;
+      } else if (estimateType === 'tshirt') {
+        // T-shirt sizes: 1=XS(1h), 2=S(2h), 3=M(4h), 5=L(8h), 8=XL(16h), 13=XXL(24h)
+        const tshirtToHours: Record<number, number> = { 1: 1, 2: 2, 3: 4, 5: 8, 8: 16, 13: 24 };
+        totalEstimatedHours += tshirtToHours[estimate] || estimate * 2;
+      }
+    }
+  });
+
+  // Label colors
+  const labelColors: Record<string, string> = {
+    green: '#61bd4f',
+    yellow: '#f2d600',
+    orange: '#ff9f1a',
+    red: '#eb5a46',
+    purple: '#c377e0',
+    blue: '#0079bf',
+  };
+
+  const cardsByLabel = Array.from(labelCounts.entries()).map(([label, count]) => ({
+    label,
+    count,
+    color: labelColors[label] || '#666',
+  }));
+
+  // Build list stats
+  const lists: BoardListStats[] = listsData.map((list) => {
+    const listAttrs = list.attributes as Record<string, unknown>;
+    const listId = list.id as string;
+
+    const listCards = activeCards.filter((c) => {
+      const cRels = c.relationships as Record<string, { data: { id: string } | null }>;
+      return cRels?.field_card_list?.data?.id === listId;
+    });
+
+    const completedListCards = listCards.filter((c) => {
+      const cAttrs = c.attributes as Record<string, unknown>;
+      return cAttrs.field_card_completed;
+    });
+
+    return {
+      id: listId,
+      title: listAttrs.title as string,
+      position: (listAttrs.field_list_position as number) || 0,
+      cardCount: listCards.length,
+      completedCount: completedListCards.length,
+      wipLimit: listAttrs.field_list_wip_limit as number | undefined,
+    };
+  });
+
+  // Build member stats
+  const memberStats: BoardMemberStats[] = Array.from(memberMap.entries()).map(([memberId, member]) => {
+    const counts = memberCardCounts.get(memberId) || { assigned: 0, completed: 0, overdue: 0 };
+    return {
+      id: memberId,
+      name: member.name,
+      assignedCards: counts.assigned,
+      completedCards: counts.completed,
+      overdueCards: counts.overdue,
+      trackedTime: 0, // Would need to fetch time entries
+    };
+  }).filter((m) => m.assignedCards > 0);
+
+  // Fetch recent activity for this board
+  // Get card IDs to filter activities client-side
+  const cardIds = new Set(activeCards.map((c) => c.id as string));
+
+  let recentActivity: ActivityItem[] = [];
+
+  try {
+    // Fetch recent activities and filter by cards in this board client-side
+    const activityResponse = await fetch(
+      `${API_URL}/jsonapi/node/activity?sort=-created&page[limit]=100&include=field_activity_user,field_activity_card`,
+      { headers }
+    );
+
+    if (activityResponse.ok) {
+      const activityResult = await activityResponse.json();
+      const activityData = activityResult.data || [];
+      const activityIncluded = activityResult.included || [];
+
+      // Filter to only activities for cards in this board
+      const boardActivities = activityData.filter((activity: Record<string, unknown>) => {
+        const actRels = activity.relationships as Record<string, { data: { id: string } | null }>;
+        const cardId = actRels?.field_activity_card?.data?.id;
+        return cardId && cardIds.has(cardId);
+      });
+
+      recentActivity = boardActivities.slice(0, 20).map((activity: Record<string, unknown>) => {
+        const actAttrs = activity.attributes as Record<string, unknown>;
+        const actRels = activity.relationships as Record<string, { data: { id: string } | null }>;
+
+        const userId = actRels?.field_activity_user?.data?.id;
+        const cardId = actRels?.field_activity_card?.data?.id;
+
+        const user = activityIncluded.find((i: Record<string, unknown>) => i.id === userId);
+        const card = activityIncluded.find((i: Record<string, unknown>) => i.id === cardId);
+
+        return {
+          id: activity.id as string,
+          type: (actAttrs.field_activity_type as string) || 'card_created',
+          description: actAttrs.field_activity_description as string,
+          timestamp: actAttrs.created as string,
+          userId,
+          userName: user ? ((user.attributes as Record<string, unknown>).field_display_name as string) || ((user.attributes as Record<string, unknown>).name as string) : undefined,
+          cardId,
+          cardTitle: card ? (card.attributes as Record<string, unknown>).title as string : undefined,
+        };
+      });
+    }
+  } catch (err) {
+    console.error('Error fetching activities:', err);
+    // Activity fetch failed, continue without it
+  }
+
+  // Calculate cards by due date (next 14 days)
+  const cardsByDueDate: { date: string; count: number }[] = [];
+  for (let i = 0; i < 14; i++) {
+    const date = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
+    const dateStr = date.toISOString().split('T')[0];
+
+    const count = activeCards.filter((c) => {
+      const cAttrs = c.attributes as Record<string, unknown>;
+      const cardDueDate = cAttrs.field_card_due_date as string | null;
+      if (cardDueDate && !cAttrs.field_card_completed) {
+        return cardDueDate.startsWith(dateStr);
+      }
+      return false;
+    }).length;
+
+    cardsByDueDate.push({ date: dateStr, count });
+  }
+
+  // Completion trend (last 7 days) - simplified
+  const completionTrend: { date: string; completed: number; created: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateStr = date.toISOString().split('T')[0];
+
+    // Count cards created on this date
+    const createdCount = activeCards.filter((c) => {
+      const cAttrs = c.attributes as Record<string, unknown>;
+      const created = cAttrs.created as string;
+      return created?.startsWith(dateStr);
+    }).length;
+
+    completionTrend.push({
+      date: dateStr,
+      completed: 0, // Would need completion date tracking for accuracy
+      created: createdCount,
+    });
+  }
+
+  const stats: BoardReportStats = {
+    totalCards: activeCards.length,
+    completedCards,
+    overdueCards,
+    dueSoonCards,
+    unassignedCards,
+    archivedCards: archivedCount,
+    cardsByLabel,
+    totalEstimatedHours,
+    totalTrackedTime: 0, // Would need time entries fetch
+    totalBillableTime: 0, // Would need time entries fetch
+  };
+
+  return {
+    boardId,
+    boardTitle: boardAttrs.title as string,
+    stats,
+    lists,
+    memberStats,
+    cardsByDueDate,
+    recentActivity,
+    completionTrend,
+  };
+}
+
 // Fetch blocked cards count (requires relationships)
 export async function fetchBlockedCardsCount(_workspaceId: string): Promise<number> {
   const token = getAccessToken();
