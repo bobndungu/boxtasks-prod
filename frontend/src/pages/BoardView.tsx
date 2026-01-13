@@ -104,6 +104,7 @@ import TableView from '../components/TableView';
 import DashboardView from '../components/DashboardView';
 import { AutomationRules } from '../components/AutomationRules';
 import { MindMapsPanel } from '../components/MindMapsPanel';
+import { TimeTracker } from '../components/TimeTracker';
 import { AdvancedFilters, DEFAULT_FILTER_STATE, matchesFilters, type FilterState } from '../components/AdvancedFilters';
 import { BoardSkeleton } from '../components/BoardSkeleton';
 import { highlightText } from '../lib/utils/highlight';
@@ -6370,6 +6371,9 @@ function CardDetailModal({
                   </div>
                 )}
               </div>
+
+              {/* Time Tracking */}
+              <TimeTracker cardId={card.id} cardTitle={card.title} />
 
               {/* Comments */}
               <div>
