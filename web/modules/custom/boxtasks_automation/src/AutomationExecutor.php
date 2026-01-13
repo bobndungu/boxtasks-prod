@@ -308,6 +308,39 @@ class AutomationExecutor {
         $member_ids = array_column($card_members, 'id');
         return in_array($required_member, $member_ids);
 
+      case 'card_is_approved':
+        $approved_by = $trigger_data['card']['approved_by'] ?? NULL;
+        $rejected_by = $trigger_data['card']['rejected_by'] ?? NULL;
+        return !empty($approved_by) && empty($rejected_by);
+
+      case 'card_is_rejected':
+        $approved_by = $trigger_data['card']['approved_by'] ?? NULL;
+        $rejected_by = $trigger_data['card']['rejected_by'] ?? NULL;
+        return !empty($rejected_by) && empty($approved_by);
+
+      case 'card_has_no_approval':
+        $approved_by = $trigger_data['card']['approved_by'] ?? NULL;
+        $rejected_by = $trigger_data['card']['rejected_by'] ?? NULL;
+        return empty($approved_by) && empty($rejected_by);
+
+      case 'card_approved_by':
+        $approved_by = $trigger_data['card']['approved_by'] ?? NULL;
+        $required_user = $config['user_id'] ?? '';
+        if (empty($required_user)) {
+          return !empty($approved_by);
+        }
+        // Convert UUID to numeric ID if needed for comparison.
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $required_user)) {
+          $users = $this->entityTypeManager->getStorage('user')->loadByProperties([
+            'uuid' => $required_user,
+          ]);
+          if (!empty($users)) {
+            $user = reset($users);
+            $required_user = $user->id();
+          }
+        }
+        return (string) $approved_by === (string) $required_user;
+
       default:
         // Unknown condition type, skip (return TRUE to not block).
         return TRUE;
@@ -382,6 +415,18 @@ class AutomationExecutor {
 
         case 'remove_watcher':
           $result = $this->executeRemoveWatcher($config, $trigger_data);
+          break;
+
+        case 'approve_card':
+          $result = $this->executeApproveCard($config, $trigger_data);
+          break;
+
+        case 'reject_card':
+          $result = $this->executeRejectCard($config, $trigger_data);
+          break;
+
+        case 'clear_approval':
+          $result = $this->executeClearApproval($config, $trigger_data);
           break;
 
         default:
@@ -929,6 +974,114 @@ class AutomationExecutor {
     }
 
     return ['success' => TRUE, 'user_id' => $user_id];
+  }
+
+  /**
+   * Executes approve card action.
+   */
+  protected function executeApproveCard(array $config, array $trigger_data): array {
+    $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+    if (!$card_id) {
+      return ['success' => FALSE, 'error' => 'No card ID'];
+    }
+
+    $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+    if (!$card) {
+      return ['success' => FALSE, 'error' => 'Card not found'];
+    }
+
+    // Get the user who should be marked as the approver.
+    // Can be specified in config, otherwise use system user (1).
+    $approver_id = $config['user_id'] ?? 1;
+
+    // Convert UUID to numeric ID if necessary.
+    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $approver_id)) {
+      $users = $this->entityTypeManager->getStorage('user')->loadByProperties([
+        'uuid' => $approver_id,
+      ]);
+      if (!empty($users)) {
+        $user = reset($users);
+        $approver_id = $user->id();
+      }
+    }
+
+    // Set approved_by and clear rejected_by.
+    if ($card->hasField('field_card_approved_by')) {
+      $card->set('field_card_approved_by', $approver_id);
+    }
+    if ($card->hasField('field_card_rejected_by')) {
+      $card->set('field_card_rejected_by', NULL);
+    }
+    $card->save();
+
+    return ['success' => TRUE, 'approved_by' => $approver_id];
+  }
+
+  /**
+   * Executes reject card action.
+   */
+  protected function executeRejectCard(array $config, array $trigger_data): array {
+    $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+    if (!$card_id) {
+      return ['success' => FALSE, 'error' => 'No card ID'];
+    }
+
+    $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+    if (!$card) {
+      return ['success' => FALSE, 'error' => 'Card not found'];
+    }
+
+    // Get the user who should be marked as the rejector.
+    // Can be specified in config, otherwise use system user (1).
+    $rejector_id = $config['user_id'] ?? 1;
+
+    // Convert UUID to numeric ID if necessary.
+    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $rejector_id)) {
+      $users = $this->entityTypeManager->getStorage('user')->loadByProperties([
+        'uuid' => $rejector_id,
+      ]);
+      if (!empty($users)) {
+        $user = reset($users);
+        $rejector_id = $user->id();
+      }
+    }
+
+    // Set rejected_by and clear approved_by.
+    if ($card->hasField('field_card_rejected_by')) {
+      $card->set('field_card_rejected_by', $rejector_id);
+    }
+    if ($card->hasField('field_card_approved_by')) {
+      $card->set('field_card_approved_by', NULL);
+    }
+    $card->save();
+
+    return ['success' => TRUE, 'rejected_by' => $rejector_id];
+  }
+
+  /**
+   * Executes clear approval action.
+   */
+  protected function executeClearApproval(array $config, array $trigger_data): array {
+    $card_id = $trigger_data['card_id'] ?? $trigger_data['card']['id'] ?? NULL;
+    if (!$card_id) {
+      return ['success' => FALSE, 'error' => 'No card ID'];
+    }
+
+    $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+    if (!$card) {
+      return ['success' => FALSE, 'error' => 'Card not found'];
+    }
+
+    // Clear both approval fields.
+    if ($card->hasField('field_card_approved_by')) {
+      $card->set('field_card_approved_by', NULL);
+    }
+    if ($card->hasField('field_card_rejected_by')) {
+      $card->set('field_card_rejected_by', NULL);
+    }
+    $card->save();
+
+    return ['success' => TRUE, 'cleared' => TRUE];
   }
 
 }

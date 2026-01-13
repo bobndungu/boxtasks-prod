@@ -31,6 +31,30 @@ function boxtasks_automation_mail($key, &$message, $params): void {
 }
 
 /**
+ * Implements hook_ENTITY_TYPE_presave() for automation_rule entities.
+ *
+ * Decodes HTML entities in JSON fields to prevent double-encoding issues
+ * when data comes through JSON:API.
+ */
+function boxtasks_automation_automation_rule_presave(EntityInterface $entity): void {
+  // Fields that contain JSON and may have been HTML-encoded.
+  $json_fields = ['trigger_config', 'conditions', 'actions'];
+
+  foreach ($json_fields as $field_name) {
+    if ($entity->hasField($field_name)) {
+      $value = $entity->get($field_name)->value;
+      if ($value) {
+        // Decode HTML entities (e.g., &quot; -> ").
+        $decoded = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if ($decoded !== $value) {
+          $entity->set($field_name, $decoded);
+        }
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_ENTITY_TYPE_insert() for node entities.
  *
  * Fires the 'card_created' trigger when a new card is created.
@@ -155,6 +179,34 @@ function boxtasks_automation_node_update(NodeInterface $node): void {
         'due_date' => $current_due,
       ]);
     }
+  }
+
+  // Check for card approval changes.
+  $current_approved_by = $node->hasField('field_card_approved_by') ? $node->get('field_card_approved_by')->target_id : NULL;
+  $original_approved_by = $original->hasField('field_card_approved_by') ? $original->get('field_card_approved_by')->target_id : NULL;
+  $current_rejected_by = $node->hasField('field_card_rejected_by') ? $node->get('field_card_rejected_by')->target_id : NULL;
+  $original_rejected_by = $original->hasField('field_card_rejected_by') ? $original->get('field_card_rejected_by')->target_id : NULL;
+
+  // Card was approved (approved_by was set and rejected_by is null).
+  if ($current_approved_by && !$original_approved_by && !$current_rejected_by) {
+    _boxtasks_automation_fire_card_trigger($node, 'card_approved', [
+      'approved_by' => $current_approved_by,
+    ]);
+  }
+
+  // Card was rejected (rejected_by was set and approved_by is null).
+  if ($current_rejected_by && !$original_rejected_by && !$current_approved_by) {
+    _boxtasks_automation_fire_card_trigger($node, 'card_rejected', [
+      'rejected_by' => $current_rejected_by,
+    ]);
+  }
+
+  // Approval was cleared (both were set before, now both are null).
+  if (($original_approved_by || $original_rejected_by) && !$current_approved_by && !$current_rejected_by) {
+    _boxtasks_automation_fire_card_trigger($node, 'card_approval_cleared', [
+      'previous_approved_by' => $original_approved_by,
+      'previous_rejected_by' => $original_rejected_by,
+    ]);
   }
 }
 
@@ -528,6 +580,8 @@ function _boxtasks_automation_fire_card_trigger(NodeInterface $card, string $tri
       'labels' => _boxtasks_automation_get_labels($card),
       'due_date' => $card->get('field_card_due_date')->value,
       'completed' => (bool) $card->get('field_card_completed')->value,
+      'approved_by' => $card->hasField('field_card_approved_by') ? $card->get('field_card_approved_by')->target_id : NULL,
+      'rejected_by' => $card->hasField('field_card_rejected_by') ? $card->get('field_card_rejected_by')->target_id : NULL,
     ],
     'list_id' => $list_id,
     'board_id' => $board_id,

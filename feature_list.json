@@ -2555,11 +2555,267 @@
       "status": "completed",
       "type": "both",
       "phase": "automation-extended"
+    },
+    {
+      "id": 319,
+      "name": "Dashboard page - verify all links and features work",
+      "test": "All dashboard links work correctly, boards display properly",
+      "status": "in_progress",
+      "type": "react",
+      "phase": "dashboard-improvements"
+    },
+    {
+      "id": 320,
+      "name": "Super user sees all boards but not as member",
+      "test": "Boxraft Admin can see all boards including private ones but doesn't appear in board members",
+      "status": "pending",
+      "type": "both",
+      "phase": "dashboard-improvements"
+    },
+    {
+      "id": 321,
+      "name": "Hide system users from member/watcher dropdowns",
+      "test": "Boxraft Admin and n8n_api are not visible in member and watcher dropdown lists",
+      "status": "pending",
+      "type": "react",
+      "phase": "dashboard-improvements"
+    },
+    {
+      "id": 322,
+      "name": "Add BoxTasks menu to board view with theme styling",
+      "test": "BoxTasks menu is visible in board view header like in workspaces/dashboard with proper theme",
+      "status": "pending",
+      "type": "react",
+      "phase": "dashboard-improvements"
+    },
+    {
+      "id": 323,
+      "name": "Enhance card activity section with custom fields",
+      "test": "Card activity shows detailed information including custom field changes",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-improvements"
+    },
+    {
+      "id": 324,
+      "name": "Reorder card sidebar - Department/Client above Cover",
+      "test": "Department and Client buttons appear above Cover in card sidebar",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-improvements"
+    },
+    {
+      "id": 325,
+      "name": "Reorder card sidebar - Start Date before Due Date",
+      "test": "Start Date field appears before Due Date in card sidebar",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-improvements"
+    },
+    {
+      "id": 326,
+      "name": "Add card activity to board notifications",
+      "test": "Card movements, additions, removals show in bottom-right notifications",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-improvements"
+    },
+    {
+      "id": 327,
+      "name": "Create approval/reject checkbox feature for cards",
+      "test": "Cards can have approval checkboxes with approve/reject functionality",
+      "status": "pending",
+      "type": "both",
+      "phase": "card-improvements"
+    },
+    {
+      "id": 328,
+      "name": "Show checklist count on board cards",
+      "test": "Board cards display number of checklists with Show/Hide toggle option",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-improvements"
+    },
+    {
+      "id": 329,
+      "name": "Show comment count on board cards",
+      "test": "Board cards display number of comments with Show/Hide toggle option",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-improvements"
+    },
+    {
+      "id": 330,
+      "name": "Change due date format to 'Due: 9 Jan 2026'",
+      "test": "Card sidebar shows 'Due: 9 Jan 2026' instead of 'Due date' label",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-improvements"
+    },
+    {
+      "id": 331,
+      "name": "Refine card modal UI - field titles and styling",
+      "test": "Card modal has improved visual styling for fields and titles",
+      "status": "pending",
+      "type": "react",
+      "phase": "card-improvements"
+    },
+    {
+      "id": 332,
+      "name": "Test all dashboard and card improvements",
+      "test": "All features work correctly with Playwright testing",
+      "status": "pending",
+      "type": "both",
+      "phase": "card-improvements"
+    },
+    {
+      "id": 333,
+      "name": "Add card_archived/card_restored notification types to Drupal",
+      "test": "NotificationService has TYPE_CARD_ARCHIVED and TYPE_CARD_RESTORED constants",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "archive-system"
+    },
+    {
+      "id": 334,
+      "name": "Trigger archive/restore notifications in Drupal hooks",
+      "test": "Card members receive notifications when card is archived/restored",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "archive-system"
+    },
+    {
+      "id": 335,
+      "name": "Add card_archived notification type to React frontend",
+      "test": "React notifications.ts includes card_archived and card_restored types with icons",
+      "status": "completed",
+      "type": "react",
+      "phase": "archive-system"
+    },
+    {
+      "id": 336,
+      "name": "Add restoreCard API function and fetchArchivedCardsByBoard",
+      "test": "Can call restoreCard(id) and fetchArchivedCardsByBoard(boardId, listIds)",
+      "status": "completed",
+      "type": "react",
+      "phase": "archive-system"
+    },
+    {
+      "id": 337,
+      "name": "Add archived cards panel to board view",
+      "test": "Archived button in board header opens panel showing archived cards",
+      "status": "completed",
+      "type": "react",
+      "phase": "archive-system"
+    },
+    {
+      "id": 338,
+      "name": "Implement card restore and permanent delete from archive",
+      "test": "Can restore card to original list or permanently delete from archive panel",
+      "status": "completed",
+      "type": "react",
+      "phase": "archive-system"
+    },
+    {
+      "id": 339,
+      "name": "Add separate cardArchive permission field in Drupal",
+      "test": "workspace_role content type has field_perm_card_archive field",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "permissions-enhancement"
+    },
+    {
+      "id": 340,
+      "name": "Add cardArchive permission to React roles API",
+      "test": "WorkspaceRole interface includes cardArchive permission in roles.ts",
+      "status": "completed",
+      "type": "react",
+      "phase": "permissions-enhancement"
+    },
+    {
+      "id": 341,
+      "name": "Add canArchive function to usePermissions hook",
+      "test": "usePermissions hook exports canArchive function for card archiving",
+      "status": "completed",
+      "type": "react",
+      "phase": "permissions-enhancement"
+    },
+    {
+      "id": 342,
+      "name": "Separate archive permission from delete in BoardView",
+      "test": "Archive button visibility controlled by canArchive, not canDelete",
+      "status": "completed",
+      "type": "react",
+      "phase": "permissions-enhancement"
+    },
+    {
+      "id": 343,
+      "name": "Update Approve/Reject buttons to gray style with hover colors",
+      "test": "Approve and Reject buttons show gray initially, green/red on hover",
+      "status": "completed",
+      "type": "react",
+      "phase": "ui-enhancement"
+    },
+    {
+      "id": 344,
+      "name": "Add card_approved, card_rejected, card_approval_cleared automation triggers",
+      "test": "Automation triggers fire when card approval status changes",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "automation-approval"
+    },
+    {
+      "id": 345,
+      "name": "Add card_is_approved, card_is_rejected, card_has_no_approval automation conditions",
+      "test": "Automation conditions can check card approval status",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "automation-approval"
+    },
+    {
+      "id": 346,
+      "name": "Add approve_card, reject_card, clear_approval automation actions",
+      "test": "Automation can automatically approve, reject, or clear approval on cards",
+      "status": "completed",
+      "type": "drupal",
+      "phase": "automation-approval"
+    },
+    {
+      "id": 347,
+      "name": "Add approval triggers to React automation types",
+      "test": "Frontend shows Card Approved, Card Rejected, Approval Cleared triggers",
+      "status": "completed",
+      "type": "react",
+      "phase": "automation-approval"
+    },
+    {
+      "id": 348,
+      "name": "Add approval conditions to React automation types",
+      "test": "Frontend shows Card Is Approved, Card Is Rejected, No Approval Status conditions",
+      "status": "completed",
+      "type": "react",
+      "phase": "automation-approval"
+    },
+    {
+      "id": 349,
+      "name": "Add approval actions to React automation types",
+      "test": "Frontend shows Approve Card, Reject Card, Clear Approval actions",
+      "status": "completed",
+      "type": "react",
+      "phase": "automation-approval"
+    },
+    {
+      "id": 350,
+      "name": "Add UI config fields for approval automation options",
+      "test": "Can select user for approval conditions and actions in automation editor",
+      "status": "completed",
+      "type": "react",
+      "phase": "automation-approval"
     }
   ],
-  "current_feature": 318,
+  "current_feature": 319,
   "browser_retries": 0,
-  "phase": "card-display-enhancement",
+  "phase": "dashboard-improvements",
   "created_at": "2026-01-10",
   "updated_at": "2026-01-12",
   "source_project": "~/Sites/DrupalDev/BoxTasks/"

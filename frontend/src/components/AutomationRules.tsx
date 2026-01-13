@@ -679,7 +679,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                     />
                   )}
 
-                  {(condition.type === 'card_has_watcher' || condition.type === 'card_has_member') && (
+                  {(condition.type === 'card_has_watcher' || condition.type === 'card_has_member' || condition.type === 'card_approved_by') && (
                     <select
                       value={(condition.config.user_id as string) || ''}
                       onChange={e =>
@@ -916,6 +916,25 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                       rows={2}
                     />
                   </div>
+                )}
+
+                {(action.type === 'approve_card' || action.type === 'reject_card') && (
+                  <select
+                    value={(action.config.user_id as string) || ''}
+                    onChange={e =>
+                      updateAction(index, {
+                        config: { ...action.config, user_id: e.target.value },
+                      })
+                    }
+                    className="flex-1 px-2 py-1 border rounded"
+                  >
+                    <option value="">System (automated)</option>
+                    {members.map(m => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
                 )}
 
                 <button

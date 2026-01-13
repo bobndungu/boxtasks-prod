@@ -92,6 +92,9 @@ export const TRIGGER_TYPES = [
   { id: 'custom_field_changed', label: 'Custom Field Changed', description: 'When a custom field value changes' },
   { id: 'department_changed', label: 'Department Changed', description: 'When the department is changed' },
   { id: 'client_changed', label: 'Client Changed', description: 'When the client is changed' },
+  { id: 'card_approved', label: 'Card Approved', description: 'When a card is approved' },
+  { id: 'card_rejected', label: 'Card Rejected', description: 'When a card is rejected' },
+  { id: 'card_approval_cleared', label: 'Approval Cleared', description: 'When card approval is cleared' },
 ] as const;
 
 // Schedule interval options for scheduled trigger
@@ -134,6 +137,10 @@ export const CONDITION_TYPES = [
   { id: 'card_has_watcher', label: 'Card Has Watcher', description: 'Card has a specific watcher', configFields: ['user_id'] },
   { id: 'card_has_comments', label: 'Card Has Comments', description: 'Card has one or more comments', configFields: [] },
   { id: 'card_has_member', label: 'Card Has Member', description: 'Card has a specific member assigned', configFields: ['user_id'] },
+  { id: 'card_is_approved', label: 'Card Is Approved', description: 'Card has been approved', configFields: [] },
+  { id: 'card_is_rejected', label: 'Card Is Rejected', description: 'Card has been rejected', configFields: [] },
+  { id: 'card_has_no_approval', label: 'No Approval Status', description: 'Card has not been approved or rejected', configFields: [] },
+  { id: 'card_approved_by', label: 'Approved By User', description: 'Card was approved by a specific user', configFields: ['user_id'] },
 ] as const;
 
 // Available action types
@@ -151,6 +158,9 @@ export const ACTION_TYPES = [
   { id: 'set_client', label: 'Set Client', description: 'Set the card client', configFields: ['client_id'] },
   { id: 'add_watcher', label: 'Add Watcher', description: 'Add a watcher to the card', configFields: ['user_id'] },
   { id: 'remove_watcher', label: 'Remove Watcher', description: 'Remove a watcher from the card', configFields: ['user_id'] },
+  { id: 'approve_card', label: 'Approve Card', description: 'Automatically approve the card', configFields: ['user_id'] },
+  { id: 'reject_card', label: 'Reject Card', description: 'Automatically reject the card', configFields: ['user_id'] },
+  { id: 'clear_approval', label: 'Clear Approval', description: 'Clear approval/rejection status', configFields: [] },
 ] as const;
 
 // Email recipient types for send_email action
