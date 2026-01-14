@@ -174,6 +174,33 @@ if ($mercure_url = getenv('MERCURE_URL')) {
 }
 
 /**
+ * SMTP settings override.
+ *
+ * Override SMTP password from environment variable to avoid storing in config.
+ */
+if ($smtp_password = getenv('SMTP_PASSWORD')) {
+  $config['smtp.settings']['smtp_password'] = $smtp_password;
+}
+
+/**
+ * Social Auth - Google settings override.
+ *
+ * Override client secret from environment variable to avoid storing in config.
+ */
+if ($google_secret = getenv('SOCIAL_AUTH_GOOGLE_CLIENT_SECRET')) {
+  $config['social_auth_google.settings']['client_secret'] = $google_secret;
+}
+
+/**
+ * Social Auth - Microsoft settings override.
+ *
+ * Override client secret from environment variable to avoid storing in config.
+ */
+if ($microsoft_secret = getenv('SOCIAL_AUTH_MICROSOFT_CLIENT_SECRET')) {
+  $config['social_auth_microsoft.settings']['client_secret'] = $microsoft_secret;
+}
+
+/**
  * CORS configuration.
  *
  * Set CORS_ALLOWED_ORIGINS as comma-separated list.
