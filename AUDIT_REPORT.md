@@ -154,6 +154,46 @@ function formatDateForDrupal(date: Date): string {
 2. Implement performance monitoring (Web Vitals)
 3. Consider service worker caching strategy
 
+## Deployment Fixes (2026-01-14)
+
+During deployment verification, the following entity schema issues were identified and fixed:
+
+### 1. Missing Field: `next_scheduled_run` (FIXED)
+
+**Entity:** `automation_rule`
+**Error:** `QueryException: 'next_scheduled_run' not found`
+**Fix:** Installed field storage definition via EntityDefinitionUpdateManager
+
+### 2. Missing Field: `field_perm_card_view` (FIXED)
+
+**Entity:** `node` (workspace_role content type)
+**Error:** Field needs to be installed
+**Fix:** Imported field configuration and installed field storage definition
+
+### Commands Used:
+```bash
+# Install next_scheduled_run field
+ddev drush php:eval '
+$update_manager = \Drupal::entityDefinitionUpdateManager();
+$base_fields = \Drupal::service("entity_field.manager")->getBaseFieldDefinitions("automation_rule");
+$update_manager->installFieldStorageDefinition("next_scheduled_run", "automation_rule", "boxtasks_automation", $base_fields["next_scheduled_run"]);
+'
+
+# Import role field configs
+ddev drush config:import --partial --source=/var/www/html/web/modules/custom/boxtasks_role/config/install -y
+
+# Install field_perm_card_view
+ddev drush php:eval '
+$update_manager = \Drupal::entityDefinitionUpdateManager();
+$storage_definitions = \Drupal::service("entity_field.manager")->getFieldStorageDefinitions("node");
+$update_manager->installFieldStorageDefinition("field_perm_card_view", "node", "boxtasks_role", $storage_definitions["field_perm_card_view"]);
+'
+```
+
+### Remaining Non-Critical Issues:
+- **SMTP Configuration:** SMTP authentication error (environment config, not code issue)
+- **SSL to drupal.org:** Intermittent connection errors (network issue)
+
 ## Conclusion
 
-BoxTasks2 is production-ready with one bug fixed during this audit. The codebase is well-structured with proper code splitting, TypeScript throughout, and working real-time functionality. Minor lint issues should be addressed but are not blocking deployment.
+BoxTasks2 is production-ready with one bug fixed during this audit and two entity schema issues resolved during deployment verification. The codebase is well-structured with proper code splitting, TypeScript throughout, and working real-time functionality. Minor lint issues should be addressed but are not blocking deployment.
