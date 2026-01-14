@@ -548,3 +548,50 @@ claude --continue "Resume the agentic loop from where we left off"
 - React Frontend: http://localhost:5173
 - Original BoxTasks: ~/Sites/DrupalDev/BoxTasks/
 - Production DB: tasks.boxraft.com (SSH tunnel)
+
+---
+
+## Production Server Configuration
+
+### Server Access
+- **SSH Host:** 23.92.21.181
+- **SSH User:** root
+- **SSH Port:** 22
+- **Production URL:** https://boxtasks.boxraft.com
+- **Drupal Path:** /var/www/websites/boxtasks.boxraft.com/web
+
+### CRITICAL: Shared Services Warning
+
+**DO NOT override secrets for existing shared services on the production server.**
+
+The production server hosts multiple websites that share these services:
+- **Database (MySQL/MariaDB)** - Other sites use the same database server
+- **Redis** - Shared cache service with existing password
+- **Mercure** - May be shared with other sites
+- **SMTP** - Shared mail configuration
+
+**When deploying BoxTasks2:**
+1. **GET existing credentials** from the server for shared services (DB, Redis, Mercure, SMTP)
+2. **DO NOT generate new passwords** for shared services - this will break other sites
+3. **Only use generated secrets** for BoxTasks2-specific configuration:
+   - `DRUPAL_HASH_SALT` (BoxTasks2 specific)
+   - `DRUPAL_ADMIN_PASSWORD` (BoxTasks2 specific)
+   - `VITE_OAUTH_CLIENT_SECRET` (BoxTasks2 specific)
+
+### Production Configuration File
+
+All production configuration is in: `.env.production.local` (gitignored)
+
+Fields marked `<FILL_IN>` must be obtained from the existing server configuration.
+
+### Deployment Checklist
+
+Before deploying to production:
+- [ ] Get existing DB credentials from server
+- [ ] Get existing Redis password from server
+- [ ] Get existing Mercure JWT secret from server (if shared)
+- [ ] Get existing SMTP password from server
+- [ ] Regenerate Google OAuth secret (in Google Console)
+- [ ] Regenerate Microsoft OAuth secret (in Azure Portal)
+- [ ] Set BoxTasks2-specific secrets (hash salt, admin password, OAuth client secret)
+- [ ] Test all authentication flows after deployment
