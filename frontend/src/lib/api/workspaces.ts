@@ -185,7 +185,7 @@ export async function fetchWorkspaceMembers(workspaceId: string): Promise<Worksp
       const attrs = user.attributes as Record<string, unknown>;
       members.push({
         id: user.id as string,
-        displayName: (attrs.field_display_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown User',
+        displayName: (attrs.field_display_name as string) || (attrs.field_full_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown User',
         email: (attrs.mail as string) || '',
         isAdmin: adminIds.has(memberId),
       });
@@ -259,7 +259,7 @@ export async function fetchAllUsers(): Promise<WorkspaceMember[]> {
       if (uid === 0) return null;
       return {
         id: user.id as string,
-        displayName: (attrs.field_display_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown',
+        displayName: (attrs.field_display_name as string) || (attrs.field_full_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown',
         email: (attrs.mail as string) || '',
         isAdmin: false,
       };
@@ -292,7 +292,7 @@ export async function searchUsers(query: string): Promise<WorkspaceMember[]> {
     const attrs = user.attributes as Record<string, unknown>;
     return {
       id: user.id as string,
-      displayName: (attrs.field_display_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown',
+      displayName: (attrs.field_display_name as string) || (attrs.field_full_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown',
       email: (attrs.mail as string) || '',
       isAdmin: false,
     };

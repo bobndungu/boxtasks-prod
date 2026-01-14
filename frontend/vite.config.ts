@@ -61,6 +61,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         // Exclude Drupal backend routes from service worker interception
         navigateFallbackDenylist: [
+          /^\/api\//,       // Custom API routes
           /^\/user\//,      // Social auth routes (login, logout, callback)
           /^\/admin\//,     // Admin routes
           /^\/jsonapi\//,   // JSON:API routes

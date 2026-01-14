@@ -1,0 +1,41 @@
+# Project: BoxTasks2 Session Expiration Fix
+
+## Description
+Fix the session expiration issue on production (boxtasks.boxraft.com) where users are getting logged out too frequently. The access token is set to expire in only 5 minutes, which is too short for normal usage.
+
+## Root Cause
+- Access Token Expiration: 300 seconds (5 minutes) - TOO SHORT
+- Frontend refresh buffer: 5 minutes (same as token lifetime)
+- This causes race conditions where the token expires before refresh occurs
+
+## Recommended Fix
+1. Increase access token expiration to 1 hour (3600 seconds)
+2. Keep refresh token at 14 days (1209600 seconds) - this is fine
+3. Adjust frontend refresh buffer if needed
+
+## Production Server
+- SSH: root@23.92.21.181
+- Drupal path: /var/www/websites/boxtasks.boxraft.com/web
+- OAuth Consumer: boxtasks-frontend
+
+## Frontend Configuration
+- Token refresh buffer: 5 minutes before expiry
+- Session heartbeat: Every 1 minute
+- Location: frontend/src/lib/api/client.ts
+
+## Features (Fix Steps)
+
+1. Update OAuth consumer access token expiration to 3600 seconds (1 hour)
+   - Test: drush query shows access_token_expiration = 3600
+
+2. Clear Drupal caches after configuration change
+   - Test: drush cr completes successfully
+
+3. Test login and verify new token expiration
+   - Test: Login returns expires_in of 3600
+
+4. Verify session persists for extended period
+   - Test: User stays logged in for more than 5 minutes without refresh issues
+
+5. Update frontend refresh buffer to be more conservative (optional)
+   - Test: TOKEN_REFRESH_BUFFER_MS is reasonable for 1 hour tokens

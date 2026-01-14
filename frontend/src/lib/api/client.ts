@@ -463,6 +463,7 @@ export async function fetchWithCsrf(
   const response = await fetch(url, {
     ...options,
     headers,
+    cache: 'no-store', // Bypass service worker caching for API requests
   });
 
   // If we get a 403 with CSRF error, retry with fresh token
@@ -476,7 +477,7 @@ export async function fetchWithCsrf(
         const freshCsrf = await getCsrfToken();
         if (freshCsrf) {
           headers.set('X-CSRF-Token', freshCsrf);
-          return fetch(url, { ...options, headers });
+          return fetch(url, { ...options, headers, cache: 'no-store' });
         }
       }
     } catch {

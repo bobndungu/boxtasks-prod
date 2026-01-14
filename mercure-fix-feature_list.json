@@ -1,0 +1,49 @@
+{
+  "project": "BoxTasks2 Mercure Fix",
+  "dev_servers": {
+    "production": {
+      "url": "https://boxtasks.boxraft.com",
+      "ssh": "root@23.92.21.181"
+    }
+  },
+  "features": [
+    {
+      "id": 1,
+      "name": "Convert Mercure config to Caddyfile format",
+      "test": "Run /opt/mercure run --config /opt/Caddyfile without errors",
+      "status": "completed",
+      "type": "server"
+    },
+    {
+      "id": 2,
+      "name": "Add nginx proxy for /.well-known/mercure",
+      "test": "curl to /.well-known/mercure returns proper response",
+      "status": "completed",
+      "type": "server"
+    },
+    {
+      "id": 3,
+      "name": "Start and enable Mercure systemd service",
+      "test": "systemctl status mercure shows active",
+      "status": "completed",
+      "type": "server"
+    },
+    {
+      "id": 4,
+      "name": "Test anonymous subscription from browser",
+      "test": "EventSource connection succeeds without 403",
+      "status": "completed",
+      "type": "integration"
+    },
+    {
+      "id": 5,
+      "name": "Verify frontend shows Connected status",
+      "test": "Notification icon shows connected instead of disconnected",
+      "status": "completed",
+      "type": "integration"
+    }
+  ],
+  "current_feature": null,
+  "browser_retries": 0,
+  "completed_at": "2026-01-14T09:05:00Z"
+}

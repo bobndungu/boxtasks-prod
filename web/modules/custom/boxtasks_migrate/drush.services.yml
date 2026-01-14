@@ -1,0 +1,6 @@
+services:
+  boxtasks_migrate.commands:
+    class: \Drupal\boxtasks_migrate\Commands\UserImportCommands
+    arguments: ['@entity_type.manager', '@file_system']
+    tags:
+      - { name: drush.command }

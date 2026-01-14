@@ -1,0 +1,44 @@
+# Project: BoxTasks2 Mercure Real-time Fix
+
+## Description
+Fix the Mercure real-time messaging server on production (boxtasks.boxraft.com) which is currently returning 403 errors. The frontend expects Mercure at `/.well-known/mercure` but the server is not properly configured.
+
+## Tech Stack
+- Mercure 0.20.2 (Caddy-based)
+- nginx reverse proxy
+- React frontend with EventSource subscription
+- Production server: 23.92.21.181
+
+## Current Issues
+1. Mercure config is in old YAML format - needs Caddyfile format for Mercure 0.20.2
+2. nginx missing proxy rule for `/.well-known/mercure`
+3. Mercure service is in failed state
+
+## Production Server
+- SSH: root@23.92.21.181
+- Mercure binary: /opt/mercure
+- Config file: /opt/mercure-config.yaml (needs to be Caddyfile)
+- Service: systemd mercure.service
+- nginx config: /etc/nginx/conf.d/boxtasks.boxraft.com.conf
+
+## Frontend Configuration
+- VITE_MERCURE_URL: https://boxtasks.boxraft.com/.well-known/mercure
+- Uses anonymous subscription (withCredentials: false)
+- Topics: /boards/{id}, /users/{id}/notifications, /chat/{id}
+
+## Features (Fix Steps)
+
+1. Convert Mercure config from YAML to Caddyfile format
+   - Test: /opt/mercure run --config /opt/Caddyfile starts without error
+
+2. Update nginx to proxy /.well-known/mercure to Mercure server
+   - Test: curl https://boxtasks.boxraft.com/.well-known/mercure returns Mercure response
+
+3. Start and enable Mercure systemd service
+   - Test: systemctl status mercure shows "active (running)"
+
+4. Test anonymous subscription from frontend
+   - Test: Browser connects without 403 error
+
+5. Verify real-time updates work end-to-end
+   - Test: Frontend shows "Connected" status instead of "Disconnected"

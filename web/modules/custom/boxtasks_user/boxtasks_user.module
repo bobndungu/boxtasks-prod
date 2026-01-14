@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * @file
+ * BoxTasks User module.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Session\AccountInterface;
+
+/**
+ * Implements hook_entity_field_access().
+ *
+ * Allows access to certain user fields for authenticated users via JSON:API.
+ */
+function boxtasks_user_entity_field_access($operation, FieldDefinitionInterface $field_definition, AccountInterface $account, ?FieldItemListInterface $items = NULL) {
+  // Only handle view operations for user entity fields.
+  if ($operation !== 'view' || $field_definition->getTargetEntityTypeId() !== 'user') {
+    return AccessResult::neutral();
+  }
+
+  // Define which fields should be accessible to authenticated users.
+  $accessible_fields = [
+    'field_display_name',
+    'field_bio',
+    'field_job_title',
+    'field_timezone',
+    'user_picture',
+    'mail',
+    'name',
+  ];
+
+  $field_name = $field_definition->getName();
+
+  // Allow access to specified fields for authenticated users.
+  if (in_array($field_name, $accessible_fields)) {
+    // Allow for authenticated users.
+    if ($account->isAuthenticated()) {
+      return AccessResult::allowed()->cachePerPermissions();
+    }
+  }
+
+  return AccessResult::neutral();
+}
