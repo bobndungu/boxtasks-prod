@@ -2,6 +2,26 @@ import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
+// Helper function to format dates for Drupal datetime fields
+// Drupal expects format: Y-m-d\TH:i:s (no timezone)
+function formatDateForDrupal(dateStr: string | null | undefined): string | null {
+  if (!dateStr) return null;
+  let formatted = dateStr;
+  // Remove timezone info if present
+  formatted = formatted.replace(/[+-]\d{2}:\d{2}$/, '').replace('Z', '');
+  // Remove milliseconds if present
+  formatted = formatted.replace(/\.\d{3}/, '');
+  // Add seconds if missing (datetime-local gives HH:MM without seconds)
+  if (/T\d{2}:\d{2}$/.test(formatted)) {
+    formatted += ':00';
+  }
+  // If no time part, add default time
+  if (!formatted.includes('T')) {
+    formatted += 'T12:00:00';
+  }
+  return formatted;
+}
+
 export type CardLabel = 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'blue';
 
 export interface CardMember {
@@ -370,13 +390,9 @@ export async function createCard(data: CreateCardData): Promise<Card> {
           body: data.description ? { value: data.description, format: 'basic_html' } : null,
           field_card_position: data.position || 0,
           // Production uses 'field_start_date' instead of 'field_card_start_date'
-          field_start_date: data.startDate
-            ? (data.startDate.includes('T') ? data.startDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.startDate}T12:00:00+00:00`)
-            : null,
+          field_start_date: formatDateForDrupal(data.startDate),
           // Use field_card_due_date (exists on production)
-          field_card_due_date: data.dueDate
-            ? (data.dueDate.includes('T') ? data.dueDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.dueDate}T12:00:00+00:00`)
-            : null,
+          field_card_due_date: formatDateForDrupal(data.dueDate),
           field_card_archived: false,
         },
         relationships,
@@ -406,15 +422,11 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
   if (data.position !== undefined) attributes.field_card_position = data.position;
   if (data.startDate !== undefined) {
     // Production uses 'field_start_date' instead of 'field_card_start_date'
-    attributes.field_start_date = data.startDate
-      ? (data.startDate.includes('T') ? data.startDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.startDate}T12:00:00+00:00`)
-      : null;
+    attributes.field_start_date = formatDateForDrupal(data.startDate);
   }
   if (data.dueDate !== undefined) {
     // Use field_card_due_date (exists on production)
-    attributes.field_card_due_date = data.dueDate
-      ? (data.dueDate.includes('T') ? data.dueDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.dueDate}T12:00:00+00:00`)
-      : null;
+    attributes.field_card_due_date = formatDateForDrupal(data.dueDate);
   }
   if (data.archived !== undefined) attributes.field_card_archived = data.archived;
   // Production uses 'field_pinned' instead of 'field_card_pinned'
