@@ -419,7 +419,7 @@ export async function convertNodeToCard(
         },
         relationships: {
           field_card_list: {
-            data: { type: 'node--board_list', id: listId },
+            data: { type: 'node--list', id: listId },
           },
         },
       },

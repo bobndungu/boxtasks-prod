@@ -339,7 +339,7 @@ export async function createCard(data: CreateCardData): Promise<Card> {
   // Build relationships object
   const relationships: Record<string, unknown> = {
     field_card_list: {
-      data: { type: 'node--board_list', id: data.listId },
+      data: { type: 'node--list', id: data.listId },
     },
   };
 
@@ -423,7 +423,7 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
 
   if (data.listId) {
     relationships.field_card_list = {
-      data: { type: 'node--board_list', id: data.listId },
+      data: { type: 'node--list', id: data.listId },
     };
   }
 

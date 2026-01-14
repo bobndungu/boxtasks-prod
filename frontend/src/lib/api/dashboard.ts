@@ -370,9 +370,9 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
   const boardData = boardResult.data;
   const boardAttrs = boardData.attributes as Record<string, unknown>;
 
-  // Fetch lists for this board (content type is board_list)
+  // Fetch lists for this board (content type is list)
   const listsResponse = await fetch(
-    `${API_URL}/jsonapi/node/board_list?filter[field_list_board.id]=${boardId}&filter[field_list_archived][value]=0&sort=field_list_position`,
+    `${API_URL}/jsonapi/node/list?filter[field_list_board.id]=${boardId}&filter[field_list_archived][value]=0&sort=field_list_position`,
     { headers }
   );
 
