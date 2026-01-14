@@ -28,6 +28,7 @@ The production environment uses different field names than development:
 |---------|------------------|-------------------|--------|
 | Description | `body` | `field_card_description` | Fixed with fallback |
 | Start Date | `field_start_date` | `field_card_start_date` | Fixed with fallback |
+| Due Date | `field_due_date` | `field_card_due_date` | Fixed with fallback |
 | Pinned | `field_pinned` | `field_card_pinned` | Fixed with fallback |
 | Labels | `field_labels` (entity_reference) | `field_card_labels` (list_string) | Fixed with fallback |
 | Archived | `field_card_archived` or `field_archived` | `field_card_archived` | Fixed with fallback |

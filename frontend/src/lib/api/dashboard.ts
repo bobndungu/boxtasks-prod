@@ -126,8 +126,8 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
       completedCards++;
     }
 
-    // Check due date
-    const dueDate = attrs.field_card_due_date as string | null;
+    // Check due date (production uses 'field_due_date' instead of 'field_card_due_date')
+    const dueDate = (attrs.field_card_due_date as string | null) || (attrs.field_due_date as string | null);
     if (dueDate) {
       const due = new Date(dueDate);
       if (due < now && !(attrs.field_card_completed || false)) {
@@ -244,7 +244,8 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
 
       const overdueMemberCards = assignedCards.filter((c) => {
         const cAttrs = c.attributes as Record<string, unknown>;
-        const dueDate = cAttrs.field_card_due_date as string | null;
+        // Production uses 'field_due_date' instead of 'field_card_due_date'
+        const dueDate = (cAttrs.field_card_due_date as string | null) || (cAttrs.field_due_date as string | null);
         if (dueDate && !(cAttrs.field_card_completed || false)) {
           return new Date(dueDate) < now;
         }
@@ -270,7 +271,8 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
 
     const count = allCards.filter((c) => {
       const cAttrs = c.attributes as Record<string, unknown>;
-      const dueDate = cAttrs.field_card_due_date as string | null;
+      // Production uses 'field_due_date' instead of 'field_card_due_date'
+      const dueDate = (cAttrs.field_card_due_date as string | null) || (cAttrs.field_due_date as string | null);
       if (dueDate && !(cAttrs.field_card_completed || false)) {
         return dueDate.startsWith(dateStr);
       }
@@ -449,8 +451,8 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
       completedCards++;
     }
 
-    // Check due date
-    const dueDate = attrs.field_card_due_date as string | null;
+    // Check due date (production uses 'field_due_date' instead of 'field_card_due_date')
+    const dueDate = (attrs.field_card_due_date as string | null) || (attrs.field_due_date as string | null);
     if (dueDate) {
       const due = new Date(dueDate);
       if (due < now && !(attrs.field_card_completed || false)) {
@@ -618,7 +620,8 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
 
     const count = activeCards.filter((c) => {
       const cAttrs = c.attributes as Record<string, unknown>;
-      const cardDueDate = cAttrs.field_card_due_date as string | null;
+      // Production uses 'field_due_date' instead of 'field_card_due_date'
+      const cardDueDate = (cAttrs.field_card_due_date as string | null) || (cAttrs.field_due_date as string | null);
       if (cardDueDate && !(cAttrs.field_card_completed || false)) {
         return cardDueDate.startsWith(dateStr);
       }
