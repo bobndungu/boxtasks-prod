@@ -1,13 +1,22 @@
-# BoxTasks Production vs Development Gaps
+# BoxTasks2 Production vs Development Gaps
 
-This document summarizes the differences between the development and production Drupal environments for BoxTasks. These gaps should be addressed when deploying new features to production.
+This document summarizes the differences between the development and production Drupal environments for BoxTasks2.
+
+**Important:** This project (BoxTasks2) is completely separate from tasks.boxraft.com. Do not cross-port features between these sites.
+
+## Environments
+
+| Environment | Frontend | Drupal Backend |
+|-------------|----------|----------------|
+| Development | localhost:5173 | boxtasks2.ddev.site |
+| Production | boxtasks.boxraft.com | boxtasks.boxraft.com |
 
 ## Last Updated
 2026-01-14
 
 ## Summary
 
-The production site (tasks.boxraft.com / boxtasks.boxraft.com) has a different Drupal configuration than the development environment. The frontend has been updated to handle both environments with fallbacks.
+The production site (boxtasks.boxraft.com) has a different Drupal configuration than the development environment (boxtasks2.ddev.site). The frontend has been updated to handle both environments with fallbacks.
 
 ---
 
@@ -131,12 +140,12 @@ These features show 404 errors because the content types don't exist on producti
 
 ## Recommended Next Steps
 
-### Priority 1: Deploy Missing Content Types
+### Priority 1: Deploy Missing Content Types to BoxTasks2 Production
 
-Export and import these content types from dev to production:
+Export content types from BoxTasks2 dev (boxtasks2.ddev.site) and import to BoxTasks2 production (boxtasks.boxraft.com):
 
 ```bash
-# On development
+# On BoxTasks2 development (boxtasks2.ddev.site)
 ddev drush cex -y
 
 # Copy config files for:
@@ -148,9 +157,11 @@ ddev drush cex -y
 # - node.type.custom_field_definition.yml
 # - taxonomy.vocabulary.client.yml
 
-# On production
+# On BoxTasks2 production (boxtasks.boxraft.com)
 drush cim -y
 ```
+
+**Note:** Do NOT import configurations from tasks.boxraft.com - that is a completely separate project.
 
 ### Priority 2: Add Missing Card Fields
 
