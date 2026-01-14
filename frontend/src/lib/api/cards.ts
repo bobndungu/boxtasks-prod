@@ -2,13 +2,13 @@ import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
-// Helper function to format dates for Drupal datetime fields
-// Drupal expects format: Y-m-d\TH:i:s (no timezone)
+// Helper function to format dates for Drupal JSON:API datetime fields
+// Drupal JSON:API requires RFC 3339 format: Y-m-d\TH:i:sP (e.g., 2026-01-26T11:30:00+00:00)
 function formatDateForDrupal(dateStr: string | null | undefined): string | null {
   if (!dateStr) return null;
   let formatted = dateStr;
-  // Remove timezone info if present
-  formatted = formatted.replace(/[+-]\d{2}:\d{2}$/, '').replace('Z', '');
+  // Remove existing timezone info - we'll add UTC timezone at the end
+  formatted = formatted.replace(/[+-]\d{2}:\d{2}$/, '').replace(/[+-]\d{4}$/, '').replace('Z', '');
   // Remove milliseconds if present
   formatted = formatted.replace(/\.\d{3}/, '');
   // Add seconds if missing (datetime-local gives HH:MM without seconds)
@@ -19,6 +19,8 @@ function formatDateForDrupal(dateStr: string | null | undefined): string | null 
   if (!formatted.includes('T')) {
     formatted += 'T12:00:00';
   }
+  // Add UTC timezone suffix (required by Drupal JSON:API RFC 3339 format)
+  formatted += '+00:00';
   return formatted;
 }
 
