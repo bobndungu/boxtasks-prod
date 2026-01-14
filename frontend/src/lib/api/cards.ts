@@ -373,8 +373,8 @@ export async function createCard(data: CreateCardData): Promise<Card> {
           field_start_date: data.startDate
             ? (data.startDate.includes('T') ? data.startDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.startDate}T12:00:00+00:00`)
             : null,
-          // Production uses 'field_due_date' instead of 'field_card_due_date'
-          field_due_date: data.dueDate
+          // Use field_card_due_date (exists on production)
+          field_card_due_date: data.dueDate
             ? (data.dueDate.includes('T') ? data.dueDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.dueDate}T12:00:00+00:00`)
             : null,
           field_card_archived: false,
@@ -411,8 +411,8 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
       : null;
   }
   if (data.dueDate !== undefined) {
-    // Production uses 'field_due_date' instead of 'field_card_due_date'
-    attributes.field_due_date = data.dueDate
+    // Use field_card_due_date (exists on production)
+    attributes.field_card_due_date = data.dueDate
       ? (data.dueDate.includes('T') ? data.dueDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.dueDate}T12:00:00+00:00`)
       : null;
   }
