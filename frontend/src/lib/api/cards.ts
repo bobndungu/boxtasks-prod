@@ -92,7 +92,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
   }
 
   // Get watcher IDs
-  const watchersData = rels?.field_card_watchers?.data;
+  const watchersData = rels?.field_watchers?.data;
   const watcherIds: string[] = Array.isArray(watchersData)
     ? watchersData.map((w) => w.id)
     : [];
@@ -122,12 +122,12 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
   }
 
   // Get list ID (single reference)
-  const listData = rels?.field_card_list?.data;
+  const listData = rels?.field_list?.data;
   const listId = listData && !Array.isArray(listData) ? listData.id : '';
 
   // Get department data
   let department: { id: string; name: string } | undefined;
-  const departmentData = rels?.field_card_department?.data;
+  const departmentData = rels?.field_department?.data;
   const departmentId = departmentData && !Array.isArray(departmentData) ? departmentData.id : undefined;
   if (included && departmentId) {
     const departmentTerm = included.find(
@@ -144,7 +144,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
 
   // Get client data
   let client: { id: string; name: string } | undefined;
-  const clientData = rels?.field_card_client?.data;
+  const clientData = rels?.field_client?.data;
   const clientId = clientData && !Array.isArray(clientData) ? clientData.id : undefined;
   if (included && clientId) {
     const clientTerm = included.find(
@@ -200,15 +200,20 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
   return {
     id: data.id as string,
     title: attrs.title as string,
-    description: (attrs.field_card_description as { value?: string })?.value || '',
+    // Production uses 'body' field instead of 'field_card_description'
+    description: (attrs.body as { value?: string })?.value || (attrs.field_card_description as { value?: string })?.value || '',
     listId,
     position: (attrs.field_card_position as number) || 0,
-    startDate: (attrs.field_card_start_date as string) || undefined,
-    dueDate: (attrs.field_card_due_date as string) || undefined,
+    // Production uses 'field_start_date' instead of 'field_card_start_date'
+    startDate: (attrs.field_start_date as string) || (attrs.field_card_start_date as string) || undefined,
+    dueDate: (attrs.field_card_due_date as string) || (attrs.field_due_date as string) || undefined,
+    // Production uses 'field_labels' as entity references - handle both formats
     labels: (attrs.field_card_labels as CardLabel[]) || [],
-    archived: (attrs.field_card_archived as boolean) || false,
+    archived: (attrs.field_card_archived as boolean) || (attrs.field_archived as boolean) || false,
+    // Production doesn't have field_card_completed - default to false
     completed: (attrs.field_card_completed as boolean) || false,
-    pinned: (attrs.field_card_pinned as boolean) || false,
+    // Production uses 'field_pinned' instead of 'field_card_pinned'
+    pinned: (attrs.field_pinned as boolean) || (attrs.field_card_pinned as boolean) || false,
     coverImageUrl,
     coverImageId,
     watcherIds,
@@ -249,7 +254,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
 // Fetch all cards for a list
 export async function fetchCardsByList(listId: string): Promise<Card[]> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?filter[field_card_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_cover,field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by`,
+    `${API_URL}/jsonapi/node/card?filter[field_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_department,field_client`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -275,11 +280,11 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
   if (listIds.length === 0) return new Map();
 
   const filterParams = listIds.map((id, index) =>
-    `filter[list-filter-${index}][condition][path]=field_card_list.id&filter[list-filter-${index}][condition][value]=${id}`
+    `filter[list-filter-${index}][condition][path]=field_list.id&filter[list-filter-${index}][condition][value]=${id}`
   ).join('&');
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_cover,field_card_members,field_card_department,field_card_client`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_department,field_client`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -318,7 +323,7 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
 
 // Fetch a single card
 export async function fetchCard(id: string): Promise<Card> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_cover,field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by`, {
+  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_members,field_department,field_client`, {
     headers: {
       'Accept': 'application/vnd.api+json',
       'Authorization': `Bearer ${getAccessToken()}`,
@@ -338,7 +343,7 @@ export async function fetchCard(id: string): Promise<Card> {
 export async function createCard(data: CreateCardData): Promise<Card> {
   // Build relationships object
   const relationships: Record<string, unknown> = {
-    field_card_list: {
+    field_list: {
       data: { type: 'node--list', id: data.listId },
     },
   };
@@ -361,15 +366,16 @@ export async function createCard(data: CreateCardData): Promise<Card> {
         type: 'node--card',
         attributes: {
           title: data.title,
-          field_card_description: data.description ? { value: data.description } : null,
+          // Production uses 'body' instead of 'field_card_description'
+          body: data.description ? { value: data.description, format: 'basic_html' } : null,
           field_card_position: data.position || 0,
-          field_card_start_date: data.startDate
+          // Production uses 'field_start_date' instead of 'field_card_start_date'
+          field_start_date: data.startDate
             ? (data.startDate.includes('T') ? data.startDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.startDate}T12:00:00+00:00`)
             : null,
           field_card_due_date: data.dueDate
             ? (data.dueDate.includes('T') ? data.dueDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.dueDate}T12:00:00+00:00`)
             : null,
-          field_card_labels: data.labels || [],
           field_card_archived: false,
         },
         relationships,
@@ -393,36 +399,31 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
 
   if (data.title) attributes.title = data.title;
   if (data.description !== undefined) {
-    attributes.field_card_description = data.description ? { value: data.description } : null;
+    // Production uses 'body' instead of 'field_card_description'
+    attributes.body = data.description ? { value: data.description, format: 'basic_html' } : null;
   }
   if (data.position !== undefined) attributes.field_card_position = data.position;
   if (data.startDate !== undefined) {
-    // Convert date to RFC 3339 format for Drupal datetime field (requires timezone)
-    // Handle both simple date strings (YYYY-MM-DD) and full ISO timestamps
-    // Convert Z suffix to +00:00 and remove milliseconds for Drupal compatibility
-    attributes.field_card_start_date = data.startDate
+    // Production uses 'field_start_date' instead of 'field_card_start_date'
+    attributes.field_start_date = data.startDate
       ? (data.startDate.includes('T') ? data.startDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.startDate}T12:00:00+00:00`)
       : null;
   }
   if (data.dueDate !== undefined) {
-    // Convert date to RFC 3339 format for Drupal datetime field (requires timezone)
-    // Handle both simple date strings (YYYY-MM-DD) and full ISO timestamps
-    // Convert Z suffix to +00:00 and remove milliseconds for Drupal compatibility
     attributes.field_card_due_date = data.dueDate
       ? (data.dueDate.includes('T') ? data.dueDate.replace('Z', '+00:00').replace(/\.\d{3}/, '') : `${data.dueDate}T12:00:00+00:00`)
       : null;
   }
-  if (data.labels) attributes.field_card_labels = data.labels;
   if (data.archived !== undefined) attributes.field_card_archived = data.archived;
-  if (data.completed !== undefined) attributes.field_card_completed = data.completed;
-  if (data.pinned !== undefined) attributes.field_card_pinned = data.pinned;
+  // Production uses 'field_pinned' instead of 'field_card_pinned'
+  if (data.pinned !== undefined) attributes.field_pinned = data.pinned;
   // Estimate fields
   if (data.estimate !== undefined) attributes.field_card_estimate = data.estimate;
   if (data.estimateType !== undefined) attributes.field_card_estimate_type = data.estimateType;
   if (data.complexity !== undefined) attributes.field_card_complexity = data.complexity;
 
   if (data.listId) {
-    relationships.field_card_list = {
+    relationships.field_list = {
       data: { type: 'node--list', id: data.listId },
     };
   }
@@ -483,11 +484,11 @@ export async function fetchArchivedCardsByBoard(_boardId: string, listIds: strin
   if (listIds.length === 0) return [];
 
   const filterParams = listIds.map((id, index) =>
-    `filter[list-filter-${index}][condition][path]=field_card_list.id&filter[list-filter-${index}][condition][value]=${id}`
+    `filter[list-filter-${index}][condition][path]=field_list.id&filter[list-filter-${index}][condition][value]=${id}`
   ).join('&');
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=1&sort=-changed&include=field_card_cover,field_card_members,field_card_department,field_card_client`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=1&sort=-changed&include=field_card_members,field_department,field_client`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -521,7 +522,7 @@ export async function updateCardDepartment(cardId: string, departmentId: string 
         type: 'node--card',
         id: cardId,
         relationships: {
-          field_card_department: {
+          field_department: {
             data: departmentId ? { type: 'taxonomy_term--department', id: departmentId } : null,
           },
         },
@@ -550,7 +551,7 @@ export async function updateCardClient(cardId: string, clientId: string | null):
         type: 'node--card',
         id: cardId,
         relationships: {
-          field_card_client: {
+          field_client: {
             data: clientId ? { type: 'taxonomy_term--client', id: clientId } : null,
           },
         },
@@ -646,7 +647,7 @@ export async function watchCard(cardId: string, userId: string): Promise<Card> {
         type: 'node--card',
         id: cardId,
         relationships: {
-          field_card_watchers: {
+          field_watchers: {
             data: newWatchers.map(id => ({ type: 'user--user', id })),
           },
         },
@@ -688,7 +689,7 @@ export async function unwatchCard(cardId: string, userId: string): Promise<Card>
         type: 'node--card',
         id: cardId,
         relationships: {
-          field_card_watchers: {
+          field_watchers: {
             data: newWatchers.length > 0
               ? newWatchers.map(id => ({ type: 'user--user', id }))
               : [],

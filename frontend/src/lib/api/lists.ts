@@ -31,7 +31,7 @@ function transformList(data: Record<string, unknown>): BoardList {
   return {
     id: data.id as string,
     title: attrs.title as string,
-    boardId: rels?.field_list_board?.data?.id || '',
+    boardId: rels?.field_board?.data?.id || '',
     position: (attrs.field_list_position as number) || 0,
     archived: (attrs.field_list_archived as boolean) || false,
     wipLimit: (attrs.field_list_wip_limit as number) || 0,
@@ -45,7 +45,7 @@ function transformList(data: Record<string, unknown>): BoardList {
 export async function fetchListsByBoard(boardId: string, includeArchived = false): Promise<BoardList[]> {
   const archivedFilter = includeArchived ? '' : '&filter[field_list_archived][value]=0';
   const response = await fetch(
-    `${API_URL}/jsonapi/node/list?filter[field_list_board.id]=${boardId}${archivedFilter}&sort=field_list_position`,
+    `${API_URL}/jsonapi/node/list?filter[field_board.id]=${boardId}${archivedFilter}&sort=field_list_position`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -81,7 +81,7 @@ export async function createList(data: CreateListData): Promise<BoardList> {
           field_list_position: data.position || 0,
         },
         relationships: {
-          field_list_board: {
+          field_board: {
             data: { type: 'node--board', id: data.boardId },
           },
         },

@@ -36,13 +36,14 @@ export async function searchCards(query: string, workspaceId?: string): Promise<
   url += `&filter[title-filter][condition][operator]=CONTAINS`;
   url += `&filter[title-filter][condition][value]=${encodeURIComponent(query)}`;
   url += `&filter[title-filter][condition][memberOf]=or-group`;
-  url += `&filter[desc-filter][condition][path]=field_card_description.value`;
+  // Production uses 'body' instead of 'field_card_description'
+  url += `&filter[desc-filter][condition][path]=body.value`;
   url += `&filter[desc-filter][condition][operator]=CONTAINS`;
   url += `&filter[desc-filter][condition][value]=${encodeURIComponent(query)}`;
   url += `&filter[desc-filter][condition][memberOf]=or-group`;
   url += `&filter[archived][condition][path]=field_card_archived`;
   url += `&filter[archived][condition][value]=0`;
-  url += `&include=field_card_list,field_card_list.field_list_board,field_card_list.field_list_board.field_board_workspace`;
+  url += `&include=field_list,field_list.field_board,field_list.field_board.field_board_workspace`;
   url += `&page[limit]=25`;
 
   const response = await fetch(url, {
@@ -73,13 +74,13 @@ export async function searchCards(query: string, workspaceId?: string): Promise<
     const rels = item.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
     // Get list
-    const listRef = rels?.field_card_list?.data;
+    const listRef = rels?.field_list?.data;
     const list = listRef ? includedMap.get(`${listRef.type}:${listRef.id}`) : null;
     const listAttrs = list?.attributes as Record<string, unknown> | undefined;
     const listRels = list?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
     // Get board from list
-    const boardRef = listRels?.field_list_board?.data;
+    const boardRef = listRels?.field_board?.data;
     const board = boardRef ? includedMap.get(`${boardRef.type}:${boardRef.id}`) : null;
     const boardAttrs = board?.attributes as Record<string, unknown> | undefined;
     const boardRels = board?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
@@ -98,7 +99,8 @@ export async function searchCards(query: string, workspaceId?: string): Promise<
       id: item.id as string,
       title: attrs.title as string,
       type: 'card',
-      description: (attrs.field_card_description as { value?: string })?.value || undefined,
+      // Production uses 'body' instead of 'field_card_description'
+      description: (attrs.body as { value?: string })?.value || (attrs.field_card_description as { value?: string })?.value || undefined,
       listId: listRef?.id || undefined,
       listTitle: (listAttrs?.title as string) || undefined,
       boardId: boardRef?.id || undefined,
@@ -172,7 +174,7 @@ export async function searchComments(query: string, _workspaceId?: string): Prom
   if (!query.trim()) return [];
 
   let url = `${API_URL}/jsonapi/node/card_comment?filter[body][operator]=CONTAINS&filter[body][value]=${encodeURIComponent(query)}`;
-  url += `&include=field_comment_card,field_comment_card.field_card_list,field_comment_card.field_card_list.field_list_board`;
+  url += `&include=field_comment_card,field_comment_card.field_list,field_comment_card.field_list.field_board`;
   url += `&page[limit]=15`;
 
   const response = await fetch(url, {
@@ -209,12 +211,12 @@ export async function searchComments(query: string, _workspaceId?: string): Prom
     const cardRels = card?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
     // Get list from card
-    const listRef = cardRels?.field_card_list?.data;
+    const listRef = cardRels?.field_list?.data;
     const list = listRef ? includedMap.get(`${listRef.type}:${listRef.id}`) : null;
     const listRels = list?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
     // Get board from list
-    const boardRef = listRels?.field_list_board?.data;
+    const boardRef = listRels?.field_board?.data;
     const board = boardRef ? includedMap.get(`${boardRef.type}:${boardRef.id}`) : null;
     const boardAttrs = board?.attributes as Record<string, unknown> | undefined;
 
@@ -240,7 +242,7 @@ export async function searchChecklists(query: string, _workspaceId?: string): Pr
   if (!query.trim()) return [];
 
   let url = `${API_URL}/jsonapi/node/checklist?filter[title][operator]=CONTAINS&filter[title][value]=${encodeURIComponent(query)}`;
-  url += `&include=field_checklist_card,field_checklist_card.field_card_list,field_checklist_card.field_card_list.field_list_board`;
+  url += `&include=field_checklist_card,field_checklist_card.field_list,field_checklist_card.field_list.field_board`;
   url += `&page[limit]=10`;
 
   const response = await fetch(url, {
@@ -277,12 +279,12 @@ export async function searchChecklists(query: string, _workspaceId?: string): Pr
     const cardRels = card?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
     // Get list from card
-    const listRef = cardRels?.field_card_list?.data;
+    const listRef = cardRels?.field_list?.data;
     const list = listRef ? includedMap.get(`${listRef.type}:${listRef.id}`) : null;
     const listRels = list?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
     // Get board from list
-    const boardRef = listRels?.field_list_board?.data;
+    const boardRef = listRels?.field_board?.data;
     const board = boardRef ? includedMap.get(`${boardRef.type}:${boardRef.id}`) : null;
     const boardAttrs = board?.attributes as Record<string, unknown> | undefined;
 

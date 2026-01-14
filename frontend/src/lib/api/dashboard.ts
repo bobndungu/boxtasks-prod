@@ -90,7 +90,7 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
   for (const boardId of boardIds) {
     try {
       const cardsResponse = await fetch(
-        `${API_URL}/jsonapi/node/card?filter[field_card_list.field_list_board.id]=${boardId}`,
+        `${API_URL}/jsonapi/node/card?filter[field_list.field_board.id]=${boardId}`,
         { headers }
       );
 
@@ -122,7 +122,7 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
     const rels = card.relationships as Record<string, { data: unknown }>;
 
     // Check completion
-    if (attrs.field_card_completed) {
+    if ((attrs.field_card_completed || false)) {
       completedCards++;
     }
 
@@ -130,9 +130,9 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
     const dueDate = attrs.field_card_due_date as string | null;
     if (dueDate) {
       const due = new Date(dueDate);
-      if (due < now && !attrs.field_card_completed) {
+      if (due < now && !(attrs.field_card_completed || false)) {
         overdueCards++;
-      } else if (due <= sevenDaysFromNow && due >= now && !attrs.field_card_completed) {
+      } else if (due <= sevenDaysFromNow && due >= now && !(attrs.field_card_completed || false)) {
         dueSoonCards++;
       }
     }
@@ -165,7 +165,7 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
 
     const completedBoardCards = boardCards.filter((c) => {
       const cAttrs = c.attributes as Record<string, unknown>;
-      return cAttrs.field_card_completed;
+      return (cAttrs.field_card_completed || false);
     }).length;
 
     return {
@@ -239,13 +239,13 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
 
       const completedMemberCards = assignedCards.filter((c) => {
         const cAttrs = c.attributes as Record<string, unknown>;
-        return cAttrs.field_card_completed;
+        return (cAttrs.field_card_completed || false);
       });
 
       const overdueMemberCards = assignedCards.filter((c) => {
         const cAttrs = c.attributes as Record<string, unknown>;
         const dueDate = cAttrs.field_card_due_date as string | null;
-        if (dueDate && !cAttrs.field_card_completed) {
+        if (dueDate && !(cAttrs.field_card_completed || false)) {
           return new Date(dueDate) < now;
         }
         return false;
@@ -271,7 +271,7 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
     const count = allCards.filter((c) => {
       const cAttrs = c.attributes as Record<string, unknown>;
       const dueDate = cAttrs.field_card_due_date as string | null;
-      if (dueDate && !cAttrs.field_card_completed) {
+      if (dueDate && !(cAttrs.field_card_completed || false)) {
         return dueDate.startsWith(dateStr);
       }
       return false;
@@ -372,7 +372,7 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
 
   // Fetch lists for this board (content type is list)
   const listsResponse = await fetch(
-    `${API_URL}/jsonapi/node/list?filter[field_list_board.id]=${boardId}&filter[field_list_archived][value]=0&sort=field_list_position`,
+    `${API_URL}/jsonapi/node/list?filter[field_board.id]=${boardId}&filter[field_list_archived][value]=0&sort=field_list_position`,
     { headers }
   );
 
@@ -384,7 +384,7 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
 
   // Fetch all cards for this board
   const cardsResponse = await fetch(
-    `${API_URL}/jsonapi/node/card?filter[field_card_list.field_list_board.id]=${boardId}&include=field_card_members,field_card_list`,
+    `${API_URL}/jsonapi/node/card?filter[field_list.field_board.id]=${boardId}&include=field_card_members,field_list`,
     { headers }
   );
 
@@ -398,7 +398,7 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
 
   // Fetch archived cards count
   const archivedResponse = await fetch(
-    `${API_URL}/jsonapi/node/card?filter[field_card_list.field_list_board.id]=${boardId}&filter[field_card_archived][value]=1`,
+    `${API_URL}/jsonapi/node/card?filter[field_list.field_board.id]=${boardId}&filter[field_card_archived][value]=1`,
     { headers }
   );
 
@@ -445,7 +445,7 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
     const rels = card.relationships as Record<string, { data: unknown }>;
 
     // Check completion
-    if (attrs.field_card_completed) {
+    if ((attrs.field_card_completed || false)) {
       completedCards++;
     }
 
@@ -453,9 +453,9 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
     const dueDate = attrs.field_card_due_date as string | null;
     if (dueDate) {
       const due = new Date(dueDate);
-      if (due < now && !attrs.field_card_completed) {
+      if (due < now && !(attrs.field_card_completed || false)) {
         overdueCards++;
-      } else if (due <= sevenDaysFromNow && due >= now && !attrs.field_card_completed) {
+      } else if (due <= sevenDaysFromNow && due >= now && !(attrs.field_card_completed || false)) {
         dueSoonCards++;
       }
     }
@@ -469,10 +469,10 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
       members.forEach((member) => {
         const current = memberCardCounts.get(member.id) || { assigned: 0, completed: 0, overdue: 0 };
         current.assigned++;
-        if (attrs.field_card_completed) {
+        if ((attrs.field_card_completed || false)) {
           current.completed++;
         }
-        if (dueDate && new Date(dueDate) < now && !attrs.field_card_completed) {
+        if (dueDate && new Date(dueDate) < now && !(attrs.field_card_completed || false)) {
           current.overdue++;
         }
         memberCardCounts.set(member.id, current);
@@ -527,12 +527,12 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
 
     const listCards = activeCards.filter((c) => {
       const cRels = c.relationships as Record<string, { data: { id: string } | null }>;
-      return cRels?.field_card_list?.data?.id === listId;
+      return cRels?.field_list?.data?.id === listId;
     });
 
     const completedListCards = listCards.filter((c) => {
       const cAttrs = c.attributes as Record<string, unknown>;
-      return cAttrs.field_card_completed;
+      return (cAttrs.field_card_completed || false);
     });
 
     return {
@@ -619,7 +619,7 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
     const count = activeCards.filter((c) => {
       const cAttrs = c.attributes as Record<string, unknown>;
       const cardDueDate = cAttrs.field_card_due_date as string | null;
-      if (cardDueDate && !cAttrs.field_card_completed) {
+      if (cardDueDate && !(cAttrs.field_card_completed || false)) {
         return cardDueDate.startsWith(dateStr);
       }
       return false;

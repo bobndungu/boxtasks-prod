@@ -272,7 +272,8 @@ function mapGoalFromApi(item: any, included: any[]): Goal {
       return {
         id: card.id,
         title: card.attributes.title,
-        completed: card.attributes.field_card_completed || false,
+        // Production doesn't have field_card_completed
+        completed: (card.attributes as any).field_card_completed || false,
       };
     })
     .filter(Boolean);

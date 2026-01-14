@@ -84,7 +84,7 @@ function transformRelationship(data: Record<string, unknown>, included?: Record<
       relationship.sourceCard = {
         id: sourceCard.id as string,
         title: sourceAttrs.title as string,
-        listId: sourceRels?.field_card_list?.data?.id,
+        listId: sourceRels?.field_list?.data?.id,
       };
     }
 
@@ -94,7 +94,7 @@ function transformRelationship(data: Record<string, unknown>, included?: Record<
       relationship.targetCard = {
         id: targetCard.id as string,
         title: targetAttrs.title as string,
-        listId: targetRels?.field_card_list?.data?.id,
+        listId: targetRels?.field_list?.data?.id,
       };
     }
   }
@@ -251,11 +251,11 @@ export async function searchCardsForLinking(
 
   // Optionally filter by board
   if (boardId) {
-    filterParams += `&filter[field_card_list.field_list_board.id]=${boardId}`;
+    filterParams += `&filter[field_list.field_board.id]=${boardId}`;
   }
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&include=field_card_list&page[limit]=20&sort=-created`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&include=field_list&page[limit]=20&sort=-created`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -275,7 +275,7 @@ export async function searchCardsForLinking(
   return cards.map((card: Record<string, unknown>) => {
     const attrs = card.attributes as Record<string, unknown>;
     const rels = card.relationships as Record<string, { data: { id: string } | null }> | undefined;
-    const listId = rels?.field_card_list?.data?.id;
+    const listId = rels?.field_list?.data?.id;
 
     // Find list name from included
     const list = included.find(

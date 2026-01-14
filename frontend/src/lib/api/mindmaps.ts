@@ -414,11 +414,12 @@ export async function convertNodeToCard(
         type: 'node--card',
         attributes: {
           title: node.title,
-          field_card_description: node.description ? { value: node.description } : null,
+          // Production uses 'body' instead of 'field_card_description'
+          body: node.description ? { value: node.description, format: 'basic_html' } : null,
           field_card_position: 0,
         },
         relationships: {
-          field_card_list: {
+          field_list: {
             data: { type: 'node--list', id: listId },
           },
         },

@@ -85,8 +85,40 @@ export const useAuthStore = create<AuthState>()(
           }
           set({ error: 'Failed to fetch user data', isLoading: false });
           return false;
-        } catch (error) {
-          const message = error instanceof Error ? error.message : 'Login failed';
+        } catch (error: unknown) {
+          // Extract meaningful error message from OAuth response
+          let message = 'Login failed';
+
+          if (error && typeof error === 'object') {
+            const axiosError = error as { response?: { data?: { error_description?: string; error?: string; message?: string }; status?: number }; message?: string };
+
+            if (axiosError.response?.data) {
+              const data = axiosError.response.data;
+              // OAuth error format: { error: "invalid_grant", error_description: "The user credentials were incorrect." }
+              if (data.error_description) {
+                message = data.error_description;
+              } else if (data.error === 'invalid_grant') {
+                message = 'Invalid username or password';
+              } else if (data.error === 'invalid_client') {
+                message = 'Authentication configuration error. Please contact support.';
+              } else if (data.message) {
+                message = data.message;
+              } else if (data.error) {
+                message = data.error;
+              }
+            } else if (axiosError.response?.status === 400) {
+              message = 'Invalid username or password';
+            } else if (axiosError.response?.status === 403) {
+              message = 'Account is locked. Please try again later or contact support.';
+            } else if (axiosError.response?.status === 429) {
+              message = 'Too many login attempts. Please wait a few minutes and try again.';
+            } else if (axiosError.message) {
+              message = axiosError.message;
+            }
+          } else if (error instanceof Error) {
+            message = error.message;
+          }
+
           set({ error: message, isLoading: false });
           return false;
         }
