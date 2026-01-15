@@ -50,6 +50,13 @@ export interface UpdateCustomFieldData {
   scope?: CustomFieldScope;
 }
 
+// Decode HTML entities (needed because Drupal's JSON:API returns HTML-encoded values for text fields)
+function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
 // Transform JSON:API response to CustomFieldDefinition
 function transformFieldDefinition(data: Record<string, unknown>): CustomFieldDefinition {
   const attrs = data.attributes as Record<string, unknown>;
@@ -59,7 +66,9 @@ function transformFieldDefinition(data: Record<string, unknown>): CustomFieldDef
   try {
     const optionsValue = (attrs.field_customfield_options as { value?: string })?.value;
     if (optionsValue) {
-      options = JSON.parse(optionsValue);
+      // Decode HTML entities before parsing JSON (API returns &quot; instead of ")
+      const decodedValue = decodeHtmlEntities(optionsValue);
+      options = JSON.parse(decodedValue);
     }
   } catch {
     options = [];
