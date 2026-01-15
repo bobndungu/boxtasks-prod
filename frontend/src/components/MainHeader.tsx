@@ -28,7 +28,7 @@ interface MainHeaderProps {
   showCreateModal?: boolean;
 }
 
-export default function MainHeader({ onCreateBoard, showCreateModal: _externalShowCreateModal }: MainHeaderProps) {
+export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
   const { user, logout } = useAuthStore();
   const { addBoard, starredBoards, recentBoards, setStarredBoards, setRecentBoards } = useBoardStore();
   const navigate = useNavigate();

@@ -88,7 +88,7 @@ export function AutomationRules({
     try {
       const updated = await toggleAutomationRule(rule.id, !rule.enabled);
       setRules(rules.map(r => r.id === rule.id ? updated : r));
-    } catch (err) {
+    } catch {
       setError('Failed to toggle rule');
     }
   }
@@ -99,7 +99,7 @@ export function AutomationRules({
     try {
       await deleteAutomationRule(rule.id);
       setRules(rules.filter(r => r.id !== rule.id));
-    } catch (err) {
+    } catch {
       setError('Failed to delete rule');
     }
   }
@@ -131,7 +131,7 @@ export function AutomationRules({
       }
       setShowEditor(false);
       setEditingRule(null);
-    } catch (err) {
+    } catch {
       setError('Failed to save rule');
     }
   }
@@ -477,9 +477,7 @@ interface RuleEditorProps {
 function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEditorProps) {
   const [name, setName] = useState(rule?.name || '');
   const [triggerType, setTriggerType] = useState(rule?.triggerType || 'card_created');
-  const [triggerConfig, _setTriggerConfig] = useState<Record<string, unknown>>(
-    rule?.triggerConfig || {}
-  );
+  const triggerConfig = rule?.triggerConfig || {};
   const [conditions, setConditions] = useState<AutomationCondition[]>(
     rule?.conditions || []
   );

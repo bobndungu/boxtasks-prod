@@ -97,7 +97,7 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
       try {
         const count = await fetchUnreadCount(user.id);
         setUnreadCount(count);
-      } catch (error) {
+      } catch {
         // Silently fail on polling errors
       }
     }, 60000);

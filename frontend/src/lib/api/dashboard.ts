@@ -90,7 +90,7 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
   for (const boardId of boardIds) {
     try {
       const cardsResponse = await fetch(
-        `${API_URL}/jsonapi/node/card?filter[field_list.field_board.id]=${boardId}`,
+        `${API_URL}/jsonapi/node/card?filter[field_card_list.field_list_board.id]=${boardId}`,
         { headers }
       );
 
@@ -115,7 +115,7 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
   let overdueCards = 0;
   let dueSoonCards = 0;
   let unassignedCards = 0;
-  let blockedCards = 0;
+  const blockedCards = 0;
 
   allCards.forEach((card) => {
     const attrs = card.attributes as Record<string, unknown>;
@@ -374,7 +374,7 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
 
   // Fetch lists for this board (content type is list)
   const listsResponse = await fetch(
-    `${API_URL}/jsonapi/node/list?filter[field_board.id]=${boardId}&filter[field_list_archived][value]=0&sort=field_list_position`,
+    `${API_URL}/jsonapi/node/board_list?filter[field_list_board.id]=${boardId}&filter[field_list_archived][value]=0&sort=field_list_position`,
     { headers }
   );
 
@@ -386,7 +386,7 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
 
   // Fetch all cards for this board
   const cardsResponse = await fetch(
-    `${API_URL}/jsonapi/node/card?filter[field_list.field_board.id]=${boardId}&include=field_card_members,field_list`,
+    `${API_URL}/jsonapi/node/card?filter[field_card_list.field_list_board.id]=${boardId}&include=field_card_members,field_card_list`,
     { headers }
   );
 
@@ -400,7 +400,7 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
 
   // Fetch archived cards count
   const archivedResponse = await fetch(
-    `${API_URL}/jsonapi/node/card?filter[field_list.field_board.id]=${boardId}&filter[field_card_archived][value]=1`,
+    `${API_URL}/jsonapi/node/card?filter[field_card_list.field_list_board.id]=${boardId}&filter[field_card_archived][value]=1`,
     { headers }
   );
 
@@ -529,7 +529,7 @@ export async function fetchBoardReportData(boardId: string): Promise<BoardReport
 
     const listCards = activeCards.filter((c) => {
       const cRels = c.relationships as Record<string, { data: { id: string } | null }>;
-      return cRels?.field_list?.data?.id === listId;
+      return cRels?.field_card_list?.data?.id === listId;
     });
 
     const completedListCards = listCards.filter((c) => {

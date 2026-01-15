@@ -76,7 +76,7 @@ function parseActivityMeta(description: string, type: ActivityType): ActivityMet
 // Format field name for display
 function formatFieldName(fieldName: string): string {
   // Remove common prefixes
-  let name = fieldName.replace(/^field_card_/, '').replace(/^field_/, '');
+  const name = fieldName.replace(/^field_card_/, '').replace(/^field_/, '');
   // Convert snake_case to Title Case
   return name
     .split('_')

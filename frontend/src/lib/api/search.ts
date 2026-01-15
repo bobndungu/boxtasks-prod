@@ -43,7 +43,7 @@ export async function searchCards(query: string, workspaceId?: string): Promise<
   url += `&filter[desc-filter][condition][memberOf]=or-group`;
   url += `&filter[archived][condition][path]=field_card_archived`;
   url += `&filter[archived][condition][value]=0`;
-  url += `&include=field_list,field_list.field_board,field_list.field_board.field_board_workspace`;
+  url += `&include=field_card_list,field_card_list.field_list_board,field_card_list.field_list_board.field_board_workspace`;
   url += `&page[limit]=25`;
 
   const response = await fetch(url, {
@@ -174,7 +174,7 @@ export async function searchComments(query: string, _workspaceId?: string): Prom
   if (!query.trim()) return [];
 
   let url = `${API_URL}/jsonapi/node/card_comment?filter[body][operator]=CONTAINS&filter[body][value]=${encodeURIComponent(query)}`;
-  url += `&include=field_comment_card,field_comment_card.field_list,field_comment_card.field_list.field_board`;
+  url += `&include=field_comment_card,field_comment_card.field_card_list,field_comment_card.field_card_list.field_list_board`;
   url += `&page[limit]=15`;
 
   const response = await fetch(url, {
@@ -242,7 +242,7 @@ export async function searchChecklists(query: string, _workspaceId?: string): Pr
   if (!query.trim()) return [];
 
   let url = `${API_URL}/jsonapi/node/checklist?filter[title][operator]=CONTAINS&filter[title][value]=${encodeURIComponent(query)}`;
-  url += `&include=field_checklist_card,field_checklist_card.field_list,field_checklist_card.field_list.field_board`;
+  url += `&include=field_checklist_card,field_checklist_card.field_card_list,field_checklist_card.field_card_list.field_list_board`;
   url += `&page[limit]=10`;
 
   const response = await fetch(url, {

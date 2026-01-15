@@ -251,11 +251,11 @@ export async function searchCardsForLinking(
 
   // Optionally filter by board
   if (boardId) {
-    filterParams += `&filter[field_list.field_board.id]=${boardId}`;
+    filterParams += `&filter[field_card_list.field_list_board.id]=${boardId}`;
   }
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&include=field_list&page[limit]=20&sort=-created`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&include=field_card_list&page[limit]=20&sort=-created`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Layout,
@@ -29,11 +29,7 @@ export default function Workspaces() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    loadWorkspaces();
-  }, []);
-
-  const loadWorkspaces = async () => {
+  const loadWorkspaces = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -42,7 +38,11 @@ export default function Workspaces() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load workspaces');
     }
-  };
+  }, [setLoading, setError, setWorkspaces]);
+
+  useEffect(() => {
+    loadWorkspaces();
+  }, [loadWorkspaces]);
 
   const handleWorkspaceClick = (workspace: Workspace) => {
     setCurrentWorkspace(workspace);

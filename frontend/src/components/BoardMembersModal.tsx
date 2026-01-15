@@ -35,7 +35,7 @@ export default function BoardMembersModal({
       ]);
       setMembers(memberData);
       setAllUsers(userData);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load members');
     } finally {
       setIsLoading(false);

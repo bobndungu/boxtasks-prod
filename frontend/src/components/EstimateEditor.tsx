@@ -9,7 +9,7 @@ import {
   Check,
   Loader2,
 } from 'lucide-react';
-import { updateCard, type Card } from '../lib/api/cards';
+import { type Card } from '../lib/api/cards';
 import { toast } from '../lib/stores/toast';
 
 type EstimateType = 'hours' | 'points' | 'tshirt';
@@ -40,7 +40,7 @@ const COMPLEXITY_OPTIONS: { value: Complexity; label: string; color: string }[] 
 
 interface EstimateEditorProps {
   card: Card;
-  onUpdate: (cardId: string, updates: Partial<Card>) => void;
+  onUpdate: (cardId: string, updates: Partial<Card>) => Promise<void> | void;
   canEdit: boolean;
 }
 
@@ -49,21 +49,32 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
   const [editing, setEditing] = useState<'estimate' | 'complexity' | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Estimate form state
-  const [estimateType, setEstimateType] = useState<EstimateType>(card.estimateType || 'hours');
-  const [estimateValue, setEstimateValue] = useState<number | ''>(card.estimate || '');
-  const [complexity, setComplexity] = useState<Complexity | ''>(card.complexity || '');
+  // Local state ONLY for edit mode - initialized when entering edit mode
+  const [editEstimateType, setEditEstimateType] = useState<EstimateType>('hours');
+  const [editEstimateValue, setEditEstimateValue] = useState<number | ''>('');
+  const [editComplexity, setEditComplexity] = useState<Complexity | ''>('');
+
+  // Enter edit mode for estimate - copy current values to local state
+  const startEditingEstimate = () => {
+    setEditEstimateType(card.estimateType || 'hours');
+    setEditEstimateValue(card.estimate ?? '');
+    setEditing('estimate');
+  };
+
+  // Enter edit mode for complexity - copy current value to local state
+  const startEditingComplexity = () => {
+    setEditComplexity(card.complexity || '');
+    setEditing('complexity');
+  };
 
   const handleSaveEstimate = async () => {
+    const valueToSave = editEstimateValue;
+    const typeToSave = editEstimateType;
     try {
       setSaving(true);
-      await updateCard(card.id, {
-        estimate: estimateValue === '' ? null : estimateValue,
-        estimateType: estimateValue === '' ? null : estimateType,
-      });
-      onUpdate(card.id, {
-        estimate: estimateValue === '' ? undefined : estimateValue,
-        estimateType: estimateValue === '' ? undefined : estimateType,
+      await onUpdate(card.id, {
+        estimate: valueToSave === '' ? undefined : (valueToSave as number),
+        estimateType: valueToSave === '' ? undefined : typeToSave,
       });
       setEditing(null);
       toast.success('Estimate updated');
@@ -76,13 +87,11 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
   };
 
   const handleSaveComplexity = async () => {
+    const valueToSave = editComplexity;
     try {
       setSaving(true);
-      await updateCard(card.id, {
-        complexity: complexity === '' ? null : complexity,
-      });
-      onUpdate(card.id, {
-        complexity: complexity === '' ? undefined : (complexity as Complexity),
+      await onUpdate(card.id, {
+        complexity: valueToSave === '' ? undefined : (valueToSave as Complexity),
       });
       setEditing(null);
       toast.success('Complexity updated');
@@ -119,7 +128,7 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
     return option ? option.label : 'Not set';
   };
 
-  // Check if there's any estimate data to show
+  // Check if there's any estimate data to show (from card props)
   const hasEstimateData = card.estimate !== undefined || card.complexity !== undefined;
 
   return (
@@ -166,7 +175,7 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
               </span>
               {canEdit && editing !== 'estimate' && (
                 <button
-                  onClick={() => setEditing('estimate')}
+                  onClick={startEditingEstimate}
                   className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <Edit2 className="w-4 h-4" />
@@ -184,9 +193,9 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
                     {ESTIMATE_TYPES.map((type) => (
                       <button
                         key={type.value}
-                        onClick={() => setEstimateType(type.value)}
+                        onClick={() => setEditEstimateType(type.value)}
                         className={`px-3 py-1.5 text-sm rounded-md border ${
-                          estimateType === type.value
+                          editEstimateType === type.value
                             ? 'bg-blue-600 text-white border-blue-600'
                             : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
                         }`}
@@ -199,16 +208,16 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
 
                 <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    {estimateType === 'tshirt' ? 'Size' : 'Value'}
+                    {editEstimateType === 'tshirt' ? 'Size' : 'Value'}
                   </label>
-                  {estimateType === 'tshirt' ? (
+                  {editEstimateType === 'tshirt' ? (
                     <div className="flex flex-wrap gap-2">
                       {TSHIRT_SIZES.map((size) => (
                         <button
                           key={size.value}
-                          onClick={() => setEstimateValue(size.value)}
+                          onClick={() => setEditEstimateValue(size.value)}
                           className={`px-3 py-1.5 text-sm rounded-md border ${
-                            estimateValue === size.value
+                            editEstimateValue === size.value
                               ? 'bg-blue-600 text-white border-blue-600'
                               : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500'
                           }`}
@@ -220,11 +229,11 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
                   ) : (
                     <input
                       type="number"
-                      value={estimateValue}
-                      onChange={(e) => setEstimateValue(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      value={editEstimateValue}
+                      onChange={(e) => setEditEstimateValue(e.target.value === '' ? '' : parseFloat(e.target.value))}
                       min={0}
-                      step={estimateType === 'hours' ? 0.5 : 1}
-                      placeholder={estimateType === 'hours' ? 'e.g., 2.5' : 'e.g., 5'}
+                      step={editEstimateType === 'hours' ? 0.5 : 1}
+                      placeholder={editEstimateType === 'hours' ? 'e.g., 2.5' : 'e.g., 5'}
                       className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   )}
@@ -232,11 +241,7 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
 
                 <div className="flex items-center justify-end gap-2">
                   <button
-                    onClick={() => {
-                      setEstimateType(card.estimateType || 'hours');
-                      setEstimateValue(card.estimate || '');
-                      setEditing(null);
-                    }}
+                    onClick={() => setEditing(null)}
                     className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
                   >
                     Cancel
@@ -267,7 +272,7 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
               </span>
               {canEdit && editing !== 'complexity' && (
                 <button
-                  onClick={() => setEditing('complexity')}
+                  onClick={startEditingComplexity}
                   className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <Edit2 className="w-4 h-4" />
@@ -281,9 +286,9 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
                   {COMPLEXITY_OPTIONS.map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => setComplexity(option.value)}
+                      onClick={() => setEditComplexity(option.value)}
                       className={`px-3 py-1.5 text-sm rounded-md border transition-all ${
-                        complexity === option.value
+                        editComplexity === option.value
                           ? `${option.color} border-current ring-2 ring-offset-1`
                           : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400'
                       }`}
@@ -295,10 +300,7 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
 
                 <div className="flex items-center justify-end gap-2">
                   <button
-                    onClick={() => {
-                      setComplexity(card.complexity || '');
-                      setEditing(null);
-                    }}
+                    onClick={() => setEditing(null)}
                     className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
                   >
                     Cancel
@@ -326,18 +328,11 @@ export function EstimateEditor({ card, onUpdate, canEdit }: EstimateEditorProps)
               onClick={async () => {
                 try {
                   setSaving(true);
-                  await updateCard(card.id, {
-                    estimate: null,
-                    estimateType: null,
-                    complexity: null,
-                  });
-                  onUpdate(card.id, {
+                  await onUpdate(card.id, {
                     estimate: undefined,
                     estimateType: undefined,
                     complexity: undefined,
                   });
-                  setEstimateValue('');
-                  setComplexity('');
                   toast.success('Estimates cleared');
                 } catch (error) {
                   console.error('Error clearing estimates:', error);
