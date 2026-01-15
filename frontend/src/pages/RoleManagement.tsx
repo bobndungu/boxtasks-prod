@@ -127,7 +127,7 @@ export default function RoleManagement() {
     try {
       const rolesList = await fetchWorkspaceRoles(id);
       setRoles(rolesList);
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to load roles' });
     } finally {
       setIsLoading(false);
@@ -199,7 +199,7 @@ export default function RoleManagement() {
       setRoles(roles.filter((r) => r.id !== roleId));
       setMessage({ type: 'success', text: 'Role deleted successfully' });
       setShowDeleteConfirm(null);
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to delete role' });
     } finally {
       setIsDeleting(false);

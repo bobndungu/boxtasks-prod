@@ -25,7 +25,7 @@ export default function Home() {
         } else {
           setApiStatus({ connected: false, message: `API Error: ${response.status}` });
         }
-      } catch (error) {
+      } catch {
         setApiStatus({ connected: false, message: 'Cannot connect to API' });
       }
     };

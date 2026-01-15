@@ -540,11 +540,12 @@ export function matchesFilters(
       case 'overdue':
         if (!dueDate || dueDate >= today) return false;
         break;
-      case 'today':
+      case 'today': {
         if (!dueDate) return false;
         const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
         if (dueDateOnly.getTime() !== today.getTime()) return false;
         break;
+      }
       case 'this_week': {
         if (!dueDate) return false;
         const weekEnd = new Date(today);

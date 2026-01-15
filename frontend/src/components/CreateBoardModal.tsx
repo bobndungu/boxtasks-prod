@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Loader2, Lock, Users, Globe, X } from 'lucide-react';
 import { createBoard, type Board, type CreateBoardData } from '../lib/api/boards';
 import { useWorkspaceStore } from '../lib/stores/workspace';
@@ -20,7 +20,12 @@ export default function CreateBoardModal({
   onCreate,
 }: CreateBoardModalProps) {
   const { workspaces } = useWorkspaceStore();
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(workspaceId || '');
+  // Initialize with workspaceId prop, or first workspace if available
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(() => {
+    if (workspaceId) return workspaceId;
+    if (workspaces.length > 0) return workspaces[0].id;
+    return '';
+  });
   const [formData, setFormData] = useState<Omit<CreateBoardData, 'workspaceId'>>({
     title: '',
     description: '',
@@ -29,13 +34,6 @@ export default function CreateBoardModal({
   });
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Set default workspace if not provided
-  useEffect(() => {
-    if (!workspaceId && workspaces.length > 0 && !selectedWorkspaceId) {
-      setSelectedWorkspaceId(workspaces[0].id);
-    }
-  }, [workspaceId, workspaces, selectedWorkspaceId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

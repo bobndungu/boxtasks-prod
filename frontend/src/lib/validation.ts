@@ -29,7 +29,7 @@ export function sanitizeHtml(input: string, allowedTags: string[] = []): string 
 
   // Create a regex pattern for allowed tags
   const tagPattern = tags.join('|');
-  const regex = new RegExp(`<(?!\/?(${tagPattern})(?:\s|>|\/|$))[^>]*>`, 'gi');
+  const regex = new RegExp(`<(?!/?(${tagPattern})(?:\\s|>|/|$))[^>]*>`, 'gi');
 
   // Remove disallowed tags
   let sanitized = input.replace(regex, '');
@@ -354,7 +354,7 @@ export function sanitizeFilename(filename: string): string {
   let sanitized = filename.split(/[\\/]/).pop() || 'unnamed';
 
   // Remove dangerous characters
-  sanitized = sanitized.replace(/[^\w.\-]/g, '_');
+  sanitized = sanitized.replace(/[^\w.-]/g, '_');
 
   // Prevent double extensions
   sanitized = sanitized.replace(/\.+/g, '.');

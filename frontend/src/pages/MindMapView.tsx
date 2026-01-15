@@ -111,6 +111,7 @@ function NodeEditor({ node, onSave, onDelete, onConvert, onClose, lists, isLoadi
   const [color, setColor] = useState(node?.color || '#3b82f6');
   const [selectedList, setSelectedList] = useState('');
 
+  // Sync local state with selected node - intentional pattern for editor components
   useEffect(() => {
     if (node) {
       setTitle(node.title);

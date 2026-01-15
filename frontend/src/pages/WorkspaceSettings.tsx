@@ -104,7 +104,7 @@ export default function WorkspaceSettings() {
       setAllUsers(usersList);
       setRoles(rolesList);
       setMemberRoles(memberRolesList);
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to load workspace' });
     } finally {
       setIsLoading(false);
@@ -122,7 +122,7 @@ export default function WorkspaceSettings() {
       await updateWorkspaceMembers(id, newMemberIds, adminIds);
       setMembers([...members, { ...newMember, isAdmin: false }]);
       setMessage({ type: 'success', text: `${newMember.displayName} added to workspace` });
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to add member' });
     } finally {
       setIsSavingMembers(false);
@@ -148,7 +148,7 @@ export default function WorkspaceSettings() {
       await updateWorkspaceMembers(id, newMemberIds, newAdminIds);
       setMembers(members.filter((m) => m.id !== memberId));
       setMessage({ type: 'success', text: 'Member removed' });
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to remove member' });
     } finally {
       setIsSavingMembers(false);
@@ -183,7 +183,7 @@ export default function WorkspaceSettings() {
       }
 
       setMessage({ type: 'success', text: 'Role updated successfully' });
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to update role' });
     } finally {
       setIsSavingRole(false);
@@ -222,7 +222,7 @@ export default function WorkspaceSettings() {
         type: 'success',
         text: member.isAdmin ? 'Admin privileges removed' : 'Admin privileges granted',
       });
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to update member role' });
     } finally {
       setIsSavingMembers(false);
@@ -258,7 +258,7 @@ export default function WorkspaceSettings() {
       await deleteWorkspace(id);
       removeWorkspace(id);
       navigate('/workspaces');
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'Failed to delete workspace' });
       setIsDeleting(false);
     }

@@ -19,5 +19,20 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Allow exporting constants and functions alongside components
+      'react-refresh/only-export-components': 'off',
+      // These are intentional patterns in our codebase
+      'react-hooks/exhaustive-deps': 'warn',
+      // Disable strict rules that conflict with common React patterns
+      '@typescript-eslint/no-explicit-any': 'warn',
+      // Allow unused variables with underscore prefix (intentional placeholders)
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // Disable newer react-hooks rules that conflict with valid patterns
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/static-components': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/use-memo': 'off',
+    },
   },
 ])

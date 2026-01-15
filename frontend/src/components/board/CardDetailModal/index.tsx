@@ -1362,7 +1362,7 @@ function CardDetailModal({
                             } catch (activityErr) {
                               console.error('Failed to create activity:', activityErr);
                             }
-                          } catch (err) {
+                          } catch {
                             toast.error('Failed to clear status');
                           } finally {
                             setIsApproving(false);
@@ -1399,7 +1399,7 @@ function CardDetailModal({
                             } catch (activityErr) {
                               console.error('Failed to create activity:', activityErr);
                             }
-                          } catch (err) {
+                          } catch {
                             toast.error('Failed to approve card');
                           } finally {
                             setIsApproving(false);
@@ -1435,7 +1435,7 @@ function CardDetailModal({
                             } catch (activityErr) {
                               console.error('Failed to create activity:', activityErr);
                             }
-                          } catch (err) {
+                          } catch {
                             toast.error('Failed to reject card');
                           } finally {
                             setIsApproving(false);
