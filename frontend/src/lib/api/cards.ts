@@ -52,6 +52,7 @@ export interface Card {
   coverImageUrl?: string;
   coverImageId?: string;
   watcherIds: string[];
+  watchers: CardMember[];
   memberIds: string[];
   members: CardMember[];
   department?: TaxonomyReference;
@@ -113,11 +114,29 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     }
   }
 
-  // Get watcher IDs
-  const watchersData = rels?.field_watchers?.data;
+  // Get watcher IDs and watcher data
+  const watchersData = rels?.field_card_watchers?.data || rels?.field_watchers?.data;
   const watcherIds: string[] = Array.isArray(watchersData)
     ? watchersData.map((w) => w.id)
     : [];
+
+  // Get watcher details from included
+  const watchers: CardMember[] = [];
+  if (included && watcherIds.length > 0) {
+    for (const watcherId of watcherIds) {
+      const user = included.find((item) => item.id === watcherId && item.type === 'user--user');
+      if (user) {
+        const userAttrs = user.attributes as Record<string, unknown>;
+        watchers.push({
+          id: watcherId,
+          name: (userAttrs.field_display_name as string) || (userAttrs.name as string) || 'Unknown User',
+          email: userAttrs.mail as string | undefined,
+        });
+      } else {
+        watchers.push({ id: watcherId, name: 'Unknown User' });
+      }
+    }
+  }
 
   // Get member IDs and member data
   const membersData = rels?.field_card_members?.data;
@@ -239,6 +258,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     coverImageUrl,
     coverImageId,
     watcherIds,
+    watchers,
     memberIds,
     members,
     department,
@@ -276,7 +296,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
 // Fetch all cards for a list
 export async function fetchCardsByList(listId: string): Promise<Card[]> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?filter[field_card_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_card_department,field_card_client`,
+    `${API_URL}/jsonapi/node/card?filter[field_card_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -310,7 +330,7 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
   });
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_card_department,field_card_client&page[limit]=200`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers&page[limit]=200`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -350,7 +370,7 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
 
 // Fetch a single card
 export async function fetchCard(id: string): Promise<Card> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_members,field_card_department,field_card_client`, {
+  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers`, {
     headers: {
       'Accept': 'application/vnd.api+json',
       'Authorization': `Bearer ${getAccessToken()}`,
@@ -509,7 +529,7 @@ export async function fetchArchivedCardsByBoard(_boardId: string, listIds: strin
   ).join('&');
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=1&sort=-changed&include=field_card_members,field_card_department,field_card_client`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=1&sort=-changed&include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',

@@ -939,6 +939,7 @@ export default function BoardView() {
       completed: false,
       pinned: false,
       watcherIds: [],
+      watchers: [],
       memberIds: [],
       members: [],
       createdAt: new Date().toISOString(),

@@ -398,6 +398,9 @@ function CardDetailModal({
     if (!newComment.trim()) return;
     try {
       const comment = await createComment({ text: newComment, cardId: card.id });
+      // Set author name from current user since POST response doesn't include user data
+      comment.authorName = currentUser?.displayName || currentUser?.username || comment.authorName;
+      comment.authorId = currentUser?.id || comment.authorId;
       setComments([comment, ...comments]);
 
       // Parse mentions and send notifications
