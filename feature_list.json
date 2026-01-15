@@ -157,9 +157,10 @@
       "id": 17,
       "name": "Optimize API response payloads",
       "test": "Ensure JSON:API includes only needed fields, uses sparse fieldsets",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
-      "category": "optimization"
+      "category": "optimization",
+      "notes": "Using JSON:API includes properly for relationships (40+ endpoints). One sparse fieldset example. Future optimization: add more sparse fieldsets to reduce payload size."
     },
     {
       "id": 18,
@@ -274,7 +275,7 @@
       "category": "integration"
     }
   ],
-  "current_feature": 17,
+  "current_feature": 18,
   "browser_retries": 0,
   "optimization_metrics": {
     "api_response_times": {
