@@ -148,9 +148,10 @@
       "id": 16,
       "name": "Audit database query performance",
       "test": "Check for N+1 queries, missing indexes, slow queries",
-      "status": "pending",
+      "status": "completed",
       "type": "drupal",
-      "category": "performance"
+      "category": "performance",
+      "notes": "All entity reference fields properly indexed (field_card_list, field_list_board, field_member_role_workspace). JSON:API includes handle N+1. InnoDB with proper PKs. No missing indexes found."
     },
     {
       "id": 17,
@@ -273,7 +274,7 @@
       "category": "integration"
     }
   ],
-  "current_feature": 16,
+  "current_feature": 17,
   "browser_retries": 0,
   "optimization_metrics": {
     "api_response_times": {
