@@ -271,6 +271,58 @@ export async function fetchCardCustomFieldValues(cardId: string): Promise<Custom
   return data.map(transformFieldValue);
 }
 
+// Fetch custom field values for multiple cards in a single request (optimized batch fetch)
+export async function fetchCustomFieldValuesForCards(cardIds: string[]): Promise<Map<string, CustomFieldValue[]>> {
+  if (cardIds.length === 0) return new Map();
+
+  // Use OR group filter for fetching values from multiple cards in a single request
+  let filterParams = 'filter[or-group][group][conjunction]=OR';
+  cardIds.forEach((id, index) => {
+    filterParams += `&filter[card-${index}][condition][path]=field_cfv_card.id`;
+    filterParams += `&filter[card-${index}][condition][value]=${id}`;
+    filterParams += `&filter[card-${index}][condition][memberOf]=or-group`;
+  });
+
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/card_custom_field_value?${filterParams}&include=field_cfv_definition&page[limit]=500`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    // Fall back to parallel individual fetches if batch fails
+    const valuesMap = new Map<string, CustomFieldValue[]>();
+    const promises = cardIds.map(cardId =>
+      fetchCardCustomFieldValues(cardId).then(values => ({ cardId, values }))
+    );
+    const results = await Promise.all(promises);
+    results.forEach(({ cardId, values }) => {
+      if (values.length > 0) {
+        valuesMap.set(cardId, values);
+      }
+    });
+    return valuesMap;
+  }
+
+  const result = await response.json();
+  const data = result.data;
+
+  const valuesMap = new Map<string, CustomFieldValue[]>();
+  if (Array.isArray(data)) {
+    data.forEach((item) => {
+      const value = transformFieldValue(item);
+      const existing = valuesMap.get(value.cardId) || [];
+      valuesMap.set(value.cardId, [...existing, value]);
+    });
+  }
+
+  return valuesMap;
+}
+
 // Create or update a custom field value for a card
 export async function setCardCustomFieldValue(
   cardId: string,

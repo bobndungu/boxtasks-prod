@@ -144,12 +144,12 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
   }
 
   // Get list ID (single reference)
-  const listData = rels?.field_list?.data;
+  const listData = rels?.field_card_list?.data;
   const listId = listData && !Array.isArray(listData) ? listData.id : '';
 
   // Get department data
   let department: { id: string; name: string } | undefined;
-  const departmentData = rels?.field_department?.data;
+  const departmentData = rels?.field_card_department?.data;
   const departmentId = departmentData && !Array.isArray(departmentData) ? departmentData.id : undefined;
   if (included && departmentId) {
     const departmentTerm = included.find(
@@ -166,7 +166,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
 
   // Get client data
   let client: { id: string; name: string } | undefined;
-  const clientData = rels?.field_client?.data;
+  const clientData = rels?.field_card_client?.data;
   const clientId = clientData && !Array.isArray(clientData) ? clientData.id : undefined;
   if (included && clientId) {
     const clientTerm = included.find(
@@ -276,7 +276,7 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
 // Fetch all cards for a list
 export async function fetchCardsByList(listId: string): Promise<Card[]> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?filter[field_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_department,field_client`,
+    `${API_URL}/jsonapi/node/card?filter[field_card_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_card_department,field_card_client`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -297,16 +297,20 @@ export async function fetchCardsByList(listId: string): Promise<Card[]> {
   return data.map((item) => transformCard(item, included));
 }
 
-// Fetch all cards for multiple lists (for board view)
+// Fetch all cards for multiple lists (for board view) - uses OR filter for single request
 export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Promise<Map<string, Card[]>> {
   if (listIds.length === 0) return new Map();
 
-  const filterParams = listIds.map((id, index) =>
-    `filter[list-filter-${index}][condition][path]=field_list.id&filter[list-filter-${index}][condition][value]=${id}`
-  ).join('&');
+  // Use OR group filter for fetching cards from multiple lists in a single request
+  let filterParams = 'filter[or-group][group][conjunction]=OR';
+  listIds.forEach((id, index) => {
+    filterParams += `&filter[list-${index}][condition][path]=field_card_list.id`;
+    filterParams += `&filter[list-${index}][condition][value]=${id}`;
+    filterParams += `&filter[list-${index}][condition][memberOf]=or-group`;
+  });
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_department,field_client`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_card_department,field_card_client&page[limit]=200`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -316,12 +320,13 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
   );
 
   if (!response.ok) {
-    // Fall back to individual queries if complex filter fails
+    // Fall back to parallel queries if complex filter fails
     const cardMap = new Map<string, Card[]>();
-    for (const listId of listIds) {
-      const cards = await fetchCardsByList(listId);
-      cardMap.set(listId, cards);
-    }
+    const promises = listIds.map(listId =>
+      fetchCardsByList(listId).then(cards => ({ listId, cards }))
+    );
+    const results = await Promise.all(promises);
+    results.forEach(({ listId, cards }) => cardMap.set(listId, cards));
     return cardMap;
   }
 
@@ -345,7 +350,7 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
 
 // Fetch a single card
 export async function fetchCard(id: string): Promise<Card> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_members,field_department,field_client`, {
+  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_members,field_card_department,field_card_client`, {
     headers: {
       'Accept': 'application/vnd.api+json',
       'Authorization': `Bearer ${getAccessToken()}`,
@@ -365,8 +370,8 @@ export async function fetchCard(id: string): Promise<Card> {
 export async function createCard(data: CreateCardData): Promise<Card> {
   // Build relationships object
   const relationships: Record<string, unknown> = {
-    field_list: {
-      data: { type: 'node--list', id: data.listId },
+    field_card_list: {
+      data: { type: 'node--board_list', id: data.listId },
     },
   };
 
@@ -439,8 +444,8 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
   if (data.complexity !== undefined) attributes.field_card_complexity = data.complexity;
 
   if (data.listId) {
-    relationships.field_list = {
-      data: { type: 'node--list', id: data.listId },
+    relationships.field_card_list = {
+      data: { type: 'node--board_list', id: data.listId },
     };
   }
 
@@ -500,11 +505,11 @@ export async function fetchArchivedCardsByBoard(_boardId: string, listIds: strin
   if (listIds.length === 0) return [];
 
   const filterParams = listIds.map((id, index) =>
-    `filter[list-filter-${index}][condition][path]=field_list.id&filter[list-filter-${index}][condition][value]=${id}`
+    `filter[list-filter-${index}][condition][path]=field_card_list.id&filter[list-filter-${index}][condition][value]=${id}`
   ).join('&');
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=1&sort=-changed&include=field_card_members,field_department,field_client`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=1&sort=-changed&include=field_card_members,field_card_department,field_card_client`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -538,7 +543,7 @@ export async function updateCardDepartment(cardId: string, departmentId: string 
         type: 'node--card',
         id: cardId,
         relationships: {
-          field_department: {
+          field_card_department: {
             data: departmentId ? { type: 'taxonomy_term--department', id: departmentId } : null,
           },
         },
@@ -567,7 +572,7 @@ export async function updateCardClient(cardId: string, clientId: string | null):
         type: 'node--card',
         id: cardId,
         relationships: {
-          field_client: {
+          field_card_client: {
             data: clientId ? { type: 'taxonomy_term--client', id: clientId } : null,
           },
         },
