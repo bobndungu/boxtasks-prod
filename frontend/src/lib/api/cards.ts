@@ -241,8 +241,8 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
   return {
     id: data.id as string,
     title: attrs.title as string,
-    // Production uses 'body' field instead of 'field_card_description'
-    description: (attrs.body as { value?: string })?.value || (attrs.field_card_description as { value?: string })?.value || '',
+    // Card content type uses field_card_description (text_long with format)
+    description: (attrs.field_card_description as { value?: string })?.value || '',
     listId,
     position: (attrs.field_card_position as number) || 0,
     // Production uses 'field_start_date' instead of 'field_card_start_date'
@@ -413,8 +413,8 @@ export async function createCard(data: CreateCardData): Promise<Card> {
         type: 'node--card',
         attributes: {
           title: data.title,
-          // Production uses 'body' instead of 'field_card_description'
-          body: data.description ? { value: data.description, format: 'basic_html' } : null,
+          // Card content type uses field_card_description (text_long with format)
+          field_card_description: data.description ? { value: data.description, format: 'basic_html' } : null,
           field_card_position: data.position || 0,
           // Production uses 'field_start_date' instead of 'field_card_start_date'
           field_start_date: formatDateForDrupal(data.startDate),
@@ -443,8 +443,8 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
 
   if (data.title) attributes.title = data.title;
   if (data.description !== undefined) {
-    // Production uses 'body' instead of 'field_card_description'
-    attributes.body = data.description ? { value: data.description, format: 'basic_html' } : null;
+    // Card content type uses field_card_description (text_long with format)
+    attributes.field_card_description = data.description ? { value: data.description, format: 'basic_html' } : null;
   }
   if (data.position !== undefined) attributes.field_card_position = data.position;
   if (data.startDate !== undefined) {
