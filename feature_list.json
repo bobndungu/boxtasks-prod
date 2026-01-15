@@ -103,9 +103,10 @@
       "id": 11,
       "name": "Test user presence system",
       "test": "Joining board shows user as active, leaving removes them",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
-      "category": "realtime"
+      "category": "realtime",
+      "notes": "Presence stored in Drupal state via /api/presence/announce. Verified join adds user, leave removes user. ActiveUsers component shows other users with green indicator."
     },
     {
       "id": 12,
@@ -268,7 +269,7 @@
       "category": "integration"
     }
   ],
-  "current_feature": null,
+  "current_feature": 12,
   "browser_retries": 0,
   "optimization_metrics": {
     "api_response_times": {},
