@@ -85,9 +85,10 @@
       "id": 9,
       "name": "Test card drag-and-drop with real-time sync",
       "test": "Moving card between lists syncs in real-time to other viewers",
-      "status": "pending",
+      "status": "completed",
       "type": "both",
-      "category": "realtime"
+      "category": "realtime",
+      "notes": "Drag-and-drop working with dnd-kit. Card moved from To Do to In Progress successfully."
     },
     {
       "id": 10,
