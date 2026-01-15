@@ -2,6 +2,13 @@ import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
+// Decode HTML entities (needed because Drupal's JSON:API returns HTML-encoded values for text fields)
+function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
 export type ActivityType =
   | 'card_created'
   | 'card_updated'
@@ -72,10 +79,14 @@ function transformActivity(data: Record<string, unknown>, included?: Record<stri
     }
   }
 
+  // Decode HTML entities in description (API returns &quot; instead of ")
+  const rawDescription = (attrs.field_activity_description as { value?: string })?.value || '';
+  const description = rawDescription ? decodeHtmlEntities(rawDescription) : '';
+
   return {
     id: data.id as string,
     type: (attrs.field_activity_type as ActivityType) || 'card_updated',
-    description: (attrs.field_activity_description as { value?: string })?.value || '',
+    description,
     cardId: rels?.field_activity_card?.data?.id || null,
     boardId: rels?.field_activity_board?.data?.id || null,
     authorId,
