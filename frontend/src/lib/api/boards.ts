@@ -297,7 +297,7 @@ export async function prefetchBoard(id: string): Promise<void> {
           priority: 'low' as RequestPriority,
         }),
         // Custom field definitions
-        fetch(`${API_URL}/jsonapi/node/custom_field_definition?filter[field_custom_field_board.id]=${id}`, {
+        fetch(`${API_URL}/jsonapi/node/custom_field_definition?filter[field_customfield_board.id]=${id}`, {
           headers: {
             'Accept': 'application/vnd.api+json',
             'Authorization': `Bearer ${token}`,
