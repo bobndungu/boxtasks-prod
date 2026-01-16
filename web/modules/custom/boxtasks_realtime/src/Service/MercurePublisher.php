@@ -265,28 +265,41 @@ class MercurePublisher {
     $userStorage = $this->entityTypeManager->getStorage('user');
     $changedUser = $userStorage->load($changedUserId);
 
-    // Get all current members
+    // Get all current members using explicit entity loading (not lazy loading)
     $memberIds = [];
     $members = [];
     if ($card->hasField('field_card_members')) {
       foreach ($card->get('field_card_members') as $memberRef) {
-        if ($memberRef->entity) {
-          $user = $memberRef->entity;
-          $memberIds[] = $user->uuid();
-          $members[] = [
-            'id' => $user->uuid(),
-            'name' => $user->get('field_display_name')->value ?? $user->getDisplayName(),
-            'email' => $user->getEmail(),
-          ];
+        if ($memberRef->target_id) {
+          $user = $userStorage->load($memberRef->target_id);
+          if ($user) {
+            $memberIds[] = $user->uuid();
+            $displayName = $user->hasField('field_display_name') && !$user->get('field_display_name')->isEmpty()
+              ? $user->get('field_display_name')->value
+              : $user->getDisplayName();
+            $members[] = [
+              'id' => $user->uuid(),
+              'name' => $displayName,
+              'email' => $user->getEmail(),
+            ];
+          }
         }
       }
+    }
+
+    // Get changed user display name safely
+    $changedUserDisplayName = 'Unknown';
+    if ($changedUser) {
+      $changedUserDisplayName = $changedUser->hasField('field_display_name') && !$changedUser->get('field_display_name')->isEmpty()
+        ? $changedUser->get('field_display_name')->value
+        : $changedUser->getDisplayName();
     }
 
     return [
       'cardId' => $card->uuid(),
       'userId' => $changedUser ? $changedUser->uuid() : (string) $changedUserId,
       'userName' => $changedUser ? $changedUser->getAccountName() : 'Unknown',
-      'userDisplayName' => $changedUser ? ($changedUser->get('field_display_name')->value ?? $changedUser->getDisplayName()) : 'Unknown',
+      'userDisplayName' => $changedUserDisplayName,
       'memberIds' => $memberIds,
       'members' => $members,
     ];
@@ -431,7 +444,11 @@ class MercurePublisher {
       return NULL;
     }
 
-    $listEntity = $card->get('field_card_list')->entity;
+    // Use explicit entity loading instead of lazy loading (->entity)
+    // which may not work reliably during hook_entity_update
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+    $listTargetId = $card->get('field_card_list')->target_id;
+    $listEntity = $nodeStorage->load($listTargetId);
     if (!$listEntity) {
       return NULL;
     }
@@ -447,7 +464,11 @@ class MercurePublisher {
       return NULL;
     }
 
-    $boardEntity = $list->get('field_list_board')->entity;
+    // Use explicit entity loading instead of lazy loading (->entity)
+    // which may not work reliably during hook_entity_update
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+    $boardTargetId = $list->get('field_list_board')->target_id;
+    $boardEntity = $nodeStorage->load($boardTargetId);
     if (!$boardEntity) {
       return NULL;
     }
@@ -463,7 +484,10 @@ class MercurePublisher {
       return NULL;
     }
 
-    $cardEntity = $comment->get('field_comment_card')->entity;
+    // Use explicit entity loading instead of lazy loading (->entity)
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+    $cardTargetId = $comment->get('field_comment_card')->target_id;
+    $cardEntity = $nodeStorage->load($cardTargetId);
     if (!$cardEntity) {
       return NULL;
     }
@@ -479,7 +503,10 @@ class MercurePublisher {
       return NULL;
     }
 
-    $cardEntity = $comment->get('field_comment_card')->entity;
+    // Use explicit entity loading instead of lazy loading (->entity)
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+    $cardTargetId = $comment->get('field_comment_card')->target_id;
+    $cardEntity = $nodeStorage->load($cardTargetId);
     return $cardEntity?->label();
   }
 
