@@ -16,7 +16,7 @@ import {
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { useBoardStore } from '../lib/stores/board';
-import { fetchStarredBoards, fetchRecentBoards } from '../lib/api/boards';
+import { fetchStarredBoards, fetchRecentBoards, prefetchBoard } from '../lib/api/boards';
 import { fetchActivitiesByBoard, type Activity } from '../lib/api/activities';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
 import SearchModal from '../components/SearchModal';
@@ -339,6 +339,7 @@ export default function Dashboard() {
                       to={`/board/${board.id}`}
                       className="relative h-24 rounded-lg overflow-hidden hover:opacity-90 transition-opacity group"
                       style={{ backgroundColor: board.background || '#0079BF' }}
+                      onMouseEnter={() => prefetchBoard(board.id)}
                     >
                       <div className="absolute inset-0 bg-black/20" />
                       <div className="relative h-full p-3 flex flex-col justify-between">
@@ -376,6 +377,7 @@ export default function Dashboard() {
                       to={`/board/${board.id}`}
                       className="relative h-24 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
                       style={{ backgroundColor: board.background || '#0079BF' }}
+                      onMouseEnter={() => prefetchBoard(board.id)}
                     >
                       <div className="absolute inset-0 bg-black/20" />
                       <div className="relative h-full p-3 flex flex-col justify-between">

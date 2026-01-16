@@ -759,19 +759,11 @@ export default function BoardView() {
     setError(null);
 
     try {
-      // Step 1: Fetch board first (needed for workspaceId)
-      const board = await fetchBoard(id);
-      setCurrentBoard(board);
-      setBoardTitle(board.title);
-
-      // Step 2: Fetch lists, custom fields, members, and taxonomy in parallel
-      // This significantly reduces load time by not waiting for sequential requests
-      const [
-        boardLists,
-        fieldDefsResult,
-        membersResult,
-        taxonomyResult,
-      ] = await Promise.all([
+      // OPTIMIZED: Stage 1 - Fetch board AND lists in parallel (saves one network round-trip)
+      // Board ID is already known from URL, so we don't need to wait for board to fetch lists
+      const [board, boardLists, fieldDefsResult, taxonomyResult] = await Promise.all([
+        // Board data
+        fetchBoard(id),
         // Lists (required for cards)
         fetchListsByBoard(id),
         // Custom field definitions
@@ -779,16 +771,6 @@ export default function BoardView() {
           console.error('Failed to load custom fields:', err);
           return [] as Awaited<ReturnType<typeof fetchCustomFieldsByBoard>>;
         }),
-        // Members and users (only if workspace exists)
-        board.workspaceId
-          ? Promise.all([
-              fetchWorkspaceMembers(board.workspaceId),
-              fetchAllUsers(),
-            ]).catch((err) => {
-              console.error('Failed to load members:', err);
-              return [[], []] as [Awaited<ReturnType<typeof fetchWorkspaceMembers>>, Awaited<ReturnType<typeof fetchAllUsers>>];
-            })
-          : Promise.resolve([[], []] as [Awaited<ReturnType<typeof fetchWorkspaceMembers>>, Awaited<ReturnType<typeof fetchAllUsers>>]),
         // Taxonomy terms
         Promise.all([
           fetchDepartments(),
@@ -799,11 +781,36 @@ export default function BoardView() {
         }),
       ]);
 
-      // Apply lists
+      // Apply board and lists immediately for faster perceived loading
+      setCurrentBoard(board);
+      setBoardTitle(board.title);
       setLists(boardLists);
-
-      // Apply custom field definitions
       setCustomFieldDefs(fieldDefsResult);
+
+      // Apply taxonomy terms
+      const [depts, clnts] = taxonomyResult;
+      setDepartments(depts);
+      setClients(clnts);
+
+      // OPTIMIZED: Stage 2 - Fetch cards AND members in parallel (now we have list IDs and workspaceId)
+      const listIds = boardLists.map(list => list.id);
+      const [cardsMap, membersResult] = await Promise.all([
+        // Cards for all lists
+        fetchCardsByBoard(id, listIds),
+        // Members and users (only if workspace exists)
+        board.workspaceId
+          ? Promise.all([
+              fetchWorkspaceMembers(board.workspaceId),
+              fetchAllUsers(),
+            ]).catch((err) => {
+              console.error('Failed to load members:', err);
+              return [[], []] as [Awaited<ReturnType<typeof fetchWorkspaceMembers>>, Awaited<ReturnType<typeof fetchAllUsers>>];
+            })
+          : Promise.resolve([[], []] as [Awaited<ReturnType<typeof fetchWorkspaceMembers>>, Awaited<ReturnType<typeof fetchAllUsers>>]),
+      ]);
+
+      // Apply cards
+      setCardsByList(cardsMap);
 
       // Apply members (filter out system users)
       const [members, users] = membersResult;
@@ -813,17 +820,7 @@ export default function BoardView() {
       setWorkspaceMembers(filterSystemUsers(members));
       setAllUsers(filterSystemUsers(users));
 
-      // Apply taxonomy terms
-      const [depts, clnts] = taxonomyResult;
-      setDepartments(depts);
-      setClients(clnts);
-
-      // Step 3: Fetch cards (needs list IDs from step 2)
-      const listIds = boardLists.map(list => list.id);
-      const cardsMap = await fetchCardsByBoard(id, listIds);
-      setCardsByList(cardsMap);
-
-      // Step 4: Fetch custom field values (needs card IDs from step 3)
+      // Stage 3: Fetch custom field values (needs card IDs from stage 2)
       if (fieldDefsResult.length > 0) {
         const allCards = Array.from(cardsMap.values()).flat();
         const cardIds = allCards.map(card => card.id);

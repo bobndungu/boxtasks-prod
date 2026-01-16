@@ -253,3 +253,82 @@ export async function archiveBoard(id: string): Promise<Board> {
 export async function restoreBoard(id: string): Promise<Board> {
   return updateBoard(id, { archived: false });
 }
+
+// Prefetch cache to avoid duplicate requests
+const prefetchedBoards = new Set<string>();
+const prefetchInProgress = new Map<string, Promise<void>>();
+
+// Prefetch board data for faster navigation
+// Uses low-priority fetches to warm the cache without blocking
+export async function prefetchBoard(id: string): Promise<void> {
+  // Skip if already prefetched or in progress
+  if (prefetchedBoards.has(id) || prefetchInProgress.has(id)) {
+    return;
+  }
+
+  const token = getAccessToken();
+  if (!token) return;
+
+  // Create abort controller to cancel if navigation happens
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+  const prefetchPromise = (async () => {
+    try {
+      // Prefetch board, lists, and custom fields in parallel using low-priority fetch
+      // These requests will warm the browser cache and Drupal's page cache
+      await Promise.all([
+        // Board data
+        fetch(`${API_URL}/jsonapi/node/board/${id}?include=field_board_workspace`, {
+          headers: {
+            'Accept': 'application/vnd.api+json',
+            'Authorization': `Bearer ${token}`,
+          },
+          signal: controller.signal,
+          priority: 'low' as RequestPriority,
+        }),
+        // Lists for this board
+        fetch(`${API_URL}/jsonapi/node/board_list?filter[field_list_board.id]=${id}&filter[field_list_archived][value]=0&sort=field_list_position`, {
+          headers: {
+            'Accept': 'application/vnd.api+json',
+            'Authorization': `Bearer ${token}`,
+          },
+          signal: controller.signal,
+          priority: 'low' as RequestPriority,
+        }),
+        // Custom field definitions
+        fetch(`${API_URL}/jsonapi/node/custom_field_definition?filter[field_custom_field_board.id]=${id}`, {
+          headers: {
+            'Accept': 'application/vnd.api+json',
+            'Authorization': `Bearer ${token}`,
+          },
+          signal: controller.signal,
+          priority: 'low' as RequestPriority,
+        }),
+      ]);
+
+      // Mark as prefetched
+      prefetchedBoards.add(id);
+    } catch (err) {
+      // Silently ignore prefetch errors - this is just an optimization
+      if ((err as Error).name !== 'AbortError') {
+        console.debug('Prefetch failed for board:', id, err);
+      }
+    } finally {
+      clearTimeout(timeoutId);
+      prefetchInProgress.delete(id);
+    }
+  })();
+
+  prefetchInProgress.set(id, prefetchPromise);
+  return prefetchPromise;
+}
+
+// Clear prefetch cache (useful when boards are modified)
+export function clearPrefetchCache(boardId?: string): void {
+  if (boardId) {
+    prefetchedBoards.delete(boardId);
+  } else {
+    prefetchedBoards.clear();
+  }
+}
