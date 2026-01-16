@@ -25,6 +25,7 @@
         "drupal/mercure": "^1.0",
         "drupal/migrate_plus": "^6.0",
         "drupal/migrate_tools": "^6.1",
+        "drupal/redis": "^1.11",
         "drupal/restui": "^1.22",
         "drupal/simple_oauth": "^6.1",
         "drupal/simple_oauth_password_grant": "^2.1",

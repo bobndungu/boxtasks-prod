@@ -297,7 +297,15 @@
       "presence": "272-400ms",
       "session_token": "259ms",
       "measured_at": "2026-01-16",
-      "notes": "After enabling page cache (max_age=3600). ~60-75% improvement from baseline."
+      "notes": "After enabling page cache (max_age=3600) and Redis cache backend. ~60-75% improvement from baseline."
+    },
+    "redis_caching": {
+      "enabled": true,
+      "module": "drupal/redis 1.11.0",
+      "cache_backend": "cache.backend.redis",
+      "cache_prefix": "boxtasks_",
+      "cache_entries": "40000+",
+      "configured_at": "2026-01-16"
     },
     "api_response_times_baseline": {
       "board": "1.0-1.5s",

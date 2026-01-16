@@ -152,6 +152,7 @@ class ComposerStaticInit1c94884feafe7e7de67cff6263fe48f2
         'D' =>
         array (
             'Drush\\' => 6,
+            'Drupal\\redis\\' => 13,
             'Drupal\\Core\\' => 12,
             'Drupal\\Composer\\Plugin\\Scaffold\\' => 32,
             'Drupal\\Composer\\Plugin\\RecipeUnpack\\' => 36,
@@ -508,6 +509,10 @@ class ComposerStaticInit1c94884feafe7e7de67cff6263fe48f2
         'Drush\\' =>
         array (
             0 => __DIR__ . '/..' . '/drush/drush/src',
+        ),
+        'Drupal\\redis\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/web/modules/contrib/redis/src',
         ),
         'Drupal\\Core\\' =>
         array (
