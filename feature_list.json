@@ -290,6 +290,16 @@
   "browser_retries": 0,
   "optimization_metrics": {
     "api_response_times": {
+      "board": "278ms",
+      "workspace": "297ms",
+      "lists": "286ms",
+      "cards": "257ms",
+      "presence": "272-400ms",
+      "session_token": "259ms",
+      "measured_at": "2026-01-16",
+      "notes": "After enabling page cache (max_age=3600). ~60-75% improvement from baseline."
+    },
+    "api_response_times_baseline": {
       "board": "1.0-1.5s",
       "workspace": "1.0-1.1s",
       "presence": "0.95-1.0s",
