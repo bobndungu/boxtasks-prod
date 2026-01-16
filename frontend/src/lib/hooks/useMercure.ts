@@ -83,10 +83,15 @@ export function useMercure(options: UseMercureOptions) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttempts = useRef(0);
+  const isMountedRef = useRef(true);
+  const isIntentionalDisconnect = useRef(false);
   const maxReconnectAttempts = 5;
   const baseReconnectDelay = 1000; // 1 second
 
   const disconnect = useCallback(() => {
+    // Mark as intentional disconnect to prevent reconnection attempts
+    isIntentionalDisconnect.current = true;
+
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
@@ -97,11 +102,13 @@ export function useMercure(options: UseMercureOptions) {
       eventSourceRef.current = null;
     }
 
-    setConnectionState(prev => ({
-      ...prev,
-      connected: false,
-      connecting: false,
-    }));
+    if (isMountedRef.current) {
+      setConnectionState(prev => ({
+        ...prev,
+        connected: false,
+        connecting: false,
+      }));
+    }
   }, []);
 
   const connect = useCallback(() => {
@@ -113,6 +120,9 @@ export function useMercure(options: UseMercureOptions) {
     if (eventSourceRef.current?.readyState === EventSource.OPEN) {
       return;
     }
+
+    // Reset intentional disconnect flag when connecting
+    isIntentionalDisconnect.current = false;
 
     setConnectionState(prev => ({
       ...prev,
@@ -161,6 +171,11 @@ export function useMercure(options: UseMercureOptions) {
         eventSource.close();
         eventSourceRef.current = null;
 
+        // Skip state updates and reconnection if unmounting or intentionally disconnecting
+        if (!isMountedRef.current || isIntentionalDisconnect.current) {
+          return;
+        }
+
         setConnectionState(prev => ({
           ...prev,
           connected: false,
@@ -180,7 +195,10 @@ export function useMercure(options: UseMercureOptions) {
           console.log(`Mercure: Reconnecting in ${delay}ms (attempt ${reconnectAttempts.current})`);
 
           reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
+            // Double-check we're still mounted and not intentionally disconnecting
+            if (isMountedRef.current && !isIntentionalDisconnect.current) {
+              connect();
+            }
           }, delay);
         } else {
           const error = new Error('Max reconnection attempts reached');
@@ -206,6 +224,8 @@ export function useMercure(options: UseMercureOptions) {
 
   // Connect when topics change or enabled changes
   useEffect(() => {
+    isMountedRef.current = true;
+
     if (enabled && topics.length > 0) {
       connect();
     } else {
@@ -213,6 +233,7 @@ export function useMercure(options: UseMercureOptions) {
     }
 
     return () => {
+      isMountedRef.current = false;
       disconnect();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
