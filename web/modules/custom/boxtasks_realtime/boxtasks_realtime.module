@@ -48,19 +48,32 @@ function boxtasks_realtime_entity_update(EntityInterface $entity) {
       // Check if card was moved (list changed)
       $original = $entity->original ?? NULL;
       if ($original) {
-        $oldListId = $original->hasField('field_card_list') && !$original->get('field_card_list')->isEmpty()
-          ? $original->get('field_card_list')->entity?->uuid()
+        // Use target_id and load entities explicitly to ensure we get proper UUIDs
+        // The ->entity lazy loading may not work reliably for original entities
+        $nodeStorage = \Drupal::entityTypeManager()->getStorage('node');
+
+        $oldListTargetId = $original->hasField('field_card_list') && !$original->get('field_card_list')->isEmpty()
+          ? $original->get('field_card_list')->target_id
           : NULL;
-        $newListId = $entity->hasField('field_card_list') && !$entity->get('field_card_list')->isEmpty()
-          ? $entity->get('field_card_list')->entity?->uuid()
+        $newListTargetId = $entity->hasField('field_card_list') && !$entity->get('field_card_list')->isEmpty()
+          ? $entity->get('field_card_list')->target_id
           : NULL;
 
-        if ($oldListId && $newListId && $oldListId !== $newListId) {
-          $position = $entity->hasField('field_card_position')
-            ? (int) $entity->get('field_card_position')->value
-            : 0;
-          $publisher->publishCardMoved($entity, $oldListId, $newListId, $position);
-          return;
+        // Check if list changed by comparing target IDs
+        if ($oldListTargetId && $newListTargetId && $oldListTargetId !== $newListTargetId) {
+          // Load the list entities to get their UUIDs
+          $oldList = $nodeStorage->load($oldListTargetId);
+          $newList = $nodeStorage->load($newListTargetId);
+
+          if ($oldList && $newList) {
+            $oldListId = $oldList->uuid();
+            $newListId = $newList->uuid();
+            $position = $entity->hasField('field_card_position')
+              ? (int) $entity->get('field_card_position')->value
+              : 0;
+            $publisher->publishCardMoved($entity, $oldListId, $newListId, $position);
+            return;
+          }
         }
 
         // Check if members changed
