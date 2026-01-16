@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '../stores/auth';
 import { fetchMemberRole, fetchDefaultRole, canPerformAction } from '../api/roles';
 import type { WorkspaceRole, PermissionLevel } from '../api/roles';
@@ -17,13 +17,110 @@ interface UsePermissionsReturn {
   refetch: () => Promise<void>;
 }
 
+// Default permissive permissions for fallback
+const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
+  cardView: 'any',
+  cardCreate: 'any',
+  cardEdit: 'any',
+  cardDelete: 'own',
+  cardArchive: 'any',
+  cardMove: 'any',
+  listView: 'any',
+  listCreate: 'any',
+  listEdit: 'any',
+  listDelete: 'own',
+  boardView: 'any',
+  boardCreate: 'any',
+  boardEdit: 'own',
+  boardDelete: 'own',
+  workspaceView: 'any',
+  workspaceEdit: 'none',
+  workspaceDelete: 'none',
+  memberManage: 'none',
+  commentEdit: 'own',
+  commentDelete: 'own',
+};
+
+// Check if error is an abort error (navigation/unmount)
+function isAbortError(err: unknown): boolean {
+  if (err instanceof Error) {
+    return err.name === 'AbortError' ||
+           err.message === 'Failed to fetch' ||
+           err.message.includes('abort');
+  }
+  return false;
+}
+
 export function usePermissions(workspaceId: string | undefined): UsePermissionsReturn {
   const { user } = useAuthStore();
   const [permissions, setPermissions] = useState<WorkspaceRole['permissions'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
 
-  const fetchPermissions = useCallback(async () => {
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    const fetchPermissions = async () => {
+      if (!workspaceId || !user?.id) {
+        if (isMountedRef.current) {
+          setPermissions(null);
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (isMountedRef.current) {
+        setLoading(true);
+        setError(null);
+      }
+
+      try {
+        // First try to get user's assigned role in the workspace
+        const memberRole = await fetchMemberRole(workspaceId, user.id);
+
+        if (!isMountedRef.current) return;
+
+        if (memberRole?.role) {
+          setPermissions(memberRole.role.permissions);
+        } else {
+          // If no role assigned, use default role
+          const defaultRole = await fetchDefaultRole();
+
+          if (!isMountedRef.current) return;
+
+          if (defaultRole) {
+            setPermissions(defaultRole.permissions);
+          } else {
+            // Fallback to editor-like permissions if no roles exist
+            setPermissions(DEFAULT_PERMISSIONS);
+          }
+        }
+      } catch (err) {
+        // Silently ignore abort/navigation errors - these are expected during quick navigation
+        if (isAbortError(err) || !isMountedRef.current) {
+          return;
+        }
+
+        console.error('Failed to fetch permissions:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch permissions');
+        // Set permissive defaults on error to not block users
+        setPermissions(DEFAULT_PERMISSIONS);
+      } finally {
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchPermissions();
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [workspaceId, user?.id]);
+
+  const refetch = useCallback(async () => {
     if (!workspaceId || !user?.id) {
       setPermissions(null);
       setLoading(false);
@@ -34,76 +131,23 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     setError(null);
 
     try {
-      // First try to get user's assigned role in the workspace
       const memberRole = await fetchMemberRole(workspaceId, user.id);
-
       if (memberRole?.role) {
         setPermissions(memberRole.role.permissions);
       } else {
-        // If no role assigned, use default role
         const defaultRole = await fetchDefaultRole();
-        if (defaultRole) {
-          setPermissions(defaultRole.permissions);
-        } else {
-          // Fallback to editor-like permissions if no roles exist
-          setPermissions({
-            cardView: 'any',
-            cardCreate: 'any',
-            cardEdit: 'any',
-            cardDelete: 'own',
-            cardArchive: 'any',
-            cardMove: 'any',
-            listView: 'any',
-            listCreate: 'any',
-            listEdit: 'any',
-            listDelete: 'own',
-            boardView: 'any',
-            boardCreate: 'any',
-            boardEdit: 'own',
-            boardDelete: 'own',
-            workspaceView: 'any',
-            workspaceEdit: 'none',
-            workspaceDelete: 'none',
-            memberManage: 'none',
-            commentEdit: 'own',
-            commentDelete: 'own',
-          });
-        }
+        setPermissions(defaultRole?.permissions || DEFAULT_PERMISSIONS);
       }
     } catch (err) {
-      console.error('Failed to fetch permissions:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch permissions');
-      // Set permissive defaults on error to not block users
-      setPermissions({
-        cardView: 'any',
-        cardCreate: 'any',
-        cardEdit: 'any',
-        cardDelete: 'own',
-        cardArchive: 'any',
-        cardMove: 'any',
-        listView: 'any',
-        listCreate: 'any',
-        listEdit: 'any',
-        listDelete: 'own',
-        boardView: 'any',
-        boardCreate: 'any',
-        boardEdit: 'own',
-        boardDelete: 'own',
-        workspaceView: 'any',
-        workspaceEdit: 'none',
-        workspaceDelete: 'none',
-        memberManage: 'none',
-        commentEdit: 'own',
-        commentDelete: 'own',
-      });
+      if (!isAbortError(err)) {
+        console.error('Failed to fetch permissions:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch permissions');
+        setPermissions(DEFAULT_PERMISSIONS);
+      }
     } finally {
       setLoading(false);
     }
   }, [workspaceId, user?.id]);
-
-  useEffect(() => {
-    fetchPermissions();
-  }, [fetchPermissions]);
 
   const canView = useCallback((type: 'card' | 'list' | 'board' | 'workspace', isOwner: boolean = false): boolean => {
     if (!permissions) return true; // Allow by default while loading
@@ -233,7 +277,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canArchive,
     canMove,
     canManageMembers,
-    refetch: fetchPermissions,
+    refetch,
   };
 }
 
