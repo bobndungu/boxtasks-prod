@@ -92,19 +92,55 @@ export interface CreateCardData {
   creatorId?: string; // Auto-assign creator as member
 }
 
-// Transform JSON:API response to Card
-function transformCard(data: Record<string, unknown>, included?: Record<string, unknown>[]): Card {
+// Build lookup maps from included array for O(1) access instead of O(n) linear search
+// This is called once per API response and cached for all card transformations
+function buildIncludedMaps(included?: Record<string, unknown>[]): {
+  usersById: Map<string, Record<string, unknown>>;
+  taxonomyById: Map<string, Record<string, unknown>>;
+  filesById: Map<string, Record<string, unknown>>;
+} {
+  const usersById = new Map<string, Record<string, unknown>>();
+  const taxonomyById = new Map<string, Record<string, unknown>>();
+  const filesById = new Map<string, Record<string, unknown>>();
+
+  if (included) {
+    for (const item of included) {
+      const id = item.id as string;
+      const type = item.type as string;
+      if (type === 'user--user') {
+        usersById.set(id, item);
+      } else if (type?.startsWith('taxonomy_term--')) {
+        taxonomyById.set(id, item);
+      } else if (type === 'file--file') {
+        filesById.set(id, item);
+      }
+    }
+  }
+
+  return { usersById, taxonomyById, filesById };
+}
+
+// Transform JSON:API response to Card - optimized with Map lookups
+function transformCard(
+  data: Record<string, unknown>,
+  included?: Record<string, unknown>[],
+  // Optional pre-built maps for batch processing (avoids rebuilding for each card)
+  maps?: ReturnType<typeof buildIncludedMaps>
+): Card {
   const attrs = data.attributes as Record<string, unknown>;
   const rels = data.relationships as Record<string, { data: { id: string; type?: string } | { id: string; type?: string }[] | null }> | undefined;
 
-  // Get cover image URL from included if available
+  // Use pre-built maps or build them (for single card fetches)
+  const { usersById, taxonomyById, filesById } = maps || buildIncludedMaps(included);
+
+  // Get cover image URL from included if available - O(1) lookup
   let coverImageUrl: string | undefined;
   let coverImageId: string | undefined;
   const coverData = rels?.field_card_cover?.data;
   const coverFileId = coverData && !Array.isArray(coverData) ? coverData.id : undefined;
-  if (included && coverFileId) {
+  if (coverFileId) {
     coverImageId = coverFileId;
-    const file = included.find((item) => item.id === coverFileId && item.type === 'file--file');
+    const file = filesById.get(coverFileId);
     if (file) {
       const fileAttrs = file.attributes as Record<string, unknown>;
       const uri = (fileAttrs.uri as { url?: string })?.url || '';
@@ -114,66 +150,54 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     }
   }
 
-  // Get watcher IDs and watcher data
+  // Get watcher IDs and watcher data - O(1) lookups
   const watchersData = rels?.field_card_watchers?.data || rels?.field_watchers?.data;
   const watcherIds: string[] = Array.isArray(watchersData)
     ? watchersData.map((w) => w.id)
     : [];
 
-  // Get watcher details from included
-  const watchers: CardMember[] = [];
-  if (included && watcherIds.length > 0) {
-    for (const watcherId of watcherIds) {
-      const user = included.find((item) => item.id === watcherId && item.type === 'user--user');
-      if (user) {
-        const userAttrs = user.attributes as Record<string, unknown>;
-        watchers.push({
-          id: watcherId,
-          name: (userAttrs.field_display_name as string) || (userAttrs.name as string) || 'Unknown User',
-          email: userAttrs.mail as string | undefined,
-        });
-      } else {
-        watchers.push({ id: watcherId, name: 'Unknown User' });
-      }
+  const watchers: CardMember[] = watcherIds.map((watcherId) => {
+    const user = usersById.get(watcherId);
+    if (user) {
+      const userAttrs = user.attributes as Record<string, unknown>;
+      return {
+        id: watcherId,
+        name: (userAttrs.field_display_name as string) || (userAttrs.name as string) || 'Unknown User',
+        email: userAttrs.mail as string | undefined,
+      };
     }
-  }
+    return { id: watcherId, name: 'Unknown User' };
+  });
 
-  // Get member IDs and member data
+  // Get member IDs and member data - O(1) lookups
   const membersData = rels?.field_card_members?.data;
   const memberIds: string[] = Array.isArray(membersData)
     ? membersData.map((m) => m.id)
     : [];
 
-  // Get member details from included
-  const members: CardMember[] = [];
-  if (included && memberIds.length > 0) {
-    for (const memberId of memberIds) {
-      const user = included.find((item) => item.id === memberId && item.type === 'user--user');
-      if (user) {
-        const userAttrs = user.attributes as Record<string, unknown>;
-        members.push({
-          id: memberId,
-          name: (userAttrs.field_display_name as string) || (userAttrs.name as string) || 'Unknown User',
-          email: userAttrs.mail as string | undefined,
-        });
-      } else {
-        members.push({ id: memberId, name: 'Unknown User' });
-      }
+  const members: CardMember[] = memberIds.map((memberId) => {
+    const user = usersById.get(memberId);
+    if (user) {
+      const userAttrs = user.attributes as Record<string, unknown>;
+      return {
+        id: memberId,
+        name: (userAttrs.field_display_name as string) || (userAttrs.name as string) || 'Unknown User',
+        email: userAttrs.mail as string | undefined,
+      };
     }
-  }
+    return { id: memberId, name: 'Unknown User' };
+  });
 
   // Get list ID (single reference)
   const listData = rels?.field_card_list?.data;
   const listId = listData && !Array.isArray(listData) ? listData.id : '';
 
-  // Get department data
+  // Get department data - O(1) lookup
   let department: { id: string; name: string } | undefined;
   const departmentData = rels?.field_card_department?.data;
   const departmentId = departmentData && !Array.isArray(departmentData) ? departmentData.id : undefined;
-  if (included && departmentId) {
-    const departmentTerm = included.find(
-      (item) => item.id === departmentId && (item.type as string)?.startsWith('taxonomy_term--')
-    );
+  if (departmentId) {
+    const departmentTerm = taxonomyById.get(departmentId);
     if (departmentTerm) {
       const termAttrs = departmentTerm.attributes as Record<string, unknown>;
       department = {
@@ -183,14 +207,12 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
     }
   }
 
-  // Get client data
+  // Get client data - O(1) lookup
   let client: { id: string; name: string } | undefined;
   const clientData = rels?.field_card_client?.data;
   const clientId = clientData && !Array.isArray(clientData) ? clientData.id : undefined;
-  if (included && clientId) {
-    const clientTerm = included.find(
-      (item) => item.id === clientId && (item.type as string)?.startsWith('taxonomy_term--')
-    );
+  if (clientId) {
+    const clientTerm = taxonomyById.get(clientId);
     if (clientTerm) {
       const termAttrs = clientTerm.attributes as Record<string, unknown>;
       client = {
@@ -204,13 +226,13 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
   const authorData = rels?.uid?.data;
   const authorId = authorData && !Array.isArray(authorData) ? authorData.id : undefined;
 
-  // Get approval data
+  // Get approval data - O(1) lookup
   const isApproved = (attrs.field_card_approved as boolean) || false;
   let approvedBy: CardMember | undefined;
   const approvedByData = rels?.field_card_approved_by?.data;
   const approvedById = approvedByData && !Array.isArray(approvedByData) ? approvedByData.id : undefined;
-  if (included && approvedById) {
-    const approverUser = included.find((item) => item.id === approvedById && (item.type as string) === 'user--user');
+  if (approvedById) {
+    const approverUser = usersById.get(approvedById);
     if (approverUser) {
       const userAttrs = approverUser.attributes as Record<string, unknown>;
       approvedBy = {
@@ -221,13 +243,13 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
   }
   const approvedAt = (attrs.field_card_approved_at as string) || undefined;
 
-  // Get rejection data
+  // Get rejection data - O(1) lookup
   const isRejected = (attrs.field_card_rejected as boolean) || false;
   let rejectedBy: CardMember | undefined;
   const rejectedByData = rels?.field_card_rejected_by?.data;
   const rejectedById = rejectedByData && !Array.isArray(rejectedByData) ? rejectedByData.id : undefined;
-  if (included && rejectedById) {
-    const rejecterUser = included.find((item) => item.id === rejectedById && (item.type as string) === 'user--user');
+  if (rejectedById) {
+    const rejecterUser = usersById.get(rejectedById);
     if (rejecterUser) {
       const userAttrs = rejecterUser.attributes as Record<string, unknown>;
       rejectedBy = {
@@ -293,10 +315,18 @@ function transformCard(data: Record<string, unknown>, included?: Record<string, 
   };
 }
 
+// Sparse fieldsets to reduce payload size - only request fields we actually use
+const SPARSE_FIELDSETS = [
+  'fields[user--user]=name,field_display_name,mail',
+  'fields[taxonomy_term--department]=name',
+  'fields[taxonomy_term--client]=name',
+  'fields[file--file]=uri',
+].join('&');
+
 // Fetch all cards for a list
 export async function fetchCardsByList(listId: string): Promise<Card[]> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?filter[field_card_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers`,
+    `${API_URL}/jsonapi/node/card?filter[field_card_list.id]=${listId}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers&${SPARSE_FIELDSETS}`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -314,7 +344,9 @@ export async function fetchCardsByList(listId: string): Promise<Card[]> {
   const included = result.included as Record<string, unknown>[] | undefined;
   if (!Array.isArray(data)) return [];
 
-  return data.map((item) => transformCard(item, included));
+  // Build maps once for O(1) lookups across all cards
+  const maps = buildIncludedMaps(included);
+  return data.map((item) => transformCard(item, included, maps));
 }
 
 // Fetch all cards for multiple lists (for board view) - uses OR filter for single request
@@ -330,7 +362,7 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
   });
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers&page[limit]=200`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=0&sort=field_card_position&include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers&${SPARSE_FIELDSETS}&page[limit]=200`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -358,8 +390,10 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
   listIds.forEach((id) => cardMap.set(id, []));
 
   if (Array.isArray(data)) {
+    // Build maps once for O(1) lookups across all cards in batch
+    const maps = buildIncludedMaps(included);
     data.forEach((item) => {
-      const card = transformCard(item, included);
+      const card = transformCard(item, included, maps);
       const existing = cardMap.get(card.listId) || [];
       cardMap.set(card.listId, [...existing, card]);
     });
@@ -370,7 +404,7 @@ export async function fetchCardsByBoard(_boardId: string, listIds: string[]): Pr
 
 // Fetch a single card
 export async function fetchCard(id: string): Promise<Card> {
-  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers`, {
+  const response = await fetch(`${API_URL}/jsonapi/node/card/${id}?include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers&${SPARSE_FIELDSETS}`, {
     headers: {
       'Accept': 'application/vnd.api+json',
       'Authorization': `Bearer ${getAccessToken()}`,
@@ -529,7 +563,7 @@ export async function fetchArchivedCardsByBoard(_boardId: string, listIds: strin
   ).join('&');
 
   const response = await fetch(
-    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=1&sort=-changed&include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers`,
+    `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=1&sort=-changed&include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers&${SPARSE_FIELDSETS}`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -547,7 +581,9 @@ export async function fetchArchivedCardsByBoard(_boardId: string, listIds: strin
   const included = result.included as Record<string, unknown>[] | undefined;
   if (!Array.isArray(data)) return [];
 
-  return data.map((item) => transformCard(item, included));
+  // Build maps once for O(1) lookups across all cards
+  const maps = buildIncludedMaps(included);
+  return data.map((item) => transformCard(item, included, maps));
 }
 
 // Update card department

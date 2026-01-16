@@ -302,7 +302,21 @@
       "largest_chunk": "BoardView 348K→59K",
       "measured_at": "2026-01-15"
     },
-    "lighthouse_scores": null,
+    "lighthouse_scores": {
+      "performance": 96,
+      "accessibility": 100,
+      "best_practices": 100,
+      "seo": 92,
+      "metrics": {
+        "first_contentful_paint": "1.9s",
+        "largest_contentful_paint": "1.9s",
+        "total_blocking_time": "0ms",
+        "cumulative_layout_shift": "0",
+        "speed_index": "4.0s"
+      },
+      "issues": ["robots.txt not valid", "unused JavaScript"],
+      "measured_at": "2026-01-16"
+    },
     "mercure_latency": null
   }
 }

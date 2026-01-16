@@ -759,62 +759,80 @@ export default function BoardView() {
     setError(null);
 
     try {
+      // Step 1: Fetch board first (needed for workspaceId)
       const board = await fetchBoard(id);
       setCurrentBoard(board);
       setBoardTitle(board.title);
 
-      const boardLists = await fetchListsByBoard(id);
+      // Step 2: Fetch lists, custom fields, members, and taxonomy in parallel
+      // This significantly reduces load time by not waiting for sequential requests
+      const [
+        boardLists,
+        fieldDefsResult,
+        membersResult,
+        taxonomyResult,
+      ] = await Promise.all([
+        // Lists (required for cards)
+        fetchListsByBoard(id),
+        // Custom field definitions
+        fetchCustomFieldsByBoard(id).catch((err) => {
+          console.error('Failed to load custom fields:', err);
+          return [] as Awaited<ReturnType<typeof fetchCustomFieldsByBoard>>;
+        }),
+        // Members and users (only if workspace exists)
+        board.workspaceId
+          ? Promise.all([
+              fetchWorkspaceMembers(board.workspaceId),
+              fetchAllUsers(),
+            ]).catch((err) => {
+              console.error('Failed to load members:', err);
+              return [[], []] as [Awaited<ReturnType<typeof fetchWorkspaceMembers>>, Awaited<ReturnType<typeof fetchAllUsers>>];
+            })
+          : Promise.resolve([[], []] as [Awaited<ReturnType<typeof fetchWorkspaceMembers>>, Awaited<ReturnType<typeof fetchAllUsers>>]),
+        // Taxonomy terms
+        Promise.all([
+          fetchDepartments(),
+          fetchClients(),
+        ]).catch((err) => {
+          console.error('Failed to load taxonomy terms:', err);
+          return [[], []] as [Awaited<ReturnType<typeof fetchDepartments>>, Awaited<ReturnType<typeof fetchClients>>];
+        }),
+      ]);
+
+      // Apply lists
       setLists(boardLists);
 
-      // Fetch all cards in a single request for better performance
+      // Apply custom field definitions
+      setCustomFieldDefs(fieldDefsResult);
+
+      // Apply members (filter out system users)
+      const [members, users] = membersResult;
+      const systemUserNames = ['boxraft admin', 'n8n_api', 'n8n api'];
+      const filterSystemUsers = (userList: typeof members) =>
+        userList.filter(u => !systemUserNames.includes(u.displayName.toLowerCase()));
+      setWorkspaceMembers(filterSystemUsers(members));
+      setAllUsers(filterSystemUsers(users));
+
+      // Apply taxonomy terms
+      const [depts, clnts] = taxonomyResult;
+      setDepartments(depts);
+      setClients(clnts);
+
+      // Step 3: Fetch cards (needs list IDs from step 2)
       const listIds = boardLists.map(list => list.id);
       const cardsMap = await fetchCardsByBoard(id, listIds);
       setCardsByList(cardsMap);
 
-      // Load custom field definitions for the board
-      try {
-        const fieldDefs = await fetchCustomFieldsByBoard(id);
-        setCustomFieldDefs(fieldDefs);
-
-        // Load custom field values for all cards in a single batch request
-        if (fieldDefs.length > 0) {
-          const allCards = Array.from(cardsMap.values()).flat();
-          const cardIds = allCards.map(card => card.id);
+      // Step 4: Fetch custom field values (needs card IDs from step 3)
+      if (fieldDefsResult.length > 0) {
+        const allCards = Array.from(cardsMap.values()).flat();
+        const cardIds = allCards.map(card => card.id);
+        try {
           const valuesMap = await fetchCustomFieldValuesForCards(cardIds);
           setCustomFieldValues(valuesMap);
+        } catch (cfvErr) {
+          console.error('Failed to load custom field values:', cfvErr);
         }
-      } catch (cfErr) {
-        console.error('Failed to load custom fields:', cfErr);
-      }
-
-      // Load workspace members for @mentions and all users for dropdowns
-      if (board.workspaceId) {
-        try {
-          const [members, users] = await Promise.all([
-            fetchWorkspaceMembers(board.workspaceId),
-            fetchAllUsers(),
-          ]);
-          // Filter out system users from dropdowns (Boxraft Admin, n8n_api)
-          const systemUserNames = ['boxraft admin', 'n8n_api', 'n8n api'];
-          const filterSystemUsers = (userList: typeof members) =>
-            userList.filter(u => !systemUserNames.includes(u.displayName.toLowerCase()));
-          setWorkspaceMembers(filterSystemUsers(members));
-          setAllUsers(filterSystemUsers(users));
-        } catch (memberErr) {
-          console.error('Failed to load members:', memberErr);
-        }
-      }
-
-      // Load taxonomy terms for Department and Client dropdowns
-      try {
-        const [depts, clnts] = await Promise.all([
-          fetchDepartments(),
-          fetchClients(),
-        ]);
-        setDepartments(depts);
-        setClients(clnts);
-      } catch (taxErr) {
-        console.error('Failed to load taxonomy terms:', taxErr);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load board');
