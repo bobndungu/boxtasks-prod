@@ -1,0 +1,33 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "pkce",
+    "Jaseer",
+    "multitenant",
+    "entra",
+    "Entra",
+    "drupal",
+    "Drupal",
+    "OAuth",
+    "guzzle",
+    "GuzzleHTTP",
+    "csrf",
+    "CSRF",
+    "nonce",
+    "jwks",
+    "JWKS",
+    "UPN",
+    "allowlist",
+    "allowlisting",
+    "drupalcs",
+    "phpcbf",
+    "phpcs"
+  ],
+  "ignorePaths": [
+    "node_modules/**",
+    "vendor/**",
+    "*.min.js",
+    "*.min.css"
+  ]
+}

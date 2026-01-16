@@ -1,0 +1,3 @@
+administer social_auth_entra_id settings:
+  title: 'Administer Microsoft Entra ID settings'
+  description: 'Permission to manage settings for Microsoft Entra ID social authentication.'

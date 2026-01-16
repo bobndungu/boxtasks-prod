@@ -1,0 +1,11 @@
+font-awesome:
+  remote: https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css
+  version: 6.5.1
+  license:
+    name: MIT
+    url: https://raw.githubusercontent.com/FortAwesome/Font-Awesome/refs/heads/7.x/LICENSE.txt
+    gpl-compatible: true
+  css:
+    theme:
+      https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css:
+        { type: external }

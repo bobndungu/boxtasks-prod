@@ -1,0 +1,31 @@
+social_auth_entra_id.settings:
+  path: "/admin/config/services/entra-id/settings"
+  defaults:
+    _form: '\Drupal\social_auth_entra_id\Form\SocialAuthEntraIdSettingsForm'
+    _title: "Microsoft Entra ID Settings"
+  requirements:
+    _permission: "administer site configuration"
+
+social_auth_entra_id.redirect:
+  path: "/user/login/entra-id"
+  defaults:
+    _controller: '\Drupal\social_auth_entra_id\Controller\SocialAuthEntraIdController::redirectToMicrosoft'
+    _title: "Redirect to Microsoft Login"
+  requirements:
+    # Note: Explicitly allow access to all users, This route must be accessible to anonymous users to initiate the Microsoft Entra ID login process.
+    _access: "TRUE"
+  options:
+    # Disable page cache to ensure session handling works correctly.
+    no_cache: TRUE
+
+social_auth_entra_id.callback:
+  path: "/user/login/entra-id/callback"
+  defaults:
+    _controller: '\Drupal\social_auth_entra_id\Controller\SocialAuthEntraIdController::handleMicrosoftCallback'
+    _title: "Microsoft Callback"
+  requirements:
+    # Note: Explicitly allow access to all users, This route must be accessible to anonymous users to initiate the Microsoft Entra ID login process.
+    _access: "TRUE"
+  options:
+    # Disable page cache to ensure session handling works correctly for OAuth state validation.
+    no_cache: TRUE

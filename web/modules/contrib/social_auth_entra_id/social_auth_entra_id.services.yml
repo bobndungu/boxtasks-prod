@@ -1,0 +1,9 @@
+services:
+  social_auth_entra_id.settings:
+    class: Drupal\social_auth_entra_id\SocialAuthEntraIdSettings
+    factory: ['@config.factory', 'getEditable']
+    arguments: ['social_auth_entra_id.settings']
+
+  social_auth_entra_id.controller:
+    class: Drupal\social_auth_entra_id\Controller\SocialAuthEntraIdController
+    arguments: ['@current_user', '@entity_type.manager', '@social_auth_entra_id.settings']

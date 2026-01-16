@@ -1,0 +1,9 @@
+# config/install/social_auth_entra_id.settings.yml
+client_id: ''
+client_secret: ''
+tenant_id: ''
+account_type: 'organization' # 'organization', 'common', or 'consumers'
+login_behavior: 'register_and_login' # or 'login_only'
+allowed_domains: ''
+block_user_1: true
+block_admin_role: true

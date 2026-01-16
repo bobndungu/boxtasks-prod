@@ -31,10 +31,12 @@
         "drupal/simple_oauth_password_grant": "^2.1",
         "drupal/smtp": "^1.4",
         "drupal/social_auth": "^4.1",
+        "drupal/social_auth_entra_id": "^2.0",
         "drupal/social_auth_google": "^4.0",
         "drupal/social_auth_microsoft": "^4.0",
         "drush/drush": "^13.7",
-        "firebase/php-jwt": "^7.0"
+        "firebase/php-jwt": "^7.0",
+        "thenetworg/oauth2-azure": "^2.2"
     },
     "conflict": {
         "drupal/drupal": "*"

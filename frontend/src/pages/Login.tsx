@@ -168,7 +168,7 @@ export default function Login() {
                 <span className="ml-2 text-sm font-medium text-gray-700">Google</span>
               </a>
               <a
-                href={`${import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site'}/user/login/microsoft`}
+                href={`${import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site'}/user/login/entra-id`}
                 className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <MicrosoftIcon />

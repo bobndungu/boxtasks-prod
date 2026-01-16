@@ -10,6 +10,7 @@ return array(
     'phootwork\\lang\\' => array($vendorDir . '/phootwork/lang'),
     'phootwork\\collection\\' => array($vendorDir . '/phootwork/collection'),
     'Twig\\' => array($vendorDir . '/twig/twig/src'),
+    'TheNetworg\\OAuth2\\Client\\' => array($vendorDir . '/thenetworg/oauth2-azure/src'),
     'Symfony\\Polyfill\\Php85\\' => array($vendorDir . '/symfony/polyfill-php85'),
     'Symfony\\Polyfill\\Php84\\' => array($vendorDir . '/symfony/polyfill-php84'),
     'Symfony\\Polyfill\\Php83\\' => array($vendorDir . '/symfony/polyfill-php83'),

@@ -42,6 +42,7 @@ class ComposerStaticInit1c94884feafe7e7de67cff6263fe48f2
         'T' =>
         array (
             'Twig\\' => 5,
+            'TheNetworg\\OAuth2\\Client\\' => 25,
         ),
         'S' =>
         array (
@@ -197,6 +198,10 @@ class ComposerStaticInit1c94884feafe7e7de67cff6263fe48f2
         'Twig\\' =>
         array (
             0 => __DIR__ . '/..' . '/twig/twig/src',
+        ),
+        'TheNetworg\\OAuth2\\Client\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/thenetworg/oauth2-azure/src',
         ),
         'Symfony\\Polyfill\\Php85\\' =>
         array (

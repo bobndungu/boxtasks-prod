@@ -1,0 +1,10 @@
+social_auth_entra_id.settings:
+  title: 'Microsoft Entra ID Settings'
+  description: 'Configure settings for Microsoft Entra ID social authentication.'
+  route_name: social_auth_entra_id.settings
+  parent: system.admin_config
+  weight: 100
+  options:
+    access callback: 'user_access'
+    access arguments:
+      - 'administer site configuration'

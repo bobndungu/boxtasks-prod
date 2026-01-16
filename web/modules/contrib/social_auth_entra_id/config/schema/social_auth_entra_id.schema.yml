@@ -1,0 +1,44 @@
+# social_auth_entra_id.schema.yml
+social_auth_entra_id.settings:
+  type: config_object
+  label: 'Microsoft Entra ID Settings'
+  mapping:
+    client_id:
+      type: string
+      label: 'Client ID'
+    client_secret:
+      type: string
+      label: 'Client Secret'
+    tenant_id:
+      type: string
+      label: 'Tenant ID'
+    account_type:
+      type: string
+      label: 'Account Type'
+      description: 'Type of Microsoft accounts to allow (organization, common, or consumers).'
+      default: 'organization'
+      allowed_values:
+        - 'organization'
+        - 'common'
+        - 'consumers'
+    login_behavior:
+      type: string
+      label: 'Login Behavior'
+      default: 'register_and_login'
+      allowed_values:
+        - 'register_and_login'
+        - 'login_only'
+    allowed_domains:
+      type: string
+      label: 'Allowed Domains'
+      description: 'Comma-separated list of allowed email domains.'
+    block_user_1:
+      type: boolean
+      label: 'Block User 1'
+      description: 'Prevent user ID 1 from logging in via Entra ID.'
+      default: true
+    block_admin_role:
+      type: boolean
+      label: 'Block Administrator Role'
+      description: 'Prevent users with administrator role from logging in via Entra ID.'
+      default: true

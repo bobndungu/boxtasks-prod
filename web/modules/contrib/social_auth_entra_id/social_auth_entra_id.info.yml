@@ -1,0 +1,13 @@
+name: 'Microsoft Entra ID SSO Login'
+type: module
+description: 'Social authentication with Microsoft Entra ID.'
+package: Social
+core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - drupal:user
+configure: 'social_auth_entra_id.settings'
+
+# Information added by Drupal.org packaging script on 2025-12-17
+version: '2.0.0'
+project: 'social_auth_entra_id'
+datestamp: 1766004625
