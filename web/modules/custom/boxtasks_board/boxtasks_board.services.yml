@@ -1,0 +1,4 @@
+services:
+  boxtasks_board.board_data_controller:
+    class: Drupal\boxtasks_board\Controller\BoardDataController
+    arguments: ['@entity_type.manager', '@current_user']

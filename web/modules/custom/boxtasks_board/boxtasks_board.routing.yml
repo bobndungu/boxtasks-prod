@@ -1,0 +1,9 @@
+boxtasks_board.board_data:
+  path: '/api/board/{board_id}/data'
+  defaults:
+    _controller: '\Drupal\boxtasks_board\Controller\BoardDataController::getBoardData'
+  requirements:
+    _permission: 'access content'
+    board_id: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  options:
+    no_cache: TRUE

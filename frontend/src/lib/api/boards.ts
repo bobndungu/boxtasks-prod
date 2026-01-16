@@ -332,3 +332,108 @@ export function clearPrefetchCache(boardId?: string): void {
     prefetchedBoards.clear();
   }
 }
+
+// Types for the consolidated board data endpoint
+export interface BoardMember {
+  id: string;
+  displayName: string;
+  email: string;
+  drupal_id: number;
+}
+
+export interface BoardListData {
+  id: string;
+  title: string;
+  boardId: string;
+  position: number;
+  archived: boolean;
+  drupal_id: number;
+}
+
+export interface BoardCardData {
+  id: string;
+  title: string;
+  description: string;
+  listId: string;
+  position: number;
+  archived: boolean;
+  dueDate: string | null;
+  priority: string | null;
+  labels: string[];
+  assignees: BoardMember[];
+  departmentId: string | null;
+  clientId: string | null;
+  estimatedHours: number | null;
+  drupal_id: number;
+}
+
+export interface CustomFieldDef {
+  id: string;
+  name: string;
+  type: string;
+  boardId: string;
+  options: string[];
+  required: boolean;
+  drupal_id: number;
+}
+
+export interface CustomFieldValue {
+  id: string;
+  cardId: string;
+  fieldId: string;
+  value: string;
+  drupal_id: number;
+}
+
+export interface TaxonomyTerm {
+  id: string;
+  name: string;
+  drupal_id: number;
+}
+
+export interface ConsolidatedBoardData {
+  board: {
+    id: string;
+    title: string;
+    description: string;
+    workspaceId: string | null;
+    color: string | null;
+    isStarred: boolean;
+    drupal_id: number;
+  };
+  lists: BoardListData[];
+  cards: BoardCardData[];
+  customFieldDefinitions: CustomFieldDef[];
+  customFieldValues: CustomFieldValue[];
+  members: BoardMember[];
+  departments: TaxonomyTerm[];
+  clients: TaxonomyTerm[];
+}
+
+/**
+ * Fetch all board data in a single API call.
+ * This is the optimized endpoint that reduces 9 API calls to 1.
+ */
+export async function fetchBoardData(boardId: string): Promise<ConsolidatedBoardData> {
+  const token = getAccessToken();
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/board/${boardId}/data`,
+    {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Failed to fetch board data: ${response.status} ${text}`);
+  }
+
+  return response.json();
+}
