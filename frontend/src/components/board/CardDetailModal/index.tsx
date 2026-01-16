@@ -186,6 +186,11 @@ function CardDetailModal({
   const [cardMembers, setCardMembers] = useState<CardMember[]>(card.members || []);
   const [isTogglingMember, setIsTogglingMember] = useState(false);
 
+  // Sync cardMembers when card.members changes (from Mercure real-time updates)
+  useEffect(() => {
+    setCardMembers(card.members || []);
+  }, [card.members]);
+
   // Watchers state
   const [isAddingWatcher, setIsAddingWatcher] = useState(false);
 
