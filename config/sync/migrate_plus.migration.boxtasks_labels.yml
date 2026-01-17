@@ -1,0 +1,56 @@
+uuid: 17e537dd-46c4-4919-b1f0-70d55d4cd4c2
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: gttgmxDvDRiV4qAKlCUnF2K2fmRlzmwQyw1IxJ4vZMo
+id: boxtasks_labels
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - labels
+migration_group: boxtasks
+label: 'BoxTasks Labels'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      l.id,
+      l.board_id,
+      l.name,
+      l.color,
+      l.created_at
+    FROM labels l
+    INNER JOIN boards b ON l.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY l.created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  vid:
+    plugin: default_value
+    default_value: board_labels
+  field_original_uuid: id
+  name:
+    plugin: callback
+    callable: 'Drupal\boxtasks_migrate\Plugin\migrate\process\LabelName::transform'
+    source:
+      - name
+      - color
+  field_board:
+    plugin: migration_lookup
+    migration: boxtasks_boards
+    source: board_id
+  field_color: color
+destination:
+  plugin: 'entity:taxonomy_term'
+migration_dependencies:
+  required:
+    - boxtasks_boards
+include: null

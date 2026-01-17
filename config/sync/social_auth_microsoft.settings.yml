@@ -1,0 +1,5 @@
+client_id: ''
+client_secret: ''
+scopes: User.Read
+restricted_domain: ''
+graph_version: v1.0

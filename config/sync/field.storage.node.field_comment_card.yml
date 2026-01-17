@@ -1,0 +1,21 @@
+uuid: 6ffe12b6-64e7-4897-82b1-7deeea1c9f48
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: fPLKUxK7xCYAQQlit7Genn9fMrt5FWy-beo7C5djs2A
+id: node.field_comment_card
+field_name: field_comment_card
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,25 @@
+uuid: 19695e2e-b7f5-4090-8ef9-0f76bc0470f8
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attachment_size
+    - node.type.card_attachment
+_core:
+  default_config_hash: dqOJ9biXesM7ls9hc6whrrC0B-ieH8Br5C8pvotjT6M
+id: node.card_attachment.field_attachment_size
+field_name: field_attachment_size
+entity_type: node
+bundle: card_attachment
+label: 'File Size'
+description: 'Original file size in bytes'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: ''
+  max: ''
+  prefix: ''
+  suffix: ''
+field_type: integer

@@ -1,0 +1,21 @@
+uuid: 91ffd25a-bfa5-44fe-a1d6-ffe7e3c5f725
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - text
+_core:
+  default_config_hash: wXwyU0ck2_i1BkejcRxOjluqUbG1rJ1YmBHEqdAM8f4
+id: node.field_workspace_description
+field_name: field_workspace_description
+entity_type: node
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

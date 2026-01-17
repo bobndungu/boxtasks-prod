@@ -1,0 +1,21 @@
+uuid: 91b89c7b-a5af-4488-bc45-cb859506a454
+langcode: en
+status: true
+dependencies:
+  module:
+    - text
+    - user
+_core:
+  default_config_hash: QmBNDqi4RoX_VqX6CmDuN65nuBtbXCDluJfRUurjB-I
+id: user.field_bio
+field_name: field_bio
+entity_type: user
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

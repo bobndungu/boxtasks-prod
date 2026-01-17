@@ -1,0 +1,21 @@
+uuid: 16563bc2-e390-42e3-8144-a2cf95b11664
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: PCbfM8bxWiFYSZkrhtQZzwnPdYRuuJTKuaUCaYcakAM
+id: node.field_goal_workspace
+field_name: field_goal_workspace
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

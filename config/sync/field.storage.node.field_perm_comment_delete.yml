@@ -1,0 +1,32 @@
+uuid: 8adb6f81-d324-4e66-867e-cb3c44231489
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: bLytUI9QbCbgmCoAlzLjczBAZ2ES9IRjWFnqH32u76M
+id: node.field_perm_comment_delete
+field_name: field_perm_comment_delete
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: any
+      label: Any
+    -
+      value: own
+      label: Own
+    -
+      value: none
+      label: None
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

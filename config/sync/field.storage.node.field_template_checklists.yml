@@ -1,0 +1,21 @@
+uuid: e70822e2-5649-4b41-b4f6-8fdf5f107b53
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - text
+_core:
+  default_config_hash: 2RmsgCvoLmEl-oa_TuOZQc1paM3lYHyPZj6cC81emLc
+id: node.field_template_checklists
+field_name: field_template_checklists
+entity_type: node
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

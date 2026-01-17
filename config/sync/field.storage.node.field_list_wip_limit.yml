@@ -1,0 +1,22 @@
+uuid: 3163101d-f9e0-4bae-9e55-52957ab9d03b
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: FhErzgBWrOimHcbgpm9KVEL2HXfUWVY7BiiAd1A_R1s
+id: node.field_list_wip_limit
+field_name: field_list_wip_limit
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

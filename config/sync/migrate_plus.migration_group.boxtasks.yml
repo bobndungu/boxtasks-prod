@@ -1,0 +1,17 @@
+uuid: a253a1d7-6716-4f7c-be26-04d9b28d0094
+langcode: en
+status: true
+dependencies:
+  module:
+    - boxtasks_migrate
+_core:
+  default_config_hash: TIf6xtERH1EFYu9V2-A3uU7iRk_dAdGpFhUCUVlT5Ag
+id: boxtasks
+label: 'BoxTasks Migration'
+description: 'Import data from BoxTasks PostgreSQL database'
+source_type: 'PostgreSQL Database'
+module: boxtasks_migrate
+shared_configuration:
+  source:
+    key: migrate
+    target: default

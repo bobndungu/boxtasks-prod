@@ -1,0 +1,22 @@
+uuid: ec29165b-c02e-4d51-8d3b-19cdebb3fcba
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - user
+_core:
+  default_config_hash: xD9GpuQc4BRtwxPs8yKq7K23V_gzQef7TeHVHu_XpmQ
+id: node.field_card_watchers
+field_name: field_card_watchers
+entity_type: node
+type: entity_reference
+settings:
+  target_type: user
+module: core
+locked: false
+cardinality: -1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

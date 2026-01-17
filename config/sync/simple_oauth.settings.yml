@@ -1,0 +1,9 @@
+_core:
+  default_config_hash: ci56aVE-Jo4w_Xy5Gkk1coAwO-fj7Q87l0PKc5E9sfo
+scope_provider: dynamic
+token_cron_batch_size: 0
+public_key: /var/www/websites/boxtasks.boxraft.com/keys/public.key
+private_key: /var/www/websites/boxtasks.boxraft.com/keys/private.key
+disable_openid_connect: false
+access_token_expiration: 86400
+refresh_token_expiration: 1209600

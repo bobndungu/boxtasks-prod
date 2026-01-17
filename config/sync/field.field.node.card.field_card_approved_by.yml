@@ -1,0 +1,27 @@
+uuid: b36e37f9-f25d-4677-befb-5a04186bc000
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_approved_by
+    - node.type.card
+id: node.card.field_card_approved_by
+field_name: field_card_approved_by
+entity_type: node
+bundle: card
+label: 'Approved By'
+description: 'The user who approved this card'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings:
+    sort:
+      field: _none
+    auto_create: false
+    filter:
+      type: _none
+    include_anonymous: false
+field_type: entity_reference

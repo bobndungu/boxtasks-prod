@@ -1,0 +1,13 @@
+uuid: ed505655-c5a6-419b-87dd-9cce7691898c
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: YLOrf1XRnX_ajRm-2Np8aOUTUOehdErBsppW_KUZrKs
+name: Milestone
+type: milestone
+description: 'A milestone that marks a checkpoint or deliverable.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

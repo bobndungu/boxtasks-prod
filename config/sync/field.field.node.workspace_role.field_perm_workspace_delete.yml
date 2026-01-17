@@ -1,0 +1,25 @@
+uuid: 93a0fd4a-30bb-48bf-a351-8043b00c1ea5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_workspace_delete
+    - node.type.workspace_role
+  module:
+    - options
+_core:
+  default_config_hash: 22tEcWHS64h7Dnw8S-WEYO2oU1t6sg9I-MWzvcCqGjk
+id: node.workspace_role.field_perm_workspace_delete
+field_name: field_perm_workspace_delete
+entity_type: node
+bundle: workspace_role
+label: 'Delete Workspace'
+description: 'Permission to delete the workspace.'
+required: false
+translatable: false
+default_value:
+  -
+    value: none
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -1,0 +1,19 @@
+uuid: 355d7a17-796c-4526-b304-201fc766852c
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+_core:
+  default_config_hash: 2NSA4auhOCRPbPsEDXZl7_u1jN_8oak_ExLZTA2qGz8
+name: 'Workspace Role'
+type: workspace_role
+description: 'Defines a role with permissions for workspace members'
+help: ''
+new_revision: false
+preview_mode: 0
+display_submitted: false

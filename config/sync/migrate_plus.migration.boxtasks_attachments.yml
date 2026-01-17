@@ -1,0 +1,77 @@
+uuid: 7e0bb2e3-eb54-457a-86c9-c80e10bdd412
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: Pc55t2rBrWbGnXhcR69B1YWOWbmpoBmVmOcYCmpJBZc
+id: boxtasks_attachments
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - attachments
+migration_group: boxtasks
+label: 'BoxTasks Attachments'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      a.id,
+      a.card_id,
+      a.user_id,
+      a.filename,
+      a.file_size,
+      a.mime_type,
+      a.storage_key,
+      a.url,
+      a.created_at
+    FROM attachments a
+    INNER JOIN cards c ON a.card_id = c.id
+    INNER JOIN boards b ON c.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY a.created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: card_attachment
+  field_original_uuid: id
+  title: filename
+  field_attachment_card:
+    plugin: migration_lookup
+    migration: boxtasks_cards
+    source: card_id
+  field_attachment_filename: filename
+  field_attachment_size: file_size
+  field_attachment_mime_type: mime_type
+  field_attachment_storage_key: storage_key
+  field_attachment_url: url
+  uid:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: user_id
+    no_stub: true
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+destination:
+  plugin: 'entity:node'
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_cards
+include: null

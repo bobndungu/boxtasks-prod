@@ -1,0 +1,30 @@
+uuid: 6da09b22-b38b-4aca-856c-fda0ea83f048
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_node_position_x
+    - node.type.mind_map_node
+  enforced:
+    module:
+      - boxtasks_mindmap
+_core:
+  default_config_hash: MbAk1UC71erxubeZgZKOyfQuTHcEP1R03UHxe057Ncw
+id: node.mind_map_node.field_node_position_x
+field_name: field_node_position_x
+entity_type: node
+bundle: mind_map_node
+label: 'Position X'
+description: 'X coordinate on the canvas'
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: float

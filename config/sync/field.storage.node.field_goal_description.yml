@@ -1,0 +1,21 @@
+uuid: 1c352f43-6208-4196-8754-346d6cc6f314
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - text
+_core:
+  default_config_hash: w8EnjM9CqxCCsrJQs-KAeKy1ewKbJHAI8Gqr2WHRhkU
+id: node.field_goal_description
+field_name: field_goal_description
+entity_type: node
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

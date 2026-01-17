@@ -1,0 +1,25 @@
+uuid: 8e5f3b4a-9f27-4c1b-8683-2094cc377fcc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_completed
+    - node.type.card
+_core:
+  default_config_hash: sf3b-8pnUGrXYNlQpIwru2we4UbrqmdUCX1f_ndddPM
+id: node.card.field_card_completed
+field_name: field_card_completed
+entity_type: node
+bundle: card
+label: Completed
+description: 'Whether this card is marked as completed'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

@@ -1,0 +1,25 @@
+uuid: 234df1e4-c1ba-445c-945b-f91c15662199
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_goal_status
+    - node.type.goal
+  module:
+    - options
+_core:
+  default_config_hash: ycr5TwWql8N-vk5QfRbas4ESedIebPpZ0IuMAG8YYs8
+id: node.goal.field_goal_status
+field_name: field_goal_status
+entity_type: node
+bundle: goal
+label: Status
+description: 'The current status of the goal.'
+required: true
+translatable: true
+default_value:
+  -
+    value: not_started
+default_value_callback: ''
+settings: {  }
+field_type: list_string

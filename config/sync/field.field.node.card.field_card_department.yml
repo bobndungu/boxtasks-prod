@@ -1,0 +1,22 @@
+uuid: aa5d77fc-1741-4cab-9a45-40e30ba9c76a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_department
+    - node.type.card
+id: node.card.field_card_department
+field_name: field_card_department
+entity_type: node
+bundle: card
+label: Department
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles: null
+field_type: entity_reference

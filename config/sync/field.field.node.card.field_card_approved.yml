@@ -1,0 +1,23 @@
+uuid: 9cfba4ef-8d33-436f-855c-b92ced7abf92
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_approved
+    - node.type.card
+id: node.card.field_card_approved
+field_name: field_card_approved
+entity_type: node
+bundle: card
+label: Approved
+description: 'Whether this card has been approved'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

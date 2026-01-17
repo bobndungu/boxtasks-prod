@@ -1,0 +1,23 @@
+uuid: 8064f382-03bc-44cc-95b5-d1ce53284503
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: ZwSRJ4Rf7sNbCWnDx95VR4N9WSP6D9pPGElMQu-GTGM
+id: node.field_milestone_color
+field_name: field_milestone_color
+entity_type: node
+type: string
+settings:
+  max_length: 255
+  is_ascii: false
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

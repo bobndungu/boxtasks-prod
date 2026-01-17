@@ -1,0 +1,16 @@
+uuid: c78e01a6-1303-4539-bcf7-1c8a0b18dec9
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: qUa018poHd59VpDyT_WMK9PcLvg0dpZv41Pq4iViOvI
+name: 'Time Entry'
+type: time_entry
+description: 'A time tracking entry for a card'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

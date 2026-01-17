@@ -1,0 +1,20 @@
+uuid: 3b87c62e-56e8-4416-b9c3-cef567cdfe49
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_notif_prefs
+  module:
+    - user
+id: user.user.field_notif_prefs
+field_name: field_notif_prefs
+entity_type: user
+bundle: user
+label: 'Notification Preferences'
+description: 'JSON encoded notification preferences'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

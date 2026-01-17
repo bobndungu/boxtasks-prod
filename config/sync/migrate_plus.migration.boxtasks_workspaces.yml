@@ -1,0 +1,72 @@
+uuid: 2a0cdd95-02ed-4272-9f81-7f09c0d529c6
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: vwiRo3_4HpF0SG-UBj1FGlT8zIun_GoR4EWTw-S3kss
+id: boxtasks_workspaces
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - workspaces
+migration_group: boxtasks
+label: 'BoxTasks Workspaces'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      id,
+      name,
+      description,
+      slug,
+      avatar_url,
+      is_premium,
+      settings,
+      created_at,
+      updated_at
+    FROM workspaces
+    ORDER BY created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: workspace
+  field_original_uuid: id
+  title: name
+  body/value: description
+  body/format:
+    plugin: default_value
+    default_value: basic_html
+  field_slug: slug
+  field_is_premium:
+    plugin: default_value
+    default_value: 0
+    source: is_premium
+  field_settings:
+    plugin: callback
+    callable: json_encode
+    source: settings
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+destination:
+  plugin: 'entity:node'
+migration_dependencies:
+  required:
+    - boxtasks_users
+include: null

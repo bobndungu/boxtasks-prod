@@ -1,0 +1,25 @@
+uuid: af22ab0e-05d5-4b7b-b934-53e97793e2e0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_card_edit
+    - node.type.workspace_role
+  module:
+    - options
+_core:
+  default_config_hash: B_TkR0iDB3LU5R9nl8Pjk0UlI_Nb2i20PhEiPhyER-A
+id: node.workspace_role.field_perm_card_edit
+field_name: field_perm_card_edit
+entity_type: node
+bundle: workspace_role
+label: 'Edit Cards'
+description: 'Permission to edit cards. Own = only cards created by you. Any = all cards.'
+required: false
+translatable: false
+default_value:
+  -
+    value: any
+default_value_callback: ''
+settings: {  }
+field_type: list_string

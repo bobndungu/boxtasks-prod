@@ -1,0 +1,23 @@
+uuid: 1f39a437-01b5-4ccb-b7d6-6f2355745a69
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_milestone_color
+    - node.type.milestone
+_core:
+  default_config_hash: J-kn1mbdkZ7mNdDJKf5EkB6VN0ZJ8YXVglTo6x6hidc
+id: node.milestone.field_milestone_color
+field_name: field_milestone_color
+entity_type: node
+bundle: milestone
+label: Color
+description: 'The color for this milestone (hex code).'
+required: false
+translatable: true
+default_value:
+  -
+    value: '#519839'
+default_value_callback: ''
+settings: {  }
+field_type: string

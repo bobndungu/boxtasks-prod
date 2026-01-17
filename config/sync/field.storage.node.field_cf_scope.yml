@@ -1,0 +1,32 @@
+uuid: 8fadc54c-9af2-48fe-8610-d6066be14554
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: QfcT3e_a2TcgsIDYyTl3f4t68mssdyytKSDTIDeY-m0
+id: node.field_cf_scope
+field_name: field_cf_scope
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: workspace
+      label: Workspace
+    -
+      value: board
+      label: Board
+    -
+      value: card
+      label: Card
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

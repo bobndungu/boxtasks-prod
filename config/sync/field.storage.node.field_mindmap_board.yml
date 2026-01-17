@@ -1,0 +1,24 @@
+uuid: acda7026-3039-4b2f-9899-7bff402bb4e4
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+  enforced:
+    module:
+      - boxtasks_mindmap
+_core:
+  default_config_hash: L9hvgC-LrDveaNawzhrQl0b7In8EmWXuT8poXTWL-5Y
+id: node.field_mindmap_board
+field_name: field_mindmap_board
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

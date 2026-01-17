@@ -1,0 +1,24 @@
+uuid: 40546d48-5231-4554-b803-857b4acec1f7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_message_text
+    - node.type.chat_message
+  module:
+    - text
+_core:
+  default_config_hash: DrYYT2NbycVibG3sFy0ZxVQx3DmnYsG593vidoPjWKA
+id: node.chat_message.field_message_text
+field_name: field_message_text
+entity_type: node
+bundle: chat_message
+label: 'Message Text'
+description: 'The content of the chat message'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

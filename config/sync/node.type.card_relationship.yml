@@ -1,0 +1,13 @@
+uuid: 46a00053-a9bf-40ba-91c6-bde9646a1a66
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: 43W14vuJovyE9h13KxGP3tIPBxIbLjgondERITpMyYA
+name: 'Card Relationship'
+type: card_relationship
+description: 'A relationship between two cards in BoxTasks'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

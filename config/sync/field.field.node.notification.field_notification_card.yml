@@ -1,0 +1,24 @@
+uuid: edb97952-6835-47c3-a247-fcb8cf45a461
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_notification_card
+    - node.type.card
+    - node.type.notification
+id: node.notification.field_notification_card
+field_name: field_notification_card
+entity_type: node
+bundle: notification
+label: Card
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      card: card
+field_type: entity_reference

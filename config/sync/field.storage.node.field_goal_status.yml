@@ -1,0 +1,38 @@
+uuid: b1dde851-7ac8-44a4-b9ce-ee0ed323caad
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: vfIMXsKmJnouVKjaej61rpgyx-ovjWHjBkS04wGmOcw
+id: node.field_goal_status
+field_name: field_goal_status
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: not_started
+      label: 'Not Started'
+    -
+      value: in_progress
+      label: 'In Progress'
+    -
+      value: at_risk
+      label: 'At Risk'
+    -
+      value: completed
+      label: Completed
+    -
+      value: cancelled
+      label: Cancelled
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

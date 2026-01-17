@@ -1,0 +1,29 @@
+uuid: 5d280a96-837e-41bb-8d0e-f7901fbdc1c6
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: M-yY3dPSCEwbU2bTeKDWXFViVrzwmTW5SJkYOkNQCog
+id: node.field_cf_display_loc
+field_name: field_cf_display_loc
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: main
+      label: 'Main Content'
+    -
+      value: sidebar
+      label: Sidebar
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

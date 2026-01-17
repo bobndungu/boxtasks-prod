@@ -1,0 +1,13 @@
+uuid: d923ea4f-c0a4-412e-81a7-c3bf0abaf329
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: Ug6-hA--RLw8cQTdfdV4ifPtEFMwS7WMtVBx59X2PSI
+name: Checklist
+type: checklist
+description: 'A checklist on a card in BoxTasks'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: true

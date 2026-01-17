@@ -1,0 +1,25 @@
+uuid: 6c1dc0b4-3a67-4c42-8a60-5a35ee7e87b0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_card_view
+    - node.type.workspace_role
+  module:
+    - options
+_core:
+  default_config_hash: NTVknksAWrDRvgrdckHVa3MB2BD0Z-DvL4ftxTbogkY
+id: node.workspace_role.field_perm_card_view
+field_name: field_perm_card_view
+entity_type: node
+bundle: workspace_role
+label: 'View Cards'
+description: 'Permission to view cards. Own = only cards created by you. Any = all cards.'
+required: false
+translatable: false
+default_value:
+  -
+    value: any
+default_value_callback: ''
+settings: {  }
+field_type: list_string

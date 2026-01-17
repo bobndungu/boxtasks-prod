@@ -1,0 +1,41 @@
+uuid: 15119f47-3732-43ec-834a-2f9295031a67
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+  enforced:
+    module:
+      - boxtasks_card
+_core:
+  default_config_hash: 4NVVJwONPepoLqX8WckjPT0Kymja0UGueNUWxC1O2Ec
+id: node.field_card_complexity
+field_name: field_card_complexity
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: trivial
+      label: Trivial
+    -
+      value: low
+      label: Low
+    -
+      value: medium
+      label: Medium
+    -
+      value: high
+      label: High
+    -
+      value: very_high
+      label: 'Very High'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

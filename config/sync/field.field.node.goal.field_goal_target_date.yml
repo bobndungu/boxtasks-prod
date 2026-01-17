@@ -1,0 +1,23 @@
+uuid: 2e2408ef-6d23-4349-8ee0-7ef1d44595ca
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_goal_target_date
+    - node.type.goal
+  module:
+    - datetime
+_core:
+  default_config_hash: QqfVj6NUZOxf5Bx7nePvqpwf4IhqVhcq6gZQOW69DKk
+id: node.goal.field_goal_target_date
+field_name: field_goal_target_date
+entity_type: node
+bundle: goal
+label: 'Target Date'
+description: 'The target completion date for this goal.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

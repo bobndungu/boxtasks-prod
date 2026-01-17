@@ -1,0 +1,30 @@
+uuid: a334f268-cb33-4068-a5c9-78d07649b6be
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_source_card
+    - node.type.card
+    - node.type.card_relationship
+_core:
+  default_config_hash: 2_Mdu_BVSaq9cIrF76eHzb0emozuNdTDD6K-KbsK37k
+id: node.card_relationship.field_source_card
+field_name: field_source_card
+entity_type: node
+bundle: card_relationship
+label: 'Source Card'
+description: 'The card this relationship starts from'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      card: card
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+field_type: entity_reference

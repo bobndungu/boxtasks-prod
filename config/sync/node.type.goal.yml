@@ -1,0 +1,13 @@
+uuid: 7a07243c-f5d9-4cf6-822b-4bdf4aa7baa7
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: xxprpp1G-LgxeJcKb6ABiMuHCowiupFc-Fh8dZ9n-R4
+name: Goal
+type: goal
+description: 'A goal that tracks progress across multiple cards.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

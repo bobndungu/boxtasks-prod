@@ -1,0 +1,24 @@
+uuid: bd30da4d-1f94-4817-871d-eaccb0100f2e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_workspace_description
+    - node.type.workspace
+  module:
+    - text
+_core:
+  default_config_hash: 3vL-Y4cYiQbuFXKITvGjSJJNDBbfrdPSdK_Frr1k7Kg
+id: node.workspace.field_workspace_description
+field_name: field_workspace_description
+entity_type: node
+bundle: workspace
+label: Description
+description: 'A description of this workspace.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

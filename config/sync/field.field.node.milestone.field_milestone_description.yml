@@ -1,0 +1,24 @@
+uuid: 2037d905-c9c7-4e13-bd3f-0d3f24a08e97
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_milestone_description
+    - node.type.milestone
+  module:
+    - text
+_core:
+  default_config_hash: ZJ7YtHHXHg5GX3lo0ZdhkSKODqQZ5aqntE1C0Ev-f7g
+id: node.milestone.field_milestone_description
+field_name: field_milestone_description
+entity_type: node
+bundle: milestone
+label: Description
+description: 'A detailed description of the milestone.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

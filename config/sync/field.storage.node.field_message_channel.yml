@@ -1,0 +1,21 @@
+uuid: 6a4114a7-6d6a-461e-865e-8f550db53852
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: tT3bkB__PBWY79iARrat3hZnAHJq8yW5AkF0qAHUgP0
+id: node.field_message_channel
+field_name: field_message_channel
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

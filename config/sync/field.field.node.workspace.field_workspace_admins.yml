@@ -1,0 +1,30 @@
+uuid: 72fc1cf3-dd48-449e-bbcf-12c1320a6bec
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_workspace_admins
+    - node.type.workspace
+_core:
+  default_config_hash: 8rYqNjrWSJ4QMKE8ZhOMZfQX3dK959fkJyc4ksFJo6s
+id: node.workspace.field_workspace_admins
+field_name: field_workspace_admins
+entity_type: node
+bundle: workspace
+label: Admins
+description: 'Users who have admin rights in this workspace.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings:
+    include_anonymous: false
+    filter:
+      type: _none
+    target_bundles: null
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

@@ -1,0 +1,26 @@
+uuid: 2dd0926f-1ef7-4486-bc43-f81e55b43863
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_node_color
+    - node.type.mind_map_node
+  enforced:
+    module:
+      - boxtasks_mindmap
+_core:
+  default_config_hash: C3WlKpVCo-AjyPqSaxjtmexKWao6Dd2HjcM42hAzjfA
+id: node.mind_map_node.field_node_color
+field_name: field_node_color
+entity_type: node
+bundle: mind_map_node
+label: Color
+description: 'Node background color'
+required: false
+translatable: false
+default_value:
+  -
+    value: '#3b82f6'
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,22 @@
+uuid: c4850dfd-f8db-48cc-99dc-47b56b7216dd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_job_title
+  module:
+    - user
+_core:
+  default_config_hash: rMOKlhlSP-jS6dd81s54Onj4clCJLIaCcDWikg1pCd0
+id: user.user.field_job_title
+field_name: field_job_title
+entity_type: user
+bundle: user
+label: 'Job Title'
+description: 'Your job title or role.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,23 @@
+uuid: 1f6aa217-29fe-4217-80ae-f58d4bacb66b
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: jXoVRVWa0ICQba_hGVkV5wYS1gc4YIF_XdbhDtrFET0
+id: node.field_channel_entity
+field_name: field_channel_entity
+entity_type: node
+type: string
+settings:
+  max_length: 255
+  is_ascii: false
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,24 @@
+uuid: 2447ea56-f93c-4214-9e15-ff91af9f878f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_view_settings
+    - node.type.board_view
+  module:
+    - text
+_core:
+  default_config_hash: UB46bjhvh73LGu6nCkte4gZJK3dvhh3K4ID-PJy6zOk
+id: node.board_view.field_view_settings
+field_name: field_view_settings
+entity_type: node
+bundle: board_view
+label: 'View Settings'
+description: 'JSON configuration for view-specific settings (columns, filters, sort order, etc.)'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

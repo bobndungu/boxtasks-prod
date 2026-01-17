@@ -1,0 +1,24 @@
+uuid: 2d0c5641-1696-44c6-9b7e-79f3a52afef4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_comment_text
+    - node.type.card_comment
+  module:
+    - text
+_core:
+  default_config_hash: pN5SoJmfA5K1cyxQZaFYNBpxOgOwJD2OzgZW6eJ5LJk
+id: node.card_comment.field_comment_text
+field_name: field_comment_text
+entity_type: node
+bundle: card_comment
+label: 'Comment Text'
+description: 'The content of the comment'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

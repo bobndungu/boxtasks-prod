@@ -1,0 +1,24 @@
+uuid: 907c9165-e2ff-46ae-aa36-3e0cabd418f4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_goal_description
+    - node.type.goal
+  module:
+    - text
+_core:
+  default_config_hash: m59gYu4O2FOlatZ9vNBe-FeqCbVkJKxfpKW-kpYJb8Q
+id: node.goal.field_goal_description
+field_name: field_goal_description
+entity_type: node
+bundle: goal
+label: Description
+description: 'A detailed description of the goal.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

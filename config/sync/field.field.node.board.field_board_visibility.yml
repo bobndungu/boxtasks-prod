@@ -1,0 +1,25 @@
+uuid: c7750915-5aa4-4cef-acf1-7f73876d1a78
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_board_visibility
+    - node.type.board
+  module:
+    - options
+_core:
+  default_config_hash: 9PhGBLb_eHTnpeIwm-hj0_cSog2LsrOPR8sVHyrnQ3s
+id: node.board.field_board_visibility
+field_name: field_board_visibility
+entity_type: node
+bundle: board
+label: Visibility
+description: 'Who can see this board'
+required: true
+translatable: true
+default_value:
+  -
+    value: workspace
+default_value_callback: ''
+settings: {  }
+field_type: list_string

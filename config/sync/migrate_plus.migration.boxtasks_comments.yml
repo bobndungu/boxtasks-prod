@@ -1,0 +1,75 @@
+uuid: e18059c2-9267-462a-b27c-efdbf55376e1
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: qycaw0InpBeX7ylGHSyaxzzxnpWw0sp1w6EOYOAvD0Q
+id: boxtasks_comments
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - comments
+migration_group: boxtasks
+label: 'BoxTasks Comments'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      c.id,
+      c.card_id,
+      c.user_id,
+      c.content,
+      c.mentions,
+      c.created_at,
+      c.updated_at
+    FROM comments c
+    INNER JOIN cards ca ON c.card_id = ca.id
+    INNER JOIN boards b ON ca.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY c.created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: card_comment
+  field_original_uuid: id
+  field_comment_card:
+    plugin: migration_lookup
+    migration: boxtasks_cards
+    source: card_id
+  field_comment_text: content
+  field_comment_mentions:
+    plugin: callback
+    callable: json_encode
+    source: mentions
+    unpack_source: false
+  uid:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: user_id
+    no_stub: true
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+destination:
+  plugin: 'entity:node'
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_cards
+include: null

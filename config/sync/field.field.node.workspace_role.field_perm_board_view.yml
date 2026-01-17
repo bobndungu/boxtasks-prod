@@ -1,0 +1,25 @@
+uuid: 005ca741-165d-4a23-80b5-85bd880a4ca6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_board_view
+    - node.type.workspace_role
+  module:
+    - options
+_core:
+  default_config_hash: mnxnq9SUfzbJeAaAgZKo8nG8WmSPYiKqi2UR6E3JA-4
+id: node.workspace_role.field_perm_board_view
+field_name: field_perm_board_view
+entity_type: node
+bundle: workspace_role
+label: 'View Boards'
+description: 'Permission to view boards. Own = only boards created by you. Any = all boards.'
+required: false
+translatable: false
+default_value:
+  -
+    value: any
+default_value_callback: ''
+settings: {  }
+field_type: list_string

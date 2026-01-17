@@ -1,0 +1,16 @@
+uuid: 15d14ee6-4193-4c6a-9fa0-dee2e2ae32fc
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - boxtasks_mindmap
+_core:
+  default_config_hash: iP6wNfYABIXLNUClRGfO3yeIS2pddm6NA7XYrKM9Cs0
+name: 'Mind Map Node'
+type: mind_map_node
+description: 'An individual node within a mind map'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

@@ -1,0 +1,13 @@
+uuid: 3e4eab2b-8d43-44bb-9ea5-9dc28a83dcce
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: TAOeZs_gCPrjCySLYr9Jr9_crqeR1xS7fNKehWWNJek
+name: 'Custom Field Definition'
+type: custom_field_definition
+description: 'Defines custom fields that can be added to cards within a board'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

@@ -1,0 +1,26 @@
+uuid: 1637beb8-bed6-42a4-bfad-3a88b0e3d4f2
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_time_end
+    - node.type.time_entry
+  module:
+    - datetime
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: ElowilcINhSXM14SLEovVlRxKQ3eCP_l63y1cNZYjFc
+id: node.time_entry.field_time_end
+field_name: field_time_end
+entity_type: node
+bundle: time_entry
+label: 'End Time'
+description: 'When time tracking ended (empty for running timer)'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

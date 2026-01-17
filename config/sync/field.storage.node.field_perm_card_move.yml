@@ -1,0 +1,32 @@
+uuid: cf381b12-f4d5-47ce-9c8d-1e7f7cc32034
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: xEXZpMvBukjjgign8c4Ic4oRr_q8i1c8Q_kpJyyvPto
+id: node.field_perm_card_move
+field_name: field_perm_card_move
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: any
+      label: Any
+    -
+      value: own
+      label: Own
+    -
+      value: none
+      label: None
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

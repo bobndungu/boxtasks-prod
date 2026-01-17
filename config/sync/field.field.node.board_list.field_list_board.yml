@@ -1,0 +1,31 @@
+uuid: 08a96396-a5d8-46ad-9685-3b47290a719a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_list_board
+    - node.type.board
+    - node.type.board_list
+_core:
+  default_config_hash: 8eQYofz5V22Mzd55W1n7hHFQ1_PV4JPQhLcfJCglsSw
+id: node.board_list.field_list_board
+field_name: field_list_board
+entity_type: node
+bundle: board_list
+label: Board
+description: 'The board this list belongs to'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      board: board
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

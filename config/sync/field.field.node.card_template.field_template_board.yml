@@ -1,0 +1,29 @@
+uuid: 18b0f67c-bc15-441e-a6fe-d792af1ad7d8
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_template_board
+    - node.type.board
+    - node.type.card_template
+_core:
+  default_config_hash: 55RuNaQLsFziYuF23TmRWcsLbcHw4Yr8S75Om3PLiD0
+id: node.card_template.field_template_board
+field_name: field_template_board
+entity_type: node
+bundle: card_template
+label: 'Template Board'
+description: 'The board this template belongs to (optional)'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      board: board
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

@@ -1,0 +1,13 @@
+uuid: a8a7116f-912c-40a2-9959-0b131209b324
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: DkIbBnXi5g1-TyiheT7BZQtuDMioR1L3P_0565fMNT8
+name: Activity
+type: activity
+description: 'An activity log entry in BoxTasks'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: true

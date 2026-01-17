@@ -1,0 +1,22 @@
+uuid: 124233a1-953e-4c08-b1eb-3e6666d1595b
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: v0CGDnA6ZxlYZrfIMJfPiUYZmLEYmME82ZuAra6Apz8
+id: node.field_goal_progress
+field_name: field_goal_progress
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

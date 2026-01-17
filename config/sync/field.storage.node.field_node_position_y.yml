@@ -1,0 +1,23 @@
+uuid: 7cb26254-9c72-4c72-bdc8-35d66a2e228f
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+  enforced:
+    module:
+      - boxtasks_mindmap
+_core:
+  default_config_hash: iDGgojtL8EvwaalYf5TsqhpcdU9XJFB8rNbo3uufnPc
+id: node.field_node_position_y
+field_name: field_node_position_y
+entity_type: node
+type: float
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

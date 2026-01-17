@@ -1,0 +1,28 @@
+uuid: 464bce0e-fed3-4e68-a656-b25ad35b50a1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_time_billable
+    - node.type.time_entry
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: 4pxI6KxZYS4XdsphkE80x4kGM1M2KgxH1NxqzjVBzc0
+id: node.time_entry.field_time_billable
+field_name: field_time_billable
+entity_type: node
+bundle: time_entry
+label: Billable
+description: 'Whether this time entry is billable'
+required: false
+translatable: false
+default_value:
+  -
+    value: false
+default_value_callback: ''
+settings:
+  on_label: Billable
+  off_label: Non-billable
+field_type: boolean

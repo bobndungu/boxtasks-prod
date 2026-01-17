@@ -1,0 +1,25 @@
+uuid: 90ec2cf5-1c2b-462c-8a4b-390b745fb7c7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_board_delete
+    - node.type.workspace_role
+  module:
+    - options
+_core:
+  default_config_hash: nj8_Xm4vKF8-b1cCS9p1C_3ZJTd9hirRfvTp3nIZi7w
+id: node.workspace_role.field_perm_board_delete
+field_name: field_perm_board_delete
+entity_type: node
+bundle: workspace_role
+label: 'Delete Boards'
+description: 'Permission to delete boards. Own = only boards created by you. Any = all boards.'
+required: false
+translatable: false
+default_value:
+  -
+    value: own
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -1,0 +1,21 @@
+uuid: 20a3e58c-5ae3-48f1-81a8-e7ba941e8a94
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_item_completed_by
+    - node.type.checklist_item
+id: node.checklist_item.field_item_completed_by
+field_name: field_item_completed_by
+entity_type: node
+bundle: checklist_item
+label: 'Completed By'
+description: 'User who completed this item'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings: {  }
+field_type: entity_reference

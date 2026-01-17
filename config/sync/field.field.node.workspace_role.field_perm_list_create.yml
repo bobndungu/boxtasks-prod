@@ -1,0 +1,25 @@
+uuid: 6d0efd5d-436f-4cc6-9d54-dba96b71c698
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_list_create
+    - node.type.workspace_role
+  module:
+    - options
+_core:
+  default_config_hash: 6uQIfdTfw_WkMbG02LV9Yfj-xq6ln3xQHeSLcvaydBE
+id: node.workspace_role.field_perm_list_create
+field_name: field_perm_list_create
+entity_type: node
+bundle: workspace_role
+label: 'Create Lists'
+description: 'Permission to create new lists on boards.'
+required: false
+translatable: false
+default_value:
+  -
+    value: any
+default_value_callback: ''
+settings: {  }
+field_type: list_string

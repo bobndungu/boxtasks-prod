@@ -1,0 +1,32 @@
+uuid: 5392c15d-9f6c-4071-9b6a-80fed01bf0d6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_node_parent
+    - node.type.mind_map_node
+  enforced:
+    module:
+      - boxtasks_mindmap
+_core:
+  default_config_hash: cXj7mXiZtK5AabDutwtxZ8KzsIaR1p7sPUtg_VMuRuE
+id: node.mind_map_node.field_node_parent
+field_name: field_node_parent
+entity_type: node
+bundle: mind_map_node
+label: 'Parent Node'
+description: 'The parent node in the hierarchy'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      mind_map_node: mind_map_node
+    sort:
+      field: _none
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

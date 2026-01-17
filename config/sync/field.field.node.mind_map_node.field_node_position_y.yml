@@ -1,0 +1,30 @@
+uuid: 8010bf61-f98d-476a-8ce8-a6f31e5c66a1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_node_position_y
+    - node.type.mind_map_node
+  enforced:
+    module:
+      - boxtasks_mindmap
+_core:
+  default_config_hash: AhsSnJ-D_Du9HRVRtFCaDjL9YoAbmEihbl5ek-743hI
+id: node.mind_map_node.field_node_position_y
+field_name: field_node_position_y
+entity_type: node
+bundle: mind_map_node
+label: 'Position Y'
+description: 'Y coordinate on the canvas'
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: float

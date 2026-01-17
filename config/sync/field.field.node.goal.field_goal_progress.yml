@@ -1,0 +1,27 @@
+uuid: 5252027f-0e08-4eff-84d2-6e2a217a1549
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_goal_progress
+    - node.type.goal
+_core:
+  default_config_hash: CnLDa7-XGrRHx4UT4M46FLQPjFfuU8zViu0ypckdAW0
+id: node.goal.field_goal_progress
+field_name: field_goal_progress
+entity_type: node
+bundle: goal
+label: Progress
+description: 'The progress percentage (0-100).'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: 0
+  max: 100
+  prefix: ''
+  suffix: '%'
+field_type: integer

@@ -1,0 +1,23 @@
+uuid: ea30e2a5-6269-4848-b97f-5f81c4ae563a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_milestone_due_date
+    - node.type.milestone
+  module:
+    - datetime
+_core:
+  default_config_hash: U5vYI_loahZdAVQFXpUdpgJqNhxstcY_d7WIlLtshuA
+id: node.milestone.field_milestone_due_date
+field_name: field_milestone_due_date
+entity_type: node
+bundle: milestone
+label: 'Due Date'
+description: 'The target date for this milestone.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

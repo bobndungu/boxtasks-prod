@@ -1,0 +1,44 @@
+uuid: a0457a17-cf77-4035-becd-f9ca7305c955
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: 4yRtj3pj7kOm_2Xov-eo92yMF8VRYo4Wgtp6OmG1j0c
+id: node.field_relationship_type
+field_name: field_relationship_type
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: relates_to
+      label: 'Relates To'
+    -
+      value: blocks
+      label: Blocks
+    -
+      value: blocked_by
+      label: 'Is Blocked By'
+    -
+      value: duplicates
+      label: Duplicates
+    -
+      value: duplicated_by
+      label: 'Is Duplicated By'
+    -
+      value: parent_of
+      label: 'Parent Of'
+    -
+      value: child_of
+      label: 'Child Of'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

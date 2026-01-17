@@ -1,0 +1,28 @@
+uuid: 6ae42a5d-2942-4e24-83ce-8fa8a0b9d5f1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_estimate
+    - node.type.card
+  enforced:
+    module:
+      - boxtasks_card
+_core:
+  default_config_hash: 05TIm9y0MGNuRrxf6XUiI0XcEjiY6oHS3Vo7BYkCTWA
+id: node.card.field_card_estimate
+field_name: field_card_estimate
+entity_type: node
+bundle: card
+label: Estimate
+description: 'Estimated effort for this card'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: float

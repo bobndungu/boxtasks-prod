@@ -1,0 +1,21 @@
+uuid: b770e20f-9afe-4479-8155-0674a9dc30c0
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: GKT6JrqzjWi4J_QB_3YV5HAyxX3c2o-tUjlMD-1-8fA
+id: node.field_view_board
+field_name: field_view_board
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

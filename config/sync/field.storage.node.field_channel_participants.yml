@@ -1,0 +1,22 @@
+uuid: dedf4453-3559-4d1b-bc4a-df868dc157ac
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - user
+_core:
+  default_config_hash: qo1LlNCfd-DNT399rvlGhicMrv1H6t9Z30us-Ikup4Y
+id: node.field_channel_participants
+field_name: field_channel_participants
+entity_type: node
+type: entity_reference
+settings:
+  target_type: user
+module: core
+locked: false
+cardinality: -1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

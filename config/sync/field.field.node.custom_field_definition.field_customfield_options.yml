@@ -1,0 +1,24 @@
+uuid: 3ef312a0-551e-4b9f-9dd0-ef565493bfbd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_customfield_options
+    - node.type.custom_field_definition
+  module:
+    - text
+_core:
+  default_config_hash: dLIs6uLdtmavS7upJoqSdkUPEiFUMvcfhS1HwAyDCzI
+id: node.custom_field_definition.field_customfield_options
+field_name: field_customfield_options
+entity_type: node
+bundle: custom_field_definition
+label: Options
+description: 'JSON array of options for dropdown fields (e.g., ["Option 1", "Option 2"])'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

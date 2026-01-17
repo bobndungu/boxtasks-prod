@@ -1,0 +1,27 @@
+uuid: c6cb06e6-c1a4-4cc0-8294-2978a4cee462
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_time_description
+    - node.type.time_entry
+  module:
+    - text
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: zE5J8PV-bpB_Z14UCUYvBWLS1Q4vxXKJFpgxbJb8LP0
+id: node.time_entry.field_time_description
+field_name: field_time_description
+entity_type: node
+bundle: time_entry
+label: Description
+description: 'Notes about the work done'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

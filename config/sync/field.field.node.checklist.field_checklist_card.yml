@@ -1,0 +1,29 @@
+uuid: b37b8631-d9e8-4186-b258-92ecb7cbc414
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_checklist_card
+    - node.type.card
+    - node.type.checklist
+_core:
+  default_config_hash: eu5YJuWjoLrY4WZ7_JY8rBUNB_XN79APHW1bjbRcBE4
+id: node.checklist.field_checklist_card
+field_name: field_checklist_card
+entity_type: node
+bundle: checklist
+label: Card
+description: 'The card this checklist belongs to'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      card: card
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

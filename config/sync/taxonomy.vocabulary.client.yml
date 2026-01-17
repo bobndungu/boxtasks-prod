@@ -1,0 +1,9 @@
+uuid: 0bb59a78-be78-4b8a-8280-c7547d5c4d2c
+langcode: en
+status: true
+dependencies: {  }
+name: Client
+vid: client
+description: 'Client organizations'
+weight: 0
+new_revision: false

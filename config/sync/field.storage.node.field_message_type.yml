@@ -1,0 +1,32 @@
+uuid: 8d13b6e6-be9d-4175-bf8b-3c3df02cbade
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: LjJjmGQYA0vqEWryr546TAQ_h3423-UPOy1fDd2SNjA
+id: node.field_message_type
+field_name: field_message_type
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: text
+      label: Text
+    -
+      value: system
+      label: System
+    -
+      value: file
+      label: File
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

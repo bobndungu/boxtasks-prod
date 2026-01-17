@@ -1,0 +1,35 @@
+uuid: f5ab8a5d-d53a-4eea-9f32-dd5bd9aa7954
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+  enforced:
+    module:
+      - boxtasks_card
+_core:
+  default_config_hash: lmG441FGCOHOLK8F9xT_GeoNG30bVFppMQc_lNt3AE0
+id: node.field_card_estimate_type
+field_name: field_card_estimate_type
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: hours
+      label: Hours
+    -
+      value: points
+      label: 'Story Points'
+    -
+      value: tshirt
+      label: 'T-Shirt Size'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

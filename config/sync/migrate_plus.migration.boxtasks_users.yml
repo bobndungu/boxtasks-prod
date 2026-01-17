@@ -1,0 +1,79 @@
+uuid: 0474fb23-363d-4dd4-9b50-3856eea9aa08
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: IYnhADhzUSzbwqlH7jKca1P4ogfKP0LvFukDcJmFVjY
+id: boxtasks_users
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - users
+migration_group: boxtasks
+label: 'BoxTasks Users'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      id,
+      email,
+      email_verified,
+      name,
+      avatar_url,
+      password_hash,
+      is_premium,
+      created_at,
+      updated_at
+    FROM users
+    ORDER BY created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  field_original_uuid: id
+  name:
+    plugin: callback
+    callable: 'Drupal\boxtasks_migrate\Plugin\migrate\process\EmailToUsername::transform'
+    source: email
+  mail: email
+  field_display_name:
+    plugin: default_value
+    default_value: ''
+    source: name
+  field_email_verified:
+    plugin: default_value
+    default_value: 0
+    source: email_verified
+  field_is_premium:
+    plugin: default_value
+    default_value: 0
+    source: is_premium
+  pass:
+    plugin: callback
+    callable: 'Drupal\boxtasks_migrate\Plugin\migrate\process\PasswordMigrate::transform'
+    source: password_hash
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+destination:
+  plugin: 'entity:user'
+  overwrite_properties:
+    - mail
+    - field_display_name
+    - field_email_verified
+    - field_is_premium
+migration_dependencies: {  }
+include: null

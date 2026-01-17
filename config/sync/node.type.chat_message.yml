@@ -1,0 +1,13 @@
+uuid: a6197bb3-95d0-4069-83f3-d0e70fa69bf8
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: yvOjGEU5j8Uit6aVKL2p6PpSapUufS0MWnxOedFByCE
+name: 'Chat Message'
+type: chat_message
+description: 'A chat message in a channel'
+help: ''
+new_revision: false
+preview_mode: 0
+display_submitted: false

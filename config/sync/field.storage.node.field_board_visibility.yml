@@ -1,0 +1,32 @@
+uuid: 3852f208-1fba-4036-9016-3bae01cb58e3
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: EXCCZqRebOVLNG2kbIKsQGvvy6OjffVP_fc-vCPU-44
+id: node.field_board_visibility
+field_name: field_board_visibility
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: private
+      label: Private
+    -
+      value: workspace
+      label: Workspace
+    -
+      value: public
+      label: Public
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

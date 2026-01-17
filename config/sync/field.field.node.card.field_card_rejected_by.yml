@@ -1,0 +1,27 @@
+uuid: 1697a499-041b-4cc4-9f0b-061fb18b231c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_rejected_by
+    - node.type.card
+id: node.card.field_card_rejected_by
+field_name: field_card_rejected_by
+entity_type: node
+bundle: card
+label: 'Rejected By'
+description: 'The user who rejected this card'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings:
+    sort:
+      field: _none
+    auto_create: false
+    filter:
+      type: _none
+    include_anonymous: false
+field_type: entity_reference

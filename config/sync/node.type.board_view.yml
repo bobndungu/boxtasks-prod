@@ -1,0 +1,13 @@
+uuid: 0ba16797-bacc-41b2-b61a-274af9f2b85f
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: GUw71fA3qOG66KKfMPAtc7BFlyiiqkE9RfjInO1ohL4
+name: 'Board View'
+type: board_view
+description: 'Stores board view configurations (kanban, calendar, timeline, table, dashboard)'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

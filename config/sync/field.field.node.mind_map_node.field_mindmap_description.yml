@@ -1,0 +1,27 @@
+uuid: c817f737-129c-48d3-9a79-b4c4097ff96e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_mindmap_description
+    - node.type.mind_map_node
+  module:
+    - text
+  enforced:
+    module:
+      - boxtasks_mindmap
+_core:
+  default_config_hash: eMH17qbLxzkYj-OkYLGZb6bA5L1dORggV-6IqR_E8rI
+id: node.mind_map_node.field_mindmap_description
+field_name: field_mindmap_description
+entity_type: node
+bundle: mind_map_node
+label: Description
+description: 'Node description/notes'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

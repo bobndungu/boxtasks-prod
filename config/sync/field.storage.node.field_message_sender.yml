@@ -1,0 +1,22 @@
+uuid: a0e17be0-32e0-4f7a-81fe-80f40b1d8b8c
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - user
+_core:
+  default_config_hash: IAmqveDHQpYPGw0q3OIlEn2ag3aAzT2ojM9oqoPGXrg
+id: node.field_message_sender
+field_name: field_message_sender
+entity_type: node
+type: entity_reference
+settings:
+  target_type: user
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

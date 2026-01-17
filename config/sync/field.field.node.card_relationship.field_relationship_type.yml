@@ -1,0 +1,25 @@
+uuid: 6357b750-2bff-4f13-8d02-6abcbd42b9ec
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_relationship_type
+    - node.type.card_relationship
+  module:
+    - options
+_core:
+  default_config_hash: SiOfyKSGf5HULS5xqle15tNgI047vvc9k8XdfAu7AlI
+id: node.card_relationship.field_relationship_type
+field_name: field_relationship_type
+entity_type: node
+bundle: card_relationship
+label: 'Relationship Type'
+description: 'The type of relationship between the cards'
+required: true
+translatable: false
+default_value:
+  -
+    value: relates_to
+default_value_callback: ''
+settings: {  }
+field_type: list_string

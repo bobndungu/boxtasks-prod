@@ -1,0 +1,24 @@
+uuid: 813f8818-40e4-4ff8-9fcb-0dceb8457a11
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: pgEDfQ8TYFabeg45IUbtet1d7F3ZEe3iNT_oMVzaCs8
+id: node.field_time_card
+field_name: field_time_card
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

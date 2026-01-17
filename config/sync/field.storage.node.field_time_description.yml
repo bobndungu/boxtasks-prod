@@ -1,0 +1,24 @@
+uuid: 43ac8294-31f2-4b01-ad5d-3c403e06f9e7
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - text
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: V8tvTEZ4QSO3DQLXbLST48JmZt6JEt0Q4RWPM5oT2iM
+id: node.field_time_description
+field_name: field_time_description
+entity_type: node
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

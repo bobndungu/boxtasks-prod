@@ -1,0 +1,24 @@
+uuid: ca3390b6-2d58-4216-b14d-b1c2f4544846
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+  enforced:
+    module:
+      - boxtasks_mindmap
+_core:
+  default_config_hash: zmyzN02zMsn0HaM6XajguWWNh_gbbBaKgDB39iGAbxM
+id: node.field_node_converted_card
+field_name: field_node_converted_card
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

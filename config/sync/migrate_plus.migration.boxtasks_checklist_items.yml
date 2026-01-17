@@ -1,0 +1,85 @@
+uuid: f1599fbd-1604-45df-b679-07a335837d41
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: LdCAClPY1pj0UfJQ0wJev0Ab_QU3AMF7ZZa89LFP-Lg
+id: boxtasks_checklist_items
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - checklists
+migration_group: boxtasks
+label: 'BoxTasks Checklist Items'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      ci.id,
+      ci.checklist_id,
+      ci.name,
+      ci.position,
+      ci.is_checked,
+      ci.assigned_to,
+      ci.due_date,
+      ci.created_at,
+      ci.updated_at
+    FROM checklist_items ci
+    INNER JOIN checklists ch ON ci.checklist_id = ch.id
+    INNER JOIN cards c ON ch.card_id = c.id
+    INNER JOIN boards b ON c.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY ci.created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: checklist_item
+  field_original_uuid: id
+  title: name
+  field_item_checklist:
+    plugin: migration_lookup
+    migration: boxtasks_checklists
+    source: checklist_id
+  field_item_position: position
+  field_item_completed:
+    plugin: default_value
+    default_value: 0
+    source: is_checked
+  field_item_assigned_to:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: assigned_to
+    no_stub: true
+  field_item_due_date:
+    plugin: format_date
+    source: due_date
+    from_format: 'Y-m-d H:i:s'
+    to_format: Y-m-d
+    settings:
+      validate_format: false
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+destination:
+  plugin: 'entity:node'
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_checklists
+include: null

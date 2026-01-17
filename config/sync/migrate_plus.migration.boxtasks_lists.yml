@@ -1,0 +1,75 @@
+uuid: f94f7d60-3c27-41d5-b03e-a1310a0f8c6d
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: wHoXy0eBfK5EzIj4Oy9a_G9Scjakpi0aBetuABWzn_s
+id: boxtasks_lists
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - lists
+migration_group: boxtasks
+label: 'BoxTasks Lists'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      l.id,
+      l.board_id,
+      l.name,
+      l.position,
+      l.color,
+      l.wip_limit,
+      l.is_collapsed,
+      l.created_at,
+      l.updated_at
+    FROM lists l
+    INNER JOIN boards b ON l.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY l.created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: board_list
+  field_original_uuid: id
+  title: name
+  field_list_board:
+    plugin: migration_lookup
+    migration: boxtasks_boards
+    source: board_id
+  field_list_position: position
+  field_list_color: color
+  field_list_wip_limit:
+    plugin: default_value
+    default_value: 0
+    source: wip_limit
+  field_is_collapsed:
+    plugin: default_value
+    default_value: 0
+    source: is_collapsed
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+destination:
+  plugin: 'entity:node'
+migration_dependencies:
+  required:
+    - boxtasks_boards
+include: null

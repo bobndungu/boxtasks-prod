@@ -1,0 +1,25 @@
+uuid: 38240530-0343-47b0-9d0d-c2f56c87be48
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_is_template
+    - node.type.board
+_core:
+  default_config_hash: bR81pvfp7aghJ2PXhoF2VG-jt4rayXPBv_s0AMtcZ08
+id: node.board.field_is_template
+field_name: field_is_template
+entity_type: node
+bundle: board
+label: 'Is Template'
+description: 'Whether this board is a template.'
+required: false
+translatable: false
+default_value:
+  -
+    value: false
+default_value_callback: ''
+settings:
+  on_label: Template
+  off_label: 'Regular Board'
+field_type: boolean

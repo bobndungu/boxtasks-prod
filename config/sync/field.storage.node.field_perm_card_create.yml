@@ -1,0 +1,29 @@
+uuid: 86e5e3c7-1654-46ce-a217-3d878ba2b979
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: rTKGUnt7aHld23makmRziA65QMVh_A3M3nlZNRA7PTk
+id: node.field_perm_card_create
+field_name: field_perm_card_create
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: any
+      label: Any
+    -
+      value: none
+      label: None
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

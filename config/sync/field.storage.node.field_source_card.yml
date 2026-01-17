@@ -1,0 +1,21 @@
+uuid: 9a6e567c-8cca-4c0f-a435-c667c0eb2b2d
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: jxsMQPPtPn_57nAxsQaIaxGLuEBpWrvSUiu6eQWLk6w
+id: node.field_source_card
+field_name: field_source_card
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

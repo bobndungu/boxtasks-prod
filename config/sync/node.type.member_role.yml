@@ -1,0 +1,19 @@
+uuid: 9c5153a7-22fd-40f0-bc45-0d8778c64382
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+_core:
+  default_config_hash: ydIRbE-evNLiAll1ZMU7LbqhS5v5ivKa3AQg-2G-yZ8
+name: 'Member Role Assignment'
+type: member_role
+description: 'Links a user to a role within a workspace'
+help: ''
+new_revision: false
+preview_mode: 0
+display_submitted: false

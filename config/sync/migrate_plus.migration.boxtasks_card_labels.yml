@@ -1,0 +1,56 @@
+uuid: e65d4f5f-73c4-4fba-a435-2e10e84c3833
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: e7ICJB8uUe1Veia0BltzgdJ6iKfhDd96UIXnGbuISlQ
+id: boxtasks_card_labels
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - cards
+  - labels
+migration_group: boxtasks
+label: 'BoxTasks Card Labels'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      cl.card_id,
+      array_agg(cl.label_id) as label_ids
+    FROM card_labels cl
+    INNER JOIN cards c ON cl.card_id = c.id
+    INNER JOIN boards b ON c.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    GROUP BY cl.card_id
+  ids:
+    card_id:
+      type: string
+process:
+  nid:
+    plugin: migration_lookup
+    migration: boxtasks_cards
+    source: card_id
+  field_card_labels:
+    plugin: sub_process
+    source: label_ids
+    process:
+      target_id:
+        plugin: migration_lookup
+        migration: boxtasks_labels
+        source: '0'
+destination:
+  plugin: 'entity:node'
+  default_bundle: card
+  overwrite_properties:
+    - field_card_labels
+migration_dependencies:
+  required:
+    - boxtasks_cards
+    - boxtasks_labels
+include: null

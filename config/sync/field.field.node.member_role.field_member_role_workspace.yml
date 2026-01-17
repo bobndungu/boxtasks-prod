@@ -1,0 +1,31 @@
+uuid: 5d491e0e-db78-41a4-b5b4-ab18f8fffdfd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_member_role_workspace
+    - node.type.member_role
+    - node.type.workspace
+_core:
+  default_config_hash: 40unzLoVpOD7efxq3c0KUw4GiULn3UXPDzL9-Axuwd4
+id: node.member_role.field_member_role_workspace
+field_name: field_member_role_workspace
+entity_type: node
+bundle: member_role
+label: Workspace
+description: 'The workspace this role assignment applies to.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      workspace: workspace
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

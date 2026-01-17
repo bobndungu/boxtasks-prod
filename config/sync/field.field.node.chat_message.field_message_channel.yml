@@ -1,0 +1,30 @@
+uuid: 952e3186-88a1-41cc-b13b-dbd940030f56
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_message_channel
+    - node.type.chat_channel
+    - node.type.chat_message
+_core:
+  default_config_hash: nhh6pdm1ZY31mAa5ORl0DGzQZDz_uAAig-TD1el0ms0
+id: node.chat_message.field_message_channel
+field_name: field_message_channel
+entity_type: node
+bundle: chat_message
+label: Channel
+description: 'The channel this message belongs to'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      chat_channel: chat_channel
+    sort:
+      field: created
+      direction: DESC
+    auto_create: false
+field_type: entity_reference

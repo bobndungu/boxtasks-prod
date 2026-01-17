@@ -1,0 +1,31 @@
+uuid: 850b746d-1515-42e1-9522-28552ec20ee8
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_milestone_workspace
+    - node.type.milestone
+    - node.type.workspace
+_core:
+  default_config_hash: 3Usy6MCbK7bBwP22BiABT32_fraBbIUEPnJm77SZCGo
+id: node.milestone.field_milestone_workspace
+field_name: field_milestone_workspace
+entity_type: node
+bundle: milestone
+label: Workspace
+description: 'The workspace this milestone belongs to.'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      workspace: workspace
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

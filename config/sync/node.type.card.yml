@@ -1,0 +1,13 @@
+uuid: a03a34b8-8213-4c52-8ed8-05ff77c1874d
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: eE0a5R-BllHRT495MjkUzsCBcvvaK2zdGuMvAQZwRNQ
+name: Card
+type: card
+description: 'A task card within a board list'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

@@ -1,0 +1,21 @@
+uuid: d3b018bb-e253-4cf8-ab50-a2ba5fb9deb5
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: uzFB4Fw_A_-PKlOdx_SVmr9rlzj4V6vH8BdW5KeVuV8
+id: node.field_goal_cards
+field_name: field_goal_cards
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

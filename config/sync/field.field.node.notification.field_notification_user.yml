@@ -1,0 +1,21 @@
+uuid: 69088bf4-f9f7-4d49-b347-b293e5444294
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_notification_user
+    - node.type.notification
+id: node.notification.field_notification_user
+field_name: field_notification_user
+entity_type: node
+bundle: notification
+label: User
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings: {  }
+field_type: entity_reference

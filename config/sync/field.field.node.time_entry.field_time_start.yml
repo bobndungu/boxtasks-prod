@@ -1,0 +1,26 @@
+uuid: af0317cc-365f-490f-b60b-45fc826b0481
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_time_start
+    - node.type.time_entry
+  module:
+    - datetime
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: AifTLgApeV0zCyY1rbbZvyd0RWkeMpn1fUfs7H69BME
+id: node.time_entry.field_time_start
+field_name: field_time_start
+entity_type: node
+bundle: time_entry
+label: 'Start Time'
+description: 'When time tracking started'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

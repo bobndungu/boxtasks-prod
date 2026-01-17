@@ -1,0 +1,21 @@
+uuid: c2c6d574-b7e7-4a86-b90f-7090557fcbe6
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: ikLpal5bjF3E85z5jXn2qMM275oZOfIFqWT7fzYSVs0
+id: node.field_milestone_goal
+field_name: field_milestone_goal
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

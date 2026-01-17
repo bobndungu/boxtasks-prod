@@ -1,0 +1,29 @@
+uuid: e697c9d8-8765-49f6-94a7-be6c3fe59d71
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: CoSh_pw-p0FpWZ7IUACWinedLsZiBnxSXj1A_DEmCXI
+id: node.field_perm_board_create
+field_name: field_perm_board_create
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: any
+      label: Any
+    -
+      value: none
+      label: None
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

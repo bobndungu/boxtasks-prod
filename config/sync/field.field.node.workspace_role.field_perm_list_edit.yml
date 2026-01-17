@@ -1,0 +1,25 @@
+uuid: 0ef24796-6f57-4cde-a252-c78db2a41203
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_list_edit
+    - node.type.workspace_role
+  module:
+    - options
+_core:
+  default_config_hash: onpQRGmH8KY-Y79TUNKZjID64FetXoOH0MmQAJkOTD8
+id: node.workspace_role.field_perm_list_edit
+field_name: field_perm_list_edit
+entity_type: node
+bundle: workspace_role
+label: 'Edit Lists'
+description: 'Permission to edit lists. Own = only lists created by you. Any = all lists.'
+required: false
+translatable: false
+default_value:
+  -
+    value: any
+default_value_callback: ''
+settings: {  }
+field_type: list_string

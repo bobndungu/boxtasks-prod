@@ -1,0 +1,21 @@
+uuid: 56f404a2-fd4b-4afb-af4a-8a3ef7c6d179
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_notification_read
+    - node.type.notification
+id: node.notification.field_notification_read
+field_name: field_notification_read
+entity_type: node
+bundle: notification
+label: Read
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

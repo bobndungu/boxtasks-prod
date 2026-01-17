@@ -185,8 +185,11 @@ if ($smtp_password = getenv('SMTP_PASSWORD')) {
 /**
  * Social Auth - Google settings override.
  *
- * Override client secret from environment variable to avoid storing in config.
+ * Override credentials from environment variables to avoid storing in config.
  */
+if ($google_client_id = getenv('SOCIAL_AUTH_GOOGLE_CLIENT_ID')) {
+  $config['social_auth_google.settings']['client_id'] = $google_client_id;
+}
 if ($google_secret = getenv('SOCIAL_AUTH_GOOGLE_CLIENT_SECRET')) {
   $config['social_auth_google.settings']['client_secret'] = $google_secret;
 }
@@ -194,10 +197,25 @@ if ($google_secret = getenv('SOCIAL_AUTH_GOOGLE_CLIENT_SECRET')) {
 /**
  * Social Auth - Microsoft settings override.
  *
- * Override client secret from environment variable to avoid storing in config.
+ * Override credentials from environment variables to avoid storing in config.
  */
+if ($microsoft_client_id = getenv('SOCIAL_AUTH_MICROSOFT_CLIENT_ID')) {
+  $config['social_auth_microsoft.settings']['client_id'] = $microsoft_client_id;
+}
 if ($microsoft_secret = getenv('SOCIAL_AUTH_MICROSOFT_CLIENT_SECRET')) {
   $config['social_auth_microsoft.settings']['client_secret'] = $microsoft_secret;
+}
+
+/**
+ * Social Auth - Entra ID (Azure AD) settings override.
+ *
+ * Override credentials from environment variables to avoid storing in config.
+ */
+if ($entra_client_id = getenv('SOCIAL_AUTH_ENTRA_ID_CLIENT_ID')) {
+  $config['social_auth_entra_id.settings']['client_id'] = $entra_client_id;
+}
+if ($entra_secret = getenv('SOCIAL_AUTH_ENTRA_ID_CLIENT_SECRET')) {
+  $config['social_auth_entra_id.settings']['client_secret'] = $entra_secret;
 }
 
 /**

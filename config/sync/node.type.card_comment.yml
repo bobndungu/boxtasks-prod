@@ -1,0 +1,13 @@
+uuid: ba8322b3-b8c9-43c9-be9d-fa17da7f7743
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: NXzrCp6c4i-rmOlYcOMr8UmgPmzTJSWcKTtkIgT4Ui8
+name: 'Card Comment'
+type: card_comment
+description: 'A comment on a card in BoxTasks'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: true

@@ -1,0 +1,22 @@
+uuid: a5536595-c458-4b4e-9128-8d668689eb93
+langcode: en
+status: true
+dependencies:
+  module:
+    - datetime
+    - node
+_core:
+  default_config_hash: CrjhGHF6EdEr1PYKuwiawEdWCLsZU1uswv9o0NCVhFE
+id: node.field_card_due_date
+field_name: field_card_due_date
+entity_type: node
+type: datetime
+settings:
+  datetime_type: datetime
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

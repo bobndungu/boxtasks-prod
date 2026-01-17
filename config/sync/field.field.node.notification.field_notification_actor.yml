@@ -1,0 +1,21 @@
+uuid: 5aa67bbf-cc8b-4462-aff4-3e10927319bb
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_notification_actor
+    - node.type.notification
+id: node.notification.field_notification_actor
+field_name: field_notification_actor
+entity_type: node
+bundle: notification
+label: Actor
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings: {  }
+field_type: entity_reference

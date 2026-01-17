@@ -1,0 +1,30 @@
+uuid: 142dde3e-3743-44d3-bf8b-06b96f8e7376
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_time_duration
+    - node.type.time_entry
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: RspHD0s8B69QzhjZy40W1E8OFhRCjDEpYy96ntCgmL0
+id: node.time_entry.field_time_duration
+field_name: field_time_duration
+entity_type: node
+bundle: time_entry
+label: 'Duration (minutes)'
+description: 'Total tracked time in minutes'
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ' min'
+field_type: integer

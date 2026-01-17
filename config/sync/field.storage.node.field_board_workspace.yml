@@ -1,0 +1,21 @@
+uuid: 7ce2c344-e755-4a5e-8eea-2a24a696cb98
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: nMF5hXJD-KJrLSUIaea7MybYuPyrT3wj8_9JN39uH74
+id: node.field_board_workspace
+field_name: field_board_workspace
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

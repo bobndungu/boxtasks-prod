@@ -1,0 +1,23 @@
+uuid: 6e3c188a-58e8-42a9-97a1-ae5edc069f00
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_labels
+    - node.type.card
+  module:
+    - options
+_core:
+  default_config_hash: RMhs5wpAvYnQdVNc-ebSUB3gornk8603vGK4Lc2yJMs
+id: node.card.field_card_labels
+field_name: field_card_labels
+entity_type: node
+bundle: card
+label: Labels
+description: 'Color labels for this card'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

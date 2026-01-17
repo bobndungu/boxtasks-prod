@@ -1,0 +1,25 @@
+uuid: 94761bea-3cda-497d-bb31-63247ded4c03
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_board_edit
+    - node.type.workspace_role
+  module:
+    - options
+_core:
+  default_config_hash: ZeBDax99WIMZC1DBPn7qQ1g_68SXgBw-eu1UbMT0vX4
+id: node.workspace_role.field_perm_board_edit
+field_name: field_perm_board_edit
+entity_type: node
+bundle: workspace_role
+label: 'Edit Boards'
+description: 'Permission to edit boards. Own = only boards created by you. Any = all boards.'
+required: false
+translatable: false
+default_value:
+  -
+    value: any
+default_value_callback: ''
+settings: {  }
+field_type: list_string

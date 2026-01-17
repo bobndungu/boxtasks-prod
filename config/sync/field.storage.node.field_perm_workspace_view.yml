@@ -1,0 +1,29 @@
+uuid: 2c2a8984-812f-4299-99d9-c0fba26693b6
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: vJn2HIq3PaON8BIOmtLO3ujsy27tf8N7bOuZ4c7x1gE
+id: node.field_perm_workspace_view
+field_name: field_perm_workspace_view
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: any
+      label: Any
+    -
+      value: none
+      label: None
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

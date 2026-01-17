@@ -1,0 +1,22 @@
+uuid: 04ceed40-2a46-4762-adc0-4d0d6f94309c
+langcode: en
+status: true
+dependencies:
+  module:
+    - datetime
+    - node
+_core:
+  default_config_hash: b5mW1gvJJxX91fz2hyDfI8XAaAc8PGTlKJYx0rS8ovk
+id: node.field_goal_target_date
+field_name: field_goal_target_date
+entity_type: node
+type: datetime
+settings:
+  datetime_type: date
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

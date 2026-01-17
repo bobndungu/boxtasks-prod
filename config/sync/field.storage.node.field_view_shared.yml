@@ -1,0 +1,20 @@
+uuid: 9e3c871b-06da-43ea-b3c0-903ad831670a
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: a1hTAqapC4hJqPxmGjzdUixkyQoYT7NrRXfcxiRa0SA
+id: node.field_view_shared
+field_name: field_view_shared
+entity_type: node
+type: boolean
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

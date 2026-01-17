@@ -1,0 +1,24 @@
+uuid: e4618016-98e0-4f73-b8c1-98dd5b6d0b5a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_timezone
+  module:
+    - user
+_core:
+  default_config_hash: hpA0H_CUJdHb7DFmJgA4YxvS2xw-O1C0M0OpheBEa64
+id: user.user.field_timezone
+field_name: field_timezone
+entity_type: user
+bundle: user
+label: Timezone
+description: 'Your preferred timezone for displaying dates and times.'
+required: false
+translatable: false
+default_value:
+  -
+    value: UTC
+default_value_callback: ''
+settings: {  }
+field_type: string

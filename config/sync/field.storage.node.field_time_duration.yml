@@ -1,0 +1,25 @@
+uuid: 14a00016-009f-4512-a243-e82c298dc73c
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: '--eVXX0Rg-tf4n_aGhLYBbxlHqT2aCZEsftpMWICCzg'
+id: node.field_time_duration
+field_name: field_time_duration
+entity_type: node
+type: integer
+settings:
+  unsigned: true
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

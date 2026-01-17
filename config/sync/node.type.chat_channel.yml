@@ -1,0 +1,13 @@
+uuid: d3eed813-3cba-4bfb-9b54-6b0e07b3a02f
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: 42RC2o9AkHmP5TOrkiaqlGcviHrMRmUefmmw36JyyAM
+name: 'Chat Channel'
+type: chat_channel
+description: 'A chat channel for real-time messaging'
+help: ''
+new_revision: false
+preview_mode: 0
+display_submitted: false

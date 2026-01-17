@@ -1,0 +1,47 @@
+uuid: a15f8c26-3a0f-4f79-8df8-3381d538f588
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.user.compact
+    - field.field.user.user.field_bio
+    - field.field.user.user.field_display_name
+    - field.field.user.user.field_email_verified
+    - field.field.user.user.field_is_premium
+    - field.field.user.user.field_job_title
+    - field.field.user.user.field_notif_prefs
+    - field.field.user.user.field_original_uuid
+    - field.field.user.user.field_timezone
+    - field.field.user.user.user_picture
+    - image.style.thumbnail
+  module:
+    - image
+    - user
+_core:
+  default_config_hash: 00zr_RBdTjPjBGITD3h4c1ESQZimjdVCcHGt1trLqIY
+id: user.user.compact
+targetEntityType: user
+bundle: user
+mode: compact
+content:
+  user_picture:
+    type: image
+    label: hidden
+    settings:
+      image_link: content
+      image_style: thumbnail
+      image_loading:
+        attribute: lazy
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  field_bio: true
+  field_display_name: true
+  field_email_verified: true
+  field_is_premium: true
+  field_job_title: true
+  field_notif_prefs: true
+  field_original_uuid: true
+  field_timezone: true
+  member_for: true

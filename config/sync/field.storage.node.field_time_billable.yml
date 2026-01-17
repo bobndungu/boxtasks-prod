@@ -1,0 +1,23 @@
+uuid: 64e89d5f-5643-4ab6-95ea-d06fff46191f
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: TJl0TqZC-raD2m0a5Lr8UeV7EFtuFeP-OSy0hs0oAjg
+id: node.field_time_billable
+field_name: field_time_billable
+entity_type: node
+type: boolean
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

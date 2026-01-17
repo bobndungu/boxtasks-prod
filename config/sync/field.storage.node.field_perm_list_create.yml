@@ -1,0 +1,29 @@
+uuid: 17906a58-7553-41e7-8700-e9399e52bac4
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: jEA2-wZfZJK-v93HwSbemccYZhH4nK-tHiC5AdFG_nM
+id: node.field_perm_list_create
+field_name: field_perm_list_create
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: any
+      label: Any
+    -
+      value: none
+      label: None
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

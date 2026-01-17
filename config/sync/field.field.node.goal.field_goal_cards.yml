@@ -1,0 +1,31 @@
+uuid: 2eff6fc0-d3be-48d8-9378-d14f55c8c26c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_goal_cards
+    - node.type.card
+    - node.type.goal
+_core:
+  default_config_hash: cx7TL3QM4AJ5vlK6hwAkYS4aiR4HoCLG0PjAWDEhD0E
+id: node.goal.field_goal_cards
+field_name: field_goal_cards
+entity_type: node
+bundle: goal
+label: 'Linked Cards'
+description: 'Cards that contribute to this goal.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      card: card
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

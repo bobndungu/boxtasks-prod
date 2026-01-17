@@ -1,0 +1,25 @@
+uuid: 3399ea19-7227-4311-aa96-7bac990a6b1b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_list_delete
+    - node.type.workspace_role
+  module:
+    - options
+_core:
+  default_config_hash: wJEuY4MBNewFGW7NY6swyMpO9fbCtrbAEM55ZKZ_DsU
+id: node.workspace_role.field_perm_list_delete
+field_name: field_perm_list_delete
+entity_type: node
+bundle: workspace_role
+label: 'Delete Lists'
+description: 'Permission to delete lists. Own = only lists created by you. Any = all lists.'
+required: false
+translatable: false
+default_value:
+  -
+    value: own
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -1,0 +1,24 @@
+uuid: 39ac4eac-69a2-479b-af18-725294cb8987
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_template_checklists
+    - node.type.card_template
+  module:
+    - text
+_core:
+  default_config_hash: rTbtPS0QUYrNtPCigRGknFHTtexfT90N-WYts7KxyeA
+id: node.card_template.field_template_checklists
+field_name: field_template_checklists
+entity_type: node
+bundle: card_template
+label: 'Template Checklists'
+description: 'Checklist data in JSON format'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

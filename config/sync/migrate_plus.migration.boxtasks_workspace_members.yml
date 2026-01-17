@@ -1,0 +1,60 @@
+uuid: c3248453-49bc-4734-83b1-419fd25011c4
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: cObPy8EpYWTmdB-xR-p1Whjn9rrEfb-POm__DxZghZk
+id: boxtasks_workspace_members
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - workspaces
+  - members
+migration_group: boxtasks
+label: 'BoxTasks Workspace Members'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      wm.id,
+      wm.workspace_id,
+      wm.user_id,
+      wm.role,
+      wm.created_at
+    FROM workspace_memberships wm
+    ORDER BY wm.created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: workspace_member
+  parent_id:
+    plugin: migration_lookup
+    migration: boxtasks_workspaces
+    source: workspace_id
+  parent_type:
+    plugin: default_value
+    default_value: node
+  parent_field_name:
+    plugin: default_value
+    default_value: field_members
+  field_user:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: user_id
+  field_role: role
+destination:
+  plugin: 'entity_reference_revisions:paragraph'
+  default_bundle: workspace_member
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_workspaces
+include: null

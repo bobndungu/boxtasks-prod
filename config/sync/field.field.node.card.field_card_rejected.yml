@@ -1,0 +1,23 @@
+uuid: cdc9f26d-97ac-4715-a694-fa712ac0bdd1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_rejected
+    - node.type.card
+id: node.card.field_card_rejected
+field_name: field_card_rejected
+entity_type: node
+bundle: card
+label: Rejected
+description: 'Whether this card has been rejected'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

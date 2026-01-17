@@ -1,0 +1,21 @@
+uuid: 2c51bd68-d7b6-4ea4-819f-21f9e8ac8c5c
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: Rl_pXAhglevrPrYgLk8SNXkUpjOkUabV80OztoUil8Y
+id: node.field_milestone_workspace
+field_name: field_milestone_workspace
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

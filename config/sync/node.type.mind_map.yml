@@ -1,0 +1,16 @@
+uuid: 49e99218-aa67-496d-8720-9d723b6cf7b0
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - boxtasks_mindmap
+_core:
+  default_config_hash: wFXv1N06lpN6x2XNSJzwBfjOOyuvJITBONTBXijYBqE
+name: 'Mind Map'
+type: mind_map
+description: 'A visual mind map for brainstorming and planning'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

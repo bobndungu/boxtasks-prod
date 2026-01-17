@@ -1,0 +1,22 @@
+uuid: 9b67f394-5617-41f8-a4aa-d5848d4e1f35
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_item_assignee
+    - node.type.checklist_item
+id: node.checklist_item.field_item_assignee
+field_name: field_item_assignee
+entity_type: node
+bundle: checklist_item
+label: Assignee
+description: 'User assigned to this checklist item'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings:
+    include_anonymous: false
+field_type: entity_reference

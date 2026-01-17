@@ -1,0 +1,22 @@
+uuid: 26776099-0060-4b2b-8282-9df207b9a4a3
+langcode: en
+status: true
+dependencies:
+  module:
+    - datetime
+    - node
+_core:
+  default_config_hash: _66tolq-r2vcvUq1zaBY9WN0gHabaksm2Nr8yHo9Fv4
+id: node.field_milestone_due_date
+field_name: field_milestone_due_date
+entity_type: node
+type: datetime
+settings:
+  datetime_type: date
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

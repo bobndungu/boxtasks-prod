@@ -1,0 +1,56 @@
+uuid: 8a855c63-00ad-42ce-98e6-5edc0b23277f
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: B8rejfLnqeUK8bCWNHjRbNopwc0XwgeHakyxsxctt5Q
+id: node.field_customfield_type
+field_name: field_customfield_type
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: text
+      label: Text
+    -
+      value: longtext
+      label: 'Long Text'
+    -
+      value: number
+      label: Number
+    -
+      value: date
+      label: Date
+    -
+      value: dropdown
+      label: Dropdown
+    -
+      value: checkbox
+      label: Checkbox
+    -
+      value: url
+      label: URL
+    -
+      value: email
+      label: Email
+    -
+      value: currency
+      label: Currency
+    -
+      value: rating
+      label: Rating
+    -
+      value: phone
+      label: Phone
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

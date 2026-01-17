@@ -1,0 +1,92 @@
+uuid: 01358a39-ebc5-4a84-bf41-4704c010f1a5
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: AMh2N_RAyyp4ErvvemBW3v2YU9jJy26meL7IKgJnWUE
+id: boxtasks_boards
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - boards
+migration_group: boxtasks
+label: 'BoxTasks Boards'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      b.id,
+      b.workspace_id,
+      b.name,
+      b.description,
+      b.visibility,
+      b.background_type,
+      b.background_value,
+      b.is_template,
+      b.is_closed,
+      b.position,
+      b.settings,
+      b.created_by,
+      b.created_at,
+      b.updated_at,
+      b.deleted_at
+    FROM boards b
+    WHERE b.deleted_at IS NULL
+    ORDER BY b.created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: board
+  field_original_uuid: id
+  title: name
+  field_board_description: description
+  field_board_workspace:
+    plugin: migration_lookup
+    migration: boxtasks_workspaces
+    source: workspace_id
+  field_board_visibility: visibility
+  field_board_background: background_value
+  field_board_archived:
+    plugin: default_value
+    default_value: 0
+    source: is_closed
+  field_is_template:
+    plugin: default_value
+    default_value: 0
+    source: is_template
+  field_position: position
+  field_settings:
+    plugin: callback
+    callable: json_encode
+    source: settings
+  uid:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: created_by
+    no_stub: true
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+destination:
+  plugin: 'entity:node'
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_workspaces
+include: null

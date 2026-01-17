@@ -1,0 +1,108 @@
+uuid: 6063ee95-cba9-4d1d-9982-3ef97da8e3f6
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: kcxyLYFY78BBHYmG7iYbn5fF3EdEz225JSgQTrLJn1M
+id: boxtasks_cards
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - cards
+migration_group: boxtasks
+label: 'BoxTasks Cards'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      c.id,
+      c.list_id,
+      c.board_id,
+      c.title,
+      c.description,
+      c.position,
+      c.cover_type,
+      c.cover_value,
+      c.start_date,
+      c.due_date,
+      c.is_completed,
+      c.completed_at,
+      c.created_by,
+      c.created_at,
+      c.updated_at
+    FROM cards c
+    INNER JOIN lists l ON c.list_id = l.id
+    INNER JOIN boards b ON c.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY c.created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: card
+  field_original_uuid: id
+  title: title
+  field_card_description: description
+  field_card_list:
+    plugin: migration_lookup
+    migration: boxtasks_lists
+    source: list_id
+  field_card_board:
+    plugin: migration_lookup
+    migration: boxtasks_boards
+    source: board_id
+  field_card_position: position
+  field_card_cover: cover_value
+  field_card_start_date:
+    plugin: format_date
+    source: start_date
+    from_format: 'Y-m-d H:i:s'
+    to_format: Y-m-d
+    settings:
+      validate_format: false
+  field_card_due_date:
+    plugin: format_date
+    source: due_date
+    from_format: 'Y-m-d H:i:s'
+    to_format: Y-m-d
+    settings:
+      validate_format: false
+  field_card_completed:
+    plugin: default_value
+    default_value: 0
+    source: is_completed
+  field_completed_at:
+    plugin: callback
+    callable: strtotime
+    source: completed_at
+  uid:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: created_by
+    no_stub: true
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+destination:
+  plugin: 'entity:node'
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_boards
+    - boxtasks_lists
+include: null

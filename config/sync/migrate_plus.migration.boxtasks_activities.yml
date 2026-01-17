@@ -1,0 +1,98 @@
+uuid: 2ff1f5b6-f0dd-4f9c-b487-4cd1c434290d
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: KKCdygh7jgYH_eZFUBHYMzAlNWlbzzEbinnXeKPJmrI
+id: boxtasks_activities
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - activities
+migration_group: boxtasks
+label: 'BoxTasks Activities'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      a.id,
+      a.workspace_id,
+      a.board_id,
+      a.card_id,
+      a.user_id,
+      a.action,
+      a.entity_type,
+      a.entity_id,
+      a.metadata,
+      a.created_at
+    FROM activities a
+    LEFT JOIN boards b ON a.board_id = b.id
+    WHERE (b.deleted_at IS NULL OR a.board_id IS NULL)
+    ORDER BY a.created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: activity
+  field_original_uuid: id
+  field_activity_workspace:
+    plugin: migration_lookup
+    migration: boxtasks_workspaces
+    source: workspace_id
+    no_stub: true
+  field_activity_board:
+    plugin: migration_lookup
+    migration: boxtasks_boards
+    source: board_id
+    no_stub: true
+  field_activity_card:
+    plugin: migration_lookup
+    migration: boxtasks_cards
+    source: card_id
+    no_stub: true
+  field_activity_type: action
+  field_activity_entity_type: entity_type
+  field_activity_entity_id: entity_id
+  field_activity_data:
+    plugin: callback
+    callable: json_encode
+    source: metadata
+    unpack_source: false
+  field_activity_description:
+    plugin: concat
+    source:
+      - action
+      - entity_type
+    delimiter: ' '
+  uid:
+    plugin: migration_lookup
+    migration: boxtasks_users
+    source: user_id
+    no_stub: true
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+destination:
+  plugin: 'entity:node'
+migration_dependencies:
+  required:
+    - boxtasks_users
+    - boxtasks_workspaces
+    - boxtasks_boards
+    - boxtasks_cards
+include: null

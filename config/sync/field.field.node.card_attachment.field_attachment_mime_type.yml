@@ -1,0 +1,21 @@
+uuid: 7d02fea2-95ad-4543-b26a-ab9a001739db
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attachment_mime_type
+    - node.type.card_attachment
+_core:
+  default_config_hash: 0POiHw8roSJPvhDjzGYE9OQ7uSkPI4X33zhN0bIGuFY
+id: node.card_attachment.field_attachment_mime_type
+field_name: field_attachment_mime_type
+entity_type: node
+bundle: card_attachment
+label: 'MIME Type'
+description: 'MIME type of the attachment'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

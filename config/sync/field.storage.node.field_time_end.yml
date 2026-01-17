@@ -1,0 +1,25 @@
+uuid: 30f76c53-73b3-49bf-ae24-d09790761468
+langcode: en
+status: true
+dependencies:
+  module:
+    - datetime
+    - node
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: EtI6VTBhkU2x0w8a6Cnrmh9LRrR65ht_NljKmA64Ge8
+id: node.field_time_end
+field_name: field_time_end
+entity_type: node
+type: datetime
+settings:
+  datetime_type: datetime
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,35 @@
+uuid: f18ca9f0-b51d-4c1b-afa6-ab333d1799b6
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+_core:
+  default_config_hash: r8R68z7eHzluspvl24mUtLuSXg4NXZefP51twBR06ZA
+id: node.field_milestone_status
+field_name: field_milestone_status
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: not_started
+      label: 'Not Started'
+    -
+      value: in_progress
+      label: 'In Progress'
+    -
+      value: completed
+      label: Completed
+    -
+      value: missed
+      label: Missed
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,30 @@
+uuid: 465c5b34-3733-4545-a624-ccc123e19260
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_target_card
+    - node.type.card
+    - node.type.card_relationship
+_core:
+  default_config_hash: bubDM6zKixAHKda_AbGrEdJLa4V1uetTwpmUzY6M_tk
+id: node.card_relationship.field_target_card
+field_name: field_target_card
+entity_type: node
+bundle: card_relationship
+label: 'Target Card'
+description: 'The card this relationship points to'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      card: card
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+field_type: entity_reference

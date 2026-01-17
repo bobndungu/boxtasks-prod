@@ -1,0 +1,21 @@
+uuid: a8a1e6db-80db-4d94-b9b4-ce898f09fcff
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - text
+_core:
+  default_config_hash: K7zBZ8sT5SuB6p0v47EJ_CJqMewkJiLOJk4WBiYqqCU
+id: node.field_cfv_value
+field_name: field_cfv_value
+entity_type: node
+type: text_long
+settings: {  }
+module: text
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

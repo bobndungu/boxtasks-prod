@@ -1,0 +1,23 @@
+uuid: 8e6ba246-2235-4cce-a70f-e270f7489f12
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_template_labels
+    - node.type.card_template
+  module:
+    - options
+_core:
+  default_config_hash: VNpcch6zxcqs2mKEGWw_Fdm5l3nwi394zvQRuTvlza0
+id: node.card_template.field_template_labels
+field_name: field_template_labels
+entity_type: node
+bundle: card_template
+label: 'Template Labels'
+description: 'Labels to apply to cards created from this template'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

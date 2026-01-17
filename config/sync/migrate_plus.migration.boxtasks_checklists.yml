@@ -1,0 +1,64 @@
+uuid: 894c423d-cd3e-4ec9-9553-60d41858af15
+langcode: en
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: xt_ioNXKUfrYcTiO0-Ser0eJxf_qTlQvJ0OgqW4Wf0c
+id: boxtasks_checklists
+class: null
+idMap: {  }
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - boxtasks
+  - checklists
+migration_group: boxtasks
+label: 'BoxTasks Checklists'
+source:
+  plugin: sql
+  key: migrate
+  target: default
+  query: |
+    SELECT
+      ch.id,
+      ch.card_id,
+      ch.name,
+      ch.position,
+      ch.created_at,
+      ch.updated_at
+    FROM checklists ch
+    INNER JOIN cards c ON ch.card_id = c.id
+    INNER JOIN boards b ON c.board_id = b.id
+    WHERE b.deleted_at IS NULL
+    ORDER BY ch.created_at ASC
+  ids:
+    id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: checklist
+  field_original_uuid: id
+  title: name
+  field_checklist_card:
+    plugin: migration_lookup
+    migration: boxtasks_cards
+    source: card_id
+  field_checklist_position: position
+  status:
+    plugin: default_value
+    default_value: 1
+  created:
+    plugin: callback
+    callable: strtotime
+    source: created_at
+  changed:
+    plugin: callback
+    callable: strtotime
+    source: updated_at
+destination:
+  plugin: 'entity:node'
+migration_dependencies:
+  required:
+    - boxtasks_cards
+include: null

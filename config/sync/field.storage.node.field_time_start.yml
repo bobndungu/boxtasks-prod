@@ -1,0 +1,25 @@
+uuid: 4da38e8a-82cb-4e90-9d0f-f16379cc022a
+langcode: en
+status: true
+dependencies:
+  module:
+    - datetime
+    - node
+  enforced:
+    module:
+      - boxtasks_time
+_core:
+  default_config_hash: f8nZ23HP8GrehUkpuhEiJPm-Fb1rm7GEo5JsYWwo4dY
+id: node.field_time_start
+field_name: field_time_start
+entity_type: node
+type: datetime
+settings:
+  datetime_type: datetime
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
