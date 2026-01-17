@@ -3,7 +3,7 @@ boxtasks_monitoring.health:
   defaults:
     _controller: '\Drupal\boxtasks_monitoring\Controller\HealthController::check'
   requirements:
-    _permission: 'access content'
+    _access: 'TRUE'
   options:
     no_cache: TRUE
 

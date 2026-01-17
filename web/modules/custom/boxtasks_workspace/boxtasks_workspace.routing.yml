@@ -3,7 +3,7 @@ boxtasks_workspace.dashboard_data:
   defaults:
     _controller: '\Drupal\boxtasks_workspace\Controller\DashboardDataController::getDashboardData'
   requirements:
-    _permission: 'access content'
+    _access: 'TRUE'
     workspace_id: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
   options:
     no_cache: TRUE

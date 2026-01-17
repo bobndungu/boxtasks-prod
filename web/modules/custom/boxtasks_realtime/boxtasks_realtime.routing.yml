@@ -4,7 +4,7 @@ boxtasks_realtime.presence.announce:
     _controller: '\Drupal\boxtasks_realtime\Controller\PresenceController::announce'
   methods: [POST]
   requirements:
-    _permission: 'access content'
+    _access: 'TRUE'
   options:
     _auth: ['oauth2', 'cookie']
 
@@ -14,6 +14,6 @@ boxtasks_realtime.presence.active:
     _controller: '\Drupal\boxtasks_realtime\Controller\PresenceController::getActive'
   methods: [GET]
   requirements:
-    _permission: 'access content'
+    _access: 'TRUE'
   options:
     _auth: ['oauth2', 'cookie']

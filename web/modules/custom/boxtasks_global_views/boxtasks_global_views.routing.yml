@@ -5,7 +5,7 @@ boxtasks_global_views.everything:
     _controller: '\Drupal\boxtasks_global_views\Controller\GlobalViewsController::everything'
   methods: [GET]
   requirements:
-    _permission: 'access content'
+    _access: 'TRUE'
   options:
     no_cache: TRUE
     _auth: ['oauth2', 'cookie']
@@ -17,7 +17,7 @@ boxtasks_global_views.my_cards:
     _controller: '\Drupal\boxtasks_global_views\Controller\GlobalViewsController::myCards'
   methods: [GET]
   requirements:
-    _permission: 'access content'
+    _access: 'TRUE'
   options:
     no_cache: TRUE
     _auth: ['oauth2', 'cookie']

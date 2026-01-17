@@ -23,3 +23,9 @@ services:
     arguments: ['@database', '@current_user', '@datetime.time']
     calls:
       - [setRequestStack, ['@request_stack']]
+
+  boxtasks_security.oauth_authentication_subscriber:
+    class: Drupal\boxtasks_security\EventSubscriber\OAuthAuthenticationSubscriber
+    arguments: ['@current_user']
+    tags:
+      - { name: event_subscriber }

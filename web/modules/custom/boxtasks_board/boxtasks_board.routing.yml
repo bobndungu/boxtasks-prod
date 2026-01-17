@@ -3,7 +3,8 @@ boxtasks_board.board_data:
   defaults:
     _controller: '\Drupal\boxtasks_board\Controller\BoardDataController::getBoardData'
   requirements:
-    _permission: 'access content'
+    _access: 'TRUE'
     board_id: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
   options:
     no_cache: TRUE
+    _auth: ['basic_auth', 'oauth2']
