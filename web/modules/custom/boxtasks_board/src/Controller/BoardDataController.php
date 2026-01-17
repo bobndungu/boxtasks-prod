@@ -5,6 +5,7 @@ namespace Drupal\boxtasks_board\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,6 +32,13 @@ class BoardDataController extends ControllerBase {
   protected $currentUser;
 
   /**
+   * The authenticated user from OAuth token.
+   *
+   * @var \Drupal\user\Entity\User|null
+   */
+  protected $authenticatedUser;
+
+  /**
    * Constructs a BoardDataController object.
    */
   public function __construct(EntityTypeManagerInterface $entity_type_manager, AccountInterface $current_user) {
@@ -49,6 +57,50 @@ class BoardDataController extends ControllerBase {
   }
 
   /**
+   * Authenticate user from OAuth Bearer token.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request object.
+   *
+   * @return \Drupal\user\Entity\User|null
+   *   The authenticated user or NULL.
+   */
+  protected function authenticateFromOAuthToken(Request $request): ?User {
+    $auth_header = $request->headers->get('Authorization', '');
+    if (!preg_match('/^Bearer\s+(.+)$/i', $auth_header, $matches)) {
+      return NULL;
+    }
+
+    $token_value = $matches[1];
+
+    // Query the OAuth access token storage.
+    $token_storage = $this->entityTypeManager->getStorage('oauth2_token');
+    $tokens = $token_storage->loadByProperties([
+      'value' => $token_value,
+    ]);
+
+    if (empty($tokens)) {
+      return NULL;
+    }
+
+    $token = reset($tokens);
+
+    // Check if token is expired.
+    $expire = $token->get('expire')->value;
+    if ($expire && $expire < time()) {
+      return NULL;
+    }
+
+    // Get the user associated with this token.
+    if ($token->hasField('auth_user_id') && !$token->get('auth_user_id')->isEmpty()) {
+      $user_id = $token->get('auth_user_id')->target_id;
+      return User::load($user_id);
+    }
+
+    return NULL;
+  }
+
+  /**
    * Get complete board data in a single response.
    *
    * @param string $board_id
@@ -60,8 +112,17 @@ class BoardDataController extends ControllerBase {
    *   JSON response with all board data.
    */
   public function getBoardData(string $board_id, Request $request): JsonResponse {
-    // Check authentication.
-    if ($this->currentUser->isAnonymous()) {
+    // Check authentication - first try current_user, then OAuth token.
+    $this->authenticatedUser = NULL;
+    if (!$this->currentUser->isAnonymous()) {
+      $this->authenticatedUser = User::load($this->currentUser->id());
+    }
+    else {
+      // Try to authenticate via OAuth token.
+      $this->authenticatedUser = $this->authenticateFromOAuthToken($request);
+    }
+
+    if (!$this->authenticatedUser) {
       throw new AccessDeniedHttpException('Authentication required.');
     }
 
@@ -81,8 +142,8 @@ class BoardDataController extends ControllerBase {
 
     $board = reset($boards);
 
-    // Check access.
-    if (!$board->access('view', $this->currentUser)) {
+    // Check access using the authenticated user.
+    if (!$board->access('view', $this->authenticatedUser)) {
       throw new AccessDeniedHttpException('Access denied to this board.');
     }
 
