@@ -413,20 +413,26 @@ export interface ConsolidatedBoardData {
 /**
  * Fetch all board data in a single API call.
  * This is the optimized endpoint that reduces 9 API calls to 1.
+ * Supports both OAuth tokens and session cookie authentication.
  */
 export async function fetchBoardData(boardId: string): Promise<ConsolidatedBoardData> {
   const token = getAccessToken();
-  if (!token) {
-    throw new Error('Authentication required');
+
+  // Build headers - include token if available, but also send cookies
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+  };
+
+  // Add Authorization header if we have an OAuth token
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const response = await fetch(
     `${API_URL}/api/board/${boardId}/data`,
     {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
+      credentials: 'include', // Include session cookies for cookie-based auth
     }
   );
 

@@ -7,4 +7,4 @@ boxtasks_board.board_data:
     board_id: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
   options:
     no_cache: TRUE
-    _auth: ['basic_auth', 'oauth2']
+    _auth: ['cookie', 'basic_auth', 'oauth2']
