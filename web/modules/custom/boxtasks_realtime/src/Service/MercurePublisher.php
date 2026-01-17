@@ -321,12 +321,43 @@ class MercurePublisher {
 
     $cardTitle = $this->getCardTitleFromComment($comment);
 
+    // Get card ID
+    $cardId = NULL;
+    if ($comment->hasField('field_comment_card') && !$comment->get('field_comment_card')->isEmpty()) {
+      $card = $comment->get('field_comment_card')->entity;
+      if ($card) {
+        $cardId = $card->uuid();
+      }
+    }
+
+    // Get comment text
+    $text = '';
+    if ($comment->hasField('field_comment_text') && !$comment->get('field_comment_text')->isEmpty()) {
+      $text = $comment->get('field_comment_text')->value;
+    }
+
+    // Get author info
+    $authorId = NULL;
+    $authorName = 'Unknown';
+    $author = $comment->getOwner();
+    if ($author) {
+      $authorId = $author->uuid();
+      $authorName = $author->getDisplayName();
+    }
+
     $topic = "/boards/{$boardId}";
     $data = [
       'type' => $eventType,
       'data' => [
         'id' => $comment->uuid(),
+        'text' => $text,
+        'cardId' => $cardId,
         'cardTitle' => $cardTitle,
+        'authorId' => $authorId,
+        'authorName' => $authorName,
+        'createdAt' => $comment->getCreatedTime() ? date('c', $comment->getCreatedTime()) : date('c'),
+        'updatedAt' => $comment->getChangedTime() ? date('c', $comment->getChangedTime()) : date('c'),
+        'reactions' => [],
       ],
       'timestamp' => date('c'),
       'actorId' => $this->currentUser->id(),

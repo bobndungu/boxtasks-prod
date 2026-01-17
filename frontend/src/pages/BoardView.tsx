@@ -48,6 +48,7 @@ import { useBoardStore } from '../lib/stores/board';
 import { updateBoard, toggleBoardStar, fetchBoardData } from '../lib/api/boards';
 import { createList, updateList, deleteList, archiveList, type BoardList } from '../lib/api/lists';
 import { createCard, updateCard, deleteCard, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, addGoogleDoc, removeGoogleDoc, type Card, type CardLabel } from '../lib/api/cards';
+import { type CardComment } from '../lib/api/comments';
 import { type TaxonomyTerm } from '../lib/api/taxonomies';
 import { fetchActivitiesByBoard, getActivityDisplay, createActivity, type Activity } from '../lib/api/activities';
 import { fetchTemplates, type CardTemplate } from '../lib/api/templates';
@@ -179,6 +180,9 @@ export default function BoardView() {
   // Custom field data for cards display
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<Map<string, CustomFieldValue[]>>(new Map());
+
+  // Real-time comment from Mercure for CardDetailModal
+  const [newMercureComment, setNewMercureComment] = useState<CardComment | null>(null);
 
   // Custom field filter alias for backwards compatibility
   const customFieldFilter = advancedFilters.customFields;
@@ -583,9 +587,13 @@ export default function BoardView() {
     },
     onCommentCreated: (commentData) => {
       // Show a subtle notification for new comments
-      const comment = commentData as { cardTitle?: string };
+      const comment = commentData as CardComment & { cardTitle?: string };
       if (comment.cardTitle) {
         toast.info(`New comment on "${comment.cardTitle}"`);
+      }
+      // Pass the full comment to CardDetailModal for real-time updates
+      if (comment.id && comment.cardId) {
+        setNewMercureComment(comment);
       }
     },
     onPresenceUpdate: (presenceData) => {
@@ -2810,6 +2818,7 @@ export default function BoardView() {
             });
             setSelectedCard((prev) => prev ? { ...prev, googleDocs: updatedCard.googleDocs } : null);
           }}
+          newMercureComment={newMercureComment}
           onMove={async (cardId, fromListId, toListId) => {
             // Get the destination list cards BEFORE updating state
             const destCards = cardsByList.get(toListId) || [];

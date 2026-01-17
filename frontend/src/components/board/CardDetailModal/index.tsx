@@ -93,6 +93,7 @@ function CardDetailModal({
   onClearStatus,
   onGoogleDocAdd,
   onGoogleDocRemove,
+  newMercureComment,
 }: {
   card: Card;
   listTitle: string;
@@ -123,6 +124,8 @@ function CardDetailModal({
   onClearStatus: (cardId: string) => Promise<void>;
   onGoogleDocAdd: (cardId: string, url: string, title: string) => Promise<void>;
   onGoogleDocRemove: (cardId: string, url: string) => Promise<void>;
+  // Real-time comment from Mercure
+  newMercureComment?: CardComment | null;
 }) {
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description || '');
@@ -298,6 +301,18 @@ function CardDetailModal({
     loadChecklists();
     loadActivities();
   }, [card.id]);
+
+  // Handle real-time comments from Mercure
+  useEffect(() => {
+    if (newMercureComment && newMercureComment.cardId === card.id) {
+      // Check if comment already exists to avoid duplicates
+      setComments((prev) => {
+        const exists = prev.some((c) => c.id === newMercureComment.id);
+        if (exists) return prev;
+        return [newMercureComment, ...prev];
+      });
+    }
+  }, [newMercureComment, card.id]);
 
   const loadComments = async () => {
     try {
