@@ -6,7 +6,7 @@ boxtasks_realtime.presence.announce:
   requirements:
     _access: 'TRUE'
   options:
-    _auth: ['oauth2', 'cookie']
+    _auth: ['cookie']
 
 boxtasks_realtime.presence.active:
   path: '/api/presence/{boardId}'
@@ -16,4 +16,4 @@ boxtasks_realtime.presence.active:
   requirements:
     _access: 'TRUE'
   options:
-    _auth: ['oauth2', 'cookie']
+    _auth: ['cookie']
