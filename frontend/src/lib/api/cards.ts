@@ -558,9 +558,13 @@ export async function restoreCard(id: string): Promise<Card> {
 export async function fetchArchivedCardsByBoard(_boardId: string, listIds: string[]): Promise<Card[]> {
   if (listIds.length === 0) return [];
 
-  const filterParams = listIds.map((id, index) =>
-    `filter[list-filter-${index}][condition][path]=field_card_list.id&filter[list-filter-${index}][condition][value]=${id}`
-  ).join('&');
+  // Use OR group filter for fetching archived cards from multiple lists in a single request
+  let filterParams = 'filter[or-group][group][conjunction]=OR';
+  listIds.forEach((id, index) => {
+    filterParams += `&filter[list-${index}][condition][path]=field_card_list.id`;
+    filterParams += `&filter[list-${index}][condition][value]=${id}`;
+    filterParams += `&filter[list-${index}][condition][memberOf]=or-group`;
+  });
 
   const response = await fetch(
     `${API_URL}/jsonapi/node/card?${filterParams}&filter[field_card_archived][value]=1&sort=-changed&include=field_card_members,field_card_department,field_card_client,field_card_approved_by,field_card_rejected_by,field_card_watchers&${SPARSE_FIELDSETS}`,
