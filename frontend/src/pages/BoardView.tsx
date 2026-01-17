@@ -419,6 +419,11 @@ export default function BoardView() {
     },
     onCardUpdated: (cardData) => {
       const incomingCard = cardData as Card;
+      // Check if incoming data has complete member/watcher info (not just IDs with "Unknown User")
+      const hasCompleteMemberData = incomingCard.members?.length &&
+        incomingCard.members.every(m => m.name && m.name !== 'Unknown User');
+      const hasCompleteWatcherData = incomingCard.watchers?.length &&
+        incomingCard.watchers.every(w => w.name && w.name !== 'Unknown User');
       setCardsByList((prev) => {
         const newMap = new Map(prev);
         for (const [listId, cards] of newMap.entries()) {
@@ -427,14 +432,14 @@ export default function BoardView() {
             const newCards = [...cards];
             const existingCard = newCards[index];
             // Merge incoming card data with existing card, preserving data
-            // if not present in the incoming update
+            // if not present in the incoming update or if incoming has incomplete data
             newCards[index] = {
               ...existingCard,
               ...incomingCard,
-              // Preserve member data if incoming doesn't have it (fixes creator name removal)
-              members: incomingCard.members?.length ? incomingCard.members : existingCard.members,
+              // Preserve member data if incoming has incomplete data (IDs only, no names)
+              members: hasCompleteMemberData ? incomingCard.members : existingCard.members,
               memberIds: incomingCard.memberIds?.length ? incomingCard.memberIds : existingCard.memberIds,
-              watchers: incomingCard.watchers?.length ? incomingCard.watchers : existingCard.watchers,
+              watchers: hasCompleteWatcherData ? incomingCard.watchers : existingCard.watchers,
               watcherIds: incomingCard.watcherIds?.length ? incomingCard.watcherIds : existingCard.watcherIds,
               authorId: incomingCard.authorId ?? existingCard.authorId,
               // Preserve approval data if incoming doesn't have it
@@ -462,10 +467,10 @@ export default function BoardView() {
         setSelectedCard((prev) => prev ? {
           ...prev,
           ...incomingCard,
-          // Preserve member data if incoming doesn't have it (fixes creator name removal)
-          members: incomingCard.members?.length ? incomingCard.members : prev.members,
+          // Preserve member data if incoming has incomplete data (IDs only, no names)
+          members: hasCompleteMemberData ? incomingCard.members : prev.members,
           memberIds: incomingCard.memberIds?.length ? incomingCard.memberIds : prev.memberIds,
-          watchers: incomingCard.watchers?.length ? incomingCard.watchers : prev.watchers,
+          watchers: hasCompleteWatcherData ? incomingCard.watchers : prev.watchers,
           watcherIds: incomingCard.watcherIds?.length ? incomingCard.watcherIds : prev.watcherIds,
           authorId: incomingCard.authorId ?? prev.authorId,
           // Preserve approval data
@@ -1316,9 +1321,28 @@ export default function BoardView() {
   const handleCardUpdate = async (cardId: string, updates: Partial<Card>) => {
     try {
       const apiResponse = await updateCard(cardId, updates);
-      // Merge the updates we sent with the API response, because the API may not
-      // return all fields (especially estimate fields which aren't in the default response)
-      const updated = { ...apiResponse, ...updates };
+      // Find the existing card to preserve fields not returned by the API (members, watchers, etc.)
+      const existingCard = selectedCard?.id === cardId
+        ? selectedCard
+        : [...cardsByList.values()].flat().find(c => c.id === cardId);
+      // Merge: existing data (base) -> API response -> explicit updates
+      // This preserves members, watchers, authorId which aren't returned by JSON:API PATCH
+      // Check if API response has complete member data (not just IDs with "Unknown User" names)
+      const hasCompleteMemberData = apiResponse.members?.length &&
+        apiResponse.members.every(m => m.name && m.name !== 'Unknown User');
+      const hasCompleteWatcherData = apiResponse.watchers?.length &&
+        apiResponse.watchers.every(w => w.name && w.name !== 'Unknown User');
+      const updated = {
+        ...existingCard,
+        ...apiResponse,
+        ...updates,
+        // Preserve member/watcher data if API response has incomplete data (IDs only, no names)
+        members: hasCompleteMemberData ? apiResponse.members : existingCard?.members || [],
+        memberIds: apiResponse.memberIds?.length ? apiResponse.memberIds : existingCard?.memberIds || [],
+        watchers: hasCompleteWatcherData ? apiResponse.watchers : existingCard?.watchers || [],
+        watcherIds: apiResponse.watcherIds?.length ? apiResponse.watcherIds : existingCard?.watcherIds || [],
+        authorId: apiResponse.authorId || existingCard?.authorId,
+      };
       const newCardsMap = new Map(cardsByList);
       const listCards = newCardsMap.get(updated.listId) || [];
       newCardsMap.set(

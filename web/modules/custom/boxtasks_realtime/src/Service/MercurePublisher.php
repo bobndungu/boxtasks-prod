@@ -586,6 +586,8 @@ class MercurePublisher {
    * Serializes a card to an array for JSON.
    */
   protected function serializeCard(NodeInterface $card): array {
+    $userStorage = $this->entityTypeManager->getStorage('user');
+
     $data = [
       'id' => $card->uuid(),
       'title' => $card->label(),
@@ -599,10 +601,20 @@ class MercurePublisher {
       'completed' => FALSE,
       'coverImage' => NULL,
       'members' => [],
+      'memberIds' => [],
+      'watchers' => [],
+      'watcherIds' => [],
+      'authorId' => NULL,
       'watching' => FALSE,
       'createdAt' => $card->getCreatedTime(),
       'updatedAt' => $card->getChangedTime(),
     ];
+
+    // Get author info.
+    $author = $card->getOwner();
+    if ($author) {
+      $data['authorId'] = $author->uuid();
+    }
 
     if ($card->hasField('field_card_list') && !$card->get('field_card_list')->isEmpty()) {
       $data['listId'] = $card->get('field_card_list')->entity?->uuid();
@@ -636,6 +648,46 @@ class MercurePublisher {
 
     if ($card->hasField('field_card_completed') && !$card->get('field_card_completed')->isEmpty()) {
       $data['completed'] = (bool) $card->get('field_card_completed')->value;
+    }
+
+    // Get members (assigned users).
+    if ($card->hasField('field_card_members')) {
+      foreach ($card->get('field_card_members') as $memberRef) {
+        if ($memberRef->target_id) {
+          $user = $userStorage->load($memberRef->target_id);
+          if ($user) {
+            $data['memberIds'][] = $user->uuid();
+            $displayName = $user->hasField('field_display_name') && !$user->get('field_display_name')->isEmpty()
+              ? $user->get('field_display_name')->value
+              : $user->getDisplayName();
+            $data['members'][] = [
+              'id' => $user->uuid(),
+              'name' => $displayName,
+              'email' => $user->getEmail(),
+            ];
+          }
+        }
+      }
+    }
+
+    // Get watchers.
+    if ($card->hasField('field_card_watchers')) {
+      foreach ($card->get('field_card_watchers') as $watcherRef) {
+        if ($watcherRef->target_id) {
+          $user = $userStorage->load($watcherRef->target_id);
+          if ($user) {
+            $data['watcherIds'][] = $user->uuid();
+            $displayName = $user->hasField('field_display_name') && !$user->get('field_display_name')->isEmpty()
+              ? $user->get('field_display_name')->value
+              : $user->getDisplayName();
+            $data['watchers'][] = [
+              'id' => $user->uuid(),
+              'name' => $displayName,
+              'email' => $user->getEmail(),
+            ];
+          }
+        }
+      }
     }
 
     return $data;
