@@ -1,0 +1,10 @@
+boxtasks_workspace.dashboard_data:
+  path: '/api/workspace/{workspace_id}/dashboard'
+  defaults:
+    _controller: '\Drupal\boxtasks_workspace\Controller\DashboardDataController::getDashboardData'
+  requirements:
+    _permission: 'access content'
+    workspace_id: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  options:
+    no_cache: TRUE
+    _auth: ['basic_auth', 'oauth2']
