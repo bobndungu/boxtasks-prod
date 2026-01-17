@@ -30,7 +30,7 @@ function formatDateForDrupal(dateStr: string | null | undefined): string | null 
  * JavaScript interprets such strings as LOCAL time, but they are actually UTC.
  * This function ensures dates are properly marked as UTC so they display correctly.
  */
-function normalizeDateFromDrupal(dateStr: string | null | undefined): string | undefined {
+export function normalizeDateFromDrupal(dateStr: string | null | undefined): string | undefined {
   if (!dateStr) return undefined;
   // If the date already has timezone info, return as-is
   if (/[+-]\d{2}:\d{2}$/.test(dateStr) || /Z$/.test(dateStr)) {

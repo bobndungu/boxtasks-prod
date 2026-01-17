@@ -50,7 +50,7 @@ import {
 import { useBoardStore } from '../lib/stores/board';
 import { updateBoard, toggleBoardStar, fetchBoardData } from '../lib/api/boards';
 import { createList, updateList, deleteList, archiveList, type BoardList } from '../lib/api/lists';
-import { createCard, updateCard, deleteCard, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, addGoogleDoc, removeGoogleDoc, type Card, type CardLabel } from '../lib/api/cards';
+import { createCard, updateCard, deleteCard, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, addGoogleDoc, removeGoogleDoc, normalizeDateFromDrupal, type Card, type CardLabel } from '../lib/api/cards';
 import { type CardComment } from '../lib/api/comments';
 import { type TaxonomyTerm } from '../lib/api/taxonomies';
 import { fetchActivitiesByBoard, getActivityDisplay, createActivity, type Activity } from '../lib/api/activities';
@@ -854,7 +854,7 @@ export default function BoardView() {
           listId: cardData.listId,
           position: cardData.position,
           archived: cardData.archived,
-          dueDate: cardData.dueDate || undefined,
+          dueDate: normalizeDateFromDrupal(cardData.dueDate),
           labels: cardData.labels as CardLabel[],
           completed: false,
           pinned: false,
