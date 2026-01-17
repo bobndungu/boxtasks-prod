@@ -169,7 +169,10 @@ $settings['simple_oauth.settings'] = [
  * Mercure settings.
  */
 if ($mercure_url = getenv('MERCURE_URL')) {
+  // Public URL for clients to subscribe (via nginx proxy)
   $settings['mercure']['hub_url'] = $mercure_url;
+  // Internal URL for server to publish (direct to Mercure)
+  $settings['mercure']['hub_url_internal'] = getenv('MERCURE_INTERNAL_URL') ?: 'http://127.0.0.1:3080/.well-known/mercure';
   $settings['mercure']['jwt_secret'] = getenv('MERCURE_JWT_SECRET');
 }
 

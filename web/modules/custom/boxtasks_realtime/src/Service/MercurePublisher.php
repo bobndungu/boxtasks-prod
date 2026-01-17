@@ -6,6 +6,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\Core\Site\Settings;
 use Drupal\node\NodeInterface;
 use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
@@ -398,9 +399,24 @@ class MercurePublisher {
    * Publishes data to a Mercure topic.
    */
   protected function publish(string $topic, array $data): void {
+    // Try to get Mercure settings from $settings first (set in settings.php),
+    // then fall back to config, then to DDEV defaults.
+    $mercureSettings = Settings::get('mercure', []);
     $config = $this->configFactory->get('mercure.settings');
-    $hubUrl = $config->get('hub_url') ?? 'http://ddev-boxtasks2-mercure/.well-known/mercure';
-    $jwtKey = $config->get('jwt_key') ?? 'boxtasks2-mercure-publisher-secret-key-change-in-production';
+
+    // For publishing, we need the internal URL (where Mercure hub listens).
+    // The public URL (in MERCURE_URL) is for clients to subscribe.
+    // On production, Mercure listens on localhost:3080.
+    $hubUrl = $mercureSettings['hub_url_internal']
+      ?? $mercureSettings['hub_url']
+      ?? $config->get('hub_url')
+      ?? getenv('MERCURE_INTERNAL_URL')
+      ?? 'http://ddev-boxtasks2-mercure/.well-known/mercure';
+
+    $jwtKey = $mercureSettings['jwt_secret']
+      ?? $config->get('jwt_key')
+      ?? getenv('MERCURE_JWT_SECRET')
+      ?? 'boxtasks2-mercure-publisher-secret-key-change-in-production';
 
     // Create JWT token for publishing
     $payload = [
