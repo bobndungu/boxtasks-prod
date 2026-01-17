@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
 import {
   X,
   Plus,
@@ -256,6 +257,7 @@ function DroppableSection({ id, title, icon, fields, onEdit, onDelete, isOver }:
 }
 
 export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: CustomFieldsManagerProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [fields, setFields] = useState<CustomFieldDefinition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -416,9 +418,13 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
   };
 
   const handleDeleteField = async (field: CustomFieldDefinition) => {
-    if (!confirm(`Delete custom field "${field.title}"? This will remove all values from cards.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Delete Custom Field',
+      message: `Are you sure you want to delete the custom field "${field.title}"? This will remove all values from cards. This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       await deleteCustomField(field.id);
@@ -979,6 +985,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
           )}
         </div>
       </div>
+      <ConfirmDialog />
     </div>
   );
 }

@@ -165,7 +165,26 @@ function boxtasks_realtime_entity_predelete(EntityInterface $entity) {
       break;
 
     case 'card_comment':
-      $publisher->publishCommentEvent($entity, 'comment.deleted');
+      // Get IDs before deletion clears them
+      $commentId = $entity->uuid();
+      $cardId = NULL;
+      $boardId = NULL;
+      if ($entity->hasField('field_comment_card') && !$entity->get('field_comment_card')->isEmpty()) {
+        $card = $entity->get('field_comment_card')->entity;
+        if ($card) {
+          $cardId = $card->uuid();
+          // Get board ID from card
+          if ($card->hasField('field_card_list') && !$card->get('field_card_list')->isEmpty()) {
+            $list = $card->get('field_card_list')->entity;
+            if ($list && $list->hasField('field_list_board') && !$list->get('field_list_board')->isEmpty()) {
+              $boardId = $list->get('field_list_board')->entity?->uuid();
+            }
+          }
+        }
+      }
+      if ($boardId && $commentId) {
+        $publisher->publishCommentDeleted($commentId, $cardId, $boardId);
+      }
       break;
   }
 }

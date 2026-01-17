@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
 import {
   Clock,
   Play,
@@ -34,6 +35,7 @@ interface TimeTrackerProps {
 }
 
 export function TimeTracker({ cardId, cardTitle }: TimeTrackerProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -214,7 +216,13 @@ export function TimeTracker({ cardId, cardTitle }: TimeTrackerProps) {
 
   // Delete entry
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this time entry?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Time Entry',
+      message: 'Are you sure you want to delete this time entry? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       await deleteTimeEntry(id);
@@ -527,6 +535,7 @@ export function TimeTracker({ cardId, cardTitle }: TimeTrackerProps) {
           )}
         </div>
       )}
+      <ConfirmDialog />
     </div>
   );
 }

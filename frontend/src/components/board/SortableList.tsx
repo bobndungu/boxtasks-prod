@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useConfirmDialog } from '../../lib/hooks/useConfirmDialog';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -45,6 +46,7 @@ export function SortableList({
   canDeleteList,
   canArchiveCard,
 }: SortableListProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(list.title);
   const [showMenu, setShowMenu] = useState(false);
@@ -295,10 +297,16 @@ export function SortableList({
                         Archive list
                       </button>
                       <button
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
                           setShowMenu(false);
-                          if (confirm('Delete this list and all its cards?')) {
+                          const confirmed = await confirm({
+                            title: 'Delete List',
+                            message: 'Are you sure you want to delete this list and all its cards? This action cannot be undone.',
+                            confirmLabel: 'Delete',
+                            variant: 'danger',
+                          });
+                          if (confirmed) {
                             onDeleteList(list.id);
                           }
                         }}
@@ -474,6 +482,7 @@ export function SortableList({
           {cards.length} card{cards.length !== 1 ? 's' : ''}
         </div>
       )}
+      <ConfirmDialog />
     </div>
   );
 }

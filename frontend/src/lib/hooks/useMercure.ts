@@ -291,6 +291,7 @@ export function useBoardUpdates(
     onListDeleted?: (listId: string) => void;
     onListReordered?: (listPositions: Record<string, number>) => void;
     onCommentCreated?: (commentData: unknown) => void;
+    onCommentDeleted?: (commentData: unknown) => void;
     onPresenceUpdate?: (presenceData: PresenceUpdateData) => void;
     onMemberAssigned?: (data: MemberAssignmentData) => void;
     onMemberUnassigned?: (data: MemberAssignmentData) => void;
@@ -329,6 +330,9 @@ export function useBoardUpdates(
         break;
       case 'comment.created':
         callbacks.onCommentCreated?.(message.data);
+        break;
+      case 'comment.deleted':
+        callbacks.onCommentDeleted?.(message.data);
         break;
       case 'presence.update':
         callbacks.onPresenceUpdate?.(message.data as PresenceUpdateData);

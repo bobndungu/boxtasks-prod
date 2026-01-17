@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
 import { Link, useParams } from 'react-router-dom';
 import { useAuthStore } from '../lib/stores/auth';
 import { formatDate as formatDateEAT } from '../lib/utils/date';
@@ -33,6 +34,7 @@ import {
 import { toast } from '../lib/stores/toast';
 
 function Milestones() {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const { workspaceId } = useParams<{ workspaceId: string }>();
   useAuthStore();
   const [milestones, setMilestones] = useState<Milestone[]>([]);
@@ -88,7 +90,13 @@ function Milestones() {
   };
 
   const handleDeleteMilestone = async (milestoneId: string) => {
-    if (!confirm('Are you sure you want to delete this milestone?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Milestone',
+      message: 'Are you sure you want to delete this milestone? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await deleteMilestone(milestoneId);
       setMilestones(prev => prev.filter(m => m.id !== milestoneId));
@@ -265,6 +273,7 @@ function Milestones() {
           formatDate={formatDate}
         />
       )}
+      <ConfirmDialog />
     </div>
   );
 }

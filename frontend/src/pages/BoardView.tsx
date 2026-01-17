@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   DndContext,
@@ -92,6 +93,7 @@ import {
 } from '../components/board';
 
 export default function BoardView() {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentBoard, setCurrentBoard, updateBoard: updateBoardInStore } = useBoardStore();
@@ -183,6 +185,8 @@ export default function BoardView() {
 
   // Real-time comment from Mercure for CardDetailModal
   const [newMercureComment, setNewMercureComment] = useState<CardComment | null>(null);
+  // Deleted comment ID from Mercure for CardDetailModal
+  const [deletedMercureCommentId, setDeletedMercureCommentId] = useState<string | null>(null);
 
   // Custom field filter alias for backwards compatibility
   const customFieldFilter = advancedFilters.customFields;
@@ -594,6 +598,13 @@ export default function BoardView() {
       // Pass the full comment to CardDetailModal for real-time updates
       if (comment.id && comment.cardId) {
         setNewMercureComment(comment);
+      }
+    },
+    onCommentDeleted: (commentData) => {
+      // Handle deleted comments in real-time
+      const comment = commentData as { id: string; cardId?: string; cardTitle?: string };
+      if (comment.id) {
+        setDeletedMercureCommentId(comment.id);
       }
     },
     onPresenceUpdate: (presenceData) => {
@@ -1280,7 +1291,13 @@ export default function BoardView() {
   };
 
   const handleDeleteCard = async (card: Card) => {
-    if (!confirm('Delete this card?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Card',
+      message: `Are you sure you want to delete "${card.title}"? This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       const listName = lists.find(l => l.id === card.listId)?.title || 'list';
@@ -1431,9 +1448,13 @@ export default function BoardView() {
 
   // Handle permanently deleting an archived card
   const handleDeleteArchivedCard = async (card: Card) => {
-    if (!window.confirm(`Are you sure you want to permanently delete "${card.title}"? This cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Permanently Delete Card',
+      message: `Are you sure you want to permanently delete "${card.title}"? This action cannot be undone.`,
+      confirmLabel: 'Delete Permanently',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       await deleteCard(card.id);
@@ -2823,6 +2844,7 @@ export default function BoardView() {
             setSelectedCard((prev) => prev ? { ...prev, googleDocs: updatedCard.googleDocs } : null);
           }}
           newMercureComment={newMercureComment}
+          deletedMercureCommentId={deletedMercureCommentId}
           onMove={async (cardId, fromListId, toListId) => {
             // Get the destination list cards BEFORE updating state
             const destCards = cardsByList.get(toListId) || [];
@@ -3035,6 +3057,7 @@ export default function BoardView() {
           entityName={currentBoard.title}
         />
       )}
+      <ConfirmDialog />
     </div>
   );
 }

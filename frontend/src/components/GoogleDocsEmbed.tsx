@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
 import {
   FileText,
   Sheet,
@@ -80,6 +81,7 @@ function DocIcon({ type, className }: { type: string; className?: string }) {
 }
 
 export function GoogleDocsEmbed({ docs, onAdd, onRemove, canEdit }: GoogleDocsEmbedProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [expanded, setExpanded] = useState(docs.length > 0);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newUrl, setNewUrl] = useState('');
@@ -117,7 +119,13 @@ export function GoogleDocsEmbed({ docs, onAdd, onRemove, canEdit }: GoogleDocsEm
   };
 
   const handleRemove = async (url: string) => {
-    if (!confirm('Remove this Google Doc?')) return;
+    const confirmed = await confirm({
+      title: 'Remove Google Doc',
+      message: 'Are you sure you want to remove this Google Doc from the card?',
+      confirmLabel: 'Remove',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       await onRemove(url);
@@ -297,6 +305,7 @@ export function GoogleDocsEmbed({ docs, onAdd, onRemove, canEdit }: GoogleDocsEm
           )}
         </div>
       )}
+      <ConfirmDialog />
     </div>
   );
 }

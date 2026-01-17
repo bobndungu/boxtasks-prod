@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
 import { Link, useParams } from 'react-router-dom';
 import { useAuthStore } from '../lib/stores/auth';
 import { formatDate as formatDateEAT } from '../lib/utils/date';
@@ -31,6 +32,7 @@ import {
 import { toast } from '../lib/stores/toast';
 
 function Goals() {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const { workspaceId } = useParams<{ workspaceId: string }>();
   useAuthStore();
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -81,7 +83,13 @@ function Goals() {
   };
 
   const handleDeleteGoal = async (goalId: string) => {
-    if (!confirm('Are you sure you want to delete this goal?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Goal',
+      message: 'Are you sure you want to delete this goal? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await deleteGoal(goalId);
       setGoals(prev => prev.filter(g => g.id !== goalId));
@@ -256,6 +264,7 @@ function Goals() {
           formatDate={formatDate}
         />
       )}
+      <ConfirmDialog />
     </div>
   );
 }

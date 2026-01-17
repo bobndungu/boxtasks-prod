@@ -307,6 +307,31 @@ class MercurePublisher {
   }
 
   /**
+   * Publishes a comment deleted event to Mercure.
+   *
+   * @param string $commentId
+   *   The comment UUID.
+   * @param string|null $cardId
+   *   The card UUID (optional).
+   * @param string $boardId
+   *   The board UUID.
+   */
+  public function publishCommentDeleted(string $commentId, ?string $cardId, string $boardId): void {
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'comment.deleted',
+      'data' => [
+        'id' => $commentId,
+        'cardId' => $cardId,
+      ],
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
    * Publishes a comment event to Mercure.
    */
   public function publishCommentEvent(NodeInterface $comment, string $eventType): void {

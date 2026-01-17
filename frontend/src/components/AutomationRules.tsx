@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
 import {
   Zap,
   Plus,
@@ -48,6 +49,7 @@ export function AutomationRules({
   members,
   onClose,
 }: AutomationRulesProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [rules, setRules] = useState<AutomationRule[]>([]);
   const [logs, setLogs] = useState<AutomationLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,7 +97,13 @@ export function AutomationRules({
   }
 
   async function handleDeleteRule(rule: AutomationRule) {
-    if (!confirm(`Delete automation rule "${rule.name}"?`)) return;
+    const confirmed = await confirm({
+      title: 'Delete Automation Rule',
+      message: `Are you sure you want to delete the automation rule "${rule.name}"? This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       await deleteAutomationRule(rule.id);
@@ -247,6 +255,7 @@ export function AutomationRules({
           <LogsList logs={logs} getTriggerLabel={getTriggerLabel} />
         )}
       </div>
+      <ConfirmDialog />
     </div>
   );
 }

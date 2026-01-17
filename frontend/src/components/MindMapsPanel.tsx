@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
 import { Link } from 'react-router-dom';
 import {
   GitBranch,
@@ -25,6 +26,7 @@ interface MindMapsPanelProps {
 }
 
 export function MindMapsPanel({ boardId, onClose }: MindMapsPanelProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [mindMaps, setMindMaps] = useState<MindMap[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -106,7 +108,13 @@ export function MindMapsPanel({ boardId, onClose }: MindMapsPanelProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this mind map?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Mind Map',
+      message: 'Are you sure you want to delete this mind map? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       await deleteMindMap(id);
@@ -310,6 +318,7 @@ export function MindMapsPanel({ boardId, onClose }: MindMapsPanelProps) {
           )}
         </div>
       </div>
+      <ConfirmDialog />
     </div>
   );
 }

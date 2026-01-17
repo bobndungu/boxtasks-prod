@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useConfirmDialog } from '../../../lib/hooks/useConfirmDialog';
 import {
   X,
   Loader2,
@@ -94,6 +95,7 @@ function CardDetailModal({
   onGoogleDocAdd,
   onGoogleDocRemove,
   newMercureComment,
+  deletedMercureCommentId,
 }: {
   card: Card;
   listTitle: string;
@@ -126,7 +128,10 @@ function CardDetailModal({
   onGoogleDocRemove: (cardId: string, url: string) => Promise<void>;
   // Real-time comment from Mercure
   newMercureComment?: CardComment | null;
+  // Deleted comment ID from Mercure
+  deletedMercureCommentId?: string | null;
 }) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description || '');
   const [editingDescription, setEditingDescription] = useState(false);
@@ -314,6 +319,13 @@ function CardDetailModal({
     }
   }, [newMercureComment, card.id]);
 
+  // Handle real-time comment deletions from Mercure
+  useEffect(() => {
+    if (deletedMercureCommentId) {
+      setComments((prev) => prev.filter((c) => c.id !== deletedMercureCommentId));
+    }
+  }, [deletedMercureCommentId]);
+
   const loadComments = async () => {
     try {
       setIsLoadingComments(true);
@@ -463,7 +475,13 @@ function CardDetailModal({
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!confirm('Delete this comment?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Comment',
+      message: 'Are you sure you want to delete this comment? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await deleteComment(commentId);
       setComments(comments.filter((c) => c.id !== commentId));
@@ -550,7 +568,13 @@ function CardDetailModal({
   };
 
   const handleDeleteAttachment = async (attachmentId: string) => {
-    if (!confirm('Delete this attachment?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Attachment',
+      message: 'Are you sure you want to delete this attachment? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await deleteAttachment(attachmentId);
       setAttachments(attachments.filter((a) => a.id !== attachmentId));
@@ -957,7 +981,13 @@ function CardDetailModal({
   };
 
   const handleDeleteChecklist = async (checklistId: string) => {
-    if (!confirm('Delete this checklist?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Checklist',
+      message: 'Are you sure you want to delete this checklist? All items in this checklist will be deleted. This action cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await deleteChecklist(checklistId);
       setChecklists(checklists.filter((c) => c.id !== checklistId));
@@ -3818,6 +3848,7 @@ function CardDetailModal({
           </div>
         )}
 
+        <ConfirmDialog />
       </div>
     </div>
   );
