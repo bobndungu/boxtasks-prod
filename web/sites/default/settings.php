@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Load environment variables from .env file (for production).
+ */
+$dotenv_path = dirname(__DIR__, 3);
+if (file_exists($dotenv_path . '/vendor/autoload.php') && file_exists($dotenv_path . '/.env')) {
+  require_once $dotenv_path . '/vendor/autoload.php';
+  $dotenv = Dotenv\Dotenv::createUnsafeImmutable($dotenv_path);
+  $dotenv->load();
+}
+
 // phpcs:ignoreFile
 
 // DDEV-created Drupal 10 settings.php from upstream default.settings.php
