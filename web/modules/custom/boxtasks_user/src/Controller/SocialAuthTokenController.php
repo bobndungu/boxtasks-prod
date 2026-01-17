@@ -94,7 +94,7 @@ class SocialAuthTokenController extends ControllerBase {
    *   Redirect to frontend with token.
    */
   public function generateToken(Request $request): RedirectResponse {
-    $frontend_url = getenv('FRONTEND_URL') ?: 'https://boxtasks.boxraft.com';
+    $frontend_url = getenv('FRONTEND_URL') ?: 'https://tasks.boxraft.com';
 
     // Check if user is authenticated.
     if ($this->currentUser()->isAnonymous()) {

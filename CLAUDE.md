@@ -557,8 +557,8 @@ claude --continue "Resume the agentic loop from where we left off"
 - **SSH Host:** 23.92.21.181
 - **SSH User:** root
 - **SSH Port:** 22
-- **Production URL:** https://boxtasks.boxraft.com
-- **Drupal Path:** /var/www/websites/boxtasks.boxraft.com/web
+- **Production URL:** https://tasks.boxraft.com
+- **Drupal Path:** /var/www/websites/tasks.boxraft.com/web
 
 ### CRITICAL: Shared Services Warning
 

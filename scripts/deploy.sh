@@ -28,12 +28,12 @@ log_error() {
 
 # Set environment-specific variables
 if [ "$ENVIRONMENT" == "production" ]; then
-    DOMAIN="boxtasks.boxraft.com"
-    DEPLOY_PATH="/var/www/websites/boxtasks.boxraft.com"
+    DOMAIN="tasks.boxraft.com"
+    DEPLOY_PATH="/var/www/websites/tasks.boxraft.com"
     ENV_FILE=".env.production"
 else
-    DOMAIN="staging.boxtasks.boxraft.com"
-    DEPLOY_PATH="/var/www/websites/staging.boxtasks.boxraft.com"
+    DOMAIN="staging.tasks.boxraft.com"
+    DEPLOY_PATH="/var/www/websites/staging.tasks.boxraft.com"
     ENV_FILE=".env.staging"
 fi
 

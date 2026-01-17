@@ -24,10 +24,10 @@ log_error() {
 }
 
 # Configuration
-STAGING_DOMAIN="staging.boxtasks.boxraft.com"
-PRODUCTION_DOMAIN="boxtasks.boxraft.com"
-STAGING_PATH="/var/www/websites/staging.boxtasks.boxraft.com"
-PRODUCTION_PATH="/var/www/websites/boxtasks.boxraft.com"
+STAGING_DOMAIN="staging.tasks.boxraft.com"
+PRODUCTION_DOMAIN="tasks.boxraft.com"
+STAGING_PATH="/var/www/websites/staging.tasks.boxraft.com"
+PRODUCTION_PATH="/var/www/websites/tasks.boxraft.com"
 WEB_USER="www-data"
 
 # 1. Create directory structure
@@ -50,27 +50,27 @@ log_info "Creating Nginx configurations..."
 cat > /etc/nginx/sites-available/$STAGING_DOMAIN << 'NGINX_STAGING'
 server {
     listen 80;
-    server_name staging.boxtasks.boxraft.com;
+    server_name staging.tasks.boxraft.com;
     return 301 https://$server_name$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name staging.boxtasks.boxraft.com;
+    server_name staging.tasks.boxraft.com;
 
     # SSL certificates (managed by Certbot)
-    ssl_certificate /etc/letsencrypt/live/staging.boxtasks.boxraft.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/staging.boxtasks.boxraft.com/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/staging.tasks.boxraft.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/staging.tasks.boxraft.com/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
     # Root for Drupal backend
-    root /var/www/websites/staging.boxtasks.boxraft.com/web;
+    root /var/www/websites/staging.tasks.boxraft.com/web;
     index index.php index.html;
 
     # Logs
-    access_log /var/log/nginx/staging.boxtasks.boxraft.com.access.log;
-    error_log /var/log/nginx/staging.boxtasks.boxraft.com.error.log;
+    access_log /var/log/nginx/staging.tasks.boxraft.com.access.log;
+    error_log /var/log/nginx/staging.tasks.boxraft.com.error.log;
 
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -84,31 +84,31 @@ server {
 
     # Frontend React app (serve static files)
     location / {
-        root /var/www/websites/staging.boxtasks.boxraft.com/frontend/dist;
+        root /var/www/websites/staging.tasks.boxraft.com/frontend/dist;
         try_files $uri $uri/ /index.html;
     }
 
     # Drupal JSON:API endpoint
     location /jsonapi {
-        root /var/www/websites/staging.boxtasks.boxraft.com/web;
+        root /var/www/websites/staging.tasks.boxraft.com/web;
         try_files $uri /index.php?$query_string;
     }
 
     # Drupal OAuth endpoints
     location /oauth {
-        root /var/www/websites/staging.boxtasks.boxraft.com/web;
+        root /var/www/websites/staging.tasks.boxraft.com/web;
         try_files $uri /index.php?$query_string;
     }
 
     # Drupal user endpoints
     location /user {
-        root /var/www/websites/staging.boxtasks.boxraft.com/web;
+        root /var/www/websites/staging.tasks.boxraft.com/web;
         try_files $uri /index.php?$query_string;
     }
 
     # Drupal admin
     location /admin {
-        root /var/www/websites/staging.boxtasks.boxraft.com/web;
+        root /var/www/websites/staging.tasks.boxraft.com/web;
         try_files $uri /index.php?$query_string;
     }
 
@@ -125,7 +125,7 @@ server {
 
     # PHP-FPM for Drupal
     location ~ \.php$ {
-        root /var/www/websites/staging.boxtasks.boxraft.com/web;
+        root /var/www/websites/staging.tasks.boxraft.com/web;
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
         fastcgi_pass unix:/run/php/php8.3-fpm.sock;
         fastcgi_index index.php;
@@ -141,7 +141,7 @@ server {
     }
 
     location ~ ^/sites/.*/files/styles/ {
-        root /var/www/websites/staging.boxtasks.boxraft.com/web;
+        root /var/www/websites/staging.tasks.boxraft.com/web;
         try_files $uri @rewrite;
     }
 
@@ -161,27 +161,27 @@ NGINX_STAGING
 cat > /etc/nginx/sites-available/$PRODUCTION_DOMAIN << 'NGINX_PRODUCTION'
 server {
     listen 80;
-    server_name boxtasks.boxraft.com;
+    server_name tasks.boxraft.com;
     return 301 https://$server_name$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name boxtasks.boxraft.com;
+    server_name tasks.boxraft.com;
 
     # SSL certificates (managed by Certbot)
-    ssl_certificate /etc/letsencrypt/live/boxtasks.boxraft.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/boxtasks.boxraft.com/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/tasks.boxraft.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tasks.boxraft.com/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
     # Root for Drupal backend
-    root /var/www/websites/boxtasks.boxraft.com/web;
+    root /var/www/websites/tasks.boxraft.com/web;
     index index.php index.html;
 
     # Logs
-    access_log /var/log/nginx/boxtasks.boxraft.com.access.log;
-    error_log /var/log/nginx/boxtasks.boxraft.com.error.log;
+    access_log /var/log/nginx/tasks.boxraft.com.access.log;
+    error_log /var/log/nginx/tasks.boxraft.com.error.log;
 
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -195,31 +195,31 @@ server {
 
     # Frontend React app (serve static files)
     location / {
-        root /var/www/websites/boxtasks.boxraft.com/frontend/dist;
+        root /var/www/websites/tasks.boxraft.com/frontend/dist;
         try_files $uri $uri/ /index.html;
     }
 
     # Drupal JSON:API endpoint
     location /jsonapi {
-        root /var/www/websites/boxtasks.boxraft.com/web;
+        root /var/www/websites/tasks.boxraft.com/web;
         try_files $uri /index.php?$query_string;
     }
 
     # Drupal OAuth endpoints
     location /oauth {
-        root /var/www/websites/boxtasks.boxraft.com/web;
+        root /var/www/websites/tasks.boxraft.com/web;
         try_files $uri /index.php?$query_string;
     }
 
     # Drupal user endpoints
     location /user {
-        root /var/www/websites/boxtasks.boxraft.com/web;
+        root /var/www/websites/tasks.boxraft.com/web;
         try_files $uri /index.php?$query_string;
     }
 
     # Drupal admin
     location /admin {
-        root /var/www/websites/boxtasks.boxraft.com/web;
+        root /var/www/websites/tasks.boxraft.com/web;
         try_files $uri /index.php?$query_string;
     }
 
@@ -236,7 +236,7 @@ server {
 
     # PHP-FPM for Drupal
     location ~ \.php$ {
-        root /var/www/websites/boxtasks.boxraft.com/web;
+        root /var/www/websites/tasks.boxraft.com/web;
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
         fastcgi_pass unix:/run/php/php8.3-fpm.sock;
         fastcgi_index index.php;
@@ -252,7 +252,7 @@ server {
     }
 
     location ~ ^/sites/.*/files/styles/ {
-        root /var/www/websites/boxtasks.boxraft.com/web;
+        root /var/www/websites/tasks.boxraft.com/web;
         try_files $uri @rewrite;
     }
 
@@ -300,16 +300,16 @@ DB_PASSWORD=CHANGE_ME
 DRUPAL_HASH_SALT=CHANGE_ME_RANDOM_STRING
 
 # Mercure
-MERCURE_URL=https://staging.boxtasks.boxraft.com/.well-known/mercure
-MERCURE_PUBLIC_URL=https://staging.boxtasks.boxraft.com/.well-known/mercure
+MERCURE_URL=https://staging.tasks.boxraft.com/.well-known/mercure
+MERCURE_PUBLIC_URL=https://staging.tasks.boxraft.com/.well-known/mercure
 MERCURE_JWT_SECRET=CHANGE_ME_RANDOM_STRING
 
 # Frontend
-VITE_API_URL=https://staging.boxtasks.boxraft.com
+VITE_API_URL=https://staging.tasks.boxraft.com
 
 # OAuth
-OAUTH_PRIVATE_KEY=/var/www/websites/staging.boxtasks.boxraft.com/private/oauth-private.key
-OAUTH_PUBLIC_KEY=/var/www/websites/staging.boxtasks.boxraft.com/private/oauth-public.key
+OAUTH_PRIVATE_KEY=/var/www/websites/staging.tasks.boxraft.com/private/oauth-private.key
+OAUTH_PUBLIC_KEY=/var/www/websites/staging.tasks.boxraft.com/private/oauth-public.key
 ENV_STAGING
 
 cat > "$PRODUCTION_PATH/.env.production" << 'ENV_PRODUCTION'
@@ -329,16 +329,16 @@ DB_PASSWORD=CHANGE_ME
 DRUPAL_HASH_SALT=CHANGE_ME_RANDOM_STRING
 
 # Mercure
-MERCURE_URL=https://boxtasks.boxraft.com/.well-known/mercure
-MERCURE_PUBLIC_URL=https://boxtasks.boxraft.com/.well-known/mercure
+MERCURE_URL=https://tasks.boxraft.com/.well-known/mercure
+MERCURE_PUBLIC_URL=https://tasks.boxraft.com/.well-known/mercure
 MERCURE_JWT_SECRET=CHANGE_ME_RANDOM_STRING
 
 # Frontend
-VITE_API_URL=https://boxtasks.boxraft.com
+VITE_API_URL=https://tasks.boxraft.com
 
 # OAuth
-OAUTH_PRIVATE_KEY=/var/www/websites/boxtasks.boxraft.com/private/oauth-private.key
-OAUTH_PUBLIC_KEY=/var/www/websites/boxtasks.boxraft.com/private/oauth-public.key
+OAUTH_PRIVATE_KEY=/var/www/websites/tasks.boxraft.com/private/oauth-private.key
+OAUTH_PUBLIC_KEY=/var/www/websites/tasks.boxraft.com/private/oauth-public.key
 ENV_PRODUCTION
 
 # 7. Generate SSL certificates with Certbot (if not exists)

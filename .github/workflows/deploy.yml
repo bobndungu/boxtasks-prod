@@ -43,7 +43,7 @@ jobs:
         working-directory: frontend
         run: npm run build
         env:
-          VITE_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://boxtasks.boxraft.com' || 'https://staging.boxtasks.boxraft.com' }}
+          VITE_API_URL: ${{ github.ref == 'refs/heads/main' && 'https://tasks.boxraft.com' || 'https://staging.tasks.boxraft.com' }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -59,7 +59,7 @@ jobs:
     if: github.ref == 'refs/heads/staging' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
     environment:
       name: staging
-      url: https://staging.boxtasks.boxraft.com
+      url: https://staging.tasks.boxraft.com
     steps:
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
@@ -79,7 +79,7 @@ jobs:
 
       - name: Deploy to staging server
         env:
-          DEPLOY_PATH: /var/www/websites/staging.boxtasks.boxraft.com
+          DEPLOY_PATH: /var/www/websites/staging.tasks.boxraft.com
           SERVER: root@23.92.21.181
         run: |
           # Pull latest code from GitHub
@@ -102,7 +102,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
     environment:
       name: production
-      url: https://boxtasks.boxraft.com
+      url: https://tasks.boxraft.com
     steps:
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
@@ -122,7 +122,7 @@ jobs:
 
       - name: Deploy to production server
         env:
-          DEPLOY_PATH: /var/www/websites/boxtasks.boxraft.com
+          DEPLOY_PATH: /var/www/websites/tasks.boxraft.com
           SERVER: root@23.92.21.181
         run: |
           # Pull latest code from GitHub
@@ -143,8 +143,8 @@ jobs:
           SERVER: root@23.92.21.181
         run: |
           # Check site is responding
-          ssh $SERVER "curl -s -o /dev/null -w '%{http_code}' https://boxtasks.boxraft.com/" | grep -q "200" && echo "✅ Site is up" || echo "⚠️ Site may have issues"
+          ssh $SERVER "curl -s -o /dev/null -w '%{http_code}' https://tasks.boxraft.com/" | grep -q "200" && echo "✅ Site is up" || echo "⚠️ Site may have issues"
 
           # Show deployed commit
-          ssh $SERVER "cd /var/www/websites/boxtasks.boxraft.com && git log -1 --oneline"
+          ssh $SERVER "cd /var/www/websites/tasks.boxraft.com && git log -1 --oneline"
 
