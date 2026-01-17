@@ -1,11 +1,9 @@
-uuid: 40a4b455-eec4-45df-8ee4-82896b64bb6f
+uuid: 1845ca5a-1491-4f09-83bc-8ca7d11a0ab4
 langcode: en
 status: true
 dependencies:
   module:
     - node
-_core:
-  default_config_hash: FhbcN43hpzujxhvlRw_dRVBmKTdg2x-p2KnzfFCrJK8
 id: node.field_member_role_role
 field_name: field_member_role_role
 entity_type: node

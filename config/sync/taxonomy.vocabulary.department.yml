@@ -1,9 +1,9 @@
-uuid: f8c88e50-5bc0-4e12-8911-e513de3f25eb
+uuid: 65a9af39-eb4f-4505-bac2-c99b5c41f8c8
 langcode: en
 status: true
 dependencies: {  }
 name: Department
 vid: department
-description: 'Departments within organization'
+description: 'Departments for organizing cards'
 weight: 0
 new_revision: false

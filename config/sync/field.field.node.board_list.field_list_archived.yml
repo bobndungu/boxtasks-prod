@@ -1,12 +1,10 @@
-uuid: 2caeed8c-acaf-4a49-a612-2e6cf34c60f6
+uuid: cff9aed9-f43b-4d86-b14d-2f0122fa3d4b
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_list_archived
     - node.type.board_list
-_core:
-  default_config_hash: d8fp6_DvNyzHUb0bCuu5ImabX19h17DEtKWuyA2a5EM
 id: node.board_list.field_list_archived
 field_name: field_list_archived
 entity_type: node
@@ -17,7 +15,7 @@ required: false
 translatable: true
 default_value:
   -
-    value: false
+    value: 0
 default_value_callback: ''
 settings:
   on_label: Archived

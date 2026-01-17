@@ -1,12 +1,10 @@
-uuid: e93f66af-2168-47b4-bb3c-a47ffda98503
+uuid: 76ab8286-9312-453e-b1b7-55e025e8d7d6
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-_core:
-  default_config_hash: 3Ssd91DZpVC4X9eVgwliQ5j3pCD6J7tyqowAvpshsK4
 id: node.field_perm_workspace_edit
 field_name: field_perm_workspace_edit
 entity_type: node

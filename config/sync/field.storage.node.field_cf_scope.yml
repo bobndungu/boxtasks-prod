@@ -1,12 +1,10 @@
-uuid: 8fadc54c-9af2-48fe-8610-d6066be14554
+uuid: f792cef1-c009-412e-9c7e-259f624e9f3c
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-_core:
-  default_config_hash: QfcT3e_a2TcgsIDYyTl3f4t68mssdyytKSDTIDeY-m0
 id: node.field_cf_scope
 field_name: field_cf_scope
 entity_type: node

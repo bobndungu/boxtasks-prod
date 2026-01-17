@@ -1,12 +1,10 @@
-uuid: 3212fa82-c238-44f4-b192-fa267d9ca140
+uuid: 20721528-41a2-4b32-a890-2debe2e1339c
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-_core:
-  default_config_hash: GD9_RzF2MZiEfF9WiyuuyR6PR49bMK2etB4Sp8ToHRk
 id: node.field_perm_board_edit
 field_name: field_perm_board_edit
 entity_type: node

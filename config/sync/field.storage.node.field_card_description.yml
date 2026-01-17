@@ -1,12 +1,10 @@
-uuid: 6f627fc6-52a4-477a-bbc7-44b186541e5e
+uuid: 6e7a9a00-9f09-4f8a-906d-6049e8bb1fc2
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - text
-_core:
-  default_config_hash: vYMRQ9tBbX2gq-iNs6u63XuU5QJ7FBjXYCOFjRJ2TuE
 id: node.field_card_description
 field_name: field_card_description
 entity_type: node

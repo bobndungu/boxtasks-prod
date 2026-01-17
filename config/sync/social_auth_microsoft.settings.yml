@@ -1,5 +1,2 @@
-client_id: ''
-client_secret: ''
-scopes: User.Read
-restricted_domain: ''
-graph_version: v1.0
+client_id: e19079b7-b519-4766-80a3-79f4be13c639
+client_secret: 8a55d322-7ba8-442c-b531-4941941f80f9

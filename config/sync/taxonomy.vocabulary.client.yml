@@ -1,9 +1,9 @@
-uuid: 0bb59a78-be78-4b8a-8280-c7547d5c4d2c
+uuid: 6e9f6027-78c0-4521-9305-f1d01435df03
 langcode: en
 status: true
 dependencies: {  }
 name: Client
 vid: client
-description: 'Client organizations'
+description: 'Clients for organizing cards'
 weight: 0
 new_revision: false

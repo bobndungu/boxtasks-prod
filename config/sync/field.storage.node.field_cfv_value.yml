@@ -1,12 +1,10 @@
-uuid: a8a1e6db-80db-4d94-b9b4-ce898f09fcff
+uuid: df69c520-2c56-49a8-8e64-956a511bac80
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - text
-_core:
-  default_config_hash: K7zBZ8sT5SuB6p0v47EJ_CJqMewkJiLOJk4WBiYqqCU
 id: node.field_cfv_value
 field_name: field_cfv_value
 entity_type: node

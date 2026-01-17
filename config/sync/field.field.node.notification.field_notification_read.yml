@@ -1,4 +1,4 @@
-uuid: 56f404a2-fd4b-4afb-af4a-8a3ef7c6d179
+uuid: e54c309a-c140-4d33-8d31-6b201eb2baed
 langcode: en
 status: true
 dependencies:
@@ -13,7 +13,9 @@ label: Read
 description: ''
 required: false
 translatable: true
-default_value: {  }
+default_value:
+  -
+    value: 0
 default_value_callback: ''
 settings:
   on_label: 'On'

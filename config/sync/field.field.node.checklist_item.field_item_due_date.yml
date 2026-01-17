@@ -1,4 +1,4 @@
-uuid: 1d1a44b7-8aa6-44df-bd11-f04832ebec1e
+uuid: 103ced1d-6330-4166-9713-3f058180d5a1
 langcode: en
 status: true
 dependencies:
@@ -7,16 +7,14 @@ dependencies:
     - node.type.checklist_item
   module:
     - datetime
-_core:
-  default_config_hash: VtgDUePHSModz-qCAUcOOyiXyyZkD8T8GW4LnJ2gxaU
 id: node.checklist_item.field_item_due_date
 field_name: field_item_due_date
 entity_type: node
 bundle: checklist_item
 label: 'Due Date'
-description: 'When this checklist item is due (Premium feature).'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value: {  }
 default_value_callback: ''
 settings: {  }

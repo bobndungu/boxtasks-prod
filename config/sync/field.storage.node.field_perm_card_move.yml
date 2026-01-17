@@ -1,12 +1,10 @@
-uuid: cf381b12-f4d5-47ce-9c8d-1e7f7cc32034
+uuid: 1140a09c-c6a9-41b2-afb8-56daeb19e61d
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-_core:
-  default_config_hash: xEXZpMvBukjjgign8c4Ic4oRr_q8i1c8Q_kpJyyvPto
 id: node.field_perm_card_move
 field_name: field_perm_card_move
 entity_type: node

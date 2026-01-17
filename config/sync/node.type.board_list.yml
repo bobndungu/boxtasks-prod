@@ -1,9 +1,7 @@
-uuid: 99945958-487f-404e-8f07-0e3ae0e91000
+uuid: 861e939a-05e1-479d-88d6-c0b8817a417e
 langcode: en
 status: true
 dependencies: {  }
-_core:
-  default_config_hash: OPKvH31rSMOI3M_-N-rhWQHQ6ZZr60yszpfSv9ojDEg
 name: 'Board List'
 type: board_list
 description: 'A list (column) within a board'

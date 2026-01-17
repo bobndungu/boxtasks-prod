@@ -1,12 +1,10 @@
-uuid: 2c2a8984-812f-4299-99d9-c0fba26693b6
+uuid: f461b32a-e015-490b-b263-9abe8bd6725c
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-_core:
-  default_config_hash: vJn2HIq3PaON8BIOmtLO3ujsy27tf8N7bOuZ4c7x1gE
 id: node.field_perm_workspace_view
 field_name: field_perm_workspace_view
 entity_type: node

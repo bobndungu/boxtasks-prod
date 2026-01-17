@@ -1,11 +1,9 @@
-uuid: 010c2b7c-458c-45f7-a743-ea74102c46e0
+uuid: 75144066-8e57-40ed-b777-557d8a23f3f9
 langcode: en
 status: true
 dependencies:
   module:
     - node
-_core:
-  default_config_hash: Vw5VaI9_4aZlQbPaFLR1u7Kle9dsc5_n0rBhKS64oW4
 id: node.field_cfv_definition
 field_name: field_cfv_definition
 entity_type: node

@@ -1,4 +1,4 @@
-uuid: ba533394-3ad3-44cf-a117-8e552098df42
+uuid: 74d92ed4-7155-4d8b-888e-e187e14d63ef
 langcode: en
 status: true
 dependencies:
@@ -6,9 +6,8 @@ dependencies:
     - field.storage.node.field_perm_comment_edit
     - node.type.workspace_role
   module:
+    - node
     - options
-_core:
-  default_config_hash: dvxbJ7AT4PP5umfixTBBkFHFCLbpQYQIPn5AityJdrM
 id: node.workspace_role.field_perm_comment_edit
 field_name: field_perm_comment_edit
 entity_type: node

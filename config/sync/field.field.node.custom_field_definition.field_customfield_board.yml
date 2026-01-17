@@ -1,4 +1,4 @@
-uuid: e807c35b-2372-41dd-8e95-79b240c0bda4
+uuid: b4f42778-d706-476a-a1ba-d98f10ab453f
 langcode: en
 status: true
 dependencies:
@@ -6,8 +6,6 @@ dependencies:
     - field.storage.node.field_customfield_board
     - node.type.board
     - node.type.custom_field_definition
-_core:
-  default_config_hash: jyRUUDYa3Wc1vy0VyxRLbKVqSqqZz3JWjJ7NCbPi-2k
 id: node.custom_field_definition.field_customfield_board
 field_name: field_customfield_board
 entity_type: node

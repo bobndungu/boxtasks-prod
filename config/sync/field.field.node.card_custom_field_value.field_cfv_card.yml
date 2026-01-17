@@ -1,4 +1,4 @@
-uuid: 13fe65c0-6d27-42b2-b241-ce8a9136b662
+uuid: 8679b2d3-b954-423a-ace9-b3389cb13b1e
 langcode: en
 status: true
 dependencies:
@@ -6,8 +6,6 @@ dependencies:
     - field.storage.node.field_cfv_card
     - node.type.card
     - node.type.card_custom_field_value
-_core:
-  default_config_hash: 543odKeqlFtwvmfR4t9zifBKoPX7Dz4xzrBqDX_6974
 id: node.card_custom_field_value.field_cfv_card
 field_name: field_cfv_card
 entity_type: node

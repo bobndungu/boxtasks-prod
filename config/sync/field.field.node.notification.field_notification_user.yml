@@ -1,4 +1,4 @@
-uuid: 69088bf4-f9f7-4d49-b347-b293e5444294
+uuid: e399fdbb-0520-4607-846a-b658af037060
 langcode: en
 status: true
 dependencies:
@@ -9,9 +9,9 @@ id: node.notification.field_notification_user
 field_name: field_notification_user
 entity_type: node
 bundle: notification
-label: User
+label: 'Target User'
 description: ''
-required: false
+required: true
 translatable: true
 default_value: {  }
 default_value_callback: ''

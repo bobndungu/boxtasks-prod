@@ -1,12 +1,10 @@
-uuid: d2300233-d063-490b-be0f-bd4ca1f7cf66
+uuid: 3ce8b164-7708-4ccf-89e2-3296fa372e97
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-_core:
-  default_config_hash: psq90Ehsuy5n-2lsaXibVQKp276Itb6UxkMg3qtsC0A
 id: node.field_card_labels
 field_name: field_card_labels
 entity_type: node

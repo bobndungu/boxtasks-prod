@@ -1,4 +1,4 @@
-uuid: 00e4983b-f4f8-4dc5-ab63-2881bc68548a
+uuid: 9c6614fc-d11c-4085-8037-b062f62e6df4
 langcode: en
 status: true
 dependencies:
@@ -6,9 +6,8 @@ dependencies:
     - field.storage.node.field_perm_card_create
     - node.type.workspace_role
   module:
+    - node
     - options
-_core:
-  default_config_hash: rrA0yzMAo3SriQSd2azrFTCEVQw8bFl1ELPfeR_Gico
 id: node.workspace_role.field_perm_card_create
 field_name: field_perm_card_create
 entity_type: node

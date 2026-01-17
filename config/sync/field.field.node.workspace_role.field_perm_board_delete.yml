@@ -1,4 +1,4 @@
-uuid: 90ec2cf5-1c2b-462c-8a4b-390b745fb7c7
+uuid: d7a93034-4efc-425a-acb4-90f2ef3b5b30
 langcode: en
 status: true
 dependencies:
@@ -6,9 +6,8 @@ dependencies:
     - field.storage.node.field_perm_board_delete
     - node.type.workspace_role
   module:
+    - node
     - options
-_core:
-  default_config_hash: nj8_Xm4vKF8-b1cCS9p1C_3ZJTd9hirRfvTp3nIZi7w
 id: node.workspace_role.field_perm_board_delete
 field_name: field_perm_board_delete
 entity_type: node

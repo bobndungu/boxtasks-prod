@@ -1,4 +1,4 @@
-uuid: 2d9be887-5909-4e1b-a564-8f6c64acbc24
+uuid: 832ce9fc-86eb-4b53-9e5a-aea9cf5cc34e
 langcode: en
 status: true
 dependencies:
@@ -6,9 +6,8 @@ dependencies:
     - field.storage.node.field_perm_list_view
     - node.type.workspace_role
   module:
+    - node
     - options
-_core:
-  default_config_hash: IKDYE2-YixSHXTw82fn-w_UP_NoBgS3qxX5OFe_kEIY
 id: node.workspace_role.field_perm_list_view
 field_name: field_perm_list_view
 entity_type: node

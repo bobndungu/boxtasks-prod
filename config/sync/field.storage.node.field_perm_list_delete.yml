@@ -1,12 +1,10 @@
-uuid: c101fc61-0ab6-4dea-9b10-125377fa30e2
+uuid: 9b10d7c6-7cba-458e-ae2a-d401b2a6a865
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-_core:
-  default_config_hash: z9ZAOfqAuq2txpfBimjWCxFVS4w1H9dg97Mh0G5WRYk
 id: node.field_perm_list_delete
 field_name: field_perm_list_delete
 entity_type: node

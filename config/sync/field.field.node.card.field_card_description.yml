@@ -1,4 +1,4 @@
-uuid: 02fd9be3-04d5-4617-8a47-224eff4a0884
+uuid: 4fa1d6ff-ce4b-4eb0-8fb2-bb0970f2d25e
 langcode: en
 status: true
 dependencies:
@@ -7,8 +7,6 @@ dependencies:
     - node.type.card
   module:
     - text
-_core:
-  default_config_hash: iTZgdj5xN7HPjPiQxFyUXKKElyvuMjBU2xa8LUWLFxQ
 id: node.card.field_card_description
 field_name: field_card_description
 entity_type: node

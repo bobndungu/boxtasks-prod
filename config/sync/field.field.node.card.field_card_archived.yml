@@ -1,12 +1,10 @@
-uuid: d4d3c957-4eb3-4eb9-8c2f-5abcc9a9e15a
+uuid: 4fd2ed19-1041-4739-924c-b01b8a4ed5bf
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_card_archived
     - node.type.card
-_core:
-  default_config_hash: uVLMRW4lgkDtMmZVxrPiLWBiN8HAj-kJ-8PrFCXMXlA
 id: node.card.field_card_archived
 field_name: field_card_archived
 entity_type: node

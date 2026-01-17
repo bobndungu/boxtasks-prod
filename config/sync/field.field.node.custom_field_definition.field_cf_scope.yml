@@ -1,4 +1,4 @@
-uuid: c2a0e03e-338c-4946-a327-8c5ce9a2effd
+uuid: 91c5d721-9eb1-4c74-ac81-43fc12b4723e
 langcode: en
 status: true
 dependencies:
@@ -7,8 +7,6 @@ dependencies:
     - node.type.custom_field_definition
   module:
     - options
-_core:
-  default_config_hash: jqHO9NuJKvuTM075lZYsjsF-N8F3WoNzEQ4lT2-eBRI
 id: node.custom_field_definition.field_cf_scope
 field_name: field_cf_scope
 entity_type: node
@@ -16,7 +14,7 @@ bundle: custom_field_definition
 label: Scope
 description: 'The scope of this custom field: Workspace (shows on all cards in workspace), Board (shows on all cards in this board), or Card (can be selectively added to individual cards)'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: board

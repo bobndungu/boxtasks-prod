@@ -1,10 +1,12 @@
-uuid: b36e37f9-f25d-4677-befb-5a04186bc000
+uuid: d4e5f6a7-b8c9-0123-defa-456789012345
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_card_approved_by
     - node.type.card
+  module:
+    - user
 id: node.card.field_card_approved_by
 field_name: field_card_approved_by
 entity_type: node
@@ -12,7 +14,7 @@ bundle: card
 label: 'Approved By'
 description: 'The user who approved this card'
 required: false
-translatable: true
+translatable: false
 default_value: {  }
 default_value_callback: ''
 settings:

@@ -268,7 +268,7 @@ $databases = [];
  * directory in the public files path. The setting below allows you to set
  * its location.
  */
-# $settings['config_sync_directory'] = '/directory/outside/webroot';
+$settings['config_sync_directory'] = '../config/sync';
 
 /**
  * Settings:
@@ -884,6 +884,31 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
 # $settings['migrate_source_version'] = '';
 # $settings['migrate_file_public_path'] = '';
 # $settings['migrate_file_private_path'] = '';
+
+/**
+ * OAuth provider configuration overrides.
+ *
+ * These settings override the config stored in config/sync/ with values
+ * from environment variables. This keeps secrets out of version control.
+ */
+// Google OAuth
+if (getenv('GOOGLE_OAUTH_CLIENT_ID')) {
+  $config['social_auth_google.settings']['client_id'] = getenv('GOOGLE_OAUTH_CLIENT_ID');
+}
+if (getenv('GOOGLE_OAUTH_CLIENT_SECRET')) {
+  $config['social_auth_google.settings']['client_secret'] = getenv('GOOGLE_OAUTH_CLIENT_SECRET');
+}
+
+// Microsoft Entra ID OAuth
+if (getenv('MICROSOFT_OAUTH_CLIENT_ID')) {
+  $config['social_auth_entra_id.settings']['client_id'] = getenv('MICROSOFT_OAUTH_CLIENT_ID');
+}
+if (getenv('MICROSOFT_OAUTH_CLIENT_SECRET')) {
+  $config['social_auth_entra_id.settings']['client_secret'] = getenv('MICROSOFT_OAUTH_CLIENT_SECRET');
+}
+if (getenv('MICROSOFT_OAUTH_TENANT_ID')) {
+  $config['social_auth_entra_id.settings']['tenant_id'] = getenv('MICROSOFT_OAUTH_TENANT_ID');
+}
 
 // Automatically generated include for settings managed by ddev.
 if (getenv('IS_DDEV_PROJECT') == 'true' && file_exists(__DIR__ . '/settings.ddev.php')) {

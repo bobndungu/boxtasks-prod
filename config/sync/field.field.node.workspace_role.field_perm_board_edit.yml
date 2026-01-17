@@ -1,4 +1,4 @@
-uuid: 94761bea-3cda-497d-bb31-63247ded4c03
+uuid: d0726077-60e3-4664-ab1d-b5dce7925023
 langcode: en
 status: true
 dependencies:
@@ -6,9 +6,8 @@ dependencies:
     - field.storage.node.field_perm_board_edit
     - node.type.workspace_role
   module:
+    - node
     - options
-_core:
-  default_config_hash: ZeBDax99WIMZC1DBPn7qQ1g_68SXgBw-eu1UbMT0vX4
 id: node.workspace_role.field_perm_board_edit
 field_name: field_perm_board_edit
 entity_type: node

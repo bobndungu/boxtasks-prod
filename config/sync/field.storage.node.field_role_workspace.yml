@@ -1,11 +1,9 @@
-uuid: 2e4991f9-ad84-4069-83ae-dda0a00c3559
+uuid: 2b69cb93-e070-45f2-ab6c-2b4f7315e881
 langcode: en
 status: true
 dependencies:
   module:
     - node
-_core:
-  default_config_hash: 9zdW4G6gF4xKgW6MLyHHGaExIyXR8N9l-T5on2rQNNc
 id: node.field_role_workspace
 field_name: field_role_workspace
 entity_type: node

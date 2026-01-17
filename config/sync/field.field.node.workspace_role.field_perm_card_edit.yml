@@ -1,4 +1,4 @@
-uuid: af22ab0e-05d5-4b7b-b934-53e97793e2e0
+uuid: 56071e9d-2cd2-46e2-82d4-9a5fba4505d5
 langcode: en
 status: true
 dependencies:
@@ -6,9 +6,8 @@ dependencies:
     - field.storage.node.field_perm_card_edit
     - node.type.workspace_role
   module:
+    - node
     - options
-_core:
-  default_config_hash: B_TkR0iDB3LU5R9nl8Pjk0UlI_Nb2i20PhEiPhyER-A
 id: node.workspace_role.field_perm_card_edit
 field_name: field_perm_card_edit
 entity_type: node

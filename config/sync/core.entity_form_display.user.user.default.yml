@@ -1,15 +1,12 @@
-uuid: 625bedc1-e7e3-49a6-adbf-e51059c97cd4
+uuid: f0caa13d-5dd5-4a65-8f62-397e93253122
 langcode: en
 status: true
 dependencies:
   config:
     - field.field.user.user.field_bio
     - field.field.user.user.field_display_name
-    - field.field.user.user.field_email_verified
-    - field.field.user.user.field_is_premium
     - field.field.user.user.field_job_title
     - field.field.user.user.field_notif_prefs
-    - field.field.user.user.field_original_uuid
     - field.field.user.user.field_timezone
     - field.field.user.user.user_picture
     - image.style.thumbnail
@@ -43,9 +40,6 @@ content:
 hidden:
   field_bio: true
   field_display_name: true
-  field_email_verified: true
-  field_is_premium: true
   field_job_title: true
   field_notif_prefs: true
-  field_original_uuid: true
   field_timezone: true

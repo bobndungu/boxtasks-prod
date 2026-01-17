@@ -1,15 +1,12 @@
-uuid: 15119f47-3732-43ec-834a-2f9295031a67
+uuid: 7c65bb89-b3f0-4388-a8f4-623c8f4e15b4
 langcode: en
 status: true
 dependencies:
   module:
-    - node
     - options
   enforced:
     module:
       - boxtasks_card
-_core:
-  default_config_hash: 4NVVJwONPepoLqX8WckjPT0Kymja0UGueNUWxC1O2Ec
 id: node.field_card_complexity
 field_name: field_card_complexity
 entity_type: node

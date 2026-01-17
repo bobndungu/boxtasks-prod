@@ -1,4 +1,4 @@
-uuid: de705409-9455-4d91-a9d1-1ec887246ec4
+uuid: 36832633-4cd4-4b0e-a32f-b47da42aff94
 langcode: en
 status: true
 dependencies:
@@ -7,8 +7,6 @@ dependencies:
     - node.type.card
   module:
     - image
-_core:
-  default_config_hash: 87jHv8vuMX2kuOBloP2u_byQ2EBzJdzv-SOAMR47VE4
 id: node.card.field_card_cover
 field_name: field_card_cover
 entity_type: node
@@ -20,6 +18,8 @@ translatable: true
 default_value: {  }
 default_value_callback: ''
 settings:
+  handler: 'default:file'
+  handler_settings: {  }
   file_directory: 'card-covers/[date:custom:Y]-[date:custom:m]'
   file_extensions: 'png jpg jpeg gif webp'
   max_filesize: '5 MB'
@@ -29,8 +29,6 @@ settings:
   alt_field_required: false
   title_field: false
   title_field_required: false
-  handler: 'default:file'
-  handler_settings: {  }
   default_image:
     uuid: null
     alt: ''

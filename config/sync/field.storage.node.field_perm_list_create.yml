@@ -1,12 +1,10 @@
-uuid: 17906a58-7553-41e7-8700-e9399e52bac4
+uuid: 884758e8-7b13-4615-9285-ca76f87564d1
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-_core:
-  default_config_hash: jEA2-wZfZJK-v93HwSbemccYZhH4nK-tHiC5AdFG_nM
 id: node.field_perm_list_create
 field_name: field_perm_list_create
 entity_type: node

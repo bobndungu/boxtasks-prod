@@ -1,12 +1,10 @@
-uuid: b80f1f4a-5c85-445a-8dc0-5c4af5184f2c
+uuid: 7276c0c8-a267-4f49-8d76-dc4f6f40ea9f
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-_core:
-  default_config_hash: Fckl34UWusUGRRgS4AxQuCuDWKNpepv3yljmEl9A7Yk
 id: node.field_perm_comment_edit
 field_name: field_perm_comment_edit
 entity_type: node

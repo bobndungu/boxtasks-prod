@@ -1,11 +1,9 @@
-uuid: a8dee984-4898-436c-bd0b-4dc2a8b9bb5c
+uuid: 27729a2d-da84-4008-8e14-61220de30a7b
 langcode: en
 status: true
 dependencies:
   module:
     - node
-_core:
-  default_config_hash: 7tSqiiNDEZ61eRgj5J2O9jiTzNyJzRDhW676v2IPH7U
 id: node.field_card_pinned
 field_name: field_card_pinned
 entity_type: node

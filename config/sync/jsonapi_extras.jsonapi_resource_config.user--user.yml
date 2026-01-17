@@ -1,0 +1,65 @@
+id: user--user
+disabled: false
+path: user/user
+resourceType: user--user
+resourceFields:
+  drupal_internal__uid:
+    disabled: false
+    fieldName: drupal_internal__uid
+    publicName: drupal_internal__uid
+    enhancer:
+      id: ''
+  name:
+    disabled: false
+    fieldName: name
+    publicName: name
+    enhancer:
+      id: ''
+  mail:
+    disabled: false
+    fieldName: mail
+    publicName: mail
+    enhancer:
+      id: ''
+  timezone:
+    disabled: false
+    fieldName: timezone
+    publicName: timezone
+    enhancer:
+      id: ''
+  status:
+    disabled: false
+    fieldName: status
+    publicName: status
+    enhancer:
+      id: ''
+  display_name:
+    disabled: false
+    fieldName: display_name
+    publicName: display_name
+    enhancer:
+      id: ''
+  field_display_name:
+    disabled: false
+    fieldName: field_display_name
+    publicName: field_display_name
+    enhancer:
+      id: ''
+  field_bio:
+    disabled: false
+    fieldName: field_bio
+    publicName: field_bio
+    enhancer:
+      id: ''
+  field_job_title:
+    disabled: false
+    fieldName: field_job_title
+    publicName: field_job_title
+    enhancer:
+      id: ''
+  user_picture:
+    disabled: false
+    fieldName: user_picture
+    publicName: user_picture
+    enhancer:
+      id: ''

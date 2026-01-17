@@ -1,15 +1,12 @@
-uuid: f5ab8a5d-d53a-4eea-9f32-dd5bd9aa7954
+uuid: 701a01bb-38a2-447d-8ccd-7e33d0051d3c
 langcode: en
 status: true
 dependencies:
   module:
-    - node
     - options
   enforced:
     module:
       - boxtasks_card
-_core:
-  default_config_hash: lmG441FGCOHOLK8F9xT_GeoNG30bVFppMQc_lNt3AE0
 id: node.field_card_estimate_type
 field_name: field_card_estimate_type
 entity_type: node

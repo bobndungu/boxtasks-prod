@@ -1,12 +1,10 @@
-uuid: 3564c2a3-d948-4b0a-af83-d35f264ba474
+uuid: 05f750a3-b224-43ae-97f5-2d12e5208bcf
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_list_position
     - node.type.board_list
-_core:
-  default_config_hash: '-dHkdzS6_0mUt-5Ylv81lVfoFV988e1Sf3bG813lvcU'
 id: node.board_list.field_list_position
 field_name: field_list_position
 entity_type: node

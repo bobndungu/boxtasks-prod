@@ -9,5 +9,5 @@ fetch:
   timeout: 30
 notification:
   emails:
-    - admin@boxraft.com
+    - admin@example.com
   threshold: all

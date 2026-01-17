@@ -1,17 +1,13 @@
-uuid: 3c10a10a-0a6f-4da2-aa67-d7deafb408d4
+uuid: dfb5801b-51dc-48ea-8ed4-9437bcee7623
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_card_google_docs
     - node.type.card
-  module:
-    - link
   enforced:
     module:
       - boxtasks_card
-_core:
-  default_config_hash: W0g9itnkqE34b4uP7nVSTYz7qlnu7H5MxV4TuGKD_Yw
 id: node.card.field_card_google_docs
 field_name: field_card_google_docs
 entity_type: node
@@ -23,6 +19,6 @@ translatable: false
 default_value: {  }
 default_value_callback: ''
 settings:
-  link_type: 16
   title: 1
+  link_type: 16
 field_type: link

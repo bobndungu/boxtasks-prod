@@ -1,12 +1,10 @@
-uuid: df3db609-004f-470d-95f6-69670a86eeea
+uuid: 1db339fc-6653-4a3a-80c4-dd7ef070eff7
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-_core:
-  default_config_hash: DrE1OYIFhRgkYdMIiAJq5r8qhoj8r1bfOsPZR4xrvLc
 id: node.field_perm_card_delete
 field_name: field_perm_card_delete
 entity_type: node

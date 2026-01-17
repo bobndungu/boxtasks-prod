@@ -1,4 +1,4 @@
-uuid: 355d7a17-796c-4526-b304-201fc766852c
+uuid: 7c156d4e-f449-45d8-9fff-caf823feeb1e
 langcode: en
 status: true
 dependencies:
@@ -8,8 +8,6 @@ third_party_settings:
   menu_ui:
     available_menus: {  }
     parent: ''
-_core:
-  default_config_hash: 2NSA4auhOCRPbPsEDXZl7_u1jN_8oak_ExLZTA2qGz8
 name: 'Workspace Role'
 type: workspace_role
 description: 'Defines a role with permissions for workspace members'

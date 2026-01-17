@@ -1,4 +1,4 @@
-uuid: 6ae42a5d-2942-4e24-83ce-8fa8a0b9d5f1
+uuid: 0a1edf5f-cd1b-4583-92c0-d26ddfb01836
 langcode: en
 status: true
 dependencies:
@@ -8,8 +8,6 @@ dependencies:
   enforced:
     module:
       - boxtasks_card
-_core:
-  default_config_hash: 05TIm9y0MGNuRrxf6XUiI0XcEjiY6oHS3Vo7BYkCTWA
 id: node.card.field_card_estimate
 field_name: field_card_estimate
 entity_type: node
@@ -21,7 +19,7 @@ translatable: false
 default_value: {  }
 default_value_callback: ''
 settings:
-  min: 0
+  min: 0.0
   max: null
   prefix: ''
   suffix: ''

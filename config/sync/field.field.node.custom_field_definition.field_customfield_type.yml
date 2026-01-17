@@ -1,4 +1,4 @@
-uuid: 81bb7391-4a40-428b-9bb3-43415416a881
+uuid: 312f6f1a-e1d4-4025-870e-052b20ec18f9
 langcode: en
 status: true
 dependencies:
@@ -7,8 +7,6 @@ dependencies:
     - node.type.custom_field_definition
   module:
     - options
-_core:
-  default_config_hash: KbBsAD9CjcUdkV-_B5AytEF97xX-6Qvgo_i2uer6ato
 id: node.custom_field_definition.field_customfield_type
 field_name: field_customfield_type
 entity_type: node
