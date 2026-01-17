@@ -57,7 +57,7 @@ class DashboardDataController extends ControllerBase {
   }
 
   /**
-   * Authenticate user from OAuth Bearer token.
+   * Authenticate user from OAuth Bearer token (JWT).
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
@@ -71,33 +71,37 @@ class DashboardDataController extends ControllerBase {
       return NULL;
     }
 
-    $token_value = $matches[1];
+    $jwt = $matches[1];
 
-    // Query the OAuth access token storage.
-    $token_storage = $this->entityTypeManager->getStorage('oauth2_token');
-    $tokens = $token_storage->loadByProperties([
-      'value' => $token_value,
-    ]);
-
-    if (empty($tokens)) {
+    // Parse the JWT token to extract claims.
+    // JWT format: header.payload.signature
+    $parts = explode('.', $jwt);
+    if (count($parts) !== 3) {
       return NULL;
     }
 
-    $token = reset($tokens);
+    // Decode the payload (second part).
+    $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), TRUE);
+    if (!$payload) {
+      return NULL;
+    }
 
     // Check if token is expired.
-    $expire = $token->get('expire')->value;
-    if ($expire && $expire < time()) {
+    if (isset($payload['exp']) && $payload['exp'] < time()) {
       return NULL;
     }
 
-    // Get the user associated with this token.
-    if ($token->hasField('auth_user_id') && !$token->get('auth_user_id')->isEmpty()) {
-      $user_id = $token->get('auth_user_id')->target_id;
-      return User::load($user_id);
+    // Get user ID from the 'sub' claim (subject).
+    if (!isset($payload['sub'])) {
+      return NULL;
     }
 
-    return NULL;
+    $user_id = (int) $payload['sub'];
+    if ($user_id <= 0) {
+      return NULL;
+    }
+
+    return User::load($user_id);
   }
 
   /**
