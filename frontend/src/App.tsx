@@ -28,6 +28,7 @@ const WorkspaceReports = lazy(() => import('./pages/WorkspaceReports'));
 const MindMapView = lazy(() => import('./pages/MindMapView'));
 const BoardReports = lazy(() => import('./pages/BoardReports'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
 
 // Loading fallback component
 function PageLoader() {
@@ -154,6 +155,7 @@ const router = createBrowserRouter([
       { path: 'login', element: <AuthRedirect><Login /></AuthRedirect> },
       { path: 'register', element: <AuthRedirect><Register /></AuthRedirect> },
       { path: 'forgot-password', element: <AuthRedirect><ForgotPassword /></AuthRedirect> },
+      { path: 'oauth-callback', element: <OAuthCallback /> },
       // Protected routes
       { path: 'dashboard', element: <ProtectedRoute><Dashboard /></ProtectedRoute> },
       { path: 'profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },

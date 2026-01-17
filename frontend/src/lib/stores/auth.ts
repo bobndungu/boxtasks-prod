@@ -4,6 +4,8 @@ import {
   login as apiLogin,
   logout as apiLogout,
   getAccessToken,
+  setAccessToken,
+  setRefreshToken,
   refreshAccessToken,
   isTokenValid,
   isTokenExpired,
@@ -39,6 +41,8 @@ interface AuthState {
   logout: () => void;
   checkAuth: () => Promise<void>;
   initSessionMonitoring: () => () => void;
+  setTokens: (accessToken: string, refreshToken?: string, expiresIn?: number) => void;
+  fetchUser: () => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -231,6 +235,76 @@ export const useAuthStore = create<AuthState>()(
         }
 
         return unsubscribe;
+      },
+      setTokens: (accessToken: string, refreshToken?: string, expiresIn: number = 3600) => {
+        setAccessToken(accessToken, expiresIn);
+        if (refreshToken) {
+          setRefreshToken(refreshToken);
+        }
+        startSessionMonitoring();
+      },
+      fetchUser: async () => {
+        try {
+          const token = getAccessToken();
+          if (!token) {
+            return false;
+          }
+
+          // Fetch current user using /jsonapi
+          const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site'}/jsonapi`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.api+json',
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch user data');
+          }
+
+          // Get the user ID from the meta information
+          const apiInfo = await response.json();
+          const userLink = apiInfo.meta?.links?.me?.href;
+
+          if (!userLink) {
+            throw new Error('User link not found in API response');
+          }
+
+          // Fetch the actual user data
+          const userResponse = await fetch(userLink, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.api+json',
+            },
+          });
+
+          if (!userResponse.ok) {
+            throw new Error('Failed to fetch user details');
+          }
+
+          const userData = await userResponse.json();
+          const userAttributes = userData.data?.attributes;
+
+          if (userAttributes) {
+            const user: User = {
+              id: userData.data.id,
+              username: userAttributes.name,
+              email: userAttributes.mail || '',
+              displayName: userAttributes.field_display_name || userAttributes.display_name || userAttributes.name,
+              bio: userAttributes.field_bio?.value || '',
+              jobTitle: userAttributes.field_job_title || '',
+              timezone: userAttributes.field_timezone || userAttributes.timezone || 'UTC',
+              mentionHandle: userAttributes.field_mention_handle || '',
+            };
+            set({ user, isAuthenticated: true, isLoading: false });
+            return true;
+          }
+
+          return false;
+        } catch (error) {
+          console.error('Error fetching user:', error);
+          return false;
+        }
       },
     }),
     {

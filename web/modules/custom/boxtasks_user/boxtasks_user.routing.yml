@@ -1,0 +1,7 @@
+boxtasks_user.social_auth_token:
+  path: '/api/social-auth/token'
+  defaults:
+    _controller: '\Drupal\boxtasks_user\Controller\SocialAuthTokenController::generateToken'
+    _title: 'Social Auth Token'
+  requirements:
+    _user_is_logged_in: 'TRUE'

@@ -1,0 +1,5 @@
+services:
+  boxtasks_user.route_subscriber:
+    class: Drupal\boxtasks_user\Routing\RouteSubscriber
+    tags:
+      - { name: event_subscriber }
