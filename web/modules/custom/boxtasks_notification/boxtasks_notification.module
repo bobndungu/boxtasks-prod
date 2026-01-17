@@ -194,22 +194,32 @@ function _boxtasks_notification_check_member_changes(NodeInterface $node, NodeIn
 }
 
 /**
- * Gets member IDs from a card.
+ * Gets member and watcher IDs from a card.
  *
  * @param \Drupal\node\NodeInterface $card
  *   The card entity.
  *
  * @return array
- *   Array of user IDs.
+ *   Array of user IDs (both members and watchers).
  */
 function _boxtasks_notification_get_card_member_ids(NodeInterface $card): array {
   $member_ids = [];
+
+  // Get card members.
   if ($card->hasField('field_card_members')) {
     foreach ($card->get('field_card_members') as $item) {
       $member_ids[] = (int) $item->target_id;
     }
   }
-  return $member_ids;
+
+  // Also include watchers.
+  if ($card->hasField('field_card_watchers')) {
+    foreach ($card->get('field_card_watchers') as $item) {
+      $member_ids[] = (int) $item->target_id;
+    }
+  }
+
+  return array_unique($member_ids);
 }
 
 /**
