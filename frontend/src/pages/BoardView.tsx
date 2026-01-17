@@ -818,8 +818,12 @@ export default function BoardView() {
           labels: cardData.labels as CardLabel[],
           completed: false,
           pinned: false,
-          watcherIds: [],
-          watchers: [],
+          watcherIds: (cardData.watchers || []).map(w => w.id),
+          watchers: (cardData.watchers || []).map(w => ({
+            id: w.id,
+            name: w.displayName,
+            email: w.email,
+          })),
           memberIds: cardData.assignees.map(a => a.id),
           members: cardData.assignees.map(a => ({
             id: a.id,

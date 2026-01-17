@@ -724,7 +724,7 @@ export async function watchCard(cardId: string, userId: string): Promise<Card> {
         type: 'node--card',
         id: cardId,
         relationships: {
-          field_watchers: {
+          field_card_watchers: {
             data: newWatchers.map(id => ({ type: 'user--user', id })),
           },
         },
@@ -737,9 +737,8 @@ export async function watchCard(cardId: string, userId: string): Promise<Card> {
     throw new Error(error.errors?.[0]?.detail || 'Failed to watch card');
   }
 
-  const result = await response.json();
-  const included = result.included as Record<string, unknown>[] | undefined;
-  return transformCard(result.data, included);
+  // Fetch the updated card to get all relationship data (members, watchers, etc.)
+  return fetchCard(cardId);
 }
 
 // Unwatch a card (remove current user from watchers)
@@ -766,7 +765,7 @@ export async function unwatchCard(cardId: string, userId: string): Promise<Card>
         type: 'node--card',
         id: cardId,
         relationships: {
-          field_watchers: {
+          field_card_watchers: {
             data: newWatchers.length > 0
               ? newWatchers.map(id => ({ type: 'user--user', id }))
               : [],
@@ -781,9 +780,8 @@ export async function unwatchCard(cardId: string, userId: string): Promise<Card>
     throw new Error(error.errors?.[0]?.detail || 'Failed to unwatch card');
   }
 
-  const result = await response.json();
-  const included = result.included as Record<string, unknown>[] | undefined;
-  return transformCard(result.data, included);
+  // Fetch the updated card to get all relationship data (members, watchers, etc.)
+  return fetchCard(cardId);
 }
 
 // Assign a member to a card

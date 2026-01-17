@@ -655,11 +655,51 @@ function CardDetailModal({
     setIsTogglingWatch(true);
     try {
       if (isWatching) {
-        await unwatchCard(card.id, currentUser.id);
+        const updatedCard = await unwatchCard(card.id, currentUser.id);
+        // Update the card's watcherIds in the parent state to preserve all data
+        onUpdate(card.id, {
+          watcherIds: updatedCard.watcherIds,
+          watchers: updatedCard.watchers,
+          memberIds: updatedCard.memberIds,
+          members: updatedCard.members,
+        });
         setIsWatching(false);
+        // Create activity for stopped watching and refresh activities
+        try {
+          await createActivity({
+            type: 'watcher_removed',
+            description: `${currentUser?.displayName || 'User'} stopped watching "${card.title}"`,
+            cardId: card.id,
+            boardId: boardId || undefined,
+          });
+          const cardActivities = await fetchActivitiesByCard(card.id);
+          setActivities(cardActivities);
+        } catch (activityErr) {
+          console.error('Failed to create watcher activity:', activityErr);
+        }
       } else {
-        await watchCard(card.id, currentUser.id);
+        const updatedCard = await watchCard(card.id, currentUser.id);
+        // Update the card's watcherIds in the parent state to preserve all data
+        onUpdate(card.id, {
+          watcherIds: updatedCard.watcherIds,
+          watchers: updatedCard.watchers,
+          memberIds: updatedCard.memberIds,
+          members: updatedCard.members,
+        });
         setIsWatching(true);
+        // Create activity for started watching and refresh activities
+        try {
+          await createActivity({
+            type: 'watcher_added',
+            description: `${currentUser?.displayName || 'User'} started watching "${card.title}"`,
+            cardId: card.id,
+            boardId: boardId || undefined,
+          });
+          const cardActivities = await fetchActivitiesByCard(card.id);
+          setActivities(cardActivities);
+        } catch (activityErr) {
+          console.error('Failed to create watcher activity:', activityErr);
+        }
       }
     } catch (err) {
       console.error('Failed to toggle watch:', err);
@@ -674,8 +714,13 @@ function CardDetailModal({
     setIsAddingWatcher(true);
     try {
       const updatedCard = await watchCard(card.id, userId);
-      // Update the card's watcherIds in the parent state
-      onUpdate(card.id, { watcherIds: updatedCard.watcherIds });
+      // Update the card's watcherIds and members in the parent state
+      onUpdate(card.id, {
+        watcherIds: updatedCard.watcherIds,
+        watchers: updatedCard.watchers,
+        memberIds: updatedCard.memberIds,
+        members: updatedCard.members,
+      });
       toast.success(`${userName} added as watcher`);
       // Create activity for watcher added and refresh activities
       try {
@@ -705,8 +750,13 @@ function CardDetailModal({
     setIsAddingWatcher(true);
     try {
       const updatedCard = await unwatchCard(card.id, userId);
-      // Update the card's watcherIds in the parent state
-      onUpdate(card.id, { watcherIds: updatedCard.watcherIds });
+      // Update the card's watcherIds and members in the parent state
+      onUpdate(card.id, {
+        watcherIds: updatedCard.watcherIds,
+        watchers: updatedCard.watchers,
+        memberIds: updatedCard.memberIds,
+        members: updatedCard.members,
+      });
       toast.success(`${userName} removed as watcher`);
       // Create activity for watcher removed and refresh activities
       try {

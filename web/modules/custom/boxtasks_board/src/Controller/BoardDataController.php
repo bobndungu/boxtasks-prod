@@ -372,12 +372,22 @@ class BoardDataController extends ControllerBase {
       $author_id = $owner->uuid();
     }
 
-    // Get assignees.
+    // Get assignees (members).
     $assignees = [];
-    if ($card->hasField('field_card_assignees')) {
-      foreach ($card->get('field_card_assignees') as $assignee_ref) {
+    if ($card->hasField('field_card_members')) {
+      foreach ($card->get('field_card_members') as $assignee_ref) {
         if ($assignee_ref->entity) {
           $assignees[] = $this->formatUser($assignee_ref->entity);
+        }
+      }
+    }
+
+    // Get watchers.
+    $watchers = [];
+    if ($card->hasField('field_card_watchers')) {
+      foreach ($card->get('field_card_watchers') as $watcher_ref) {
+        if ($watcher_ref->entity) {
+          $watchers[] = $this->formatUser($watcher_ref->entity);
         }
       }
     }
@@ -426,6 +436,7 @@ class BoardDataController extends ControllerBase {
       'priority' => $card->hasField('field_card_priority') ? $card->get('field_card_priority')->value : NULL,
       'labels' => $labels,
       'assignees' => $assignees,
+      'watchers' => $watchers,
       'departmentId' => $department_id,
       'clientId' => $client_id,
       'estimatedHours' => $card->hasField('field_card_estimated_hours') ? (float) $card->get('field_card_estimated_hours')->value : NULL,

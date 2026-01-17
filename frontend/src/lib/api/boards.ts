@@ -361,6 +361,7 @@ export interface BoardCardData {
   priority: string | null;
   labels: string[];
   assignees: BoardMember[];
+  watchers: BoardMember[];
   departmentId: string | null;
   clientId: string | null;
   estimatedHours: number | null;
