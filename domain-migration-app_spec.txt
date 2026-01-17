@@ -1,0 +1,79 @@
+# Domain Migration Specification
+
+## Overview
+Migrate BoxTasks domain names:
+- Current `boxtasks.boxraft.com` (BoxTasks2 - this project) → `tasks.boxraft.com`
+- Current `tasks.boxraft.com` (old/original BoxTasks) → `oldtasks.boxraft.com`
+
+## Prerequisites
+- DNS is already configured for all domains
+- SSH access to production server at 23.92.21.181
+- Old BoxTasks (tasks.boxraft.com) is at ~/Sites/DrupalDev/BoxTasks/
+- BoxTasks2 (boxtasks.boxraft.com) is at ~/Sites/DrupalDev/BoxTasks2/
+
+## Server Details
+- SSH Host: 23.92.21.181
+- SSH User: root
+- Old BoxTasks Path: /var/www/websites/tasks.boxraft.com
+- BoxTasks2 Path: /var/www/websites/boxtasks.boxraft.com
+- Nginx Config: /etc/nginx/sites-available/
+
+## Changes Required
+
+### 1. Local Codebase Updates (BoxTasks2)
+Files to update with new domain `tasks.boxraft.com`:
+- scripts/deploy.sh
+- .github/workflows/deploy.yml
+- frontend/.env.production
+- .env.production.local
+- CLAUDE.md
+- config/sync/simple_oauth.settings.yml
+- web/modules/custom/boxtasks_user/src/Controller/SocialAuthTokenController.php
+
+### 2. Server Operations
+On production server (23.92.21.181):
+
+A. Backup operations:
+   - Backup current tasks.boxraft.com site and database
+   - Backup current boxtasks.boxraft.com site and database
+
+B. Move old tasks.boxraft.com → oldtasks.boxraft.com:
+   - Create /var/www/websites/oldtasks.boxraft.com
+   - Copy files from tasks.boxraft.com
+   - Create Nginx config for oldtasks.boxraft.com
+   - Update database references if needed
+   - Generate SSL certificate for oldtasks.boxraft.com
+
+C. Move boxtasks.boxraft.com → tasks.boxraft.com:
+   - Rename directory or update symlinks
+   - Update Nginx config
+   - Update Drupal settings.php trusted hosts
+   - Update database domain references
+   - Generate/update SSL certificate for tasks.boxraft.com
+
+D. Update Nginx configurations:
+   - oldtasks.boxraft.com.conf (new)
+   - tasks.boxraft.com.conf (updated to point to BoxTasks2)
+   - Remove/archive boxtasks.boxraft.com.conf
+
+E. Update SSL certificates:
+   - certbot for oldtasks.boxraft.com
+   - certbot for tasks.boxraft.com
+
+### 3. OAuth & External Services
+- Update Google OAuth redirect URIs
+- Update Microsoft OAuth redirect URIs
+- Update Mercure topic URLs
+
+### 4. DNS Verification
+DNS should already point:
+- tasks.boxraft.com → 23.92.21.181
+- oldtasks.boxraft.com → 23.92.21.181
+- boxtasks.boxraft.com → 23.92.21.181 (can be removed later)
+
+## Rollback Plan
+If issues occur:
+1. Restore Nginx configs from backup
+2. Restore files from backup
+3. Reload Nginx
+4. Test all sites

@@ -283,9 +283,8 @@ function transformCard(
     description: (attrs.field_card_description as { value?: string })?.value || '',
     listId,
     position: (attrs.field_card_position as number) || 0,
-    // Production uses 'field_start_date' instead of 'field_card_start_date'
     // Use normalizeDateFromDrupal to ensure UTC dates are properly parsed
-    startDate: normalizeDateFromDrupal((attrs.field_start_date as string) || (attrs.field_card_start_date as string)),
+    startDate: normalizeDateFromDrupal((attrs.field_card_start_date as string) || (attrs.field_start_date as string)),
     dueDate: normalizeDateFromDrupal((attrs.field_card_due_date as string) || (attrs.field_due_date as string)),
     // Production uses 'field_labels' as entity references - handle both formats
     labels: (attrs.field_card_labels as CardLabel[]) || [],
@@ -467,8 +466,7 @@ export async function createCard(data: CreateCardData): Promise<Card> {
           // Card content type uses field_card_description (text_long with format)
           field_card_description: data.description ? { value: data.description, format: 'basic_html' } : null,
           field_card_position: data.position || 0,
-          // Production uses 'field_start_date' instead of 'field_card_start_date'
-          field_start_date: formatDateForDrupal(data.startDate),
+          field_card_start_date: formatDateForDrupal(data.startDate),
           // Use field_card_due_date (exists on production)
           field_card_due_date: formatDateForDrupal(data.dueDate),
           field_card_archived: false,
@@ -499,8 +497,7 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
   }
   if (data.position !== undefined) attributes.field_card_position = data.position;
   if (data.startDate !== undefined) {
-    // Production uses 'field_start_date' instead of 'field_card_start_date'
-    attributes.field_start_date = formatDateForDrupal(data.startDate);
+    attributes.field_card_start_date = formatDateForDrupal(data.startDate);
   }
   if (data.dueDate !== undefined) {
     // Use field_card_due_date (exists on production)

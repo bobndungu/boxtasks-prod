@@ -1,0 +1,156 @@
+{
+  "project": "BoxTasks Domain Migration",
+  "description": "Migrate boxtasks.boxraft.com to tasks.boxraft.com, and tasks.boxraft.com to oldtasks.boxraft.com",
+  "created": "2026-01-17",
+  "features": [
+    {
+      "id": 1,
+      "name": "Update local codebase: deploy.sh",
+      "test": "Verify domain changed in scripts/deploy.sh",
+      "status": "pending",
+      "type": "local"
+    },
+    {
+      "id": 2,
+      "name": "Update local codebase: deploy.yml",
+      "test": "Verify domain changed in .github/workflows/deploy.yml",
+      "status": "pending",
+      "type": "local"
+    },
+    {
+      "id": 3,
+      "name": "Update local codebase: frontend/.env.production",
+      "test": "Verify domain changed in frontend/.env.production",
+      "status": "pending",
+      "type": "local"
+    },
+    {
+      "id": 4,
+      "name": "Update local codebase: .env.production.local",
+      "test": "Verify domain changed in .env.production.local",
+      "status": "pending",
+      "type": "local"
+    },
+    {
+      "id": 5,
+      "name": "Update local codebase: CLAUDE.md",
+      "test": "Verify domain changed in CLAUDE.md",
+      "status": "pending",
+      "type": "local"
+    },
+    {
+      "id": 6,
+      "name": "Update local codebase: simple_oauth.settings.yml",
+      "test": "Verify domain changed in config/sync/simple_oauth.settings.yml",
+      "status": "pending",
+      "type": "local"
+    },
+    {
+      "id": 7,
+      "name": "Update local codebase: SocialAuthTokenController.php",
+      "test": "Verify domain changed in SocialAuthTokenController.php",
+      "status": "pending",
+      "type": "local"
+    },
+    {
+      "id": 8,
+      "name": "Update other codebase files with domain references",
+      "test": "Grep shows no remaining boxtasks.boxraft.com references (except historical files)",
+      "status": "pending",
+      "type": "local"
+    },
+    {
+      "id": 9,
+      "name": "Commit local codebase changes",
+      "test": "Git shows clean working directory after commit",
+      "status": "pending",
+      "type": "local"
+    },
+    {
+      "id": 10,
+      "name": "Server: Backup old tasks.boxraft.com",
+      "test": "Backup files exist on server",
+      "status": "pending",
+      "type": "server"
+    },
+    {
+      "id": 11,
+      "name": "Server: Backup boxtasks.boxraft.com",
+      "test": "Backup files exist on server",
+      "status": "pending",
+      "type": "server"
+    },
+    {
+      "id": 12,
+      "name": "Server: Move tasks.boxraft.com to oldtasks.boxraft.com",
+      "test": "Directory exists at /var/www/websites/oldtasks.boxraft.com",
+      "status": "pending",
+      "type": "server"
+    },
+    {
+      "id": 13,
+      "name": "Server: Create Nginx config for oldtasks.boxraft.com",
+      "test": "Nginx config exists and tests successfully",
+      "status": "pending",
+      "type": "server"
+    },
+    {
+      "id": 14,
+      "name": "Server: Move boxtasks.boxraft.com to tasks.boxraft.com",
+      "test": "Directory renamed/moved to tasks.boxraft.com",
+      "status": "pending",
+      "type": "server"
+    },
+    {
+      "id": 15,
+      "name": "Server: Update Nginx config for tasks.boxraft.com",
+      "test": "Nginx config points to BoxTasks2 and tests successfully",
+      "status": "pending",
+      "type": "server"
+    },
+    {
+      "id": 16,
+      "name": "Server: Generate SSL certificates",
+      "test": "SSL certs exist for tasks.boxraft.com and oldtasks.boxraft.com",
+      "status": "pending",
+      "type": "server"
+    },
+    {
+      "id": 17,
+      "name": "Server: Update Drupal settings.php trusted hosts",
+      "test": "Drupal settings show correct trusted hosts pattern",
+      "status": "pending",
+      "type": "server"
+    },
+    {
+      "id": 18,
+      "name": "Server: Reload Nginx and test",
+      "test": "Nginx reloads without errors",
+      "status": "pending",
+      "type": "server"
+    },
+    {
+      "id": 19,
+      "name": "Verify oldtasks.boxraft.com loads",
+      "test": "Browser loads https://oldtasks.boxraft.com successfully",
+      "status": "pending",
+      "type": "verification"
+    },
+    {
+      "id": 20,
+      "name": "Verify tasks.boxraft.com loads",
+      "test": "Browser loads https://tasks.boxraft.com successfully",
+      "status": "pending",
+      "type": "verification"
+    },
+    {
+      "id": 21,
+      "name": "Update deployment to use new domain",
+      "test": "Deploy workflow triggers to correct domain",
+      "status": "pending",
+      "type": "local"
+    }
+  ],
+  "current_feature": null,
+  "browser_retries": 0
+}
