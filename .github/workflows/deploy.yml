@@ -147,3 +147,4 @@ jobs:
 
           # Show deployed commit
           ssh $SERVER "cd /var/www/websites/boxtasks.boxraft.com && git log -1 --oneline"
+
