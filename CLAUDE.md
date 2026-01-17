@@ -595,3 +595,101 @@ Before deploying to production:
 - [ ] Regenerate Microsoft OAuth secret (in Azure Portal)
 - [ ] Set BoxTasks2-specific secrets (hash salt, admin password, OAuth client secret)
 - [ ] Test all authentication flows after deployment
+
+---
+
+## Deployment & Sync Workflow (IMPORTANT)
+
+### Core Principle: Production and Dev Must Stay In Sync
+
+**CRITICAL**: After any production deployment or hotfix, the dev environment MUST be synced to match production. This prevents code drift and ensures consistent behavior.
+
+### Available Scripts
+
+All scripts are in `/scripts/` directory:
+
+| Script | Purpose | When to Use |
+|--------|---------|-------------|
+| `deploy-to-production.sh` | Deploy changes to production | Standard deployments |
+| `sync-from-production.sh` | Pull production changes to dev | After any production change |
+| `production-hotfix.sh` | Commit and sync production hotfixes | Emergency fixes on production |
+
+### Standard Deployment Flow
+
+```bash
+# 1. Make changes locally
+# 2. Test thoroughly on dev
+# 3. Commit changes
+git add -A
+git commit -m "feat: your feature"
+
+# 4. Deploy to production (automatically syncs dev)
+./scripts/deploy-to-production.sh
+```
+
+The `deploy-to-production.sh` script automatically:
+1. Pushes to remote repository
+2. SSHs to production and pulls changes
+3. Runs composer install, drush cr, drush updb, drush cim
+4. Builds the frontend
+5. Restarts nginx and php-fpm
+6. Verifies the site is up
+7. **Syncs dev site to match production**
+
+### Emergency Hotfix Flow
+
+If you need to make a fix directly on production:
+
+```bash
+# 1. SSH to production and make the fix
+ssh root@23.92.21.181
+cd /var/www/websites/tasks.boxraft.com
+# Make your changes...
+
+# 2. Run the hotfix sync script locally
+./scripts/production-hotfix.sh
+# Enter a commit message when prompted
+
+# This will:
+# - Commit the changes on production
+# - Push to remote
+# - Sync dev to match
+```
+
+### Manual Sync (Dev from Production)
+
+If you just need to sync dev without deploying:
+
+```bash
+./scripts/sync-from-production.sh
+```
+
+### Post-Deployment Checklist
+
+After EVERY production deployment:
+- [ ] Verify site is accessible: https://tasks.boxraft.com
+- [ ] Test critical functionality (login, board operations)
+- [ ] Run `./scripts/sync-from-production.sh` if not already done
+- [ ] Verify dev matches production: https://boxtasks2.ddev.site
+
+### NEVER Do This
+
+- **NEVER** make changes on production without syncing back to dev
+- **NEVER** deploy from dev if production has uncommitted changes
+- **NEVER** assume dev and production are in sync - verify with git status
+
+### Quick Reference
+
+```bash
+# Deploy changes to production
+./scripts/deploy-to-production.sh
+
+# Sync dev from production
+./scripts/sync-from-production.sh
+
+# Handle production hotfix
+./scripts/production-hotfix.sh
+
+# Check if dev is in sync
+git fetch origin && git status
+```
