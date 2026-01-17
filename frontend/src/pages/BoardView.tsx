@@ -5,6 +5,7 @@ import {
   DndContext,
   DragOverlay,
   closestCorners,
+  pointerWithin,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -12,6 +13,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
   type DragOverEvent,
+  type CollisionDetection,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -748,6 +750,33 @@ export default function BoardView() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Custom collision detection that prioritizes list droppables for cross-list card moves
+  const customCollisionDetection: CollisionDetection = useCallback((args) => {
+    // First, check if pointer is within any droppable
+    const pointerCollisions = pointerWithin(args);
+
+    // Look for list droppable collisions (these have IDs starting with "list-droppable-")
+    const listDroppableCollisions = pointerCollisions.filter(
+      collision => collision.id.toString().startsWith('list-droppable-')
+    );
+
+    // If we're over a list droppable, prioritize it
+    if (listDroppableCollisions.length > 0) {
+      return listDroppableCollisions;
+    }
+
+    // Otherwise, fall back to closest corners for card-to-card positioning
+    const closestCollisions = closestCorners(args);
+
+    // If we have pointer collisions but no list droppables, still prefer pointer collisions
+    // This helps with dropping on cards within a list
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+
+    return closestCollisions;
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -1658,6 +1687,14 @@ export default function BoardView() {
     const activeListId = findListContainingCard(activeIdStr);
     let overListId = findListContainingCard(overIdStr);
 
+    // If over is a list droppable (format: list-droppable-{listId}), extract the list ID
+    if (!overListId && overIdStr.startsWith('list-droppable-')) {
+      const extractedListId = overIdStr.replace('list-droppable-', '');
+      if (lists.some((l) => l.id === extractedListId)) {
+        overListId = extractedListId;
+      }
+    }
+
     // If over is a list (not a card), use it as the target list
     if (!overListId && lists.some((l) => l.id === overIdStr)) {
       overListId = overIdStr;
@@ -1697,6 +1734,7 @@ export default function BoardView() {
 
     // Capture source list before clearing state
     const sourceListId = dragSourceListId;
+    const wasCardDrag = activeType === 'card';
 
     setActiveId(null);
     setActiveType(null);
@@ -1707,10 +1745,16 @@ export default function BoardView() {
     const activeIdStr = active.id.toString();
     const overIdStr = over.id.toString();
 
+    // Check if dropped on a list droppable (format: list-droppable-{listId})
+    const droppedOnListDroppable = overIdStr.startsWith('list-droppable-');
+    const targetListIdFromDroppable = droppedOnListDroppable
+      ? overIdStr.replace('list-droppable-', '')
+      : null;
+
     if (activeIdStr === overIdStr) return;
 
     // Handle list reordering
-    if (activeType === 'list') {
+    if (!wasCardDrag) {
       const oldIndex = lists.findIndex((l) => l.id === activeIdStr);
       const newIndex = lists.findIndex((l) => l.id === overIdStr);
 
@@ -1732,22 +1776,89 @@ export default function BoardView() {
       return;
     }
 
-    // Get current list containing the card
-    const currentListId = findListContainingCard(activeIdStr);
-    if (!currentListId) return;
+    // Determine target list: either from droppable ID or find current list
+    let targetListId: string | null = null;
+
+    if (droppedOnListDroppable && targetListIdFromDroppable) {
+      // Card was dropped directly on a list droppable
+      targetListId = targetListIdFromDroppable;
+    } else {
+      // Try to find the list containing the card (may have been moved by handleDragOver)
+      targetListId = findListContainingCard(activeIdStr);
+    }
+
+    if (!targetListId) return;
 
     // Check if card moved to a different list
-    const movedToNewList = sourceListId && sourceListId !== currentListId;
+    const movedToNewList = sourceListId && sourceListId !== targetListId;
 
     if (movedToNewList) {
-      // Card was moved to a different list - ensure it's at the top (after pinned cards)
-      const destCards = cardsByList.get(currentListId) || [];
+      // Card was moved to a different list - move it if not already moved by handleDragOver
+      const sourceCards = cardsByList.get(sourceListId) || [];
+      const destCards = cardsByList.get(targetListId) || [];
+
+      // Check if the card is still in the source list (handleDragOver didn't move it)
+      const cardStillInSource = sourceCards.some(c => c.id === activeIdStr);
+      const cardInDest = destCards.some(c => c.id === activeIdStr);
+
+      if (cardStillInSource && !cardInDest) {
+        // Need to move the card ourselves since handleDragOver didn't
+        const cardToMove = sourceCards.find(c => c.id === activeIdStr);
+        if (!cardToMove) return;
+
+        const pinnedCount = destCards.filter(c => c.pinned).length;
+        const newSourceCards = sourceCards.filter(c => c.id !== activeIdStr);
+        const newDestCards = [
+          ...destCards.slice(0, pinnedCount),
+          { ...cardToMove, listId: targetListId },
+          ...destCards.slice(pinnedCount)
+        ];
+
+        // Update local state
+        setCardsByList((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(sourceListId, newSourceCards);
+          newMap.set(targetListId!, newDestCards);
+          return newMap;
+        });
+
+        // Update backend
+        try {
+          await updateCard(activeIdStr, {
+            listId: targetListId,
+            position: pinnedCount,
+          });
+
+          // Update positions for other cards in destination list
+          await Promise.all(
+            newDestCards.map((c, index) => {
+              if (c.id !== activeIdStr) {
+                return updateCard(c.id, { position: index });
+              }
+              return Promise.resolve();
+            })
+          );
+
+          // Show activity notification
+          const fromList = lists.find(l => l.id === sourceListId);
+          const toList = lists.find(l => l.id === targetListId);
+          if (cardToMove && fromList && toList) {
+            toast.info(`Card "${cardToMove.title}" moved from "${fromList.title}" to "${toList.title}"`, 3000);
+          }
+        } catch {
+          setError('Failed to move card');
+        }
+        return;
+      }
+
+      // Card was already moved by handleDragOver, just update backend
+      const currentDestCards = cardsByList.get(targetListId) || [];
 
       // Find the position after any pinned cards (excluding the moved card itself)
-      const pinnedCount = destCards.filter(c => c.id !== activeIdStr && c.pinned).length;
+      const pinnedCount = currentDestCards.filter(c => c.id !== activeIdStr && c.pinned).length;
 
       // Compute the new card order BEFORE updating state so we can use it for backend
-      const currentCards = [...destCards];
+      const currentCards = [...currentDestCards];
       const cardIndex = currentCards.findIndex(c => c.id === activeIdStr);
       let newCardOrder: Card[] = [];
 
@@ -1763,7 +1874,7 @@ export default function BoardView() {
       // Update UI state with the computed order
       setCardsByList((prev) => {
         const newMap = new Map(prev);
-        newMap.set(currentListId, newCardOrder);
+        newMap.set(targetListId!, newCardOrder);
         return newMap;
       });
 
@@ -1771,7 +1882,7 @@ export default function BoardView() {
       try {
         // Update the moved card with new list and position (after pinned cards)
         await updateCard(activeIdStr, {
-          listId: currentListId,
+          listId: targetListId!,
           position: pinnedCount,
         });
 
@@ -1788,7 +1899,7 @@ export default function BoardView() {
         // Show activity notification for card movement
         const movedCard = newCardOrder.find(c => c.id === activeIdStr);
         const fromList = lists.find(l => l.id === sourceListId);
-        const toList = lists.find(l => l.id === currentListId);
+        const toList = lists.find(l => l.id === targetListId);
         if (movedCard && fromList && toList) {
           toast.info(`Card "${movedCard.title}" moved from "${fromList.title}" to "${toList.title}"`, 3000);
         }
@@ -1797,14 +1908,14 @@ export default function BoardView() {
       }
     } else {
       // Card reordering within the same list
-      const cards = cardsByList.get(currentListId) || [];
+      const cards = cardsByList.get(targetListId) || [];
       const oldIndex = cards.findIndex((c) => c.id === activeIdStr);
       const newIndex = cards.findIndex((c) => c.id === overIdStr);
 
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const newCards = arrayMove(cards, oldIndex, newIndex);
         const newCardsMap = new Map(cardsByList);
-        newCardsMap.set(currentListId, newCards);
+        newCardsMap.set(targetListId!, newCards);
         setCardsByList(newCardsMap);
 
         // Update positions in backend
@@ -2443,7 +2554,7 @@ export default function BoardView() {
             <div className="h-full overflow-x-auto overflow-y-hidden p-4">
               <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={customCollisionDetection}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useConfirmDialog } from '../../lib/hooks/useConfirmDialog';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import {
   Plus,
@@ -76,6 +77,15 @@ export function SortableList({
     transition,
     isDragging,
   } = useSortable({ id: list.id });
+
+  // Make the card area a droppable target for cards from other lists
+  const { setNodeRef: setCardAreaDroppableRef } = useDroppable({
+    id: `list-droppable-${list.id}`,
+    data: {
+      type: 'list',
+      listId: list.id,
+    },
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -396,10 +406,12 @@ export function SortableList({
           <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
             {useVirtual ? (
               <div
+                ref={setCardAreaDroppableRef}
                 style={{
                   height: `${virtualizer.getTotalSize()}px`,
                   width: '100%',
                   position: 'relative',
+                  minHeight: '50px',
                 }}
               >
                 {virtualizer.getVirtualItems().map((virtualItem) => {
@@ -445,7 +457,7 @@ export function SortableList({
                 })}
               </div>
             ) : (
-              <div className="space-y-2">
+              <div ref={setCardAreaDroppableRef} className="space-y-2 min-h-[50px]">
                 {cards.map((card) => (
                   <SortableCard
                     key={card.id}
