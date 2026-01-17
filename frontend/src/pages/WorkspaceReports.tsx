@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { fetchDashboardData, type DashboardData } from '../lib/api/dashboard';
 import { useMercure } from '../lib/hooks/useMercure';
+import { formatDate, formatTime } from '../lib/utils/date';
 
 export default function WorkspaceReports() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -113,7 +114,7 @@ export default function WorkspaceReports() {
             <div className="flex items-center gap-4">
               {lastUpdated && (
                 <span className="text-sm text-gray-500">
-                  Last updated: {lastUpdated.toLocaleTimeString()}
+                  Last updated: {formatTime(lastUpdated)}
                 </span>
               )}
               <button
@@ -227,7 +228,7 @@ export default function WorkspaceReports() {
                 data.cardsByDueDate.map((day) => (
                   <div key={day.date} className="flex items-center gap-3">
                     <span className="text-sm text-gray-600 w-24">
-                      {new Date(day.date).toLocaleDateString('en-US', {
+                      {formatDate(day.date, {
                         weekday: 'short',
                         month: 'short',
                         day: 'numeric',

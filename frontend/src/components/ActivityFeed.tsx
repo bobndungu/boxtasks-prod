@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Clock, ArrowRight, RefreshCw, CheckCircle, Archive, Trash2, MessageSquare, User, Tag, Calendar, Paperclip, FileText, Building, Users } from 'lucide-react';
 import { fetchActivitiesByCard, fetchActivitiesByBoard, type Activity, type ActivityType, getActivityDisplay } from '../lib/api/activities';
 import ActivityDiff from './ActivityDiff';
+import { formatDateShort } from '../lib/utils/date';
 
 interface ActivityFeedProps {
   cardId?: string;
@@ -148,7 +149,7 @@ function formatRelativeTime(dateStr: string): string {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString();
+  return formatDateShort(date);
 }
 
 export default function ActivityFeed({

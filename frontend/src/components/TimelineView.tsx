@@ -6,6 +6,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import type { Card, CardLabel } from '../lib/api/cards';
+import { formatDateShort } from '../lib/utils/date';
 
 interface TimelineSettings {
   defaultWeeks: 2 | 4 | 8 | 12;
@@ -260,7 +261,7 @@ export function TimelineView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
                           : 'bg-gray-500'
                       }`}
                       style={barStyle}
-                      title={`${card.title}${card.startDate ? `\nStart: ${new Date(card.startDate).toLocaleDateString()}` : ''}${card.dueDate ? `\nDue: ${new Date(card.dueDate).toLocaleDateString()}` : ''}`}
+                      title={`${card.title}${card.startDate ? `\nStart: ${formatDateShort(card.startDate)}` : ''}${card.dueDate ? `\nDue: ${formatDateShort(card.dueDate)}` : ''}`}
                     >
                       {card.completed && <CheckCircle2 className="h-3 w-3 flex-shrink-0" />}
                       <span className="truncate">{card.title}</span>

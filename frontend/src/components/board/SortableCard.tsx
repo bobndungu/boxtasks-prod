@@ -16,6 +16,7 @@ import {
 import { LABEL_COLORS } from './constants';
 import type { SortableCardProps } from './types';
 import { highlightText } from '../../lib/utils/highlight';
+import { formatDateShort, formatDateTime } from '../../lib/utils/date';
 
 export function SortableCard({
   card,
@@ -235,14 +236,11 @@ export function SortableCard({
             {fieldVisibility.startDate && card.startDate && (() => {
               const startDate = new Date(card.startDate);
               const hasTime = startDate.getHours() !== 0 || startDate.getMinutes() !== 0;
-              const dateStr = startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-              const timeStr = hasTime ? startDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
 
               return (
                 <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20">
                   <Clock className="h-3 w-3" />
-                  <span>{dateStr}</span>
-                  {hasTime && <span className="opacity-75">{timeStr}</span>}
+                  <span>{hasTime ? formatDateTime(card.startDate) : formatDateShort(card.startDate)}</span>
                 </span>
               );
             })()}
@@ -271,14 +269,11 @@ export function SortableCard({
               }
 
               const hasTime = dueDate.getHours() !== 0 || dueDate.getMinutes() !== 0;
-              const dateStr = `Due: ${dueDate.getDate()} ${dueDate.toLocaleDateString('en-US', { month: 'short' })} ${dueDate.getFullYear()}`;
-              const timeStr = hasTime ? dueDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
 
               return (
                 <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${colorClass} ${bgClass}`}>
                   <Calendar className="h-3 w-3" />
-                  <span>{dateStr}</span>
-                  {hasTime && <span className="opacity-75">{timeStr}</span>}
+                  <span>Due: {hasTime ? formatDateTime(card.dueDate) : formatDateShort(card.dueDate)}</span>
                 </span>
               );
             })()}
@@ -310,7 +305,7 @@ export function SortableCard({
               const truncateLength = fieldVisibility.expanded ? 60 : 30;
 
               if (fieldDef.type === 'date' && cfv.value) {
-                displayValue = new Date(cfv.value).toLocaleDateString();
+                displayValue = formatDateShort(cfv.value);
               } else if (fieldDef.type === 'checkbox') {
                 displayValue = cfv.value === 'true' ? 'Yes' : 'No';
               } else if (fieldDef.type === 'currency' && cfv.value) {

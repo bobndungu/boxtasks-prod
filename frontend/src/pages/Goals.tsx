@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuthStore } from '../lib/stores/auth';
+import { formatDate as formatDateEAT } from '../lib/utils/date';
 import {
   fetchGoals,
   createGoal,
@@ -93,11 +94,7 @@ function Goals() {
 
   const formatDate = (dateStr: string | undefined) => {
     if (!dateStr) return null;
-    return new Date(dateStr).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    return formatDateEAT(dateStr, 'medium');
   };
 
   // Group goals by status

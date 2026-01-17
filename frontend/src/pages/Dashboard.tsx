@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   User,
 } from 'lucide-react';
+import { formatDateShort } from '../lib/utils/date';
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { useBoardStore } from '../lib/stores/board';
@@ -46,7 +47,7 @@ function formatActivityTime(dateStr: string): string {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString();
+  return formatDateShort(date);
 }
 
 export default function Dashboard() {
@@ -383,7 +384,7 @@ export default function Dashboard() {
                       <div className="relative h-full p-3 flex flex-col justify-between">
                         <h3 className="text-white font-semibold text-sm line-clamp-2">{board.title}</h3>
                         <span className="text-white/70 text-xs">
-                          {new Date(board.updatedAt).toLocaleDateString()}
+                          {formatDateShort(board.updatedAt)}
                         </span>
                       </div>
                     </Link>

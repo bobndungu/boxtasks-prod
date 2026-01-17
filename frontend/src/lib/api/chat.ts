@@ -1,4 +1,5 @@
 import { getAccessToken, fetchWithCsrf } from './client';
+import { formatDate, formatTime, formatDateShort, EAT_TIMEZONE } from '../utils/date';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -150,25 +151,23 @@ export function formatMessageTime(timestamp: number): string {
 
   // Same day - show time
   if (date.toDateString() === now.toDateString()) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return formatTime(date);
   }
 
   // Yesterday
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
   if (date.toDateString() === yesterday.toDateString()) {
-    return 'Yesterday ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return 'Yesterday ' + formatTime(date);
   }
 
   // Within a week
   if (diffDays < 7) {
-    return date.toLocaleDateString([], { weekday: 'short' }) + ' ' +
-      date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return formatDate(date, { weekday: 'short', timeZone: EAT_TIMEZONE }) + ' ' + formatTime(date);
   }
 
   // Older
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
-    date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return formatDateShort(date) + ' ' + formatTime(date);
 }
 
 // Format relative time for last message preview
@@ -184,7 +183,7 @@ export function formatRelativeTime(timestamp: number): string {
   if (diffMins < 60) return `${diffMins}m`;
   if (diffHours < 24) return `${diffHours}h`;
   if (diffDays < 7) return `${diffDays}d`;
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return formatDateShort(date);
 }
 
 // Get initials for avatar

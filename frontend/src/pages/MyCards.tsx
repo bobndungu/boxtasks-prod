@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../lib/stores/auth';
+import { formatDateShort, formatDateTime as formatDateTimeEAT } from '../lib/utils/date';
 import {
   fetchMyCards,
   type GlobalCard,
@@ -98,19 +99,13 @@ function MyCards() {
     } else if (diffDays <= 7) {
       return { text: `In ${diffDays} days`, class: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20', isOverdue: false };
     } else {
-      return { text: date.toLocaleDateString(), class: 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800', isOverdue: false };
+      return { text: formatDateShort(date), class: 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800', isOverdue: false };
     }
   };
 
   const formatDateTime = (dateStr: string | null) => {
     if (!dateStr) return null;
-    const date = new Date(dateStr);
-    return date.toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
+    return formatDateTimeEAT(dateStr);
   };
 
   type TabId = 'all' | 'overdue' | 'today' | 'week' | 'completed';

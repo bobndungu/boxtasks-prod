@@ -18,6 +18,7 @@ import {
   Timer,
   ListTodo,
 } from 'lucide-react';
+import { formatDate, formatTime } from '../lib/utils/date';
 import { fetchBoardReportData, type BoardReportData, type BoardListStats, type BoardMemberStats, type ActivityItem } from '../lib/api/dashboard';
 import { useMercure } from '../lib/hooks/useMercure';
 
@@ -119,7 +120,7 @@ export default function BoardReports() {
             <div className="flex items-center gap-4">
               {lastUpdated && (
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Last updated: {lastUpdated.toLocaleTimeString()}
+                  Last updated: {formatTime(lastUpdated)}
                 </span>
               )}
               <button
@@ -285,7 +286,7 @@ export default function BoardReports() {
                 data.cardsByDueDate.map((day) => (
                   <div key={day.date} className="flex items-center gap-3">
                     <span className="text-sm text-gray-600 dark:text-gray-400 w-24">
-                      {new Date(day.date).toLocaleDateString('en-US', {
+                      {formatDate(day.date, {
                         weekday: 'short',
                         month: 'short',
                         day: 'numeric',
@@ -344,7 +345,7 @@ export default function BoardReports() {
                       />
                     </div>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                      {formatDate(day.date, { weekday: 'short' })}
                     </span>
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{day.created}</span>
                   </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../lib/stores/auth';
+import { formatDateShort } from '../lib/utils/date';
 import {
   fetchEverythingView,
   type GlobalCard,
@@ -115,7 +116,7 @@ function EverythingView() {
     } else if (diffDays <= 7) {
       return { text: `${diffDays}d`, class: 'text-gray-600 dark:text-gray-400' };
     } else {
-      return { text: date.toLocaleDateString(), class: 'text-gray-500 dark:text-gray-500' };
+      return { text: formatDateShort(date), class: 'text-gray-500 dark:text-gray-500' };
     }
   };
 

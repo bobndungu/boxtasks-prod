@@ -22,6 +22,7 @@ import {
   type ChatChannel,
   type ChannelType,
 } from '../lib/api/chat';
+import { formatDate } from '../lib/utils/date';
 
 interface ChatPanelProps {
   isOpen: boolean;
@@ -348,7 +349,7 @@ export default function ChatPanel({
                 <div className="flex items-center gap-2 my-4">
                   <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {new Date(date).toLocaleDateString([], {
+                    {formatDate(date, {
                       weekday: 'long',
                       month: 'short',
                       day: 'numeric',

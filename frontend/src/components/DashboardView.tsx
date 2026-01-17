@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { Card, CardLabel } from '../lib/api/cards';
 import type { BoardList } from '../lib/api/lists';
+import { formatDateShort } from '../lib/utils/date';
 
 interface DashboardSettings {
   showCardsPerList: boolean;
@@ -120,9 +121,8 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
   const maxListCount = Math.max(...cardsPerList.map((l) => l.count), 1);
   const maxLabelCount = Math.max(...cardsPerLabel.map(([, count]) => count), 1);
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const formatDateLocal = (dateString: string): string => {
+    return formatDateShort(dateString) || '';
   };
 
   return (
@@ -284,7 +284,7 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
                           {card.title}
                         </span>
                         <span className="text-xs text-red-600 font-medium">
-                          {formatDate(card.dueDate!)}
+                          {formatDateLocal(card.dueDate!)}
                         </span>
                       </div>
                     </button>
@@ -315,7 +315,7 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
                           {card.title}
                         </span>
                         <span className="text-xs text-yellow-600 font-medium">
-                          {formatDate(card.dueDate!)}
+                          {formatDateLocal(card.dueDate!)}
                         </span>
                       </div>
                     </button>

@@ -11,6 +11,7 @@ import {
   getNotificationDisplay,
   type Notification,
 } from '../lib/api/notifications';
+import { formatDateShort } from '../lib/utils/date';
 
 interface NotificationDropdownProps {
   className?: string;
@@ -189,7 +190,7 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+    return formatDateShort(date);
   };
 
   return (

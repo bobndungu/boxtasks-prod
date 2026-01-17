@@ -26,6 +26,7 @@ import {
 } from '../lib/api/timeTracking';
 import { toast } from '../lib/stores/toast';
 import { useAuthStore } from '../lib/stores/auth';
+import { formatDateShort, formatTime } from '../lib/utils/date';
 
 interface TimeTrackerProps {
   cardId: string;
@@ -491,18 +492,12 @@ export function TimeTracker({ cardId, cardTitle }: TimeTrackerProps) {
                         </p>
                       )}
                       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        {new Date(entry.startTime).toLocaleDateString()}{' '}
-                        {new Date(entry.startTime).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {formatDateShort(entry.startTime)}{' '}
+                        {formatTime(entry.startTime)}
                         {entry.endTime && (
                           <>
                             {' - '}
-                            {new Date(entry.endTime).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {formatTime(entry.endTime)}
                           </>
                         )}
                         {' • '}

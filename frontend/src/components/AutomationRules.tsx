@@ -31,6 +31,7 @@ import {
   toggleAutomationRule,
   getAutomationLogs,
 } from '../lib/api/automations';
+import { formatDateTime } from '../lib/utils/date';
 
 interface AutomationRulesProps {
   boardUuid: string;
@@ -388,7 +389,7 @@ function RulesList({
                 {rule.lastExecuted && (
                   <div className="col-span-2 text-gray-500">
                     <Clock className="w-4 h-4 inline mr-1" />
-                    Last run: {new Date(rule.lastExecuted).toLocaleString()}
+                    Last run: {formatDateTime(rule.lastExecuted)}
                   </div>
                 )}
               </div>
@@ -439,7 +440,7 @@ function LogsList({ logs, getTriggerLabel }: LogsListProps) {
               </span>
             </div>
             <span className="text-xs text-gray-500">
-              {new Date(log.createdAt).toLocaleString()}
+              {formatDateTime(log.createdAt)}
             </span>
           </div>
           {log.status === 'error' && log.errorMessage && (

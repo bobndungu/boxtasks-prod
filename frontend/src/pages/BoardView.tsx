@@ -72,6 +72,7 @@ import CalendarView from '../components/CalendarView';
 import TimelineView from '../components/TimelineView';
 import TableView from '../components/TableView';
 import DashboardView from '../components/DashboardView';
+import { formatDateShort } from '../lib/utils/date';
 import { AutomationRules } from '../components/AutomationRules';
 import { MindMapsPanel } from '../components/MindMapsPanel';
 import { AdvancedFilters, DEFAULT_FILTER_STATE, matchesFilters, type FilterState } from '../components/AdvancedFilters';
@@ -1569,7 +1570,7 @@ export default function BoardView() {
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return formatDateShort(date);
   };
 
   // Find which list a card belongs to

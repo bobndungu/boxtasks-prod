@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { Card, CardLabel } from '../lib/api/cards';
 import type { BoardList } from '../lib/api/lists';
+import { formatDate as formatDateEAT, isOverdue as isOverdueEAT } from '../lib/utils/date';
 
 type SortField = 'title' | 'list' | 'dueDate' | 'completed' | 'labels';
 type SortDirection = 'asc' | 'desc';
@@ -102,17 +103,12 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
 
   const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
-    });
+    return formatDateEAT(dateString, 'short') || '-';
   };
 
   const isOverdue = (dueDate: string | null | undefined, completed: boolean): boolean => {
     if (!dueDate || completed) return false;
-    return new Date(dueDate) < new Date();
+    return isOverdueEAT(dueDate);
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {

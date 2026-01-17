@@ -58,6 +58,7 @@ import type { TaxonomyTerm } from '../../../lib/api/taxonomies';
 import { useAuthStore } from '../../../lib/stores/auth';
 import { toast } from '../../../lib/stores/toast';
 import { TimeTracker } from '../../TimeTracker';
+import { formatDate, formatDateTime, formatDateShort, formatRelativeTime } from '../../../lib/utils/date';
 import { EstimateEditor } from '../../EstimateEditor';
 import { GoogleDocsEmbed } from '../../GoogleDocsEmbed';
 import MemberDropdown from '../../MemberDropdown';
@@ -1066,18 +1067,7 @@ function CardDetailModal({
   };
 
   const formatActivityTime = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return formatRelativeTime(dateStr) || 'Just now';
   };
 
   const handleTitleBlur = () => {
@@ -1114,7 +1104,7 @@ function CardDetailModal({
     setShowStartDatePicker(false);
     // Create activity for start date change
     const activityType = hadStartDate ? 'start_date_updated' : 'start_date_set';
-    const formattedDate = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const formattedDate = formatDate(date, 'medium');
     createActivity({
       type: activityType,
       description: `${currentUser?.displayName || 'User'} ${hadStartDate ? 'changed' : 'set'} start date to ${formattedDate} on "${card.title}"`,
@@ -1239,16 +1229,7 @@ function CardDetailModal({
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-100 text-blue-700">
                       <Clock className="h-4 w-4 mr-2" />
-                      {new Date(startDate).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: new Date(startDate).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-                      })}
-                      {' '}
-                      {new Date(startDate).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit'
-                      })}
+                      {formatDateTime(startDate)}
                     </span>
                     <button
                       onClick={() => setShowStartDatePicker(true)}
@@ -1268,12 +1249,7 @@ function CardDetailModal({
                       new Date(dueDate) < new Date() ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
                     }`}>
                       <Calendar className="h-4 w-4 mr-2" />
-                      Due: {new Date(dueDate).getDate()} {new Date(dueDate).toLocaleDateString('en-US', { month: 'short' })} {new Date(dueDate).getFullYear()}
-                      {' '}
-                      {new Date(dueDate).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit'
-                      })}
+                      Due: {formatDateTime(dueDate)}
                       {new Date(dueDate) < new Date() && ' (overdue)'}
                     </span>
                     <button
@@ -1304,17 +1280,7 @@ function CardDetailModal({
                                 by <span className="font-medium">{card.approvedBy.name}</span>
                                 {card.approvedAt && (
                                   <span className="text-green-500 ml-1">
-                                    • {(() => {
-                                      const d = new Date(card.approvedAt);
-                                      const day = d.getDate();
-                                      const month = d.toLocaleDateString('en-US', { month: 'short' });
-                                      const year = d.getFullYear();
-                                      const hours = d.getHours();
-                                      const mins = d.getMinutes().toString().padStart(2, '0');
-                                      const ampm = hours >= 12 ? 'pm' : 'am';
-                                      const hour12 = hours % 12 || 12;
-                                      return `${day} ${month} ${year} - ${hour12}:${mins}${ampm}`;
-                                    })()}
+                                    • {formatDateTime(card.approvedAt)}
                                   </span>
                                 )}
                               </span>
@@ -1329,17 +1295,7 @@ function CardDetailModal({
                                 by <span className="font-medium">{card.rejectedBy.name}</span>
                                 {card.rejectedAt && (
                                   <span className="text-red-500 ml-1">
-                                    • {(() => {
-                                      const d = new Date(card.rejectedAt);
-                                      const day = d.getDate();
-                                      const month = d.toLocaleDateString('en-US', { month: 'short' });
-                                      const year = d.getFullYear();
-                                      const hours = d.getHours();
-                                      const mins = d.getMinutes().toString().padStart(2, '0');
-                                      const ampm = hours >= 12 ? 'pm' : 'am';
-                                      const hour12 = hours % 12 || 12;
-                                      return `${day} ${month} ${year} - ${hour12}:${mins}${ampm}`;
-                                    })()}
+                                    • {formatDateTime(card.rejectedAt)}
                                   </span>
                                 )}
                               </span>
@@ -1750,7 +1706,7 @@ function CardDetailModal({
                                   onClick={() => setEditingCustomFieldId(fieldDef.id)}
                                   className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
                                 >
-                                  {currentValue ? new Date(currentValue).toLocaleDateString() : `Select ${fieldDef.title.toLowerCase()}...`}
+                                  {currentValue ? formatDate(currentValue, 'medium') : `Select ${fieldDef.title.toLowerCase()}...`}
                                 </button>
                               )
                             )}
@@ -2265,12 +2221,7 @@ function CardDetailModal({
                                       <div className="text-xs text-gray-400 mt-0.5">
                                         Completed by {item.completedBy.name}
                                         {item.completedAt && (
-                                          <span> • {new Date(item.completedAt).toLocaleDateString(undefined, {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            hour: 'numeric',
-                                            minute: '2-digit',
-                                          })}</span>
+                                          <span> • {formatDateTime(item.completedAt)}</span>
                                         )}
                                       </div>
                                     )}
@@ -2353,7 +2304,7 @@ function CardDetailModal({
                                         }`}
                                       >
                                         <Calendar className="h-3 w-3 mr-1" />
-                                        {new Date(item.dueDate).toLocaleDateString()}
+                                        {formatDateShort(item.dueDate)}
                                       </button>
                                     )}
                                     {!item.dueDate && (
@@ -2676,12 +2627,7 @@ function CardDetailModal({
                             <div>
                               <span className="text-sm font-medium text-gray-800">{comment.authorName}</span>
                               <span className="text-xs text-gray-500 ml-2">
-                                {new Date(comment.createdAt).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: 'numeric',
-                                  minute: '2-digit',
-                                })}
+                                {formatDateTime(comment.createdAt)}
                               </span>
                             </div>
                           </div>
