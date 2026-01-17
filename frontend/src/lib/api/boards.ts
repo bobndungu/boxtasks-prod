@@ -364,6 +364,7 @@ export interface BoardCardData {
   departmentId: string | null;
   clientId: string | null;
   estimatedHours: number | null;
+  authorId: string | null;
   drupal_id: number;
 }
 

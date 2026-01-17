@@ -838,6 +838,7 @@ export default function BoardView() {
           isRejected: false,
           estimate: cardData.estimatedHours || undefined,
           googleDocs: [],
+          authorId: cardData.authorId || undefined,
         };
 
         const listCards = cardsMap.get(cardData.listId) || [];
