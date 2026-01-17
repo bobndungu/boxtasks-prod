@@ -316,6 +316,8 @@ function CardDetailModal({
         if (exists) return prev;
         return [newMercureComment, ...prev];
       });
+      // Refresh activities to show the new comment activity
+      fetchActivitiesByCard(card.id).then(setActivities).catch(console.error);
     }
   }, [newMercureComment, card.id]);
 
@@ -323,8 +325,10 @@ function CardDetailModal({
   useEffect(() => {
     if (deletedMercureCommentId) {
       setComments((prev) => prev.filter((c) => c.id !== deletedMercureCommentId));
+      // Refresh activities to show the comment deletion activity
+      fetchActivitiesByCard(card.id).then(setActivities).catch(console.error);
     }
-  }, [deletedMercureCommentId]);
+  }, [deletedMercureCommentId, card.id]);
 
   const loadComments = async () => {
     try {
@@ -436,6 +440,10 @@ function CardDetailModal({
       comment.authorId = currentUser?.id || comment.authorId;
       setComments([comment, ...comments]);
 
+      // Refresh activities to show the new comment activity
+      const cardActivities = await fetchActivitiesByCard(card.id);
+      setActivities(cardActivities);
+
       // Parse mentions and send notifications
       const mentionedMembers = parseMentions(newComment);
       for (const member of mentionedMembers) {
@@ -485,6 +493,9 @@ function CardDetailModal({
     try {
       await deleteComment(commentId);
       setComments(comments.filter((c) => c.id !== commentId));
+      // Refresh activities to show the comment deletion activity
+      const cardActivities = await fetchActivitiesByCard(card.id);
+      setActivities(cardActivities);
     } catch (err) {
       console.error('Failed to delete comment:', err);
     }
