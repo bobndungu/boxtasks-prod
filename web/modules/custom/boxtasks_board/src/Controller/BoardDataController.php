@@ -365,6 +365,13 @@ class BoardDataController extends ControllerBase {
       }
     }
 
+    // Get author ID (card creator).
+    $author_id = NULL;
+    $owner = $card->getOwner();
+    if ($owner) {
+      $author_id = $owner->uuid();
+    }
+
     // Get assignees.
     $assignees = [];
     if ($card->hasField('field_card_assignees')) {
@@ -422,6 +429,7 @@ class BoardDataController extends ControllerBase {
       'departmentId' => $department_id,
       'clientId' => $client_id,
       'estimatedHours' => $card->hasField('field_card_estimated_hours') ? (float) $card->get('field_card_estimated_hours')->value : NULL,
+      'authorId' => $author_id,
       'drupal_id' => (int) $card->id(),
     ];
   }
