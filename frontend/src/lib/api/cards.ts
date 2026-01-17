@@ -24,6 +24,22 @@ function formatDateForDrupal(dateStr: string | null | undefined): string | null 
   return formatted;
 }
 
+/**
+ * Helper function to normalize dates FROM Drupal JSON:API.
+ * Drupal returns datetime fields without timezone suffix (e.g., "2026-01-17T18:07:23").
+ * JavaScript interprets such strings as LOCAL time, but they are actually UTC.
+ * This function ensures dates are properly marked as UTC so they display correctly.
+ */
+function normalizeDateFromDrupal(dateStr: string | null | undefined): string | undefined {
+  if (!dateStr) return undefined;
+  // If the date already has timezone info, return as-is
+  if (/[+-]\d{2}:\d{2}$/.test(dateStr) || /Z$/.test(dateStr)) {
+    return dateStr;
+  }
+  // Add 'Z' to indicate UTC - Drupal stores datetime fields in UTC
+  return dateStr + 'Z';
+}
+
 export type CardLabel = 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'blue';
 
 export interface CardMember {
@@ -241,7 +257,7 @@ function transformCard(
       };
     }
   }
-  const approvedAt = (attrs.field_card_approved_at as string) || undefined;
+  const approvedAt = normalizeDateFromDrupal(attrs.field_card_approved_at as string);
 
   // Get rejection data - O(1) lookup
   const isRejected = (attrs.field_card_rejected as boolean) || false;
@@ -258,7 +274,7 @@ function transformCard(
       };
     }
   }
-  const rejectedAt = (attrs.field_card_rejected_at as string) || undefined;
+  const rejectedAt = normalizeDateFromDrupal(attrs.field_card_rejected_at as string);
 
   return {
     id: data.id as string,
@@ -268,8 +284,9 @@ function transformCard(
     listId,
     position: (attrs.field_card_position as number) || 0,
     // Production uses 'field_start_date' instead of 'field_card_start_date'
-    startDate: (attrs.field_start_date as string) || (attrs.field_card_start_date as string) || undefined,
-    dueDate: (attrs.field_card_due_date as string) || (attrs.field_due_date as string) || undefined,
+    // Use normalizeDateFromDrupal to ensure UTC dates are properly parsed
+    startDate: normalizeDateFromDrupal((attrs.field_start_date as string) || (attrs.field_card_start_date as string)),
+    dueDate: normalizeDateFromDrupal((attrs.field_card_due_date as string) || (attrs.field_due_date as string)),
     // Production uses 'field_labels' as entity references - handle both formats
     labels: (attrs.field_card_labels as CardLabel[]) || [],
     archived: (attrs.field_card_archived as boolean) || (attrs.field_archived as boolean) || false,
