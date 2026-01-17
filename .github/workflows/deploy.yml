@@ -61,15 +61,6 @@ jobs:
       name: staging
       url: https://staging.boxtasks.boxraft.com
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download frontend build
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build
-          path: frontend/dist
-
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -80,31 +71,29 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H 23.92.21.181 >> ~/.ssh/known_hosts
 
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend-dist
+
       - name: Deploy to staging server
         env:
           DEPLOY_PATH: /var/www/websites/staging.boxtasks.boxraft.com
           SERVER: root@23.92.21.181
         run: |
-          # Create deployment directory structure
-          ssh $SERVER "mkdir -p $DEPLOY_PATH/{web,frontend,config,private,tmp}"
+          # Pull latest code from GitHub
+          ssh $SERVER "cd $DEPLOY_PATH && git fetch origin && git reset --hard origin/staging"
 
-          # Sync Drupal backend (excluding dev files and sensitive configs)
-          rsync -avz --delete \
-            --exclude='.git' \
-            --exclude='frontend' \
-            --exclude='.ddev' \
-            --exclude='vendor' \
-            --exclude='web/sites/default/files' \
-            --exclude='web/sites/default/settings.local.php' \
-            --exclude='.env' \
-            --exclude='node_modules' \
-            ./ $SERVER:$DEPLOY_PATH/
+          # Upload frontend build (built with staging env vars)
+          ssh $SERVER "mkdir -p $DEPLOY_PATH/frontend/dist"
+          rsync -avz --delete frontend-dist/ $SERVER:$DEPLOY_PATH/frontend/dist/
 
-          # Sync frontend build
-          rsync -avz --delete frontend/dist/ $SERVER:$DEPLOY_PATH/frontend/dist/
-
-          # Run deployment tasks on server
+          # Run deployment script
           ssh $SERVER "cd $DEPLOY_PATH && bash scripts/deploy.sh staging"
+
+          # Fix ownership
+          ssh $SERVER "chown -R bxusr:bxusr $DEPLOY_PATH"
 
   deploy-production:
     name: Deploy to Production
@@ -115,15 +104,6 @@ jobs:
       name: production
       url: https://boxtasks.boxraft.com
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download frontend build
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build
-          path: frontend/dist
-
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -134,28 +114,36 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H 23.92.21.181 >> ~/.ssh/known_hosts
 
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend-dist
+
       - name: Deploy to production server
         env:
           DEPLOY_PATH: /var/www/websites/boxtasks.boxraft.com
           SERVER: root@23.92.21.181
         run: |
-          # Create deployment directory structure
-          ssh $SERVER "mkdir -p $DEPLOY_PATH/{web,frontend,config,private,tmp}"
+          # Pull latest code from GitHub
+          ssh $SERVER "cd $DEPLOY_PATH && git fetch origin && git reset --hard origin/main"
 
-          # Sync Drupal backend (excluding dev files and sensitive configs)
-          rsync -avz --delete \
-            --exclude='.git' \
-            --exclude='frontend' \
-            --exclude='.ddev' \
-            --exclude='vendor' \
-            --exclude='web/sites/default/files' \
-            --exclude='web/sites/default/settings.local.php' \
-            --exclude='.env' \
-            --exclude='node_modules' \
-            ./ $SERVER:$DEPLOY_PATH/
+          # Upload frontend build (built with production env vars)
+          ssh $SERVER "mkdir -p $DEPLOY_PATH/frontend/dist"
+          rsync -avz --delete frontend-dist/ $SERVER:$DEPLOY_PATH/frontend/dist/
 
-          # Sync frontend build
-          rsync -avz --delete frontend/dist/ $SERVER:$DEPLOY_PATH/frontend/dist/
-
-          # Run deployment tasks on server
+          # Run deployment script
           ssh $SERVER "cd $DEPLOY_PATH && bash scripts/deploy.sh production"
+
+          # Fix ownership
+          ssh $SERVER "chown -R bxusr:bxusr $DEPLOY_PATH"
+
+      - name: Verify deployment
+        env:
+          SERVER: root@23.92.21.181
+        run: |
+          # Check site is responding
+          ssh $SERVER "curl -s -o /dev/null -w '%{http_code}' https://boxtasks.boxraft.com/" | grep -q "200" && echo "✅ Site is up" || echo "⚠️ Site may have issues"
+
+          # Show deployed commit
+          ssh $SERVER "cd /var/www/websites/boxtasks.boxraft.com && git log -1 --oneline"
