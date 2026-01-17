@@ -418,6 +418,13 @@ class BoardDataController extends ControllerBase {
       }
     }
 
+    // Get start date.
+    $start_date = NULL;
+    $start_date_field = $card->hasField('field_start_date') ? 'field_start_date' : 'field_card_start_date';
+    if ($card->hasField($start_date_field) && !$card->get($start_date_field)->isEmpty()) {
+      $start_date = $card->get($start_date_field)->value;
+    }
+
     // Get due date.
     $due_date = NULL;
     $due_date_field = $card->hasField('field_card_due_date') ? 'field_card_due_date' : 'field_due_date';
@@ -432,6 +439,7 @@ class BoardDataController extends ControllerBase {
       'listId' => $list_id,
       'position' => $card->hasField('field_card_position') ? (int) $card->get('field_card_position')->value : 0,
       'archived' => $card->hasField('field_card_archived') ? (bool) $card->get('field_card_archived')->value : FALSE,
+      'startDate' => $start_date,
       'dueDate' => $due_date,
       'priority' => $card->hasField('field_card_priority') ? $card->get('field_card_priority')->value : NULL,
       'labels' => $labels,

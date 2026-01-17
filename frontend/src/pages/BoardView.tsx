@@ -431,6 +431,12 @@ export default function BoardView() {
             newCards[index] = {
               ...existingCard,
               ...incomingCard,
+              // Preserve member data if incoming doesn't have it (fixes creator name removal)
+              members: incomingCard.members?.length ? incomingCard.members : existingCard.members,
+              memberIds: incomingCard.memberIds?.length ? incomingCard.memberIds : existingCard.memberIds,
+              watchers: incomingCard.watchers?.length ? incomingCard.watchers : existingCard.watchers,
+              watcherIds: incomingCard.watcherIds?.length ? incomingCard.watcherIds : existingCard.watcherIds,
+              authorId: incomingCard.authorId ?? existingCard.authorId,
               // Preserve approval data if incoming doesn't have it
               isApproved: incomingCard.isApproved ?? existingCard.isApproved,
               approvedBy: incomingCard.approvedBy ?? existingCard.approvedBy,
@@ -456,6 +462,12 @@ export default function BoardView() {
         setSelectedCard((prev) => prev ? {
           ...prev,
           ...incomingCard,
+          // Preserve member data if incoming doesn't have it (fixes creator name removal)
+          members: incomingCard.members?.length ? incomingCard.members : prev.members,
+          memberIds: incomingCard.memberIds?.length ? incomingCard.memberIds : prev.memberIds,
+          watchers: incomingCard.watchers?.length ? incomingCard.watchers : prev.watchers,
+          watcherIds: incomingCard.watcherIds?.length ? incomingCard.watcherIds : prev.watcherIds,
+          authorId: incomingCard.authorId ?? prev.authorId,
           // Preserve approval data
           isApproved: incomingCard.isApproved ?? prev.isApproved,
           approvedBy: incomingCard.approvedBy ?? prev.approvedBy,
@@ -854,6 +866,7 @@ export default function BoardView() {
           listId: cardData.listId,
           position: cardData.position,
           archived: cardData.archived,
+          startDate: normalizeDateFromDrupal(cardData.startDate),
           dueDate: normalizeDateFromDrupal(cardData.dueDate),
           labels: cardData.labels as CardLabel[],
           completed: false,
