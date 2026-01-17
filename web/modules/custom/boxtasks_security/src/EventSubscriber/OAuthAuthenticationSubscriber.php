@@ -77,6 +77,16 @@ class OAuthAuthenticationSubscriber implements EventSubscriberInterface {
     if ($user) {
       // Set the authenticated user as the current user.
       $this->currentUser->setAccount($user);
+
+      // Only remove the Authorization header for JSON:API routes.
+      // This prevents Simple OAuth from trying to validate tokens that
+      // might not be stored in the database (e.g., social auth tokens).
+      // For custom API routes with _auth: ['oauth2'], we keep the header
+      // so the OAuth authentication provider can satisfy the route requirement.
+      $path = $request->getPathInfo();
+      if (str_starts_with($path, '/jsonapi')) {
+        $request->headers->remove('Authorization');
+      }
     }
   }
 
