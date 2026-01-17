@@ -284,6 +284,26 @@
       "type": "both",
       "category": "integration",
       "notes": "Complete workflow verified: Login → Create Board (Integration Test Board) → Create List (Backlog) → Create Card (Integration Test Task with auto due date) → Assign Member (Box Admin) → Real-time connection active throughout. All core features working end-to-end."
+    },
+    {
+      "id": 32,
+      "name": "Microsoft Entra ID (Azure AD) Login for Decoupled Frontend",
+      "test": "Click Microsoft login, authenticate with Microsoft, receive JWT tokens, access protected endpoints",
+      "status": "completed",
+      "type": "both",
+      "category": "auth",
+      "notes": "Complete Microsoft login flow implemented. Key components: 1) social_auth_entra_id module for Microsoft OAuth, 2) Custom route override (CustomEntraIdController) to redirect to token endpoint without modifying contrib, 3) SocialAuthTokenController generates proper JWT tokens using Simple OAuth infrastructure, 4) OAuthCallback.tsx handles token storage in frontend. Documentation: docs/MICROSOFT_LOGIN_GUIDE.md",
+      "implementation_details": {
+        "drupal_modules": ["social_auth", "social_auth_entra_id", "simple_oauth", "consumers"],
+        "custom_module": "boxtasks_user",
+        "frontend_files": ["OAuthCallback.tsx", "auth.ts (setTokens, fetchUser)"],
+        "azure_config": {
+          "app_registration": "Required in Azure Portal",
+          "redirect_uri": "/user/login/entra-id/callback",
+          "account_types": ["organization", "common", "consumers"]
+        },
+        "token_flow": "Microsoft Auth → Drupal Session → /api/social-auth/token → JWT Generation → /oauth-callback → Frontend Storage"
+      }
     }
   ],
   "current_feature": 31,
