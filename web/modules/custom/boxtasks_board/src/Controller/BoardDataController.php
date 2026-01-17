@@ -116,33 +116,17 @@ class BoardDataController extends ControllerBase {
    *   JSON response with all board data.
    */
   public function getBoardData(string $board_id, Request $request): JsonResponse {
-    // Debug: Log authentication state and headers.
-    $auth_header = $request->headers->get('Authorization', '');
-    \Drupal::logger('boxtasks_board')->notice('BoardDataController: currentUser id=@uid, isAnon=@anon, session=@session, authHeader=@auth', [
-      '@uid' => $this->currentUser->id(),
-      '@anon' => $this->currentUser->isAnonymous() ? 'yes' : 'no',
-      '@session' => $request->hasSession() ? 'yes' : 'no',
-      '@auth' => $auth_header ? substr($auth_header, 0, 50) . '...' : '(empty)',
-    ]);
-
     // Check authentication - first try current_user, then OAuth token.
     $this->authenticatedUser = NULL;
     if (!$this->currentUser->isAnonymous()) {
       $this->authenticatedUser = User::load($this->currentUser->id());
-      \Drupal::logger('boxtasks_board')->notice('BoardDataController: Using session auth, loaded user @uid', [
-        '@uid' => $this->authenticatedUser ? $this->authenticatedUser->id() : 'NULL',
-      ]);
     }
     else {
       // Try to authenticate via OAuth token.
       $this->authenticatedUser = $this->authenticateFromOAuthToken($request);
-      \Drupal::logger('boxtasks_board')->notice('BoardDataController: Using OAuth, loaded user @uid', [
-        '@uid' => $this->authenticatedUser ? $this->authenticatedUser->id() : 'NULL',
-      ]);
     }
 
     if (!$this->authenticatedUser) {
-      \Drupal::logger('boxtasks_board')->warning('BoardDataController: Authentication failed, throwing 403');
       throw new AccessDeniedHttpException('Authentication required.');
     }
 
