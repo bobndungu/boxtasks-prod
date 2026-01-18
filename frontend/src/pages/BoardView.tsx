@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   DndContext,
   DragOverlay,
@@ -98,6 +98,7 @@ export default function BoardView() {
   const { confirm, ConfirmDialog } = useConfirmDialog();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { currentBoard, setCurrentBoard, updateBoard: updateBoardInStore } = useBoardStore();
   const { user: currentUser } = useAuthStore();
 
@@ -367,7 +368,7 @@ export default function BoardView() {
     }, description: 'My cards' },
     { key: 'Escape', action: () => {
       if (selectedCard) {
-        setSelectedCard(null);
+        handleCloseCardModal();
       } else if (showSearch && searchQuery) {
         setSearchQuery('');
         setShowSearch(false);
@@ -502,6 +503,7 @@ export default function BoardView() {
       // Close modal if the deleted card was selected
       if (selectedCard?.id === cardId) {
         setSelectedCard(null);
+        setSearchParams((params) => { params.delete('card'); return params; }, { replace: true });
         toast.info('This card was deleted');
       }
     },
@@ -800,6 +802,19 @@ export default function BoardView() {
       loadBoardData();
     }
   }, [id]);
+
+  // Open card from URL param (for shared links)
+  useEffect(() => {
+    const cardId = searchParams.get('card');
+    if (cardId && !isLoading && cardsByList.size > 0) {
+      // Find the card across all lists
+      const allCards = [...cardsByList.values()].flat();
+      const card = allCards.find(c => c.id === cardId);
+      if (card) {
+        setSelectedCard(card);
+      }
+    }
+  }, [searchParams, isLoading, cardsByList]);
 
   // Keyboard shortcut for search (Ctrl/Cmd + K)
   useEffect(() => {
@@ -1317,7 +1332,19 @@ export default function BoardView() {
 
   const handleCardClick = (card: Card) => {
     setSelectedCard(card);
+    // Update URL with card ID for sharing
+    setSearchParams({ card: card.id }, { replace: true });
   };
+
+  // Close card modal and clear URL param
+  const handleCloseCardModal = useCallback(() => {
+    setSelectedCard(null);
+    // Remove card param from URL
+    setSearchParams((params) => {
+      params.delete('card');
+      return params;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const handleCardUpdate = async (cardId: string, updates: Partial<Card>) => {
     try {
@@ -1377,6 +1404,7 @@ export default function BoardView() {
       );
       setCardsByList(newCardsMap);
       setSelectedCard(null);
+      setSearchParams((params) => { params.delete('card'); return params; }, { replace: true });
       // Show activity notification for card deletion
       toast.info(`Card "${card.title}" deleted from "${listName}"`, 3000);
     } catch {
@@ -1396,6 +1424,7 @@ export default function BoardView() {
       );
       setCardsByList(newCardsMap);
       setSelectedCard(null);
+      setSearchParams((params) => { params.delete('card'); return params; }, { replace: true });
 
       // Create activity record for archiving
       try {
@@ -2877,7 +2906,7 @@ export default function BoardView() {
           boardId={currentBoard?.id}
           workspaceMembers={workspaceMembers}
           allUsers={allUsers}
-          onClose={() => setSelectedCard(null)}
+          onClose={handleCloseCardModal}
           onUpdate={handleCardUpdate}
           onDelete={() => handleDeleteCard(selectedCard)}
           onArchive={() => handleArchiveCard(selectedCard)}
