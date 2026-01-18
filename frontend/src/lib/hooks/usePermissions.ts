@@ -3,6 +3,8 @@ import { useAuthStore } from '../stores/auth';
 import { fetchMemberRole, fetchDefaultRole, canPerformAction } from '../api/roles';
 import type { WorkspaceRole, PermissionLevel } from '../api/roles';
 
+export type ReportType = 'performance' | 'tasks' | 'activity' | 'workload';
+
 interface UsePermissionsReturn {
   permissions: WorkspaceRole['permissions'] | null;
   loading: boolean;
@@ -14,6 +16,9 @@ interface UsePermissionsReturn {
   canArchive: (type: 'card', isOwner: boolean) => boolean;
   canMove: (type: 'card', isOwner: boolean) => boolean;
   canManageMembers: () => boolean;
+  canViewReport: (reportType: ReportType, isOwner?: boolean) => boolean;
+  canExportReports: () => boolean;
+  canViewAnyReport: () => boolean;
   refetch: () => Promise<void>;
 }
 
@@ -39,6 +44,11 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   memberManage: 'none',
   commentEdit: 'own',
   commentDelete: 'own',
+  reportPerformance: 'none',
+  reportTasks: 'none',
+  reportActivity: 'none',
+  reportWorkload: 'none',
+  reportExport: 'none',
 };
 
 // Check if error is an abort error (navigation/unmount)
@@ -266,6 +276,45 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     return permissions.memberManage === 'any';
   }, [permissions]);
 
+  const canViewReport = useCallback((reportType: ReportType, isOwner: boolean = false): boolean => {
+    if (!permissions) return false; // Default to no access for reports
+
+    let permission: PermissionLevel;
+    switch (reportType) {
+      case 'performance':
+        permission = permissions.reportPerformance;
+        break;
+      case 'tasks':
+        permission = permissions.reportTasks;
+        break;
+      case 'activity':
+        permission = permissions.reportActivity;
+        break;
+      case 'workload':
+        permission = permissions.reportWorkload;
+        break;
+    }
+
+    return canPerformAction(permission, isOwner);
+  }, [permissions]);
+
+  const canExportReports = useCallback((): boolean => {
+    if (!permissions) return false;
+
+    return permissions.reportExport === 'any' || permissions.reportExport === 'own';
+  }, [permissions]);
+
+  const canViewAnyReport = useCallback((): boolean => {
+    if (!permissions) return false;
+
+    return (
+      permissions.reportPerformance !== 'none' ||
+      permissions.reportTasks !== 'none' ||
+      permissions.reportActivity !== 'none' ||
+      permissions.reportWorkload !== 'none'
+    );
+  }, [permissions]);
+
   return {
     permissions,
     loading,
@@ -277,6 +326,9 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canArchive,
     canMove,
     canManageMembers,
+    canViewReport,
+    canExportReports,
+    canViewAnyReport,
     refetch,
   };
 }

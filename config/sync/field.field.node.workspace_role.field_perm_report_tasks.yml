@@ -1,0 +1,24 @@
+uuid: null
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_report_tasks
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_report_tasks
+field_name: field_perm_report_tasks
+entity_type: node
+bundle: workspace_role
+label: 'View Task Duration Reports'
+description: 'Permission to view task duration and completion time reports.'
+required: false
+translatable: false
+default_value:
+  -
+    value: none
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -36,6 +36,12 @@ export interface WorkspaceRole {
     // Comment permissions
     commentEdit: PermissionLevel;
     commentDelete: PermissionLevel;
+    // Report permissions
+    reportPerformance: PermissionLevel;
+    reportTasks: PermissionLevel;
+    reportActivity: PermissionLevel;
+    reportWorkload: PermissionLevel;
+    reportExport: PermissionLevel;
   };
 }
 
@@ -84,6 +90,12 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       // Comment permissions
       commentEdit: (attrs.field_perm_comment_edit as PermissionLevel) || 'none',
       commentDelete: (attrs.field_perm_comment_delete as PermissionLevel) || 'none',
+      // Report permissions
+      reportPerformance: (attrs.field_perm_report_performance as PermissionLevel) || 'none',
+      reportTasks: (attrs.field_perm_report_tasks as PermissionLevel) || 'none',
+      reportActivity: (attrs.field_perm_report_activity as PermissionLevel) || 'none',
+      reportWorkload: (attrs.field_perm_report_workload as PermissionLevel) || 'none',
+      reportExport: (attrs.field_perm_report_export as PermissionLevel) || 'none',
     },
   };
 }
@@ -402,6 +414,12 @@ export async function createWorkspaceRole(
           // Comment permissions
           field_perm_comment_edit: permissions.commentEdit,
           field_perm_comment_delete: permissions.commentDelete,
+          // Report permissions
+          field_perm_report_performance: permissions.reportPerformance,
+          field_perm_report_tasks: permissions.reportTasks,
+          field_perm_report_activity: permissions.reportActivity,
+          field_perm_report_workload: permissions.reportWorkload,
+          field_perm_report_export: permissions.reportExport,
         },
         ...(Object.keys(relationships).length > 0 && { relationships }),
       },
@@ -500,6 +518,22 @@ export async function updateWorkspaceRole(
     }
     if (updates.permissions.commentDelete !== undefined) {
       attributes.field_perm_comment_delete = updates.permissions.commentDelete;
+    }
+    // Report permissions
+    if (updates.permissions.reportPerformance !== undefined) {
+      attributes.field_perm_report_performance = updates.permissions.reportPerformance;
+    }
+    if (updates.permissions.reportTasks !== undefined) {
+      attributes.field_perm_report_tasks = updates.permissions.reportTasks;
+    }
+    if (updates.permissions.reportActivity !== undefined) {
+      attributes.field_perm_report_activity = updates.permissions.reportActivity;
+    }
+    if (updates.permissions.reportWorkload !== undefined) {
+      attributes.field_perm_report_workload = updates.permissions.reportWorkload;
+    }
+    if (updates.permissions.reportExport !== undefined) {
+      attributes.field_perm_report_export = updates.permissions.reportExport;
     }
   }
 

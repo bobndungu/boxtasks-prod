@@ -26,7 +26,9 @@ import {
   Filter,
   SortAsc,
   SortDesc,
-  ExternalLink
+  ExternalLink,
+  Bell,
+  BarChart3,
 } from 'lucide-react';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
 import SearchModal from '../components/SearchModal';
@@ -341,8 +343,20 @@ function MyCards() {
                   </div>
                   <div className="py-1">
                     <Link to="/profile" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <User className="h-4 w-4 mr-3" />
+                      Profile
+                    </Link>
+                    <Link to="/reports" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <BarChart3 className="h-4 w-4 mr-3" />
+                      Reports
+                    </Link>
+                    <Link to="/notifications" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <Bell className="h-4 w-4 mr-3" />
+                      Notifications
+                    </Link>
+                    <Link to="/notifications/settings" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                       <Settings className="h-4 w-4 mr-3" />
-                      Profile & Settings
+                      Settings
                     </Link>
                     <button
                       onClick={handleLogout}

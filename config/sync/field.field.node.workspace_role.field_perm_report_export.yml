@@ -1,0 +1,24 @@
+uuid: null
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_report_export
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_report_export
+field_name: field_perm_report_export
+entity_type: node
+bundle: workspace_role
+label: 'Export Reports'
+description: 'Permission to export reports to CSV or PDF formats.'
+required: false
+translatable: false
+default_value:
+  -
+    value: none
+default_value_callback: ''
+settings: {  }
+field_type: list_string

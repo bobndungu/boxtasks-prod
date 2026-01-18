@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Search,
   Bell,
+  BarChart3,
 } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
@@ -153,6 +154,18 @@ export default function MobileNav({ onSearchClick }: MobileNavProps) {
                 >
                   <User className="h-5 w-5 mr-3" />
                   My Cards
+                </Link>
+                <Link
+                  to="/reports"
+                  onClick={closeNav}
+                  className={`flex items-center px-3 py-2 rounded-lg ${
+                    isActive('/reports')
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <BarChart3 className="h-5 w-5 mr-3" />
+                  Reports
                 </Link>
               </div>
 

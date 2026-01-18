@@ -28,7 +28,7 @@ interface PermissionConfig {
   key: PermissionKey;
   label: string;
   description: string;
-  category: 'card' | 'list' | 'board' | 'workspace' | 'other';
+  category: 'card' | 'list' | 'board' | 'workspace' | 'report' | 'other';
   allowOwn: boolean;
 }
 
@@ -53,6 +53,12 @@ const PERMISSION_CONFIG: PermissionConfig[] = [
   { key: 'workspaceView', label: 'View Workspace', description: 'Can view workspace', category: 'workspace', allowOwn: false },
   { key: 'workspaceEdit', label: 'Edit Workspace', description: 'Can edit workspace settings', category: 'workspace', allowOwn: false },
   { key: 'workspaceDelete', label: 'Delete Workspace', description: 'Can delete the workspace', category: 'workspace', allowOwn: false },
+  // Report permissions
+  { key: 'reportPerformance', label: 'Performance Reports', description: 'Can view user performance reports', category: 'report', allowOwn: true },
+  { key: 'reportTasks', label: 'Task Reports', description: 'Can view task duration and completion reports', category: 'report', allowOwn: true },
+  { key: 'reportActivity', label: 'Activity Reports', description: 'Can view activity reports', category: 'report', allowOwn: true },
+  { key: 'reportWorkload', label: 'Workload Reports', description: 'Can view workload distribution reports', category: 'report', allowOwn: true },
+  { key: 'reportExport', label: 'Export Reports', description: 'Can export reports to CSV/PDF', category: 'report', allowOwn: false },
   // Other permissions
   { key: 'memberManage', label: 'Manage Members', description: 'Can add/remove members', category: 'other', allowOwn: false },
   { key: 'commentEdit', label: 'Edit Comments', description: 'Can edit comments', category: 'other', allowOwn: true },
@@ -64,6 +70,7 @@ const CATEGORIES = [
   { key: 'list', label: 'Lists', color: 'green' },
   { key: 'board', label: 'Boards', color: 'purple' },
   { key: 'workspace', label: 'Workspace', color: 'amber' },
+  { key: 'report', label: 'Reports', color: 'cyan' },
   { key: 'other', label: 'Other', color: 'gray' },
 ] as const;
 
@@ -88,6 +95,11 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
   memberManage: 'none',
   commentEdit: 'own',
   commentDelete: 'own',
+  reportPerformance: 'none',
+  reportTasks: 'none',
+  reportActivity: 'none',
+  reportWorkload: 'none',
+  reportExport: 'none',
 });
 
 export default function RoleManagement() {
