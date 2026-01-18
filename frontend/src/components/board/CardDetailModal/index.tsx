@@ -1226,17 +1226,35 @@ function CardDetailModal({
     }
   };
 
-  const handleTitleBlur = () => {
+  const handleTitleBlur = async () => {
     if (title.trim() && title !== card.title) {
       onUpdate(card.id, { title });
+      // Wait a moment for backend to create activity, then refetch
+      setTimeout(async () => {
+        try {
+          const cardActivities = await fetchActivitiesByCard(card.id);
+          setActivities(cardActivities);
+        } catch (error) {
+          console.error('Failed to refetch activities after title update:', error);
+        }
+      }, 500);
     } else {
       setTitle(card.title);
     }
   };
 
-  const handleDescriptionSave = () => {
+  const handleDescriptionSave = async () => {
     if (description !== card.description) {
       onUpdate(card.id, { description });
+      // Wait a moment for backend to create activity, then refetch
+      setTimeout(async () => {
+        try {
+          const cardActivities = await fetchActivitiesByCard(card.id);
+          setActivities(cardActivities);
+        } catch (error) {
+          console.error('Failed to refetch activities after description update:', error);
+        }
+      }, 500);
     }
     setEditingDescription(false);
   };
@@ -1254,15 +1272,33 @@ function CardDetailModal({
     setDueDate(date);
     onUpdate(card.id, { dueDate: date || undefined });
     setShowDatePicker(false);
+    // Wait a moment for backend to create activity, then refetch
+    setTimeout(async () => {
+      try {
+        const cardActivities = await fetchActivitiesByCard(card.id);
+        setActivities(cardActivities);
+      } catch (error) {
+        console.error('Failed to refetch activities after due date update:', error);
+      }
+    }, 500);
   };
 
   const handleRemoveDueDate = () => {
     setDueDate('');
     onUpdate(card.id, { dueDate: undefined });
     setShowDatePicker(false);
+    // Wait a moment for backend to create activity, then refetch
+    setTimeout(async () => {
+      try {
+        const cardActivities = await fetchActivitiesByCard(card.id);
+        setActivities(cardActivities);
+      } catch (error) {
+        console.error('Failed to refetch activities after due date removal:', error);
+      }
+    }, 500);
   };
 
-  const handleStartDateSave = (date: string) => {
+  const handleStartDateSave = async (date: string) => {
     // Validate: start date must not be after due date
     if (date && dueDate) {
       const startDateObj = new Date(date);
@@ -1272,32 +1308,33 @@ function CardDetailModal({
         return;
       }
     }
-    const hadStartDate = !!card.startDate;
     setStartDate(date);
     onUpdate(card.id, { startDate: date || undefined });
     setShowStartDatePicker(false);
-    // Create activity for start date change
-    const activityType = hadStartDate ? 'start_date_updated' : 'start_date_set';
-    const formattedDate = formatDate(date, 'medium');
-    createActivity({
-      type: activityType,
-      description: `${currentUser?.displayName || 'User'} ${hadStartDate ? 'changed' : 'set'} start date to ${formattedDate} on "${card.title}"`,
-      cardId: card.id,
-      boardId: boardId || undefined,
-    }).catch(console.error);
+    // Wait a moment for backend to create activity, then refetch
+    setTimeout(async () => {
+      try {
+        const cardActivities = await fetchActivitiesByCard(card.id);
+        setActivities(cardActivities);
+      } catch (error) {
+        console.error('Failed to refetch activities after start date update:', error);
+      }
+    }, 500);
   };
 
   const handleRemoveStartDate = () => {
     setStartDate('');
     onUpdate(card.id, { startDate: undefined });
     setShowStartDatePicker(false);
-    // Create activity for start date removed
-    createActivity({
-      type: 'start_date_removed',
-      description: `${currentUser?.displayName || 'User'} removed start date from "${card.title}"`,
-      cardId: card.id,
-      boardId: boardId || undefined,
-    }).catch(console.error);
+    // Wait a moment for backend to create activity, then refetch
+    setTimeout(async () => {
+      try {
+        const cardActivities = await fetchActivitiesByCard(card.id);
+        setActivities(cardActivities);
+      } catch (error) {
+        console.error('Failed to refetch activities after start date removal:', error);
+      }
+    }, 500);
   };
 
   const toggleLabel = (label: CardLabel) => {
@@ -1306,6 +1343,15 @@ function CardDetailModal({
       ? currentLabels.filter((l) => l !== label)
       : [...currentLabels, label];
     onUpdate(card.id, { labels: newLabels });
+    // Wait a moment for backend to create activity, then refetch
+    setTimeout(async () => {
+      try {
+        const cardActivities = await fetchActivitiesByCard(card.id);
+        setActivities(cardActivities);
+      } catch (error) {
+        console.error('Failed to refetch activities after label toggle:', error);
+      }
+    }, 500);
   };
 
   return (
@@ -2983,12 +3029,40 @@ function CardDetailModal({
                               <span className="font-medium text-gray-800">{activity.authorName}</span>{' '}
                               <span className="text-gray-600">{display.label}</span>
                             </p>
+                            {/* Title updated - show word diff if both values exist, or just new value */}
+                            {activity.type === 'title_updated' && (data?.old_value || data?.new_value) && (
+                              <div className="mt-1 text-xs">
+                                <div className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded">
+                                  {data?.old_value && data?.new_value ? (
+                                    renderWordDiff(data.old_value, data.new_value)
+                                  ) : data?.new_value ? (
+                                    <span className="bg-green-100 text-green-700 px-1 rounded">{data.new_value}</span>
+                                  ) : (
+                                    <span className="text-gray-500">{data?.old_value}</span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            {/* Description updated - show word diff if both values exist, or just new value */}
+                            {activity.type === 'description_updated' && (data?.old_value || data?.new_value) && (
+                              <div className="mt-1 text-xs">
+                                <div className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded line-clamp-3">
+                                  {data?.old_value && data?.new_value ? (
+                                    renderWordDiff(data.old_value, data.new_value)
+                                  ) : data?.new_value ? (
+                                    <span className="bg-green-100 text-green-700 px-1 rounded">{data.new_value}</span>
+                                  ) : (
+                                    <span className="bg-red-100 text-red-700 px-1 rounded line-through">{data?.old_value}</span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                             {/* Card moved - show from/to lists */}
                             {activity.type === 'card_moved' && data?.from_list && data?.to_list && (
                               <div className="mt-1 flex items-center gap-1.5 text-xs">
-                                <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{data.from_list}</span>
+                                <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded line-through">{data.from_list}</span>
                                 <ArrowRight className="h-3 w-3 text-gray-400" />
-                                <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{data.to_list}</span>
+                                <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{data.to_list}</span>
                               </div>
                             )}
                             {/* Due date changes */}
@@ -3060,17 +3134,24 @@ function CardDetailModal({
                                 </div>
                               </div>
                             )}
-                            {/* Custom field changes */}
+                            {/* Custom field changes - use word diff for longer text, simple format for short values */}
                             {activity.type === 'custom_field_updated' && data?.field_name && (
                               <div className="mt-1 text-xs">
-                                <div className="flex items-center gap-1.5 flex-wrap">
+                                <div className="flex items-start gap-1.5 flex-wrap">
                                   <span className="font-medium text-gray-600">{data.field_name}:</span>
                                   {data.old_value && data.new_value ? (
-                                    <>
-                                      <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded line-through">{data.old_value}</span>
-                                      <ArrowRight className="h-3 w-3 text-gray-400" />
-                                      <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{data.new_value}</span>
-                                    </>
+                                    // Use word diff for longer text (more than 20 chars total)
+                                    (data.old_value.length + data.new_value.length > 20) ? (
+                                      <span className="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                                        {renderWordDiff(data.old_value, data.new_value)}
+                                      </span>
+                                    ) : (
+                                      <>
+                                        <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded line-through">{data.old_value}</span>
+                                        <ArrowRight className="h-3 w-3 text-gray-400 mt-0.5" />
+                                        <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{data.new_value}</span>
+                                      </>
+                                    )
                                   ) : data.new_value ? (
                                     <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{data.new_value}</span>
                                   ) : data.old_value ? (

@@ -123,7 +123,8 @@ export async function createComment(data: CreateCommentData): Promise<CardCommen
 
 // Update a comment
 export async function updateComment(id: string, text: string): Promise<CardComment> {
-  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_comment/${id}`, {
+  // Include uid in the response to preserve author information
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_comment/${id}?include=uid`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/vnd.api+json',
