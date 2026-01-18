@@ -296,7 +296,7 @@ export default function Dashboard() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo & Navigation */}
-            <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-2 lg:space-x-4 xl:space-x-6">
               <Link to="/dashboard" className="flex items-center space-x-2">
                 <Layout className="h-7 w-7 text-blue-600 dark:text-blue-400" />
                 <span className="text-xl font-bold text-gray-900 dark:text-white">BoxTasks</span>
@@ -402,14 +402,14 @@ export default function Dashboard() {
                 </div>
                 <Link
                   to="/everything"
-                  className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  className="hidden xl:flex items-center px-2 lg:px-3 py-2 text-sm lg:text-base text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                 >
                   <LayoutGrid className="h-4 w-4 mr-1" aria-hidden="true" />
                   Everything
                 </Link>
                 <Link
                   to="/my-cards"
-                  className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  className="hidden xl:flex items-center px-2 lg:px-3 py-2 text-sm lg:text-base text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                 >
                   <User className="h-4 w-4 mr-1" aria-hidden="true" />
                   My Cards
@@ -426,14 +426,14 @@ export default function Dashboard() {
             </div>
 
             {/* Search & User */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 lg:space-x-4">
               <button
                 onClick={() => setShowSearch(true)}
-                className="hidden md:flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 w-64 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-2 lg:px-3 py-2 w-32 lg:w-40 xl:w-64 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                <Search className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
-                <span className="text-sm text-gray-500 dark:text-gray-400">Search...</span>
-                <kbd className="ml-auto px-1.5 py-0.5 text-xs bg-gray-200 dark:bg-gray-600 rounded text-gray-500 dark:text-gray-400">⌘K</kbd>
+                <Search className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-1 lg:mr-2 flex-shrink-0" />
+                <span className="text-sm text-gray-500 dark:text-gray-400 truncate">Search...</span>
+                <kbd className="ml-auto px-1 lg:px-1.5 py-0.5 text-xs bg-gray-200 dark:bg-gray-600 rounded text-gray-500 dark:text-gray-400 hidden xl:block">⌘K</kbd>
               </button>
               <ThemeToggle />
               <NotificationDropdown />
