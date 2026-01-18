@@ -117,7 +117,7 @@ export function SortableList({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-gray-100 rounded-xl w-72 flex-shrink-0 flex flex-col ${isCollapsed ? '' : 'max-h-full'}`}
+      className={`bg-gray-100 dark:bg-gray-800 rounded-xl w-72 flex-shrink-0 flex flex-col ${isCollapsed ? '' : 'max-h-full'}`}
     >
       {/* Color Bar */}
       {list.color && (
@@ -136,7 +136,7 @@ export function SortableList({
           {...listeners}
           className="flex items-center flex-1 cursor-grab active:cursor-grabbing"
         >
-          <GripVertical className="h-4 w-4 text-gray-400 mr-1 flex-shrink-0" />
+          <GripVertical className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-1 flex-shrink-0" />
           {isEditingTitle ? (
             <input
               type="text"
@@ -151,12 +151,12 @@ export function SortableList({
                 }
               }}
               autoFocus
-              className="font-semibold text-gray-800 bg-white px-2 py-1 rounded border border-blue-500 outline-none flex-1"
+              className="font-semibold text-gray-800 dark:text-white bg-white dark:bg-gray-700 px-2 py-1 rounded border border-blue-500 outline-none flex-1"
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
             <h3
-              className="font-semibold text-gray-800 cursor-text flex-1"
+              className="font-semibold text-gray-800 dark:text-white cursor-text flex-1"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsEditingTitle(true);
@@ -170,8 +170,8 @@ export function SortableList({
             <span
               className={`ml-2 text-xs px-1.5 py-0.5 rounded ${
                 isOverWipLimit
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-gray-200 text-gray-600'
+                  ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
               }`}
             >
               {cards.length}/{list.wipLimit}
@@ -186,7 +186,7 @@ export function SortableList({
               e.stopPropagation();
               toggleCollapse(list.id);
             }}
-            className="p-1 text-gray-400 hover:text-gray-600 rounded"
+            className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
           >
             {isCollapsed ? (
               <ChevronDown className="h-4 w-4" />
@@ -202,14 +202,14 @@ export function SortableList({
                 e.stopPropagation();
                 setShowMenu(!showMenu);
               }}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded"
+              className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded"
             >
               <MoreHorizontal className="h-4 w-4" />
             </button>
 
             {/* Dropdown Menu */}
             {showMenu && (
-              <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
+              <div className="absolute right-0 top-8 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20">
                 <div className="py-1">
                   {canCreateCard && (
                     <button
@@ -218,7 +218,7 @@ export function SortableList({
                         setShowMenu(false);
                         setAddingCardToList(list.id);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add card
@@ -230,7 +230,7 @@ export function SortableList({
                         e.stopPropagation();
                         setShowColorPicker(!showColorPicker);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
                     >
                       <Palette className="h-4 w-4 mr-2" />
                       Set color
@@ -246,7 +246,7 @@ export function SortableList({
                             handleColorSelect(color.value);
                           }}
                           className={`w-6 h-6 rounded-full border-2 ${
-                            list.color === color.value ? 'border-blue-500' : 'border-gray-200'
+                            list.color === color.value ? 'border-blue-500' : 'border-gray-200 dark:border-gray-600'
                           }`}
                           style={{ backgroundColor: color.value || '#e5e7eb' }}
                           title={color.name}
@@ -261,7 +261,7 @@ export function SortableList({
                           e.stopPropagation();
                           setShowWipSettings(!showWipSettings);
                         }}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
                       >
                         <AlertTriangle className="h-4 w-4 mr-2" />
                         Set WIP limit
@@ -274,7 +274,7 @@ export function SortableList({
                               min="0"
                               value={wipLimitValue}
                               onChange={(e) => setWipLimitValue(e.target.value)}
-                              className="w-16 px-2 py-1 border rounded text-sm"
+                              className="w-16 px-2 py-1 border dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               onClick={(e) => e.stopPropagation()}
                             />
                             <button
@@ -287,21 +287,21 @@ export function SortableList({
                               Set
                             </button>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">0 = no limit</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">0 = no limit</p>
                         </div>
                       )}
                     </>
                   )}
                   {canDeleteList && (
                     <>
-                      <hr className="my-1" />
+                      <hr className="my-1 border-gray-200 dark:border-gray-700" />
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowMenu(false);
                           onArchiveList(list.id);
                         }}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
                       >
                         <Archive className="h-4 w-4 mr-2" />
                         Archive list
@@ -320,7 +320,7 @@ export function SortableList({
                             onDeleteList(list.id);
                           }
                         }}
-                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete list
@@ -336,7 +336,7 @@ export function SortableList({
 
       {/* WIP Limit Warning */}
       {isOverWipLimit && !isCollapsed && (
-        <div className="mx-2 mb-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg flex items-center text-sm text-red-700">
+        <div className="mx-2 mb-2 px-3 py-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg flex items-center text-sm text-red-700 dark:text-red-400">
           <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
           <span>Over WIP limit ({cards.length}/{list.wipLimit})</span>
         </div>
@@ -351,7 +351,7 @@ export function SortableList({
         >
           {/* Add Card Form - at the top of the list */}
           {addingCardToList === list.id ? (
-            <div className="bg-white rounded-lg p-2 shadow-sm mb-2">
+            <div className="bg-white dark:bg-gray-700 rounded-lg p-2 shadow-sm mb-2">
               <textarea
                 value={newCardTitle}
                 onChange={(e) => setNewCardTitle(e.target.value)}
@@ -363,7 +363,7 @@ export function SortableList({
                 }}
                 placeholder="Enter a title for this card..."
                 autoFocus
-                className="w-full p-2 text-sm border-none outline-none resize-none"
+                className="w-full p-2 text-sm border-none outline-none resize-none bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 rows={3}
               />
               <div className="flex items-center space-x-2">
@@ -378,7 +378,7 @@ export function SortableList({
                     setAddingCardToList(null);
                     setNewCardTitle('');
                   }}
-                  className="p-1.5 text-gray-500 hover:text-gray-700"
+                  className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -388,14 +388,14 @@ export function SortableList({
             <div className="flex items-center gap-1 mb-2">
               <button
                 onClick={() => setAddingCardToList(list.id)}
-                className="flex-1 text-left px-3 py-2 text-gray-500 hover:bg-gray-200 rounded-lg flex items-center text-sm"
+                className="flex-1 text-left px-3 py-2 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg flex items-center text-sm"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add a card
               </button>
               <button
                 onClick={() => onOpenTemplatePicker(list.id)}
-                className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg"
                 title="Create from template"
               >
                 <LayoutTemplate className="h-4 w-4" />
@@ -490,7 +490,7 @@ export function SortableList({
 
       {/* Collapsed Summary */}
       {isCollapsed && (
-        <div className="px-3 pb-3 text-sm text-gray-500">
+        <div className="px-3 pb-3 text-sm text-gray-500 dark:text-gray-400">
           {cards.length} card{cards.length !== 1 ? 's' : ''}
         </div>
       )}

@@ -1357,7 +1357,7 @@ function CardDetailModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl my-8" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl my-8" onClick={(e) => e.stopPropagation()}>
         {/* Cover Image */}
         {coverImageUrl && (
           <div className="relative h-40 w-full">
@@ -1385,7 +1385,7 @@ function CardDetailModal({
                 className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                   card.completed
                     ? 'bg-green-500 border-green-500 text-white'
-                    : 'border-gray-300 hover:border-green-400'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500'
                 }`}
                 title={card.completed ? 'Mark as incomplete' : 'Mark as complete'}
               >
@@ -1397,28 +1397,28 @@ function CardDetailModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   onBlur={handleTitleBlur}
-                  className={`text-xl font-semibold w-full outline-none focus:bg-gray-50 px-2 py-1 -ml-2 rounded ${
-                    card.completed ? 'text-gray-400 line-through' : 'text-gray-900'
+                  className={`text-xl font-semibold w-full outline-none focus:bg-gray-50 dark:focus:bg-gray-700 px-2 py-1 -ml-2 rounded ${
+                    card.completed ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-white'
                   }`}
                 />
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm text-gray-500">in list</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">in list</span>
                   <button
                     onClick={onClose}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-sm rounded border border-blue-200 transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-medium text-sm rounded border border-blue-200 dark:border-blue-700 transition-colors"
                     title="Click to view list"
                   >
                     {listTitle}
                   </button>
-                  {card.completed && <span className="text-green-600 font-medium text-sm">Completed</span>}
+                  {card.completed && <span className="text-green-600 dark:text-green-400 font-medium text-sm">Completed</span>}
                 </div>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
             >
-              <X className="h-5 w-5 text-gray-500" />
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
 
@@ -1428,7 +1428,7 @@ function CardDetailModal({
               {/* Labels */}
               {card.labels.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Labels</h4>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Labels</h4>
                   <div className="flex flex-wrap gap-2">
                     {card.labels.map((label) => (
                       <span
@@ -1461,7 +1461,7 @@ function CardDetailModal({
                         </span>
                         <button
                           onClick={() => setShowStartDatePicker(true)}
-                          className="text-gray-500 hover:text-gray-700 text-sm"
+                          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
                         >
                           Edit
                         </button>
@@ -1482,7 +1482,7 @@ function CardDetailModal({
                           </span>
                           <button
                             onClick={() => setShowStartDatePicker(true)}
-                            className="text-gray-500 hover:text-gray-700 text-sm"
+                            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
                           >
                             Edit
                           </button>
@@ -1501,7 +1501,7 @@ function CardDetailModal({
                           </span>
                           <button
                             onClick={() => setShowDatePicker(true)}
-                            className="text-gray-500 hover:text-gray-700 text-sm"
+                            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
                           >
                             Edit
                           </button>
@@ -1617,7 +1617,7 @@ function CardDetailModal({
                           }
                         }}
                         disabled={isApproving || !currentUser}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-700 hover:border-green-300 border border-gray-300 disabled:opacity-50"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-green-100 dark:hover:bg-green-900/50 hover:text-green-700 dark:hover:text-green-400 hover:border-green-300 dark:hover:border-green-600 border border-gray-300 dark:border-gray-600 disabled:opacity-50"
                       >
                         {isApproving ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -1653,7 +1653,7 @@ function CardDetailModal({
                           }
                         }}
                         disabled={isApproving || !currentUser}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700 hover:border-red-300 border border-gray-300 disabled:opacity-50"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/50 hover:text-red-700 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-600 border border-gray-300 dark:border-gray-600 disabled:opacity-50"
                       >
                         {isApproving ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -1669,8 +1669,8 @@ function CardDetailModal({
 
               {/* Description */}
               <div className="pt-2">
-                <h4 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-gray-500" />
+                <h4 className="text-sm font-semibold text-gray-800 dark:text-white mb-2 flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                   Description
                 </h4>
                 {editingDescription ? (
@@ -1678,7 +1678,7 @@ function CardDetailModal({
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:border-blue-500 resize-none"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:border-blue-500 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       rows={4}
                       autoFocus
                     />
@@ -1694,7 +1694,7 @@ function CardDetailModal({
                           setDescription(card.description || '');
                           setEditingDescription(false);
                         }}
-                        className="text-gray-600 px-3 py-1.5 text-sm"
+                        className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                       >
                         Cancel
                       </button>
@@ -1703,7 +1703,7 @@ function CardDetailModal({
                 ) : (
                   <button
                     onClick={() => setEditingDescription(true)}
-                    className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-20"
+                    className="w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 min-h-20"
                   >
                     {card.description || 'Add a more detailed description...'}
                   </button>
@@ -1781,7 +1781,7 @@ function CardDetailModal({
                                         });
                                         setEditingCustomFieldId(null);
                                       }}
-                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                      className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                                     >
                                       Cancel
                                     </button>
@@ -1790,7 +1790,7 @@ function CardDetailModal({
                               ) : (
                                 <button
                                   onClick={() => setEditingCustomFieldId(fieldDef.id)}
-                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                  className="w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 min-h-10"
                                 >
                                   {currentValue || `Add ${fieldDef.title.toLowerCase()}...`}
                                 </button>
@@ -1836,7 +1836,7 @@ function CardDetailModal({
                                         });
                                         setEditingCustomFieldId(null);
                                       }}
-                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                      className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                                     >
                                       Cancel
                                     </button>
@@ -1845,7 +1845,7 @@ function CardDetailModal({
                               ) : (
                                 <button
                                   onClick={() => setEditingCustomFieldId(fieldDef.id)}
-                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-20"
+                                  className="w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 min-h-20"
                                 >
                                   {currentValue || `Add ${fieldDef.title.toLowerCase()}...`}
                                 </button>
@@ -1891,7 +1891,7 @@ function CardDetailModal({
                                         });
                                         setEditingCustomFieldId(null);
                                       }}
-                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                      className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                                     >
                                       Cancel
                                     </button>
@@ -1900,7 +1900,7 @@ function CardDetailModal({
                               ) : (
                                 <button
                                   onClick={() => setEditingCustomFieldId(fieldDef.id)}
-                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                  className="w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 min-h-10"
                                 >
                                   {currentValue || `Enter ${fieldDef.title.toLowerCase()}...`}
                                 </button>
@@ -1945,7 +1945,7 @@ function CardDetailModal({
                                         });
                                         setEditingCustomFieldId(null);
                                       }}
-                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                      className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                                     >
                                       Cancel
                                     </button>
@@ -1954,7 +1954,7 @@ function CardDetailModal({
                               ) : (
                                 <button
                                   onClick={() => setEditingCustomFieldId(fieldDef.id)}
-                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                  className="w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 min-h-10"
                                 >
                                   {currentValue ? formatDate(currentValue, 'medium') : `Select ${fieldDef.title.toLowerCase()}...`}
                                 </button>
@@ -2005,7 +2005,7 @@ function CardDetailModal({
                                         });
                                         setEditingCustomFieldId(null);
                                       }}
-                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                      className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                                     >
                                       Cancel
                                     </button>
@@ -2014,7 +2014,7 @@ function CardDetailModal({
                               ) : (
                                 <button
                                   onClick={() => setEditingCustomFieldId(fieldDef.id)}
-                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                  className="w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 min-h-10"
                                 >
                                   {currentValue || `Select ${fieldDef.title.toLowerCase()}...`}
                                 </button>
@@ -2081,7 +2081,7 @@ function CardDetailModal({
                                         });
                                         setEditingCustomFieldId(null);
                                       }}
-                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                      className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                                     >
                                       Cancel
                                     </button>
@@ -2090,7 +2090,7 @@ function CardDetailModal({
                               ) : (
                                 <button
                                   onClick={() => setEditingCustomFieldId(fieldDef.id)}
-                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                  className="w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 min-h-10"
                                 >
                                   {currentValue ? (
                                     <a href={currentValue} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" onClick={e => e.stopPropagation()}>
@@ -2140,7 +2140,7 @@ function CardDetailModal({
                                         });
                                         setEditingCustomFieldId(null);
                                       }}
-                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                      className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                                     >
                                       Cancel
                                     </button>
@@ -2149,7 +2149,7 @@ function CardDetailModal({
                               ) : (
                                 <button
                                   onClick={() => setEditingCustomFieldId(fieldDef.id)}
-                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                  className="w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 min-h-10"
                                 >
                                   {currentValue ? (
                                     <a href={`mailto:${currentValue}`} className="text-blue-600 hover:underline" onClick={e => e.stopPropagation()}>
@@ -2203,7 +2203,7 @@ function CardDetailModal({
                                         });
                                         setEditingCustomFieldId(null);
                                       }}
-                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                      className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                                     >
                                       Cancel
                                     </button>
@@ -2212,7 +2212,7 @@ function CardDetailModal({
                               ) : (
                                 <button
                                   onClick={() => setEditingCustomFieldId(fieldDef.id)}
-                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                  className="w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 min-h-10"
                                 >
                                   {currentValue ? `$${parseFloat(currentValue).toFixed(2)}` : `Add ${fieldDef.title.toLowerCase()}...`}
                                 </button>
@@ -2308,7 +2308,7 @@ function CardDetailModal({
                                         });
                                         setEditingCustomFieldId(null);
                                       }}
-                                      className="text-gray-600 px-3 py-1.5 text-sm"
+                                      className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                                     >
                                       Cancel
                                     </button>
@@ -2317,7 +2317,7 @@ function CardDetailModal({
                               ) : (
                                 <button
                                   onClick={() => setEditingCustomFieldId(fieldDef.id)}
-                                  className="w-full text-left p-3 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 min-h-10"
+                                  className="w-full text-left p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 min-h-10"
                                 >
                                   {currentValue ? (
                                     <a href={`tel:${currentValue}`} className="text-blue-600 hover:underline" onClick={e => e.stopPropagation()}>
@@ -2366,7 +2366,7 @@ function CardDetailModal({
                       onKeyDown={(e) => e.key === 'Enter' && handleAddChecklist()}
                       placeholder="Checklist title..."
                       autoFocus
-                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                     <div className="flex space-x-2 mt-2">
                       <button
@@ -2380,7 +2380,7 @@ function CardDetailModal({
                           setShowAddChecklist(false);
                           setNewChecklistTitle('');
                         }}
-                        className="text-gray-600 px-3 py-1.5 text-sm"
+                        className="text-gray-600 dark:text-gray-300 px-3 py-1.5 text-sm"
                       >
                         Cancel
                       </button>
@@ -2394,7 +2394,7 @@ function CardDetailModal({
                     <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                   </div>
                 ) : checklists.length === 0 ? (
-                  <p className="text-gray-500 text-sm text-center py-4">No checklists yet</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">No checklists yet</p>
                 ) : (
                   <div className="space-y-4">
                     {checklists.map((checklist) => (
@@ -2635,7 +2635,7 @@ function CardDetailModal({
                                           setAddingSubItemTo(null);
                                           setNewItemTitle('');
                                         }}
-                                        className="text-gray-600 px-2 py-1 text-xs"
+                                        className="text-gray-600 dark:text-gray-300 px-2 py-1 text-xs"
                                       >
                                         Cancel
                                       </button>
@@ -2740,7 +2740,7 @@ function CardDetailModal({
                     <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                   </div>
                 ) : attachments.length === 0 ? (
-                  <p className="text-gray-500 text-sm text-center py-4">No attachments yet</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">No attachments yet</p>
                 ) : (
                   <div className="space-y-2">
                     {attachments.map((attachment) => (
@@ -2864,7 +2864,7 @@ function CardDetailModal({
                     <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                   </div>
                 ) : comments.length === 0 ? (
-                  <p className="text-gray-500 text-sm text-center py-4">No comments yet</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">No comments yet</p>
                 ) : (
                   <div className="space-y-3">
                     {comments.map((comment) => (
@@ -3008,7 +3008,7 @@ function CardDetailModal({
                     <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                   </div>
                 ) : activities.length === 0 ? (
-                  <p className="text-gray-500 text-sm text-center py-4">No activity yet</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">No activity yet</p>
                 ) : (
                   <div className={`space-y-2 ${showAllActivities ? 'max-h-96 overflow-y-auto pr-2' : ''}`}>
                     {(showAllActivities ? activities : activities.slice(0, 5)).map((activity) => {
@@ -3047,7 +3047,7 @@ function CardDetailModal({
                             {/* Description updated - show word diff if both values exist, or just new value */}
                             {activity.type === 'description_updated' && (data?.old_value || data?.new_value) && (
                               <div className="mt-1 text-xs">
-                                <div className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded line-clamp-3">
+                                <div className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1.5 rounded line-clamp-3">
                                   {data?.old_value && data?.new_value ? (
                                     renderWordDiff(data.old_value, data.new_value)
                                   ) : data?.new_value ? (
@@ -3114,7 +3114,7 @@ function CardDetailModal({
                             {/* Comment added - show comment text */}
                             {activity.type === 'comment_added' && data?.comment_text && (
                               <div className="mt-1 text-xs">
-                                <div className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded italic">
+                                <div className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1.5 rounded italic">
                                   "{data.comment_text}"
                                 </div>
                               </div>
@@ -3122,7 +3122,7 @@ function CardDetailModal({
                             {/* Comment updated - show inline word diff */}
                             {activity.type === 'comment_updated' && data?.old_value && data?.new_value && (
                               <div className="mt-1 text-xs">
-                                <div className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded italic">
+                                <div className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1.5 rounded italic">
                                   "{renderWordDiff(data.old_value, data.new_value)}"
                                 </div>
                               </div>
@@ -3139,7 +3139,7 @@ function CardDetailModal({
                             {activity.type === 'custom_field_updated' && data?.field_name && (
                               <div className="mt-1 text-xs">
                                 <div className="flex items-start gap-1.5 flex-wrap">
-                                  <span className="font-medium text-gray-600">{data.field_name}:</span>
+                                  <span className="font-medium text-gray-600 dark:text-gray-300">{data.field_name}:</span>
                                   {data.old_value && data.new_value ? (
                                     // Use word diff for longer text (more than 20 chars total)
                                     (data.old_value.length + data.new_value.length > 20) ? (
@@ -3171,7 +3171,7 @@ function CardDetailModal({
                             {activity.description && !hasStructuredData && (
                               <p className="text-xs text-gray-500 mt-0.5 truncate">{activity.description}</p>
                             )}
-                            <p className="text-xs text-gray-400 mt-0.5">{time.fullDate} · {time.relative}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{time.fullDate} · {time.relative}</p>
                           </div>
                         </div>
                       );
@@ -3179,7 +3179,7 @@ function CardDetailModal({
                     {!showAllActivities && activities.length > 5 && (
                       <button
                         onClick={() => setShowAllActivities(true)}
-                        className="w-full text-xs text-blue-600 hover:text-blue-700 text-center py-2 hover:bg-blue-50 rounded"
+                        className="w-full text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-center py-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded"
                       >
                         Show {activities.length - 5} more activities
                       </button>
@@ -3192,7 +3192,7 @@ function CardDetailModal({
             {/* Sidebar Actions */}
             <div className="space-y-4">
               <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase mb-2 flex items-center gap-2">
+                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2 flex items-center gap-2">
                   Add to card
                   {cardMembers.length > 0 && (
                     <span className="text-blue-600 normal-case font-normal">
@@ -3203,14 +3203,14 @@ function CardDetailModal({
                 <div className="space-y-2">
                   {/* Member Assignment Dropdown */}
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Assign member (1 max)</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Assign member (1 max)</p>
                     {cardMembers.length > 0 ? (
-                      <div className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                      <div className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
                             {cardMembers[0].name.charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-sm text-gray-700">{cardMembers[0].name}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-200">{cardMembers[0].name}</span>
                         </div>
                         <button
                           onClick={() => handleToggleMember(cardMembers[0].id, cardMembers[0].name)}
@@ -3237,8 +3237,8 @@ function CardDetailModal({
                     disabled={isTogglingWatch || !currentUser}
                     className={`w-full px-3 py-2 rounded text-left text-sm flex items-center ${
                       isWatching
-                        ? 'bg-blue-100 hover:bg-blue-200 text-blue-700'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        ? 'bg-blue-100 dark:bg-blue-900/50 hover:bg-blue-200 dark:hover:bg-blue-900/70 text-blue-700 dark:text-blue-300'
+                        : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
                     } disabled:opacity-50`}
                   >
                     {isTogglingWatch ? (
@@ -3252,7 +3252,7 @@ function CardDetailModal({
                   </button>
                   {/* Watchers Dropdown */}
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                       Watchers {card.watcherIds && card.watcherIds.length > 0 && `(${card.watcherIds.length})`}
                     </p>
                     {/* Current watchers display */}
@@ -3263,7 +3263,7 @@ function CardDetailModal({
                           .map((member) => (
                             <span
                               key={member.id}
-                              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs"
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full text-xs"
                             >
                               {member.displayName}
                               <button
@@ -3288,7 +3288,7 @@ function CardDetailModal({
                       emptyMessage="All members are watching"
                     />
                   </div>
-                  <button className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center">
+                  <button className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center text-gray-700 dark:text-gray-300">
                     <Tag className="h-4 w-4 mr-2" />
                     Labels
                   </button>
@@ -3297,7 +3297,7 @@ function CardDetailModal({
                     <div className="relative">
                       <button
                         onClick={() => setShowCardFieldsPicker(!showCardFieldsPicker)}
-                        className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
+                        className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center justify-between text-gray-700 dark:text-gray-300"
                       >
                         <span className="flex items-center">
                           <Settings2 className="h-4 w-4 mr-2" />
@@ -3308,16 +3308,16 @@ function CardDetailModal({
                         </span>
                       </button>
                       {showCardFieldsPicker && (
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-64">
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">Add Custom Fields</h5>
-                          <p className="text-xs text-gray-500 mb-3">Select card-specific fields to add:</p>
+                        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-10 w-64">
+                          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Add Custom Fields</h5>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">Select card-specific fields to add:</p>
                           <div className="space-y-1 max-h-48 overflow-y-auto">
                             {availableCardFields.map((field) => (
                               <button
                                 key={field.id}
                                 onClick={() => handleAddCardField(field.id)}
                                 disabled={isAddingCardField}
-                                className="w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 text-left disabled:opacity-50"
+                                className="w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-left disabled:opacity-50"
                               >
                                 <div className="w-6 h-6 rounded bg-blue-100 flex items-center justify-center">
                                   {field.type === 'text' && <span className="text-blue-600 text-xs font-medium">Aa</span>}
@@ -3333,8 +3333,8 @@ function CardDetailModal({
                                   {field.type === 'longtext' && <FileText className="h-3 w-3 text-blue-600" />}
                                 </div>
                                 <div className="flex-1">
-                                  <span className="text-sm text-gray-700">{field.title}</span>
-                                  <span className="block text-xs text-gray-400 capitalize">{field.type}</span>
+                                  <span className="text-sm text-gray-700 dark:text-gray-200">{field.title}</span>
+                                  <span className="block text-xs text-gray-400 dark:text-gray-500 capitalize">{field.type}</span>
                                 </div>
                                 <Plus className="h-4 w-4 text-gray-400" />
                               </button>
@@ -3342,7 +3342,7 @@ function CardDetailModal({
                           </div>
                           <button
                             onClick={() => setShowCardFieldsPicker(false)}
-                            className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
+                            className="w-full mt-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
                           >
                             Close
                           </button>
@@ -3353,23 +3353,23 @@ function CardDetailModal({
                   <div className="relative">
                     <button
                       onClick={() => setShowStartDatePicker(!showStartDatePicker)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center"
+                      className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center text-gray-700 dark:text-gray-300"
                     >
                       <Clock className="h-4 w-4 mr-2" />
                       Start date
                     </button>
                     {showStartDatePicker && (
-                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-72">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">Set start date & time</h5>
+                      <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-10 w-72">
+                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Set start date & time</h5>
                         <input
                           type="datetime-local"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
                           max={dueDate || undefined}
-                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         />
                         {dueDate && (
-                          <p className="text-xs text-gray-500 mt-1">Must be before or on the due date</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Must be before or on the due date</p>
                         )}
                         <div className="flex space-x-2 mt-3">
                           <button
@@ -3389,7 +3389,7 @@ function CardDetailModal({
                         </div>
                         <button
                           onClick={() => setShowStartDatePicker(false)}
-                          className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                          className="w-full mt-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
                         >
                           Cancel
                         </button>
@@ -3399,23 +3399,23 @@ function CardDetailModal({
                   <div className="relative">
                     <button
                       onClick={() => setShowDatePicker(!showDatePicker)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center"
+                      className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center text-gray-700 dark:text-gray-300"
                     >
                       <Calendar className="h-4 w-4 mr-2" />
                       Due date
                     </button>
                     {showDatePicker && (
-                      <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-10 w-72">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">Set due date & time</h5>
+                      <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-10 w-72">
+                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Set due date & time</h5>
                         <input
                           type="datetime-local"
                           value={dueDate}
                           onChange={(e) => setDueDate(e.target.value)}
                           min={startDate || undefined}
-                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         />
                         {startDate && (
-                          <p className="text-xs text-gray-500 mt-1">Must be on or after the start date</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Must be on or after the start date</p>
                         )}
                         <div className="flex space-x-2 mt-3">
                           <button
@@ -3435,7 +3435,7 @@ function CardDetailModal({
                         </div>
                         <button
                           onClick={() => setShowDatePicker(false)}
-                          className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                          className="w-full mt-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
                         >
                           Cancel
                         </button>
@@ -3446,7 +3446,7 @@ function CardDetailModal({
                   <div className="relative">
                     <button
                       onClick={() => setShowDepartmentPicker(!showDepartmentPicker)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
+                      className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center justify-between text-gray-700 dark:text-gray-300"
                     >
                       <span className="flex items-center">
                         <Briefcase className="h-4 w-4 mr-2" />
@@ -3461,8 +3461,8 @@ function CardDetailModal({
                     {showDepartmentPicker && (
                       <>
                         <div className="fixed inset-0 z-[51]" onClick={() => setShowDepartmentPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">Select Department</h5>
+                        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-[52] w-64">
+                          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Select Department</h5>
                           <div className="space-y-1 max-h-48 overflow-y-auto">
                             {departments.map((dept) => (
                               <button
@@ -3495,7 +3495,7 @@ function CardDetailModal({
                           )}
                           <button
                             onClick={() => setShowDepartmentPicker(false)}
-                            className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                            className="w-full mt-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
                           >
                             Close
                           </button>
@@ -3507,7 +3507,7 @@ function CardDetailModal({
                   <div className="relative">
                     <button
                       onClick={() => setShowClientPicker(!showClientPicker)}
-                      className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center justify-between"
+                      className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center justify-between text-gray-700 dark:text-gray-300"
                     >
                       <span className="flex items-center">
                         <Building2 className="h-4 w-4 mr-2" />
@@ -3522,8 +3522,8 @@ function CardDetailModal({
                     {showClientPicker && (
                       <>
                         <div className="fixed inset-0 z-[51]" onClick={() => setShowClientPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[52] w-64">
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">Select Client</h5>
+                        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-[52] w-64">
+                          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Select Client</h5>
                           <div className="space-y-1 max-h-48 overflow-y-auto">
                             {clients.map((clnt) => (
                               <button
@@ -3556,7 +3556,7 @@ function CardDetailModal({
                           )}
                           <button
                             onClick={() => setShowClientPicker(false)}
-                            className="w-full mt-2 text-gray-500 hover:text-gray-700 text-sm"
+                            className="w-full mt-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
                           >
                             Close
                           </button>
@@ -3662,7 +3662,7 @@ function CardDetailModal({
                                       });
                                       setEditingCustomFieldId(null);
                                     }}
-                                    className="text-gray-600 px-2 py-1 text-xs"
+                                    className="text-gray-600 dark:text-gray-300 px-2 py-1 text-xs"
                                   >
                                     Cancel
                                   </button>
@@ -3717,7 +3717,7 @@ function CardDetailModal({
                                       });
                                       setEditingCustomFieldId(null);
                                     }}
-                                    className="text-gray-600 px-2 py-1 text-xs"
+                                    className="text-gray-600 dark:text-gray-300 px-2 py-1 text-xs"
                                   >
                                     Cancel
                                   </button>

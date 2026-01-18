@@ -2,6 +2,7 @@ import { useEffect, lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate, Outlet, useRouteError, isRouteErrorResponse } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './lib/stores/auth';
+import { useThemeStore } from './lib/stores/theme';
 import ToastContainer from './components/Toast';
 import { ErrorBoundary, BoardErrorBoundary } from './components/ErrorBoundary';
 import { SkipLinks } from './components/SkipLinks';
@@ -27,6 +28,7 @@ const Milestones = lazy(() => import('./pages/Milestones'));
 const WorkspaceReports = lazy(() => import('./pages/WorkspaceReports'));
 const MindMapView = lazy(() => import('./pages/MindMapView'));
 const BoardReports = lazy(() => import('./pages/BoardReports'));
+const Notifications = lazy(() => import('./pages/Notifications'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
 
@@ -169,6 +171,7 @@ const router = createBrowserRouter([
       },
       { path: 'everything', element: <ProtectedRoute><EverythingView /></ProtectedRoute> },
       { path: 'my-cards', element: <ProtectedRoute><MyCards /></ProtectedRoute> },
+      { path: 'notifications', element: <ProtectedRoute><Notifications /></ProtectedRoute> },
       { path: 'workspace/:workspaceId/goals', element: <ProtectedRoute><Goals /></ProtectedRoute> },
       { path: 'workspace/:workspaceId/milestones', element: <ProtectedRoute><Milestones /></ProtectedRoute> },
       { path: 'workspace/:workspaceId/reports', element: <ProtectedRoute><WorkspaceReports /></ProtectedRoute> },
@@ -182,6 +185,8 @@ const router = createBrowserRouter([
 
 function App() {
   const { checkAuth, isLoading, initSessionMonitoring } = useAuthStore();
+  // Initialize theme store on app load - this triggers rehydration and applies the saved theme
+  const { resolvedTheme } = useThemeStore();
 
   useEffect(() => {
     checkAuth();

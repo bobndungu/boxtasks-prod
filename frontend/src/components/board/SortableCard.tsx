@@ -51,7 +51,7 @@ export function SortableCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow ${
+      className={`relative group bg-white dark:bg-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow ${
         card.completed ? 'opacity-60' : ''
       } ${card.pinned ? 'ring-2 ring-amber-400' : ''}`}
       onMouseEnter={() => setShowQuickActions(true)}
@@ -74,7 +74,7 @@ export function SortableCard({
             className={`p-1 rounded transition-colors ${
               card.completed
                 ? 'bg-green-500 text-white hover:bg-green-600'
-                : 'bg-white/90 text-gray-600 hover:bg-green-50 hover:text-green-600 shadow-sm'
+                : 'bg-white/90 dark:bg-gray-600/90 text-gray-600 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/50 hover:text-green-600 dark:hover:text-green-400 shadow-sm'
             }`}
             title={card.completed ? 'Mark incomplete' : 'Mark complete'}
           >
@@ -82,7 +82,7 @@ export function SortableCard({
           </button>
           <button
             onClick={onQuickEdit}
-            className="p-1 bg-white/90 text-gray-600 rounded shadow-sm hover:bg-blue-50 hover:text-blue-600 transition-colors"
+            className="p-1 bg-white/90 dark:bg-gray-600/90 text-gray-600 dark:text-gray-300 rounded shadow-sm hover:bg-blue-50 dark:hover:bg-blue-900/50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             title="Edit card"
           >
             <Edit2 className="h-3.5 w-3.5" />
@@ -90,7 +90,7 @@ export function SortableCard({
           {canArchiveCard && (
             <button
               onClick={onQuickArchive}
-              className="p-1 bg-white/90 text-gray-600 rounded shadow-sm hover:bg-orange-50 hover:text-orange-600 transition-colors"
+              className="p-1 bg-white/90 dark:bg-gray-600/90 text-gray-600 dark:text-gray-300 rounded shadow-sm hover:bg-orange-50 dark:hover:bg-orange-900/50 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
               title="Archive card"
             >
               <Archive className="h-3.5 w-3.5" />
@@ -144,7 +144,7 @@ export function SortableCard({
               <Check className="h-3 w-3 text-white" />
             </div>
           )}
-          <p className={`text-sm ${card.completed ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+          <p className={`text-sm ${card.completed ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-white'}`}>
             {searchQuery ? highlightText(card.title, searchQuery) : card.title}
           </p>
         </div>
@@ -153,8 +153,8 @@ export function SortableCard({
         {(card.isApproved || card.isRejected) && (
           <div className={`mt-2 flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
             card.isApproved
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
+              ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
+              : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
           }`}>
             {card.isApproved ? (
               <>
@@ -172,7 +172,7 @@ export function SortableCard({
 
         {/* Description preview - expanded view only */}
         {fieldVisibility.expanded && card.description && (
-          <p className="text-xs text-gray-500 mt-2 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 line-clamp-2 leading-relaxed">
             {card.description.length > 120 ? card.description.substring(0, 120) + '...' : card.description}
           </p>
         )}
@@ -360,7 +360,7 @@ export function SortableCard({
                     {[1, 2, 3, 4, 5].map((star) => (
                       <svg
                         key={star}
-                        className={`w-3 h-3 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                        className={`w-3 h-3 ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 dark:text-gray-500'}`}
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >
@@ -381,14 +381,14 @@ export function SortableCard({
               }
 
               return (
-                <div key={cfv.id} className="flex items-center text-xs text-gray-500">
-                  <span className={`font-medium text-gray-600 truncate ${fieldVisibility.expanded ? 'max-w-[100px]' : 'max-w-[60px]'}`}>{fieldDef.title}:</span>
+                <div key={cfv.id} className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                  <span className={`font-medium text-gray-600 dark:text-gray-300 truncate ${fieldVisibility.expanded ? 'max-w-[100px]' : 'max-w-[60px]'}`}>{fieldDef.title}:</span>
                   <span className="ml-1 truncate">{displayValue}</span>
                 </div>
               );
             })}
             {!fieldVisibility.expanded && cardCustomFieldValues.length > 2 && (
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-400 dark:text-gray-500">
                 +{cardCustomFieldValues.length - 2} more fields
               </div>
             )}
