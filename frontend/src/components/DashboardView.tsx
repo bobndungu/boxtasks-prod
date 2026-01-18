@@ -126,44 +126,44 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-100 overflow-auto p-4">
+    <div className="flex flex-col h-full bg-gray-100 dark:bg-gray-900 overflow-auto p-4">
       <div className="max-w-6xl mx-auto w-full">
         {/* Header */}
         <div className="flex items-center gap-2 mb-6">
-          <LayoutDashboard className="h-6 w-6 text-gray-700" />
-          <h2 className="text-xl font-semibold text-gray-900">Dashboard</h2>
+          <LayoutDashboard className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Dashboard</h2>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Total Cards</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Cards</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <ListIcon className="h-6 w-6 text-blue-600" />
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                <ListIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Completed</p>
-                <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Completed</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.completed}</p>
               </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <CheckCircle2 className="h-6 w-6 text-green-600" />
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
+                <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
             <div className="mt-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Completion rate</span>
-                <span className="font-medium text-green-600">{stats.completionRate}%</span>
+                <span className="text-gray-500 dark:text-gray-400">Completion rate</span>
+                <span className="font-medium text-green-600 dark:text-green-400">{stats.completionRate}%</span>
               </div>
-              <div className="mt-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="mt-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-green-500 rounded-full transition-all duration-300"
                   style={{ width: `${stats.completionRate}%` }}
@@ -172,26 +172,26 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Overdue</p>
-                <p className="text-2xl font-bold text-red-600">{stats.overdue}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Overdue</p>
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.overdue}</p>
               </div>
-              <div className="p-3 bg-red-100 rounded-full">
-                <AlertCircle className="h-6 w-6 text-red-600" />
+              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Due Soon</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.dueSoon}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Due Soon</p>
+                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.dueSoon}</p>
               </div>
-              <div className="p-3 bg-yellow-100 rounded-full">
-                <Clock className="h-6 w-6 text-yellow-600" />
+              <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-full">
+                <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
               </div>
             </div>
           </div>
@@ -202,19 +202,19 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Cards per List */}
             {settings.showCardsPerList && (
-              <div className="bg-white rounded-lg shadow p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp className="h-5 w-5 text-gray-500" />
-                  <h3 className="font-medium text-gray-900">Cards per List</h3>
+                  <TrendingUp className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Cards per List</h3>
                 </div>
                 <div className="space-y-3">
                   {cardsPerList.slice(0, 6).map(({ list, count }) => (
                     <div key={list.id}>
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-700 truncate max-w-[200px]">{list.title}</span>
-                        <span className="text-gray-500">{count}</span>
+                        <span className="text-gray-700 dark:text-gray-300 truncate max-w-[200px]">{list.title}</span>
+                        <span className="text-gray-500 dark:text-gray-400">{count}</span>
                       </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-500 rounded-full transition-all duration-300"
                           style={{ width: `${(count / maxListCount) * 100}%` }}
@@ -223,7 +223,7 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
                     </div>
                   ))}
                   {cardsPerList.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-4">No lists yet</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No lists yet</p>
                   )}
                 </div>
               </div>
@@ -231,10 +231,10 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
 
             {/* Cards per Label */}
             {settings.showCardsPerLabel && (
-              <div className="bg-white rounded-lg shadow p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <Tag className="h-5 w-5 text-gray-500" />
-                  <h3 className="font-medium text-gray-900">Cards per Label</h3>
+                  <Tag className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Cards per Label</h3>
                 </div>
                 <div className="space-y-3">
                   {cardsPerLabel.slice(0, 6).map(([label, count]) => (
@@ -243,9 +243,9 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
                         <span className={`capitalize ${LABEL_COLORS[label].bg} px-2 py-0.5 rounded text-xs font-medium`}>
                           {label}
                         </span>
-                        <span className="text-gray-500">{count}</span>
+                        <span className="text-gray-500 dark:text-gray-400">{count}</span>
                       </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${LABEL_COLORS[label].bar}`}
                           style={{ width: `${(count / maxLabelCount) * 100}%` }}
@@ -254,7 +254,7 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
                     </div>
                   ))}
                   {cardsPerLabel.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-4">No labels used yet</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No labels used yet</p>
                   )}
                 </div>
               </div>
@@ -267,30 +267,30 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Overdue Cards */}
             {settings.showOverdueCards && (
-              <div className="bg-white rounded-lg shadow p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <AlertCircle className="h-5 w-5 text-red-500" />
-                  <h3 className="font-medium text-gray-900">Overdue Cards</h3>
+                  <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Overdue Cards</h3>
                 </div>
                 <div className="space-y-2">
                   {overdueCards.map((card) => (
                     <button
                       key={card.id}
                       onClick={() => onCardClick(card)}
-                      className="w-full text-left p-2 rounded-md hover:bg-red-50 transition-colors group"
+                      className="w-full text-left p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors group"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-900 group-hover:text-red-700 truncate max-w-[200px]">
+                        <span className="text-sm text-gray-900 dark:text-gray-100 group-hover:text-red-700 dark:group-hover:text-red-400 truncate max-w-[200px]">
                           {card.title}
                         </span>
-                        <span className="text-xs text-red-600 font-medium">
+                        <span className="text-xs text-red-600 dark:text-red-400 font-medium">
                           {formatDateLocal(card.dueDate!)}
                         </span>
                       </div>
                     </button>
                   ))}
                   {overdueCards.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-4">No overdue cards</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No overdue cards</p>
                   )}
                 </div>
               </div>
@@ -298,30 +298,30 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
 
             {/* Due Soon Cards */}
             {settings.showDueSoonCards && (
-              <div className="bg-white rounded-lg shadow p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <Clock className="h-5 w-5 text-yellow-500" />
-                  <h3 className="font-medium text-gray-900">Due in Next 3 Days</h3>
+                  <Clock className="h-5 w-5 text-yellow-500 dark:text-yellow-400" />
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">Due in Next 3 Days</h3>
                 </div>
                 <div className="space-y-2">
                   {dueSoonCards.map((card) => (
                     <button
                       key={card.id}
                       onClick={() => onCardClick(card)}
-                      className="w-full text-left p-2 rounded-md hover:bg-yellow-50 transition-colors group"
+                      className="w-full text-left p-2 rounded-md hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors group"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-900 group-hover:text-yellow-700 truncate max-w-[200px]">
+                        <span className="text-sm text-gray-900 dark:text-gray-100 group-hover:text-yellow-700 dark:group-hover:text-yellow-400 truncate max-w-[200px]">
                           {card.title}
                         </span>
-                        <span className="text-xs text-yellow-600 font-medium">
+                        <span className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">
                           {formatDateLocal(card.dueDate!)}
                         </span>
                       </div>
                     </button>
                   ))}
                   {dueSoonCards.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-4">No upcoming due dates</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No upcoming due dates</p>
                   )}
                 </div>
               </div>
@@ -330,26 +330,26 @@ export function DashboardView({ cards, lists, onCardClick, settings = DEFAULT_SE
         )}
 
         {/* Footer Stats */}
-        <div className="mt-6 bg-white rounded-lg shadow p-4">
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
           <div className="flex items-center justify-around text-center">
             <div>
-              <p className="text-sm text-gray-500">Lists</p>
-              <p className="text-lg font-semibold text-gray-900">{lists.length}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Lists</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{lists.length}</p>
             </div>
-            <div className="h-8 w-px bg-gray-200" />
+            <div className="h-8 w-px bg-gray-200 dark:bg-gray-700" />
             <div>
-              <p className="text-sm text-gray-500">Cards</p>
-              <p className="text-lg font-semibold text-gray-900">{stats.total}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Cards</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{stats.total}</p>
             </div>
-            <div className="h-8 w-px bg-gray-200" />
+            <div className="h-8 w-px bg-gray-200 dark:bg-gray-700" />
             <div>
-              <p className="text-sm text-gray-500">Assigned</p>
-              <p className="text-lg font-semibold text-gray-900">{stats.withMembers}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Assigned</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{stats.withMembers}</p>
             </div>
-            <div className="h-8 w-px bg-gray-200" />
+            <div className="h-8 w-px bg-gray-200 dark:bg-gray-700" />
             <div>
-              <p className="text-sm text-gray-500">Done</p>
-              <p className="text-lg font-semibold text-green-600">{stats.completionRate}%</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Done</p>
+              <p className="text-lg font-semibold text-green-600 dark:text-green-400">{stats.completionRate}%</p>
             </div>
           </div>
         </div>

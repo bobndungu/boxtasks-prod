@@ -148,21 +148,21 @@ export function TimelineView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow overflow-hidden">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+      <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
         <div className="flex items-center gap-4">
-          <h2 className="text-lg font-semibold text-gray-900">Timeline</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Timeline</h2>
           <button
             onClick={goToToday}
-            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+            className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
           >
             Today
           </button>
           <select
             value={weeksToShow}
             onChange={(e) => setWeeksToShow(Number(e.target.value) as 2 | 4 | 8 | 12)}
-            className="px-2 py-1 text-sm border rounded-md"
+            className="px-2 py-1 text-sm border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             <option value={2}>2 weeks</option>
             <option value={4}>4 weeks</option>
@@ -173,30 +173,30 @@ export function TimelineView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
         <div className="flex items-center gap-1">
           <button
             onClick={goToPreviousWeek}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
             title="Previous week"
           >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
+            <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
           <button
             onClick={goToNextWeek}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
             title="Next week"
           >
-            <ChevronRight className="h-5 w-5 text-gray-600" />
+            <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
       </div>
 
       {/* Timeline header with dates */}
-      <div className="border-b bg-gray-50">
+      <div className="border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
         {/* Month labels */}
         <div className="flex relative h-6">
           {dateRange.map((date, index) => (
             isFirstOfMonth(date) || index === 0 ? (
               <div
                 key={`month-${index}`}
-                className="absolute text-xs font-medium text-gray-600 px-1"
+                className="absolute text-xs font-medium text-gray-600 dark:text-gray-300 px-1"
                 style={{
                   left: `${(index / dateRange.length) * 100}%`,
                 }}
@@ -207,13 +207,13 @@ export function TimelineView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
           ))}
         </div>
         {/* Day labels */}
-        <div className="flex border-t">
+        <div className="flex border-t dark:border-gray-600">
           {dateRange.map((date, index) => (
             <div
               key={index}
-              className={`flex-1 text-center text-xs py-1 border-r last:border-r-0 ${
-                isToday(date) ? 'bg-blue-100 font-bold text-blue-700' : 'text-gray-500'
-              } ${date.getDay() === 0 || date.getDay() === 6 ? 'bg-gray-100' : ''}`}
+              className={`flex-1 text-center text-xs py-1 border-r dark:border-gray-600 last:border-r-0 ${
+                isToday(date) ? 'bg-blue-100 dark:bg-blue-900/40 font-bold text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'
+              } ${date.getDay() === 0 || date.getDay() === 6 ? 'bg-gray-100 dark:bg-gray-600' : ''}`}
             >
               {formatDate(date)}
             </div>
@@ -224,9 +224,9 @@ export function TimelineView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
       {/* Timeline content */}
       <div className="flex-1 overflow-y-auto">
         {timelineCards.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
             <div className="text-center">
-              <Calendar className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+              <Calendar className="h-12 w-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
               <p>No cards with dates in this range</p>
               <p className="text-sm">Add start or due dates to cards to see them here</p>
             </div>
@@ -258,7 +258,7 @@ export function TimelineView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
                           ? 'bg-green-500'
                           : card.labels.length > 0
                           ? LABEL_COLORS[card.labels[0]]
-                          : 'bg-gray-500'
+                          : 'bg-gray-500 dark:bg-gray-600'
                       }`}
                       style={barStyle}
                       title={`${card.title}${card.startDate ? `\nStart: ${formatDateShort(card.startDate)}` : ''}${card.dueDate ? `\nDue: ${formatDateShort(card.dueDate)}` : ''}`}
@@ -275,7 +275,7 @@ export function TimelineView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
       </div>
 
       {/* Legend */}
-      <div className="px-4 py-2 border-t bg-gray-50 flex items-center gap-4 text-xs text-gray-600">
+      <div className="px-4 py-2 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-700 flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
           <span>{timelineCards.length} cards with dates</span>

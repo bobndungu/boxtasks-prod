@@ -123,15 +123,15 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow overflow-hidden">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
       {/* Table */}
       <div className="flex-1 overflow-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50 sticky top-0">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0">
             <tr>
               {visibleColumns.includes('status') && (
                 <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none"
                   onClick={() => handleSort('completed')}
                 >
                   <div className="flex items-center gap-1">
@@ -142,7 +142,7 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
               )}
               {visibleColumns.includes('title') && (
                 <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none"
                   onClick={() => handleSort('title')}
                 >
                   <div className="flex items-center gap-1">
@@ -153,7 +153,7 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
               )}
               {visibleColumns.includes('list') && (
                 <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none"
                   onClick={() => handleSort('list')}
                 >
                   <div className="flex items-center gap-1">
@@ -164,7 +164,7 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
               )}
               {visibleColumns.includes('labels') && (
                 <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none"
                   onClick={() => handleSort('labels')}
                 >
                   <div className="flex items-center gap-1">
@@ -175,7 +175,7 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
               )}
               {visibleColumns.includes('dueDate') && (
                 <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none"
                   onClick={() => handleSort('dueDate')}
                 >
                   <div className="flex items-center gap-1">
@@ -185,13 +185,13 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
                 </th>
               )}
               {visibleColumns.includes('members') && (
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Members
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {sortedCards.map((card) => {
               const list = listMap.get(card.listId);
               const overdue = isOverdue(card.dueDate, card.completed);
@@ -199,16 +199,16 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
               return (
                 <tr
                   key={card.id}
-                  className="hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                   onClick={() => onCardClick(card)}
                 >
                   {/* Status */}
                   {visibleColumns.includes('status') && (
                     <td className="px-4 py-3 whitespace-nowrap">
                       {card.completed ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <CheckCircle2 className="h-5 w-5 text-green-500 dark:text-green-400" />
                       ) : (
-                        <Circle className="h-5 w-5 text-gray-300" />
+                        <Circle className="h-5 w-5 text-gray-300 dark:text-gray-600" />
                       )}
                     </td>
                   )}
@@ -216,11 +216,11 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
                   {/* Title */}
                   {visibleColumns.includes('title') && (
                     <td className="px-4 py-3">
-                      <div className={`text-sm font-medium ${card.completed ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                      <div className={`text-sm font-medium ${card.completed ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-gray-100'}`}>
                         {card.title}
                       </div>
                       {card.description && (
-                        <div className="text-xs text-gray-500 truncate max-w-xs">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
                           {card.description.substring(0, 50)}
                           {card.description.length > 50 && '...'}
                         </div>
@@ -232,8 +232,8 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
                   {visibleColumns.includes('list') && (
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
-                        <List className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">
+                        <List className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
                           {list?.title || 'Unknown'}
                         </span>
                       </div>
@@ -254,7 +254,7 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
                             </span>
                           ))
                         ) : (
-                          <span className="text-xs text-gray-400">-</span>
+                          <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
                         )}
                       </div>
                     </td>
@@ -264,9 +264,9 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
                   {visibleColumns.includes('dueDate') && (
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className={`flex items-center gap-1.5 text-sm ${
-                        overdue ? 'text-red-600 font-medium' : 'text-gray-600'
+                        overdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-600 dark:text-gray-300'
                       }`}>
-                        {card.dueDate && <Clock className={`h-4 w-4 ${overdue ? 'text-red-500' : 'text-gray-400'}`} />}
+                        {card.dueDate && <Clock className={`h-4 w-4 ${overdue ? 'text-red-500 dark:text-red-400' : 'text-gray-400 dark:text-gray-500'}`} />}
                         <span>{formatDate(card.dueDate)}</span>
                       </div>
                     </td>
@@ -277,13 +277,13 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
                     <td className="px-4 py-3 whitespace-nowrap">
                       {card.memberIds && card.memberIds.length > 0 ? (
                         <div className="flex items-center gap-1">
-                          <User className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm text-gray-600">
+                          <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                          <span className="text-sm text-gray-600 dark:text-gray-300">
                             {card.memberIds.length}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-400">-</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
                       )}
                     </td>
                   )}
@@ -294,9 +294,9 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
         </table>
 
         {cards.length === 0 && (
-          <div className="flex items-center justify-center h-64 text-gray-500">
+          <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
             <div className="text-center">
-              <List className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+              <List className="h-12 w-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
               <p>No cards found</p>
             </div>
           </div>
@@ -304,7 +304,7 @@ export function TableView({ cards, lists, onCardClick, settings = DEFAULT_SETTIN
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-2 border-t bg-gray-50 flex items-center justify-between text-xs text-gray-600">
+      <div className="px-4 py-2 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-700 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
         <div>
           {sortedCards.length} cards • {sortedCards.filter((c) => c.completed).length} completed
         </div>

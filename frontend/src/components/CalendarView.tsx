@@ -130,16 +130,16 @@ export function CalendarView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-800 rounded-lg shadow">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+      <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
         <div className="flex items-center gap-4">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {MONTHS[month]} {year}
           </h2>
           <button
             onClick={goToToday}
-            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+            className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
           >
             Today
           </button>
@@ -147,27 +147,27 @@ export function CalendarView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
         <div className="flex items-center gap-1">
           <button
             onClick={goToPreviousMonth}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
             title="Previous month"
           >
-            <ChevronLeft className="h-5 w-5 text-gray-600" />
+            <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
           <button
             onClick={goToNextMonth}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
             title="Next month"
           >
-            <ChevronRight className="h-5 w-5 text-gray-600" />
+            <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
       </div>
 
       {/* Day headers */}
-      <div className="grid grid-cols-7 border-b bg-gray-50">
+      <div className="grid grid-cols-7 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
         {DAYS_OF_WEEK.map((day) => (
           <div
             key={day}
-            className="px-2 py-2 text-center text-sm font-medium text-gray-500"
+            className="px-2 py-2 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
           >
             {day}
           </div>
@@ -184,17 +184,17 @@ export function CalendarView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
           return (
             <div
               key={index}
-              className={`min-h-[100px] border-b border-r p-1 ${
-                dayInfo.isCurrentMonth ? 'bg-white' : 'bg-gray-50'
-              } ${index % 7 === 0 ? 'border-l' : ''}`}
+              className={`min-h-[100px] border-b border-r dark:border-gray-700 p-1 ${
+                dayInfo.isCurrentMonth ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900'
+              } ${index % 7 === 0 ? 'border-l dark:border-gray-700' : ''}`}
             >
               <div
                 className={`text-right text-sm mb-1 ${
                   today
                     ? 'font-bold'
                     : dayInfo.isCurrentMonth
-                    ? 'text-gray-900'
-                    : 'text-gray-400'
+                    ? 'text-gray-900 dark:text-gray-100'
+                    : 'text-gray-400 dark:text-gray-600'
                 }`}
               >
                 {today ? (
@@ -214,8 +214,8 @@ export function CalendarView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
                     onClick={() => onCardClick(card)}
                     className={`w-full text-left px-1.5 py-0.5 rounded text-xs truncate transition-colors ${
                       card.completed
-                        ? 'bg-green-100 text-green-700 line-through'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 line-through'
+                        : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
                     }`}
                     title={card.title}
                   >
@@ -232,14 +232,14 @@ export function CalendarView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
                         </div>
                       )}
                       {card.completed && (
-                        <CheckCircle2 className="h-3 w-3 text-green-600 flex-shrink-0" />
+                        <CheckCircle2 className="h-3 w-3 text-green-600 dark:text-green-400 flex-shrink-0" />
                       )}
                       <span className="truncate">{card.title}</span>
                     </div>
                   </button>
                 ))}
                 {dayCards.length > 3 && (
-                  <div className="text-xs text-gray-500 px-1.5">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 px-1.5">
                     +{dayCards.length - 3} more
                   </div>
                 )}
@@ -250,7 +250,7 @@ export function CalendarView({ cards, onCardClick, settings = DEFAULT_SETTINGS }
       </div>
 
       {/* Legend */}
-      <div className="px-4 py-2 border-t bg-gray-50 flex items-center gap-4 text-xs text-gray-600">
+      <div className="px-4 py-2 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-700 flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
           <span>
