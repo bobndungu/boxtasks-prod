@@ -1,0 +1,7 @@
+name: 'BoxTasks API'
+type: module
+description: 'Custom API endpoints for BoxTasks.'
+package: BoxTasks
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:user

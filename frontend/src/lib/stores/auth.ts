@@ -64,33 +64,31 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           await apiLogin(username, password);
-          // Fetch user info after successful login
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site'}/jsonapi/user/user`, {
+          // Fetch user info after successful login using /api/me
+          const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site'}/api/me`, {
             headers: {
               'Authorization': `Bearer ${getAccessToken()}`,
-              'Accept': 'application/vnd.api+json',
+              'Accept': 'application/json',
             },
           });
-          const data = await response.json();
-          // Find the logged-in user (filter by username)
-          const userData = data.data?.find((u: { attributes: { name: string } }) => u.attributes.name === username);
-          if (userData) {
-            // Extract roles from relationships
-            const roleRefs = userData.relationships?.roles?.data || [];
-            const roles = roleRefs.map((r: { id: string; meta?: { drupal_internal__target_id?: string } }) =>
-              r.meta?.drupal_internal__target_id || r.id
-            );
 
+          if (!response.ok) {
+            set({ error: 'Failed to fetch user data', isLoading: false });
+            return false;
+          }
+
+          const userData = await response.json();
+          if (userData && userData.id) {
             const user: User = {
               id: userData.id,
-              username: userData.attributes.name,
-              email: userData.attributes.mail || '',
-              displayName: userData.attributes.field_display_name || userData.attributes.display_name || userData.attributes.name,
-              bio: userData.attributes.field_bio?.value || '',
-              jobTitle: userData.attributes.field_job_title || '',
-              timezone: userData.attributes.field_timezone || userData.attributes.timezone || 'UTC',
-              mentionHandle: userData.attributes.field_mention_handle || '',
-              roles,
+              username: userData.name,
+              email: userData.mail || '',
+              displayName: userData.display_name || userData.name,
+              bio: userData.bio || '',
+              jobTitle: userData.job_title || '',
+              timezone: userData.timezone || 'UTC',
+              mentionHandle: userData.mention_handle || '',
+              roles: userData.roles || [],
             };
             set({ user, isAuthenticated: true, isLoading: false });
             return true;
@@ -258,11 +256,11 @@ export const useAuthStore = create<AuthState>()(
             return false;
           }
 
-          // Fetch current user using /jsonapi
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site'}/jsonapi`, {
+          // Fetch current user using /api/me endpoint
+          const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site'}/api/me`, {
             headers: {
               'Authorization': `Bearer ${token}`,
-              'Accept': 'application/vnd.api+json',
+              'Accept': 'application/json',
             },
           });
 
@@ -270,46 +268,19 @@ export const useAuthStore = create<AuthState>()(
             throw new Error('Failed to fetch user data');
           }
 
-          // Get the user ID from the meta information
-          const apiInfo = await response.json();
-          const userLink = apiInfo.meta?.links?.me?.href;
+          const userData = await response.json();
 
-          if (!userLink) {
-            throw new Error('User link not found in API response');
-          }
-
-          // Fetch the actual user data
-          const userResponse = await fetch(userLink, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/vnd.api+json',
-            },
-          });
-
-          if (!userResponse.ok) {
-            throw new Error('Failed to fetch user details');
-          }
-
-          const userData = await userResponse.json();
-          const userAttributes = userData.data?.attributes;
-
-          if (userAttributes) {
-            // Extract roles from relationships
-            const roleRefs = userData.data?.relationships?.roles?.data || [];
-            const roles = roleRefs.map((r: { id: string; meta?: { drupal_internal__target_id?: string } }) =>
-              r.meta?.drupal_internal__target_id || r.id
-            );
-
+          if (userData && userData.id) {
             const user: User = {
-              id: userData.data.id,
-              username: userAttributes.name,
-              email: userAttributes.mail || '',
-              displayName: userAttributes.field_display_name || userAttributes.display_name || userAttributes.name,
-              bio: userAttributes.field_bio?.value || '',
-              jobTitle: userAttributes.field_job_title || '',
-              timezone: userAttributes.field_timezone || userAttributes.timezone || 'UTC',
-              mentionHandle: userAttributes.field_mention_handle || '',
-              roles,
+              id: userData.id,
+              username: userData.name,
+              email: userData.mail || '',
+              displayName: userData.display_name || userData.name,
+              bio: userData.bio || '',
+              jobTitle: userData.job_title || '',
+              timezone: userData.timezone || 'UTC',
+              mentionHandle: userData.mention_handle || '',
+              roles: userData.roles || [],
             };
             set({ user, isAuthenticated: true, isLoading: false });
             return true;

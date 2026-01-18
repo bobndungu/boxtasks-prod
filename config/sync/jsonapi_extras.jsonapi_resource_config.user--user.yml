@@ -63,3 +63,9 @@ resourceFields:
     publicName: user_picture
     enhancer:
       id: ''
+  roles:
+    disabled: false
+    fieldName: roles
+    publicName: roles
+    enhancer:
+      id: ''
