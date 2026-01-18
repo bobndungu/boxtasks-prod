@@ -91,20 +91,20 @@ function formatActivityTime(dateStr: string): { fullDate: string; relative: stri
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  // Full date format: "Jan 15 at 2:30 PM"
+  // Full date format: "Jan 15 at 2:30:45 PM"
   const fullDate = date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
   }) + ' at ' + date.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
+    second: '2-digit',
   });
 
   // Relative time
-  const diffSecs = Math.floor(diffMs / 1000);
   let relative: string;
-  if (diffSecs < 60) {
-    relative = `${diffSecs}s ago`;
+  if (diffMins < 1) {
+    relative = 'Just now';
   } else if (diffMins < 60) {
     relative = `${diffMins}m ago`;
   } else if (diffHours < 24) {
