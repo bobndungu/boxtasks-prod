@@ -123,7 +123,7 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
   }
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div ref={dropdownRef} className="relative flex-shrink-0">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded transition-colors"

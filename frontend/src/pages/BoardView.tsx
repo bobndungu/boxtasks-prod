@@ -2053,16 +2053,16 @@ export default function BoardView() {
       {/* Board Header - Two Row Layout */}
       <header className="bg-black/30 backdrop-blur-sm relative z-20">
         {/* Row 1: Primary Navigation */}
-        <div className="px-4 py-2 border-b border-white/10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+        <div className="px-2 sm:px-4 py-2 border-b border-white/10">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
               {/* BoxTasks Logo */}
-              <Link to="/dashboard" className="flex items-center space-x-2 text-white hover:text-white/90">
-                <Layout className="h-6 w-6" />
+              <Link to="/dashboard" className="flex items-center gap-2 text-white hover:text-white/90 flex-shrink-0">
+                <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
                 <span className="font-bold text-lg hidden sm:inline">BoxTasks</span>
               </Link>
 
-              <Link to={`/workspace/${currentBoard?.workspaceId}`} className="text-white/80 hover:text-white">
+              <Link to={`/workspace/${currentBoard?.workspaceId}`} className="text-white/80 hover:text-white flex-shrink-0">
                 <ArrowLeft className="h-5 w-5" />
               </Link>
 
@@ -2074,12 +2074,13 @@ export default function BoardView() {
                   onBlur={handleTitleSave}
                   onKeyDown={(e) => e.key === 'Enter' && handleTitleSave()}
                   autoFocus
-                  className="bg-white/10 text-white text-xl font-bold px-2 py-1 rounded outline-none focus:bg-white/20"
+                  className="bg-white/10 text-white text-base sm:text-xl font-bold px-2 py-1 rounded outline-none focus:bg-white/20 min-w-0 flex-1"
                 />
               ) : (
                 <button
                   onClick={() => setEditingTitle(true)}
-                  className="text-xl font-bold text-white hover:bg-white/10 px-2 py-1 rounded"
+                  className="text-base sm:text-xl font-bold text-white hover:bg-white/10 px-2 py-1 rounded truncate max-w-[120px] sm:max-w-[200px] md:max-w-none"
+                  title={currentBoard?.title || 'Board'}
                 >
                   {currentBoard?.title || 'Board'}
                 </button>
@@ -2087,40 +2088,41 @@ export default function BoardView() {
 
               <button
                 onClick={handleToggleStar}
-                className={`p-1.5 rounded ${
+                className={`p-1 sm:p-1.5 rounded flex-shrink-0 ${
                   currentBoard?.starred ? 'text-yellow-400' : 'text-white/60 hover:text-white'
                 }`}
+                title={currentBoard?.starred ? 'Unstar board' : 'Star board'}
               >
-                <Star className={`h-5 w-5 ${currentBoard?.starred ? 'fill-current' : ''}`} />
+                <Star className={`h-4 w-4 sm:h-5 sm:w-5 ${currentBoard?.starred ? 'fill-current' : ''}`} />
               </button>
 
               <button
                 onClick={() => setShowBoardMembers(true)}
-                className="p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10"
+                className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
                 title="Board Members"
               >
-                <Users className="h-5 w-5" />
+                <Users className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
 
               <button
                 onClick={() => setShowBoardSettings(true)}
-                className="p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10"
+                className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
                 title="Board Settings"
               >
-                <Settings className="h-5 w-5" />
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
 
               <button
                 onClick={() => setShowChat(true)}
-                className="p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10"
+                className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
                 title="Board Chat"
               >
-                <MessageCircle className="h-5 w-5" />
+                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
 
             {/* Connection Status & Active Users on Row 1 */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {activeUsers.length > 0 && (
                 <div className="bg-white/10 rounded px-2 py-1">
                   <ActiveUsers users={activeUsers} maxDisplay={3} />
@@ -2136,10 +2138,10 @@ export default function BoardView() {
         </div>
 
         {/* Row 2: Board Actions */}
-        <div className="px-4 py-1.5">
-          <div className="flex items-center justify-between">
+        <div className="px-2 sm:px-4 py-1.5 overflow-x-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+          <div className="flex items-center gap-1 sm:gap-2 min-w-max">
             {/* Left: Search & Filters */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Search */}
               {showSearch ? (
                 <div className="relative">
@@ -2179,10 +2181,11 @@ export default function BoardView() {
                     setShowSearch(true);
                     setTimeout(() => searchInputRef.current?.focus(), 0);
                   }}
-                  className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded flex items-center text-sm"
+                  className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm"
+                  title="Search"
                 >
-                  <Search className="h-4 w-4 mr-2" />
-                  Search
+                  <Search className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Search</span>
                 </button>
               )}
               {/* Advanced Filters */}
@@ -2206,30 +2209,35 @@ export default function BoardView() {
                       setMemberFilter([currentUser.id]);
                     }
                   }}
-                  className={`px-3 py-1.5 rounded flex items-center text-sm ${
+                  className={`p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm ${
                     memberFilter.length === 1 && memberFilter[0] === currentUser.id
                       ? 'bg-white/20 text-white'
                       : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
+                  title="My Cards"
                 >
-                  <User className="h-4 w-4 mr-2" />
-                  My Cards
+                  <User className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">My Cards</span>
                 </button>
               )}
             </div>
 
+            {/* Divider between left and right */}
+            <div className="h-6 w-px bg-white/20 flex-shrink-0 hidden md:block" />
+
             {/* Right: Actions & Settings */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Share Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setShowShareDropdown(!showShareDropdown)}
-                  className={`px-3 py-1.5 rounded flex items-center text-sm ${
+                  className={`p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm ${
                     showShareDropdown ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
+                  title="Share"
                 >
-                  <Users className="h-4 w-4 mr-2" />
-                  Share
+                  <Users className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Share</span>
                 </button>
                 {showShareDropdown && (
                   <>
@@ -2282,27 +2290,29 @@ export default function BoardView() {
               {/* Activity Button */}
               <button
                 onClick={toggleActivitySidebar}
-                className={`px-3 py-1.5 rounded flex items-center text-sm ${
+                className={`p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm ${
                   showActivitySidebar ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
+                title="Activity"
               >
-                <Clock className="h-4 w-4 mr-2" />
-                Activity
+                <Clock className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Activity</span>
               </button>
 
               {/* Archived Cards Button */}
               <button
                 onClick={() => setShowArchivedPanel(!showArchivedPanel)}
-                className={`px-3 py-1.5 rounded flex items-center text-sm ${
+                className={`p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm ${
                   showArchivedPanel ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
+                title="Archived"
               >
-                <Archive className="h-4 w-4 mr-2" />
-                Archived
+                <Archive className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Archived</span>
               </button>
 
               {/* Divider */}
-              <div className="h-6 w-px bg-white/20" />
+              <div className="h-6 w-px bg-white/20 flex-shrink-0" />
 
               {/* View Controls */}
               <ViewSelector
@@ -2327,18 +2337,19 @@ export default function BoardView() {
               />
 
               {/* Divider */}
-              <div className="h-6 w-px bg-white/20" />
+              <div className="h-6 w-px bg-white/20 flex-shrink-0" />
 
               {/* Board Options Dropdown */}
-              <div className="relative">
+              <div className="relative flex-shrink-0">
                 <button
                   onClick={() => setShowBoardOptionsMenu(!showBoardOptionsMenu)}
-                  className={`px-3 py-1.5 rounded flex items-center text-sm ${
+                  className={`p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm ${
                     showBoardOptionsMenu ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
+                  title="Options"
                 >
-                  <MoreHorizontal className="h-4 w-4 mr-2" />
-                  Options
+                  <MoreHorizontal className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Options</span>
                 </button>
                 {showBoardOptionsMenu && (
                   <>
