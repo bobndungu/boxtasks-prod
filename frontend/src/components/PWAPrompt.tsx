@@ -1,25 +1,52 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { RefreshCw, X, Wifi, WifiOff } from 'lucide-react';
+
+// Update check interval in milliseconds (30 seconds for faster detection)
+const UPDATE_CHECK_INTERVAL = 30 * 1000;
+
+// Auto-update mode: 'prompt' shows a notification, 'auto' updates silently
+const AUTO_UPDATE_MODE: 'prompt' | 'auto' = 'auto';
 
 export function PWAUpdatePrompt() {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegistered(r) {
-      console.log('SW Registered:', r);
+    onRegisteredSW(swUrl, registration) {
+      console.log('SW Registered:', swUrl);
+
+      // Check for updates periodically
+      if (registration) {
+        setInterval(() => {
+          console.log('Checking for SW updates...');
+          registration.update().catch(console.error);
+        }, UPDATE_CHECK_INTERVAL);
+      }
     },
     onRegisterError(error) {
-      console.log('SW registration error', error);
+      console.error('SW registration error:', error);
     },
   });
 
-  const close = () => {
-    setNeedRefresh(false);
-  };
+  // Auto-update when new version is available
+  useEffect(() => {
+    if (needRefresh && AUTO_UPDATE_MODE === 'auto') {
+      console.log('New version detected, auto-updating...');
+      // Small delay to allow the UI to render if needed
+      const timer = setTimeout(() => {
+        updateServiceWorker(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [needRefresh, updateServiceWorker]);
 
-  if (!needRefresh) return null;
+  const close = useCallback(() => {
+    setNeedRefresh(false);
+  }, [setNeedRefresh]);
+
+  // Don't show prompt in auto mode or when no refresh needed
+  if (!needRefresh || AUTO_UPDATE_MODE === 'auto') return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-sm animate-slide-up">

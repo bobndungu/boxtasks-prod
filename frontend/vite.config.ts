@@ -26,8 +26,10 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // Changed from 'autoUpdate' - gives control to show update prompt
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      // Disable service worker in development to avoid caching issues
+      selfDestroying: false,
       manifest: {
         name: 'BoxTasks - Task Management',
         short_name: 'BoxTasks',
@@ -59,6 +61,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // CRITICAL: These options ensure new deployments take effect immediately
+        skipWaiting: true,           // New SW activates immediately, doesn't wait for tabs to close
+        clientsClaim: true,          // New SW takes control of all clients immediately
+        cleanupOutdatedCaches: true, // Automatically remove old precache versions
         // Exclude Drupal backend routes from service worker interception
         navigateFallbackDenylist: [
           /^\/api\//,       // Custom API routes
@@ -75,16 +81,30 @@ export default defineConfig({
         ],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/boxtasks2\.ddev\.site\/jsonapi\/.*/i,
+            // API calls - always prefer network, fallback to cache
+            urlPattern: /^https:\/\/(boxtasks2\.ddev\.site|tasks\.boxraft\.com)\/jsonapi\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
+              networkTimeoutSeconds: 10, // Fallback to cache after 10s
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24, // 24 hours
               },
               cacheableResponse: {
                 statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // JS/CSS assets - use StaleWhileRevalidate for faster loads with background updates
+            urlPattern: /\.(?:js|css)$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'static-assets',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
               },
             },
           },
