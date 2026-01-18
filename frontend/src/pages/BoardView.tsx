@@ -2054,18 +2054,97 @@ export default function BoardView() {
       <header className="bg-black/30 backdrop-blur-sm relative z-20">
         {/* Row 1: Primary Navigation */}
         <div className="px-2 sm:px-4 py-2 border-b border-white/10">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
-              {/* BoxTasks Logo */}
-              <Link to="/dashboard" className="flex items-center gap-2 text-white hover:text-white/90 flex-shrink-0">
-                <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="font-bold text-lg hidden sm:inline">BoxTasks</span>
-              </Link>
+          {/* Mobile: Board name on its own line */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            {/* Top row on mobile: Logo, back, icons | Desktop: all inline */}
+            <div className="flex items-center justify-between sm:justify-start gap-1 sm:gap-3 min-w-0 sm:flex-1">
+              {/* Left group: Logo, back, title (desktop), icons */}
+              <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
+                {/* BoxTasks Logo */}
+                <Link to="/dashboard" className="flex items-center gap-2 text-white hover:text-white/90 flex-shrink-0">
+                  <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="font-bold text-lg hidden sm:inline">BoxTasks</span>
+                </Link>
 
-              <Link to={`/workspace/${currentBoard?.workspaceId}`} className="text-white/80 hover:text-white flex-shrink-0">
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
+                <Link to={`/workspace/${currentBoard?.workspaceId}`} className="text-white/80 hover:text-white flex-shrink-0">
+                  <ArrowLeft className="h-5 w-5" />
+                </Link>
 
+                {/* Board Title - Desktop only (inline) */}
+                <div className="hidden sm:block min-w-0 flex-1">
+                  {editingTitle ? (
+                    <input
+                      type="text"
+                      value={boardTitle}
+                      onChange={(e) => setBoardTitle(e.target.value)}
+                      onBlur={handleTitleSave}
+                      onKeyDown={(e) => e.key === 'Enter' && handleTitleSave()}
+                      autoFocus
+                      className="bg-white/10 text-white text-xl font-bold px-2 py-1 rounded outline-none focus:bg-white/20 w-full max-w-md"
+                    />
+                  ) : (
+                    <button
+                      onClick={() => setEditingTitle(true)}
+                      className="text-xl font-bold text-white hover:bg-white/10 px-2 py-1 rounded truncate max-w-[200px] md:max-w-none"
+                      title={currentBoard?.title || 'Board'}
+                    >
+                      {currentBoard?.title || 'Board'}
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleToggleStar}
+                  className={`p-1 sm:p-1.5 rounded flex-shrink-0 ${
+                    currentBoard?.starred ? 'text-yellow-400' : 'text-white/60 hover:text-white'
+                  }`}
+                  title={currentBoard?.starred ? 'Unstar board' : 'Star board'}
+                >
+                  <Star className={`h-4 w-4 sm:h-5 sm:w-5 ${currentBoard?.starred ? 'fill-current' : ''}`} />
+                </button>
+
+                <button
+                  onClick={() => setShowBoardMembers(true)}
+                  className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
+                  title="Board Members"
+                >
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
+
+                <button
+                  onClick={() => setShowBoardSettings(true)}
+                  className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
+                  title="Board Settings"
+                >
+                  <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
+
+                <button
+                  onClick={() => setShowChat(true)}
+                  className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0 hidden min-[320px]:block"
+                  title="Board Chat"
+                >
+                  <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
+              </div>
+
+              {/* Connection Status & Active Users - Right side on mobile top row */}
+              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                {activeUsers.length > 0 && (
+                  <div className="bg-white/10 rounded px-2 py-1 hidden sm:block">
+                    <ActiveUsers users={activeUsers} maxDisplay={3} />
+                  </div>
+                )}
+                <ConnectionStatus
+                  state={mercureConnection}
+                  onReconnect={mercureConnection.reconnect}
+                  className="text-white/80 p-1.5"
+                />
+              </div>
+            </div>
+
+            {/* Mobile: Board name on its own line */}
+            <div className="sm:hidden flex items-center gap-2 px-1">
               {editingTitle ? (
                 <input
                   type="text"
@@ -2074,72 +2153,32 @@ export default function BoardView() {
                   onBlur={handleTitleSave}
                   onKeyDown={(e) => e.key === 'Enter' && handleTitleSave()}
                   autoFocus
-                  className="bg-white/10 text-white text-base sm:text-xl font-bold px-2 py-1 rounded outline-none focus:bg-white/20 min-w-0 flex-1"
+                  className="bg-white/10 text-white text-lg font-bold px-2 py-1 rounded outline-none focus:bg-white/20 flex-1"
                 />
               ) : (
                 <button
                   onClick={() => setEditingTitle(true)}
-                  className="text-base sm:text-xl font-bold text-white hover:bg-white/10 px-2 py-1 rounded truncate max-w-[120px] sm:max-w-[200px] md:max-w-none"
+                  className="text-lg font-bold text-white hover:bg-white/10 px-2 py-1 rounded truncate flex-1 text-left"
                   title={currentBoard?.title || 'Board'}
                 >
                   {currentBoard?.title || 'Board'}
                 </button>
               )}
-
-              <button
-                onClick={handleToggleStar}
-                className={`p-1 sm:p-1.5 rounded flex-shrink-0 ${
-                  currentBoard?.starred ? 'text-yellow-400' : 'text-white/60 hover:text-white'
-                }`}
-                title={currentBoard?.starred ? 'Unstar board' : 'Star board'}
-              >
-                <Star className={`h-4 w-4 sm:h-5 sm:w-5 ${currentBoard?.starred ? 'fill-current' : ''}`} />
-              </button>
-
-              <button
-                onClick={() => setShowBoardMembers(true)}
-                className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
-                title="Board Members"
-              >
-                <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-              </button>
-
-              <button
-                onClick={() => setShowBoardSettings(true)}
-                className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
-                title="Board Settings"
-              >
-                <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
-              </button>
-
+              {/* Chat button moved here on very small screens */}
               <button
                 onClick={() => setShowChat(true)}
-                className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
+                className="p-1 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0 min-[320px]:hidden"
                 title="Board Chat"
               >
-                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                <MessageCircle className="h-4 w-4" />
               </button>
-            </div>
-
-            {/* Connection Status & Active Users on Row 1 */}
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {activeUsers.length > 0 && (
-                <div className="bg-white/10 rounded px-2 py-1">
-                  <ActiveUsers users={activeUsers} maxDisplay={3} />
-                </div>
-              )}
-              <ConnectionStatus
-                state={mercureConnection}
-                onReconnect={mercureConnection.reconnect}
-                className="text-white/80 p-1.5"
-              />
             </div>
           </div>
         </div>
 
         {/* Row 2: Board Actions */}
         <div className="px-2 sm:px-4 py-1.5">
-          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          <div className="flex items-center justify-between gap-1 sm:gap-2 flex-wrap">
             {/* Left: Search & Filters */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Search */}
