@@ -93,6 +93,33 @@ function boxtasks_activity_node_insert(NodeInterface $node): void {
 }
 
 /**
+ * Implements hook_ENTITY_TYPE_predelete() for node entities.
+ *
+ * Logs activity when comments are deleted (before they are removed).
+ */
+function boxtasks_activity_node_predelete(NodeInterface $node): void {
+  // Only process comments.
+  if ($node->bundle() !== 'card_comment') {
+    return;
+  }
+
+  $logger = \Drupal::service('boxtasks_activity.logger');
+
+  $card_id = $node->get('field_comment_card')->target_id;
+  if ($card_id) {
+    $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
+    if ($card) {
+      $logger->logCardActivity(
+        ActivityLogger::TYPE_COMMENT_DELETED,
+        $card,
+        NULL,
+        ['comment_id' => $node->id()]
+      );
+    }
+  }
+}
+
+/**
  * Implements hook_ENTITY_TYPE_update() for node entities.
  *
  * Logs activity when cards are updated.

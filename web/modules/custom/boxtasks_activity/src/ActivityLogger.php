@@ -319,6 +319,9 @@ class ActivityLogger {
       case self::TYPE_COMMENT_ADDED:
         return "$user_name commented on \"$card_title\"";
 
+      case self::TYPE_COMMENT_DELETED:
+        return "$user_name deleted a comment on \"$card_title\"";
+
       case self::TYPE_MEMBER_ADDED:
         $member = $data['member_name'] ?? 'a member';
         return "$user_name added $member to \"$card_title\"";
