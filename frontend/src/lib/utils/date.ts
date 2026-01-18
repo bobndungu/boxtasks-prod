@@ -214,6 +214,32 @@ export function formatDateTimeCompact(date: string | Date | null | undefined): s
 }
 
 /**
+ * Format a date with time, without year (e.g., "9:00 PM - 15 Jan")
+ * Used for board view where space is limited
+ */
+export function formatDateTimeCompactNoYear(date: string | Date | null | undefined): string {
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return '';
+
+  const timeStr = dateObj.toLocaleString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: EAT_TIMEZONE,
+  });
+
+  const dateStr = dateObj.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: EAT_TIMEZONE,
+  });
+
+  return `${timeStr} - ${dateStr}`;
+}
+
+/**
  * Format just the date portion (e.g., "15 Jan 2026")
  */
 export function formatDateCompact(date: string | Date | null | undefined): string {
@@ -226,6 +252,23 @@ export function formatDateCompact(date: string | Date | null | undefined): strin
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: EAT_TIMEZONE,
+  });
+}
+
+/**
+ * Format just the date portion without year (e.g., "15 Jan")
+ * Used for board view where space is limited
+ */
+export function formatDateCompactNoYear(date: string | Date | null | undefined): string {
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return '';
+
+  return dateObj.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
     timeZone: EAT_TIMEZONE,
   });
 }
@@ -283,6 +326,53 @@ export function formatDateRange(
       day: 'numeric',
       month: 'short',
       year: 'numeric',
+      timeZone: EAT_TIMEZONE,
+    });
+
+    return {
+      combined: true,
+      display: `${startTime} - ${dueTime} on ${dateStr}`,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Format a smart date range without year (for board view)
+ * - Same day: "4:00 PM - 7:00 PM on 15 Jan"
+ * - Different days: shows separate formatted dates
+ */
+export function formatDateRangeNoYear(
+  startDate: string | Date | null | undefined,
+  dueDate: string | Date | null | undefined
+): { combined: boolean; display: string } | null {
+  if (!startDate || !dueDate) return null;
+
+  const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+  const due = typeof dueDate === 'string' ? new Date(dueDate) : dueDate;
+
+  if (isNaN(start.getTime()) || isNaN(due.getTime())) return null;
+
+  // Check if same day
+  if (isSameDay(start, due)) {
+    const startTime = start.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: EAT_TIMEZONE,
+    });
+
+    const dueTime = due.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: EAT_TIMEZONE,
+    });
+
+    const dateStr = due.toLocaleString('en-GB', {
+      day: 'numeric',
+      month: 'short',
       timeZone: EAT_TIMEZONE,
     });
 

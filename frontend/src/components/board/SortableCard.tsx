@@ -16,7 +16,7 @@ import {
 import { LABEL_COLORS } from './constants';
 import type { SortableCardProps } from './types';
 import { highlightText } from '../../lib/utils/highlight';
-import { formatDateCompact, formatDateTimeCompact, formatDateRange } from '../../lib/utils/date';
+import { formatDateCompactNoYear, formatDateTimeCompactNoYear, formatDateRangeNoYear } from '../../lib/utils/date';
 
 export function SortableCard({
   card,
@@ -236,7 +236,7 @@ export function SortableCard({
             {(() => {
               // Check if we can show a combined date range (same day with both dates)
               const dateRange = fieldVisibility.startDate && fieldVisibility.dueDate
-                ? formatDateRange(card.startDate, card.dueDate)
+                ? formatDateRangeNoYear(card.startDate, card.dueDate)
                 : null;
 
               if (dateRange?.combined) {
@@ -281,7 +281,7 @@ export function SortableCard({
                     return (
                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20">
                         <Clock className="h-3 w-3" />
-                        <span>{hasTime ? formatDateTimeCompact(card.startDate) : formatDateCompact(card.startDate)}</span>
+                        <span>{hasTime ? formatDateTimeCompactNoYear(card.startDate) : formatDateCompactNoYear(card.startDate)}</span>
                       </span>
                     );
                   })()}
@@ -313,7 +313,7 @@ export function SortableCard({
                     return (
                       <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${colorClass} ${bgClass}`}>
                         <Calendar className="h-3 w-3" />
-                        <span>Due: {hasTime ? formatDateTimeCompact(card.dueDate) : formatDateCompact(card.dueDate)}</span>
+                        <span>Due: {hasTime ? formatDateTimeCompactNoYear(card.dueDate) : formatDateCompactNoYear(card.dueDate)}</span>
                       </span>
                     );
                   })()}
@@ -348,7 +348,7 @@ export function SortableCard({
               const truncateLength = fieldVisibility.expanded ? 60 : 30;
 
               if (fieldDef.type === 'date' && cfv.value) {
-                displayValue = formatDateCompact(cfv.value);
+                displayValue = formatDateCompactNoYear(cfv.value);
               } else if (fieldDef.type === 'checkbox') {
                 displayValue = cfv.value === 'true' ? 'Yes' : 'No';
               } else if (fieldDef.type === 'currency' && cfv.value) {
