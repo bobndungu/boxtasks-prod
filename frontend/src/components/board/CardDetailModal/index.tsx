@@ -3043,17 +3043,12 @@ function CardDetailModal({
                                 </div>
                               </div>
                             )}
-                            {/* Comment updated - show diff */}
+                            {/* Comment updated - show inline diff */}
                             {activity.type === 'comment_updated' && data?.old_value && data?.new_value && (
-                              <div className="mt-1 text-xs space-y-1">
-                                <div className="bg-red-50 text-red-700 px-2 py-1 rounded line-through italic">
-                                  "{data.old_value}"
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <ArrowRight className="h-3 w-3 text-gray-400" />
-                                  <div className="bg-green-50 text-green-700 px-2 py-1 rounded italic flex-1">
-                                    "{data.new_value}"
-                                  </div>
+                              <div className="mt-1 text-xs">
+                                <div className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded italic">
+                                  "<span className="bg-red-100 text-red-700 line-through">{data.old_value}</span>{' '}
+                                  <span className="bg-green-100 text-green-700">{data.new_value}</span>"
                                 </div>
                               </div>
                             )}
