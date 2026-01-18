@@ -113,7 +113,11 @@ export default function BoardMembersModal({
     // For board-specific members, show role selection
     if (isBoardSpecific) {
       setPendingMember(user);
-      setSelectedRole('member'); // Default to member
+      // Set default role (find 'member' role or use first available)
+      const defaultRole = roles.find(r => r.isDefault) || roles.find(r => r.title.toLowerCase() === 'member') || roles[0];
+      if (defaultRole) {
+        setSelectedRoleId(defaultRole.id);
+      }
     } else {
       // For workspace members, just add directly
       handleAddMember(user, false);

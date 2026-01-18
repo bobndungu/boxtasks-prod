@@ -186,7 +186,8 @@ const router = createBrowserRouter([
 function App() {
   const { checkAuth, isLoading, initSessionMonitoring } = useAuthStore();
   // Initialize theme store on app load - this triggers rehydration and applies the saved theme
-  const { resolvedTheme } = useThemeStore();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { resolvedTheme: _resolvedTheme } = useThemeStore();
 
   useEffect(() => {
     checkAuth();
