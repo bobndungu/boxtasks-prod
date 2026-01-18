@@ -478,6 +478,9 @@ function CardDetailModal({
       setComments(comments.map((c) => (c.id === commentId ? updated : c)));
       setEditingCommentId(null);
       setEditingCommentText('');
+      // Refresh activities to show the comment update activity
+      const cardActivities = await fetchActivitiesByCard(card.id);
+      setActivities(cardActivities);
     } catch (err) {
       console.error('Failed to update comment:', err);
     }
@@ -2966,7 +2969,8 @@ function CardDetailModal({
                       const data = activity.data;
                       const hasStructuredData = data && (
                         data.from_list || data.to_list || data.old_value || data.new_value ||
-                        data.due_date || data.start_date || data.label || data.member_name
+                        data.due_date || data.start_date || data.label || data.member_name ||
+                        data.comment_text || data.field_name || data.checklist_name
                       );
                       return (
                         <div key={activity.id} className="flex items-start p-2 rounded-lg hover:bg-gray-50 transition-colors">
@@ -3029,6 +3033,61 @@ function CardDetailModal({
                                 <span className={`px-1.5 py-0.5 rounded ${activity.type === 'member_added' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
                                   {data.member_name}
                                 </span>
+                              </div>
+                            )}
+                            {/* Comment added - show comment text */}
+                            {activity.type === 'comment_added' && data?.comment_text && (
+                              <div className="mt-1 text-xs">
+                                <div className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded italic">
+                                  "{data.comment_text}"
+                                </div>
+                              </div>
+                            )}
+                            {/* Comment updated - show diff */}
+                            {activity.type === 'comment_updated' && data?.old_value && data?.new_value && (
+                              <div className="mt-1 text-xs space-y-1">
+                                <div className="bg-red-50 text-red-700 px-2 py-1 rounded line-through italic">
+                                  "{data.old_value}"
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <ArrowRight className="h-3 w-3 text-gray-400" />
+                                  <div className="bg-green-50 text-green-700 px-2 py-1 rounded italic flex-1">
+                                    "{data.new_value}"
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            {/* Comment updated fallback - just show new text if no old value */}
+                            {activity.type === 'comment_updated' && data?.comment_text && !data?.old_value && (
+                              <div className="mt-1 text-xs">
+                                <div className="bg-green-50 text-green-700 px-2 py-1.5 rounded italic">
+                                  "{data.comment_text}"
+                                </div>
+                              </div>
+                            )}
+                            {/* Custom field changes */}
+                            {activity.type === 'custom_field_updated' && data?.field_name && (
+                              <div className="mt-1 text-xs">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-medium text-gray-600">{data.field_name}:</span>
+                                  {data.old_value && data.new_value ? (
+                                    <>
+                                      <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded line-through">{data.old_value}</span>
+                                      <ArrowRight className="h-3 w-3 text-gray-400" />
+                                      <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{data.new_value}</span>
+                                    </>
+                                  ) : data.new_value ? (
+                                    <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{data.new_value}</span>
+                                  ) : data.old_value ? (
+                                    <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded line-through">{data.old_value}</span>
+                                  ) : null}
+                                </div>
+                              </div>
+                            )}
+                            {/* Checklist added */}
+                            {activity.type === 'checklist_added' && data?.checklist_name && (
+                              <div className="mt-1 text-xs">
+                                <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{data.checklist_name}</span>
                               </div>
                             )}
                             {/* Fallback description if no structured data */}

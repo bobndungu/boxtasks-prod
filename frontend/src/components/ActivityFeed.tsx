@@ -75,6 +75,8 @@ function getActivityIcon(type: ActivityType) {
     case 'client_changed':
     case 'client_removed':
       return <Users className="h-4 w-4 text-pink-500" />;
+    case 'custom_field_updated':
+      return <Pencil className="h-4 w-4 text-purple-500" />;
     default:
       return <Clock className="h-4 w-4 text-gray-500" />;
   }
@@ -273,6 +275,51 @@ function ActivityDataDisplay({ type, data }: { type: ActivityType; data: Activit
     );
   }
 
+  // Comment added/updated - show comment text
+  if ((type === 'comment_added' || type === 'comment_updated') && data.comment_text) {
+    return (
+      <div className="mt-1.5 text-xs">
+        <div className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1.5 rounded italic">
+          "{data.comment_text}"
+        </div>
+      </div>
+    );
+  }
+
+  // Custom field changes
+  if (type === 'custom_field_updated' && data.field_name) {
+    // If we have old and new values, show diff
+    if (data.old_value && data.new_value) {
+      return (
+        <div className="mt-1.5 text-xs">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-medium text-gray-600 dark:text-gray-400">{data.field_name}:</span>
+            <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded line-through">
+              {data.old_value}
+            </span>
+            <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+            <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded">
+              {data.new_value}
+            </span>
+          </div>
+        </div>
+      );
+    }
+    // Just new value (first time set)
+    if (data.new_value) {
+      return (
+        <div className="mt-1.5 text-xs">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-medium text-gray-600 dark:text-gray-400">{data.field_name}:</span>
+            <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded">
+              {data.new_value}
+            </span>
+          </div>
+        </div>
+      );
+    }
+  }
+
   return null;
 }
 
@@ -350,7 +397,9 @@ export default function ActivityFeed({
           activity.data.start_date ||
           activity.data.label ||
           activity.data.member_name ||
-          activity.data.checklist_name
+          activity.data.checklist_name ||
+          activity.data.comment_text ||
+          activity.data.field_name
         );
 
         return (

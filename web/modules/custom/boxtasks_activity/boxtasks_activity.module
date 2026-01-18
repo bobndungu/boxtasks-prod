@@ -65,11 +65,46 @@ function boxtasks_activity_node_insert(NodeInterface $node): void {
       if ($card_id) {
         $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
         if ($card) {
+          // Get comment text (truncated for activity display).
+          $comment_text = '';
+          if ($node->hasField('field_comment_text') && !$node->get('field_comment_text')->isEmpty()) {
+            $comment_text = $node->get('field_comment_text')->value;
+            // Truncate to 200 chars for display.
+            if (strlen($comment_text) > 200) {
+              $comment_text = substr($comment_text, 0, 197) . '...';
+            }
+          }
           $logger->logCardActivity(
             ActivityLogger::TYPE_COMMENT_ADDED,
             $card,
             NULL,
-            ['comment_id' => $node->id()]
+            [
+              'comment_id' => $node->id(),
+              'comment_text' => $comment_text,
+            ]
+          );
+        }
+      }
+      break;
+
+    case 'card_custom_field_value':
+      // Log custom field value creation.
+      $card_id = $node->get('field_cfv_card')->target_id ?? NULL;
+      $field_def_id = $node->get('field_cfv_definition')->target_id ?? NULL;
+      if ($card_id && $field_def_id) {
+        $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
+        $field_def = \Drupal::entityTypeManager()->getStorage('node')->load($field_def_id);
+        if ($card && $field_def) {
+          $field_name = $field_def->getTitle();
+          $new_value = $node->hasField('field_cfv_value') ? $node->get('field_cfv_value')->value : '';
+          $logger->logCardActivity(
+            ActivityLogger::TYPE_CUSTOM_FIELD_UPDATED,
+            $card,
+            NULL,
+            [
+              'field_name' => $field_name,
+              'new_value' => $new_value,
+            ]
           );
         }
       }
@@ -122,15 +157,80 @@ function boxtasks_activity_node_predelete(NodeInterface $node): void {
 /**
  * Implements hook_ENTITY_TYPE_update() for node entities.
  *
- * Logs activity when cards are updated.
+ * Logs activity when cards, comments, and custom fields are updated.
  */
 function boxtasks_activity_node_update(NodeInterface $node): void {
-  // Only process cards.
-  if ($node->bundle() !== 'card') {
+  $logger = \Drupal::service('boxtasks_activity.logger');
+
+  // Handle comment updates.
+  if ($node->bundle() === 'card_comment') {
+    $original = $node->original;
+    $current_text = $node->hasField('field_comment_text') ? ($node->get('field_comment_text')->value ?? '') : '';
+    $original_text = $original->hasField('field_comment_text') ? ($original->get('field_comment_text')->value ?? '') : '';
+
+    // Only log if text actually changed.
+    if ($current_text !== $original_text) {
+      $card_id = $node->get('field_comment_card')->target_id;
+      if ($card_id) {
+        $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
+        if ($card) {
+          // Truncate text for display.
+          $display_text = $current_text;
+          if (strlen($display_text) > 200) {
+            $display_text = substr($display_text, 0, 197) . '...';
+          }
+          $logger->logCardActivity(
+            ActivityLogger::TYPE_COMMENT_UPDATED,
+            $card,
+            NULL,
+            [
+              'comment_id' => $node->id(),
+              'comment_text' => $display_text,
+              'old_value' => strlen($original_text) > 200 ? substr($original_text, 0, 197) . '...' : $original_text,
+              'new_value' => $display_text,
+            ]
+          );
+        }
+      }
+    }
     return;
   }
 
-  $logger = \Drupal::service('boxtasks_activity.logger');
+  // Handle custom field value updates.
+  if ($node->bundle() === 'card_custom_field_value') {
+    $original = $node->original;
+    $current_value = $node->hasField('field_cfv_value') ? ($node->get('field_cfv_value')->value ?? '') : '';
+    $original_value = $original->hasField('field_cfv_value') ? ($original->get('field_cfv_value')->value ?? '') : '';
+
+    // Only log if value actually changed.
+    if ($current_value !== $original_value) {
+      $card_id = $node->get('field_cfv_card')->target_id ?? NULL;
+      $field_def_id = $node->get('field_cfv_definition')->target_id ?? NULL;
+      if ($card_id && $field_def_id) {
+        $card = \Drupal::entityTypeManager()->getStorage('node')->load($card_id);
+        $field_def = \Drupal::entityTypeManager()->getStorage('node')->load($field_def_id);
+        if ($card && $field_def) {
+          $field_name = $field_def->getTitle();
+          $logger->logCardActivity(
+            ActivityLogger::TYPE_CUSTOM_FIELD_UPDATED,
+            $card,
+            NULL,
+            [
+              'field_name' => $field_name,
+              'old_value' => $original_value,
+              'new_value' => $current_value,
+            ]
+          );
+        }
+      }
+    }
+    return;
+  }
+
+  // Only process cards from here on.
+  if ($node->bundle() !== 'card') {
+    return;
+  }
   $original = $node->original;
 
   // Check for card moved (list changed).

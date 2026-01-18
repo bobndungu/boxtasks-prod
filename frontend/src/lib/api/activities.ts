@@ -51,7 +51,8 @@ export type ActivityType =
   | 'card_approved'
   | 'card_approval_removed'
   | 'card_rejected'
-  | 'card_rejection_removed';
+  | 'card_rejection_removed'
+  | 'custom_field_updated';
 
 export interface ActivityData {
   old_value?: string;
@@ -64,6 +65,8 @@ export interface ActivityData {
   member_name?: string;
   checklist_name?: string;
   field_name?: string;
+  comment_text?: string;
+  comment_id?: string;
 }
 
 export interface Activity {
@@ -167,6 +170,7 @@ export function getActivityDisplay(type: ActivityType): { icon: string; label: s
     card_approval_removed: { icon: '❌', label: 'removed approval' },
     card_rejected: { icon: '🚫', label: 'rejected this card' },
     card_rejection_removed: { icon: '↩️', label: 'removed rejection' },
+    custom_field_updated: { icon: '📝', label: 'updated a custom field' },
   };
   return displays[type] || { icon: '•', label: 'performed an action' };
 }
