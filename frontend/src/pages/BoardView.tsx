@@ -841,6 +841,7 @@ export default function BoardView() {
         archived: false,
         createdAt: '',
         updatedAt: '',
+        memberSetup: data.board.memberSetup || 'inherit',
       };
       setCurrentBoard(board);
       setBoardTitle(board.title);
@@ -952,7 +953,7 @@ export default function BoardView() {
       setCustomFieldValues(valuesMap);
 
       // Transform members and filter out system users
-      const systemUserNames = ['boxraft admin', 'n8n_api', 'n8n api'];
+      const systemUserNames = ['n8n_api', 'n8n api'];
       const filterSystemUsers = (members: typeof data.members) =>
         members.filter(m => !systemUserNames.includes(m.displayName.toLowerCase()));
 
@@ -3192,6 +3193,13 @@ export default function BoardView() {
           boardId={currentBoard.id}
           workspaceId={currentBoard.workspaceId}
           onClose={() => setShowBoardMembers(false)}
+          memberSetup={currentBoard.memberSetup}
+          boardMembers={workspaceMembers.map(m => ({
+            id: m.id,
+            displayName: m.displayName,
+            email: m.email,
+            drupal_id: 0, // Not needed for display
+          }))}
         />
       )}
 

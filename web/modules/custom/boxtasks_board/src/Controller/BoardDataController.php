@@ -237,32 +237,55 @@ class BoardDataController extends ControllerBase {
       }
     }
 
-    // Fetch workspace members.
+    // Fetch board members based on member setup preference.
     $members = [];
-    if ($workspace_id) {
-      $workspace_nodes = $node_storage->loadByProperties([
-        'type' => 'workspace',
-        'uuid' => $workspace_id,
-      ]);
+    $member_setup = 'inherit';
+    if ($board->hasField('field_board_member_setup') && !$board->get('field_board_member_setup')->isEmpty()) {
+      $member_setup = $board->get('field_board_member_setup')->value;
+    }
 
-      if (!empty($workspace_nodes)) {
-        $workspace = reset($workspace_nodes);
-        if ($workspace->hasField('field_workspace_members')) {
-          foreach ($workspace->get('field_workspace_members') as $member_ref) {
-            if ($member_ref->entity) {
-              $members[] = $this->formatUser($member_ref->entity);
+    if ($member_setup === 'just_me') {
+      // Only the board owner.
+      $owner = $board->getOwner();
+      if ($owner) {
+        $members[] = $this->formatUser($owner);
+      }
+    }
+    elseif ($member_setup === 'custom' && $board->hasField('field_board_members')) {
+      // Use custom board members.
+      foreach ($board->get('field_board_members') as $member_ref) {
+        if ($member_ref->entity) {
+          $members[] = $this->formatUser($member_ref->entity);
+        }
+      }
+    }
+    else {
+      // Default: inherit from workspace.
+      if ($workspace_id) {
+        $workspace_nodes = $node_storage->loadByProperties([
+          'type' => 'workspace',
+          'uuid' => $workspace_id,
+        ]);
+
+        if (!empty($workspace_nodes)) {
+          $workspace = reset($workspace_nodes);
+          if ($workspace->hasField('field_workspace_members')) {
+            foreach ($workspace->get('field_workspace_members') as $member_ref) {
+              if ($member_ref->entity) {
+                $members[] = $this->formatUser($member_ref->entity);
+              }
             }
           }
-        }
-        // Also add owner.
-        if ($workspace->hasField('field_workspace_owner') && !$workspace->get('field_workspace_owner')->isEmpty()) {
-          $owner = $workspace->get('field_workspace_owner')->entity;
-          if ($owner) {
-            $owner_data = $this->formatUser($owner);
-            // Avoid duplicates.
-            $member_ids = array_column($members, 'id');
-            if (!in_array($owner_data['id'], $member_ids)) {
-              array_unshift($members, $owner_data);
+          // Also add owner.
+          if ($workspace->hasField('field_workspace_owner') && !$workspace->get('field_workspace_owner')->isEmpty()) {
+            $owner = $workspace->get('field_workspace_owner')->entity;
+            if ($owner) {
+              $owner_data = $this->formatUser($owner);
+              // Avoid duplicates.
+              $member_ids = array_column($members, 'id');
+              if (!in_array($owner_data['id'], $member_ids)) {
+                array_unshift($members, $owner_data);
+              }
             }
           }
         }
@@ -320,6 +343,12 @@ class BoardDataController extends ControllerBase {
       }
     }
 
+    // Get member setup preference.
+    $member_setup = 'inherit';
+    if ($board->hasField('field_board_member_setup') && !$board->get('field_board_member_setup')->isEmpty()) {
+      $member_setup = $board->get('field_board_member_setup')->value;
+    }
+
     return [
       'id' => $board->uuid(),
       'title' => $board->label(),
@@ -327,6 +356,7 @@ class BoardDataController extends ControllerBase {
       'workspaceId' => $workspace_id,
       'color' => $board->hasField('field_board_color') ? $board->get('field_board_color')->value : NULL,
       'isStarred' => $board->hasField('field_board_starred') ? (bool) $board->get('field_board_starred')->value : FALSE,
+      'memberSetup' => $member_setup,
       'drupal_id' => (int) $board->id(),
     ];
   }

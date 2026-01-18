@@ -1,40 +1,65 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, Shield, Users, ExternalLink } from 'lucide-react';
+import { X, Loader2, Shield, Users, ExternalLink, UserCircle } from 'lucide-react';
 import { fetchWorkspaceMembers, fetchAllUsers, updateWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspaces';
 import { toast } from '../lib/stores/toast';
 import { Link } from 'react-router-dom';
 import MemberDropdown from './MemberDropdown';
+import type { BoardMember } from '../lib/api/boards';
 
 interface BoardMembersModalProps {
   boardId: string;
   workspaceId: string;
   onClose: () => void;
+  boardMembers?: BoardMember[];
+  memberSetup?: 'inherit' | 'just_me' | 'custom';
+  onMembersChange?: (members: BoardMember[]) => void;
 }
 
 export default function BoardMembersModal({
-  boardId: _boardId,
+  boardId,
   workspaceId,
   onClose,
+  boardMembers = [],
+  memberSetup = 'inherit',
+  onMembersChange,
 }: BoardMembersModalProps) {
-  void _boardId; // Used for future board-specific member filtering
+  void boardId; // Used for future board-specific member operations
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [allUsers, setAllUsers] = useState<WorkspaceMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Determine if we're showing board-specific members or workspace members
+  const isBoardSpecific = memberSetup === 'custom' || memberSetup === 'just_me';
+
   useEffect(() => {
     loadMembers();
-  }, [workspaceId]);
+  }, [workspaceId, memberSetup, boardMembers]);
 
   const loadMembers = async () => {
     setIsLoading(true);
     try {
-      const [memberData, userData] = await Promise.all([
-        fetchWorkspaceMembers(workspaceId),
-        fetchAllUsers(),
-      ]);
-      setMembers(memberData);
-      setAllUsers(userData);
+      if (isBoardSpecific && boardMembers.length > 0) {
+        // Use board-specific members passed from props
+        const convertedMembers: WorkspaceMember[] = boardMembers.map(m => ({
+          id: m.id,
+          displayName: m.displayName,
+          email: m.email,
+          isAdmin: false, // Board members don't have admin status in the same way
+        }));
+        setMembers(convertedMembers);
+        // Still load all users for adding new members
+        const userData = await fetchAllUsers();
+        setAllUsers(userData);
+      } else {
+        // Load from workspace
+        const [memberData, userData] = await Promise.all([
+          fetchWorkspaceMembers(workspaceId),
+          fetchAllUsers(),
+        ]);
+        setMembers(memberData);
+        setAllUsers(userData);
+      }
     } catch {
       toast.error('Failed to load members');
     } finally {
@@ -129,8 +154,24 @@ export default function BoardMembersModal({
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Board Members</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Members are inherited from the workspace
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+              {memberSetup === 'just_me' && (
+                <>
+                  <UserCircle className="h-4 w-4" />
+                  Only the board creator has access
+                </>
+              )}
+              {memberSetup === 'custom' && (
+                <>
+                  <Users className="h-4 w-4" />
+                  Custom member selection ({members.length} member{members.length !== 1 ? 's' : ''})
+                </>
+              )}
+              {memberSetup === 'inherit' && (
+                <>
+                  Members are inherited from the workspace
+                </>
+              )}
             </p>
           </div>
           <button

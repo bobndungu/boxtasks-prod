@@ -13,6 +13,7 @@ export interface Board {
   archived: boolean;
   createdAt: string;
   updatedAt: string;
+  memberSetup?: 'inherit' | 'just_me' | 'custom';
 }
 
 export interface BoardMemberSetup {
@@ -421,6 +422,7 @@ export interface ConsolidatedBoardData {
     workspaceId: string | null;
     color: string | null;
     isStarred: boolean;
+    memberSetup: 'inherit' | 'just_me' | 'custom';
     drupal_id: number;
   };
   lists: BoardListData[];
