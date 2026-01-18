@@ -3565,7 +3565,7 @@ function CardDetailModal({
                     )}
                   </div>
                   <div className="relative">
-                    <label className="w-full bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-left text-sm flex items-center cursor-pointer">
+                    <label className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center cursor-pointer text-gray-700 dark:text-gray-300">
                       <Image className="h-4 w-4 mr-2" />
                       {isUploadingCover ? 'Uploading...' : 'Cover'}
                       <input
@@ -3945,15 +3945,15 @@ function CardDetailModal({
               )}
 
               <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Actions</h4>
+                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">Actions</h4>
                 <div className="space-y-1">
                   {canEditCard && (
                     <button
                       onClick={() => onUpdate(card.id, { pinned: !card.pinned })}
                       className={`w-full px-3 py-2 rounded text-left text-sm flex items-center ${
                         card.pinned
-                          ? 'bg-amber-100 hover:bg-amber-200 text-amber-700'
-                          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                          ? 'bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-900/50 text-amber-700 dark:text-amber-400'
+                          : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       <Pin className={`h-4 w-4 mr-2 ${card.pinned ? 'fill-current' : ''}`} />
@@ -3963,7 +3963,7 @@ function CardDetailModal({
                   {canMoveCard && (
                     <button
                       onClick={handleOpenMoveModal}
-                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
+                      className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-left text-sm flex items-center"
                     >
                       <ArrowRightLeft className="h-4 w-4 mr-2" />
                       Move
@@ -3971,7 +3971,7 @@ function CardDetailModal({
                   )}
                   <button
                     onClick={onCopy}
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
+                    className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-left text-sm flex items-center"
                   >
                     <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -3981,7 +3981,7 @@ function CardDetailModal({
                   {canArchiveCard && (
                     <button
                       onClick={onArchive}
-                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
+                      className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-left text-sm flex items-center"
                     >
                       <Archive className="h-4 w-4 mr-2" />
                       Archive
@@ -3994,14 +3994,14 @@ function CardDetailModal({
                           setTemplateName(card.title + ' Template');
                           setShowTemplateNameModal(true);
                         }}
-                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded text-left text-sm flex items-center"
+                        className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-left text-sm flex items-center"
                       >
                         <LayoutTemplate className="h-4 w-4 mr-2" />
                         Save as Template
                       </button>
                       <button
                         onClick={onDelete}
-                        className="w-full bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded text-left text-sm flex items-center"
+                        className="w-full bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 px-3 py-2 rounded text-left text-sm flex items-center"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete

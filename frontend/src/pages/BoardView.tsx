@@ -953,7 +953,7 @@ export default function BoardView() {
       setCustomFieldValues(valuesMap);
 
       // Transform members and filter out system users
-      const systemUserNames = ['n8n_api', 'n8n api'];
+      const systemUserNames = ['n8n_api', 'n8n api', 'boxraft admin'];
       const filterSystemUsers = (members: typeof data.members) =>
         members.filter(m => !systemUserNames.includes(m.displayName.toLowerCase()));
 

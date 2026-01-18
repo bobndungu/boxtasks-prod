@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Layout,
@@ -205,6 +205,8 @@ export default function Dashboard() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
   const isMobile = useIsMobile();
+  const recentDropdownRef = useRef<HTMLDivElement>(null);
+  const starredDropdownRef = useRef<HTMLDivElement>(null);
 
   // Load starred and recent boards on mount
   useEffect(() => {
@@ -265,6 +267,21 @@ export default function Dashboard() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (recentDropdownRef.current && !recentDropdownRef.current.contains(event.target as Node)) {
+        setShowRecentDropdown(false);
+      }
+      if (starredDropdownRef.current && !starredDropdownRef.current.contains(event.target as Node)) {
+        setShowStarredDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
     logout();
   };
@@ -286,7 +303,7 @@ export default function Dashboard() {
               </Link>
               <nav id="main-navigation" className="hidden md:flex items-center space-x-1" aria-label="Main navigation">
                 <WorkspaceSwitcher />
-                <div className="relative">
+                <div className="relative" ref={recentDropdownRef}>
                   <button
                     onClick={() => {
                       setShowRecentDropdown(!showRecentDropdown);
@@ -334,7 +351,7 @@ export default function Dashboard() {
                     </div>
                   )}
                 </div>
-                <div className="relative">
+                <div className="relative" ref={starredDropdownRef}>
                   <button
                     onClick={() => {
                       setShowStarredDropdown(!showStarredDropdown);
@@ -623,10 +640,13 @@ export default function Dashboard() {
                   </button>
                 </li>
                 <li>
-                  <a href="#" className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                  <Link
+                    to={workspaces.length > 0 ? `/workspace/${workspaces[0].id}/settings` : '/workspaces'}
+                    className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                  >
                     <Users className="h-4 w-4 mr-3" />
                     Invite team members
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <Link to="/profile" className="flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">

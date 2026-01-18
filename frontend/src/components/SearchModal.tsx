@@ -151,10 +151,10 @@ export default function SearchModal({ isOpen, onClose, workspaceId }: SearchModa
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
         {/* Search Input */}
-        <div className="flex items-center border-b px-4">
-          <Search className="h-5 w-5 text-gray-400" />
+        <div className="flex items-center border-b border-gray-200 dark:border-gray-700 px-4">
+          <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
           <input
             ref={inputRef}
             type="text"
@@ -162,20 +162,20 @@ export default function SearchModal({ isOpen, onClose, workspaceId }: SearchModa
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={workspaceId ? "Search in this workspace..." : "Search all workspaces..."}
-            className="flex-1 px-4 py-4 text-lg outline-none"
+            className="flex-1 px-4 py-4 text-lg outline-none bg-transparent text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
           />
-          {isLoading && <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />}
+          {isLoading && <Loader2 className="h-5 w-5 text-gray-400 dark:text-gray-500 animate-spin" />}
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg ml-2"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg ml-2"
           >
-            <X className="h-5 w-5 text-gray-500" />
+            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
         {/* Category Tabs */}
         {hasResults && (
-          <div className="flex items-center gap-1 px-4 py-2 border-b bg-gray-50">
+          <div className="flex items-center gap-1 px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             {categoryTabs.map((tab) => (
               <button
                 key={tab.id}
@@ -185,14 +185,14 @@ export default function SearchModal({ isOpen, onClose, workspaceId }: SearchModa
                 }}
                 className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                   activeCategory === tab.id
-                    ? 'bg-blue-100 text-blue-700 font-medium'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-medium'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
                 {tab.label}
                 {tab.count > 0 && (
                   <span className={`ml-1.5 text-xs ${
-                    activeCategory === tab.id ? 'text-blue-600' : 'text-gray-400'
+                    activeCategory === tab.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
                   }`}>
                     {tab.count}
                   </span>
@@ -205,21 +205,21 @@ export default function SearchModal({ isOpen, onClose, workspaceId }: SearchModa
         {/* Results */}
         <div className="max-h-96 overflow-y-auto">
           {!query.trim() ? (
-            <div className="p-8 text-center text-gray-500">
-              <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              <Search className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
               <p>Search for cards, boards, comments, and checklists</p>
-              <p className="text-sm mt-2 text-gray-400">
+              <p className="text-sm mt-2 text-gray-400 dark:text-gray-500">
                 {workspaceId ? 'Searching within current workspace' : 'Searching across all your workspaces'}
               </p>
             </div>
           ) : isLoading ? (
             <div className="p-8 text-center">
-              <Loader2 className="h-8 w-8 mx-auto animate-spin text-gray-400" />
+              <Loader2 className="h-8 w-8 mx-auto animate-spin text-gray-400 dark:text-gray-500" />
             </div>
           ) : !hasResults ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
               <p>No results found for "{query}"</p>
-              <p className="text-sm mt-2 text-gray-400">Try different keywords or check your spelling</p>
+              <p className="text-sm mt-2 text-gray-400 dark:text-gray-500">Try different keywords or check your spelling</p>
             </div>
           ) : (
             <div className="p-2">
@@ -229,8 +229,8 @@ export default function SearchModal({ isOpen, onClose, workspaceId }: SearchModa
                   onClick={() => handleResultClick(result)}
                   className={`w-full flex items-start px-3 py-3 rounded-lg text-left transition-colors ${
                     index === selectedIndex
-                      ? 'bg-blue-50 border border-blue-200'
-                      : 'hover:bg-gray-50 border border-transparent'
+                      ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-700 border border-transparent'
                   }`}
                 >
                   <div className="flex-shrink-0 mt-0.5 mr-3">
@@ -238,21 +238,21 @@ export default function SearchModal({ isOpen, onClose, workspaceId }: SearchModa
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-800 truncate">{result.title}</p>
+                      <p className="font-medium text-gray-800 dark:text-white truncate">{result.title}</p>
                       <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        result.type === 'board' ? 'bg-blue-100 text-blue-700' :
-                        result.type === 'card' ? 'bg-gray-100 text-gray-600' :
-                        result.type === 'comment' ? 'bg-green-100 text-green-700' :
-                        'bg-purple-100 text-purple-700'
+                        result.type === 'board' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' :
+                        result.type === 'card' ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' :
+                        result.type === 'comment' ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300' :
+                        'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
                       }`}>
                         {result.type}
                       </span>
                     </div>
                     {result.description && (
-                      <p className="text-sm text-gray-500 truncate mt-0.5">{result.description}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">{result.description}</p>
                     )}
                     {/* Context breadcrumb */}
-                    <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
+                    <div className="flex items-center gap-1 mt-1 text-xs text-gray-400 dark:text-gray-500">
                       {result.workspaceName && (
                         <>
                           <Folder className="h-3 w-3" />
@@ -288,20 +288,20 @@ export default function SearchModal({ isOpen, onClose, workspaceId }: SearchModa
         </div>
 
         {/* Footer */}
-        <div className="border-t px-4 py-3 flex items-center justify-between text-sm text-gray-500 bg-gray-50">
+        <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900">
           <div className="flex items-center space-x-4">
             <span>
-              <kbd className="px-2 py-1 bg-white border rounded text-xs font-mono shadow-sm">↑↓</kbd> navigate
+              <kbd className="px-2 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-xs font-mono shadow-sm text-gray-600 dark:text-gray-300">↑↓</kbd> navigate
             </span>
             <span>
-              <kbd className="px-2 py-1 bg-white border rounded text-xs font-mono shadow-sm">Enter</kbd> select
+              <kbd className="px-2 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-xs font-mono shadow-sm text-gray-600 dark:text-gray-300">Enter</kbd> select
             </span>
             <span>
-              <kbd className="px-2 py-1 bg-white border rounded text-xs font-mono shadow-sm">Tab</kbd> filter
+              <kbd className="px-2 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-xs font-mono shadow-sm text-gray-600 dark:text-gray-300">Tab</kbd> filter
             </span>
           </div>
           <span>
-            <kbd className="px-2 py-1 bg-white border rounded text-xs font-mono shadow-sm">Esc</kbd> close
+            <kbd className="px-2 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-xs font-mono shadow-sm text-gray-600 dark:text-gray-300">Esc</kbd> close
           </span>
         </div>
       </div>

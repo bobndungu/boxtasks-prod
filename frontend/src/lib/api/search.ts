@@ -26,23 +26,14 @@ export interface GlobalSearchResults {
   totalResults: number;
 }
 
-// Search cards by title or description with full context
+// Search cards by title with full context
 export async function searchCards(query: string, workspaceId?: string): Promise<SearchResult[]> {
   if (!query.trim()) return [];
 
-  // Build filter for title OR description search
-  let url = `${API_URL}/jsonapi/node/card?filter[or-group][group][conjunction]=OR`;
-  url += `&filter[title-filter][condition][path]=title`;
-  url += `&filter[title-filter][condition][operator]=CONTAINS`;
-  url += `&filter[title-filter][condition][value]=${encodeURIComponent(query)}`;
-  url += `&filter[title-filter][condition][memberOf]=or-group`;
-  // Production uses 'body' instead of 'field_card_description'
-  url += `&filter[desc-filter][condition][path]=body.value`;
-  url += `&filter[desc-filter][condition][operator]=CONTAINS`;
-  url += `&filter[desc-filter][condition][value]=${encodeURIComponent(query)}`;
-  url += `&filter[desc-filter][condition][memberOf]=or-group`;
-  url += `&filter[archived][condition][path]=field_card_archived`;
-  url += `&filter[archived][condition][value]=0`;
+  // Simple title search - OR filters are complex in JSON:API, so we search title only
+  let url = `${API_URL}/jsonapi/node/card?filter[title][operator]=CONTAINS`;
+  url += `&filter[title][value]=${encodeURIComponent(query)}`;
+  url += `&filter[field_card_archived][value]=0`;
   url += `&include=field_card_list,field_card_list.field_list_board,field_card_list.field_list_board.field_board_workspace`;
   url += `&page[limit]=25`;
 
@@ -73,14 +64,14 @@ export async function searchCards(query: string, workspaceId?: string): Promise<
     const attrs = item.attributes as Record<string, unknown>;
     const rels = item.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
-    // Get list
-    const listRef = rels?.field_list?.data;
+    // Get list (card uses field_card_list)
+    const listRef = rels?.field_card_list?.data;
     const list = listRef ? includedMap.get(`${listRef.type}:${listRef.id}`) : null;
     const listAttrs = list?.attributes as Record<string, unknown> | undefined;
     const listRels = list?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
-    // Get board from list
-    const boardRef = listRels?.field_board?.data;
+    // Get board from list (list uses field_list_board)
+    const boardRef = listRels?.field_list_board?.data;
     const board = boardRef ? includedMap.get(`${boardRef.type}:${boardRef.id}`) : null;
     const boardAttrs = board?.attributes as Record<string, unknown> | undefined;
     const boardRels = board?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
@@ -169,11 +160,13 @@ export async function searchBoards(query: string, workspaceId?: string): Promise
   });
 }
 
-// Search comments by body text
+// Search comments by text content
 export async function searchComments(query: string, _workspaceId?: string): Promise<SearchResult[]> {
   if (!query.trim()) return [];
 
-  let url = `${API_URL}/jsonapi/node/card_comment?filter[body][operator]=CONTAINS&filter[body][value]=${encodeURIComponent(query)}`;
+  // Comments use field_comment_text for the text content
+  let url = `${API_URL}/jsonapi/node/card_comment?filter[field_comment_text.value][operator]=CONTAINS`;
+  url += `&filter[field_comment_text.value][value]=${encodeURIComponent(query)}`;
   url += `&include=field_comment_card,field_comment_card.field_card_list,field_comment_card.field_card_list.field_list_board`;
   url += `&page[limit]=15`;
 
@@ -210,17 +203,18 @@ export async function searchComments(query: string, _workspaceId?: string): Prom
     const cardAttrs = card?.attributes as Record<string, unknown> | undefined;
     const cardRels = card?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
-    // Get list from card
-    const listRef = cardRels?.field_list?.data;
+    // Get list from card (card uses field_card_list)
+    const listRef = cardRels?.field_card_list?.data;
     const list = listRef ? includedMap.get(`${listRef.type}:${listRef.id}`) : null;
     const listRels = list?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
-    // Get board from list
-    const boardRef = listRels?.field_board?.data;
+    // Get board from list (list uses field_list_board)
+    const boardRef = listRels?.field_list_board?.data;
     const board = boardRef ? includedMap.get(`${boardRef.type}:${boardRef.id}`) : null;
     const boardAttrs = board?.attributes as Record<string, unknown> | undefined;
 
-    const body = (attrs.body as { value?: string })?.value || (attrs.field_comment_body as { value?: string })?.value || '';
+    // Get comment text (comment uses field_comment_text)
+    const body = (attrs.field_comment_text as { value?: string })?.value || '';
     const preview = body.substring(0, 100) + (body.length > 100 ? '...' : '');
 
     return {
@@ -278,13 +272,13 @@ export async function searchChecklists(query: string, _workspaceId?: string): Pr
     const cardAttrs = card?.attributes as Record<string, unknown> | undefined;
     const cardRels = card?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
-    // Get list from card
-    const listRef = cardRels?.field_list?.data;
+    // Get list from card (card uses field_card_list)
+    const listRef = cardRels?.field_card_list?.data;
     const list = listRef ? includedMap.get(`${listRef.type}:${listRef.id}`) : null;
     const listRels = list?.relationships as Record<string, { data: { id: string; type: string } | null }> | undefined;
 
-    // Get board from list
-    const boardRef = listRels?.field_board?.data;
+    // Get board from list (list uses field_list_board)
+    const boardRef = listRels?.field_list_board?.data;
     const board = boardRef ? includedMap.get(`${boardRef.type}:${boardRef.id}`) : null;
     const boardAttrs = board?.attributes as Record<string, unknown> | undefined;
 

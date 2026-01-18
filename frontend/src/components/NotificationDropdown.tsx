@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Check, CheckCheck, X, Clock, ExternalLink, Wifi, WifiOff } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import { useUserNotifications } from '../lib/hooks/useMercure';
@@ -19,6 +20,7 @@ interface NotificationDropdownProps {
 
 export default function NotificationDropdown({ className = '' }: NotificationDropdownProps) {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -328,7 +330,10 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
           {notifications.length > 0 && (
             <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate('/notifications');
+                }}
                 className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 w-full text-center"
               >
                 View all notifications
