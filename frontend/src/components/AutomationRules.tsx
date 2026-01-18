@@ -180,12 +180,12 @@ export function AutomationRules({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[80vh] flex flex-col">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-3xl max-h-[80vh] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
         <div className="flex items-center gap-2">
           <Zap className="w-5 h-5 text-yellow-500" />
-          <h2 className="text-lg font-semibold">Automation Rules</h2>
+          <h2 className="text-lg font-semibold dark:text-gray-100">Automation Rules</h2>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -196,7 +196,7 @@ export function AutomationRules({
             New Rule
           </button>
           {onClose && (
-            <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+            <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded dark:text-gray-300">
               <X className="w-5 h-5" />
             </button>
           )}
@@ -204,12 +204,12 @@ export function AutomationRules({
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b">
+      <div className="flex border-b dark:border-gray-700">
         <button
           className={`px-4 py-2 font-medium ${
             activeTab === 'rules'
-              ? 'border-b-2 border-blue-500 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
           }`}
           onClick={() => setActiveTab('rules')}
         >
@@ -218,8 +218,8 @@ export function AutomationRules({
         <button
           className={`px-4 py-2 font-medium ${
             activeTab === 'logs'
-              ? 'border-b-2 border-blue-500 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
           }`}
           onClick={() => setActiveTab('logs')}
         >
@@ -230,7 +230,7 @@ export function AutomationRules({
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
             {error}
           </div>
@@ -283,8 +283,8 @@ function RulesList({
 }: RulesListProps) {
   if (rules.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        <Zap className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <Zap className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
         <p className="font-medium">No automation rules yet</p>
         <p className="text-sm">Create your first rule to automate tasks</p>
       </div>
@@ -296,14 +296,14 @@ function RulesList({
       {rules.map(rule => (
         <div
           key={rule.id}
-          className={`border rounded-lg ${rule.enabled ? 'border-gray-200' : 'border-gray-100 bg-gray-50'}`}
+          className={`border rounded-lg ${rule.enabled ? 'border-gray-200 dark:border-gray-700' : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50'}`}
         >
           {/* Rule Header */}
           <div className="p-3 flex items-center justify-between">
             <div className="flex items-center gap-2 flex-1">
               <button
                 onClick={() => onToggleExpanded(rule.id)}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded dark:text-gray-300"
               >
                 {expandedRules.has(rule.id) ? (
                   <ChevronDown className="w-4 h-4" />
@@ -313,16 +313,16 @@ function RulesList({
               </button>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className={`font-medium ${!rule.enabled && 'text-gray-400'}`}>
+                  <span className={`font-medium ${!rule.enabled ? 'text-gray-400 dark:text-gray-500' : 'dark:text-gray-100'}`}>
                     {rule.name}
                   </span>
                   {!rule.enabled && (
-                    <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
+                    <span className="text-xs bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded">
                       Disabled
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   When: {getTriggerLabel(rule.triggerType)}
                   {rule.actions.length > 0 && (
                     <span> → {getActionLabel(rule.actions[0].type)}</span>
@@ -337,7 +337,7 @@ function RulesList({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => onToggleRule(rule)}
-                className="p-2 hover:bg-gray-100 rounded"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                 title={rule.enabled ? 'Disable' : 'Enable'}
               >
                 {rule.enabled ? (
@@ -348,14 +348,14 @@ function RulesList({
               </button>
               <button
                 onClick={() => onEditRule(rule)}
-                className="p-2 hover:bg-gray-100 rounded"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                 title="Edit"
               >
-                <Edit className="w-4 h-4 text-gray-500" />
+                <Edit className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               </button>
               <button
                 onClick={() => onDeleteRule(rule)}
-                className="p-2 hover:bg-gray-100 rounded"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                 title="Delete"
               >
                 <Trash2 className="w-4 h-4 text-red-500" />
@@ -365,20 +365,20 @@ function RulesList({
 
           {/* Expanded Details */}
           {expandedRules.has(rule.id) && (
-            <div className="px-4 pb-3 pt-0 border-t bg-gray-50">
+            <div className="px-4 pb-3 pt-0 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
               <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
                 <div>
-                  <span className="font-medium text-gray-600">Trigger:</span>
-                  <p>{getTriggerLabel(rule.triggerType)}</p>
+                  <span className="font-medium text-gray-600 dark:text-gray-400">Trigger:</span>
+                  <p className="dark:text-gray-200">{getTriggerLabel(rule.triggerType)}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">Executions:</span>
-                  <p>{rule.executionCount} times</p>
+                  <span className="font-medium text-gray-600 dark:text-gray-400">Executions:</span>
+                  <p className="dark:text-gray-200">{rule.executionCount} times</p>
                 </div>
                 {rule.conditions.length > 0 && (
                   <div className="col-span-2">
-                    <span className="font-medium text-gray-600">Conditions:</span>
-                    <ul className="list-disc list-inside mt-1">
+                    <span className="font-medium text-gray-600 dark:text-gray-400">Conditions:</span>
+                    <ul className="list-disc list-inside mt-1 dark:text-gray-200">
                       {rule.conditions.map((c, i) => (
                         <li key={i}>
                           {CONDITION_TYPES.find(ct => ct.id === c.type)?.label || c.type}
@@ -388,15 +388,15 @@ function RulesList({
                   </div>
                 )}
                 <div className="col-span-2">
-                  <span className="font-medium text-gray-600">Actions:</span>
-                  <ul className="list-disc list-inside mt-1">
+                  <span className="font-medium text-gray-600 dark:text-gray-400">Actions:</span>
+                  <ul className="list-disc list-inside mt-1 dark:text-gray-200">
                     {rule.actions.map((a, i) => (
                       <li key={i}>{getActionLabel(a.type)}</li>
                     ))}
                   </ul>
                 </div>
                 {rule.lastExecuted && (
-                  <div className="col-span-2 text-gray-500">
+                  <div className="col-span-2 text-gray-500 dark:text-gray-400">
                     <Clock className="w-4 h-4 inline mr-1" />
                     Last run: {formatDateTime(rule.lastExecuted)}
                   </div>
@@ -418,8 +418,8 @@ interface LogsListProps {
 function LogsList({ logs, getTriggerLabel }: LogsListProps) {
   if (logs.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
         <p className="font-medium">No activity yet</p>
         <p className="text-sm">Rule executions will appear here</p>
       </div>
@@ -433,8 +433,8 @@ function LogsList({ logs, getTriggerLabel }: LogsListProps) {
           key={log.id}
           className={`p-3 rounded-lg border ${
             log.status === 'success'
-              ? 'border-green-200 bg-green-50'
-              : 'border-red-200 bg-red-50'
+              ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30'
+              : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30'
           }`}
         >
           <div className="flex items-start justify-between">
@@ -444,23 +444,23 @@ function LogsList({ logs, getTriggerLabel }: LogsListProps) {
               ) : (
                 <AlertCircle className="w-4 h-4 text-red-500" />
               )}
-              <span className="font-medium">
+              <span className="font-medium dark:text-gray-100">
                 {getTriggerLabel(log.triggerType)}
               </span>
             </div>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatDateTime(log.createdAt)}
             </span>
           </div>
           {log.status === 'error' && log.errorMessage && (
-            <p className="mt-1 text-sm text-red-600">{log.errorMessage}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{log.errorMessage}</p>
           )}
           {log.actionsExecuted.length > 0 && (
-            <div className="mt-2 text-sm text-gray-600">
+            <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
               Actions: {log.actionsExecuted.map(a => a.type).join(', ')}
             </div>
           )}
-          <div className="mt-1 text-xs text-gray-500">
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             Execution time: {log.executionTime}ms
           </div>
         </div>
@@ -545,19 +545,19 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[80vh] flex flex-col">
-      <div className="flex items-center justify-between p-4 border-b">
-        <h2 className="text-lg font-semibold">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-3xl max-h-[80vh] flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+        <h2 className="text-lg font-semibold dark:text-gray-100">
           {rule ? 'Edit Automation Rule' : 'Create Automation Rule'}
         </h2>
-        <button onClick={onCancel} className="p-1 hover:bg-gray-100 rounded">
+        <button onClick={onCancel} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded dark:text-gray-300">
           <X className="w-5 h-5" />
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 space-y-6">
         {errors.length > 0 && (
-          <div className="p-3 bg-red-50 text-red-700 rounded-lg">
+          <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg">
             <ul className="list-disc list-inside">
               {errors.map((err, i) => (
                 <li key={i}>{err}</li>
@@ -568,26 +568,26 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
 
         {/* Rule Name */}
         <div>
-          <label className="block font-medium mb-1">Rule Name</label>
+          <label className="block font-medium mb-1 dark:text-gray-100">Rule Name</label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="e.g., Move completed cards to Done"
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Trigger */}
         <div>
-          <label className="block font-medium mb-1">
+          <label className="block font-medium mb-1 dark:text-gray-100">
             <Play className="w-4 h-4 inline mr-1" />
             When this happens...
           </label>
           <select
             value={triggerType}
             onChange={e => setTriggerType(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {TRIGGER_TYPES.map(t => (
               <option key={t.id} value={t.id}>
@@ -600,32 +600,32 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
         {/* Conditions */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="font-medium">
+            <label className="font-medium dark:text-gray-100">
               Conditions (optional)
             </label>
             <button
               type="button"
               onClick={addCondition}
-              className="px-3 py-1.5 border border-gray-300 hover:bg-gray-50 rounded-md text-sm flex items-center"
+              className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md text-sm flex items-center dark:text-gray-200"
             >
               <Plus className="w-4 h-4 mr-1" />
               Add Condition
             </button>
           </div>
           {conditions.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               No conditions - rule will run on every trigger
             </p>
           ) : (
             <div className="space-y-2">
               {conditions.map((condition, index) => (
-                <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <select
                     value={condition.type}
                     onChange={e =>
                       updateCondition(index, { type: e.target.value, config: {} })
                     }
-                    className="flex-1 px-2 py-1 border rounded"
+                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
                   >
                     {CONDITION_TYPES.map(c => (
                       <option key={c.id} value={c.id}>
@@ -643,7 +643,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                           config: { ...condition.config, label: e.target.value },
                         })
                       }
-                      className="flex-1 px-2 py-1 border rounded"
+                      className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
                     >
                       <option value="">Select label...</option>
                       {labels.map(l => (
@@ -662,7 +662,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                           config: { ...condition.config, list_id: e.target.value },
                         })
                       }
-                      className="flex-1 px-2 py-1 border rounded"
+                      className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
                     >
                       <option value="">Select list...</option>
                       {lists.map(l => (
@@ -683,7 +683,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                         })
                       }
                       placeholder="Text to match..."
-                      className="flex-1 px-2 py-1 border rounded"
+                      className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
                     />
                   )}
 
@@ -695,7 +695,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                           config: { ...condition.config, user_id: e.target.value },
                         })
                       }
-                      className="flex-1 px-2 py-1 border rounded"
+                      className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
                     >
                       <option value="">Any user (or select specific)</option>
                       {members.map(m => (
@@ -709,7 +709,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                   <button
                     type="button"
                     onClick={() => removeCondition(index)}
-                    className="p-1 hover:bg-gray-200 rounded text-red-500"
+                    className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-red-500"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -722,14 +722,14 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
         {/* Actions */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="font-medium">
+            <label className="font-medium dark:text-gray-100">
               <Zap className="w-4 h-4 inline mr-1" />
               Then do this...
             </label>
             <button
               type="button"
               onClick={addAction}
-              className="px-3 py-1.5 border border-gray-300 hover:bg-gray-50 rounded-md text-sm flex items-center"
+              className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md text-sm flex items-center dark:text-gray-200"
             >
               <Plus className="w-4 h-4 mr-1" />
               Add Action
@@ -737,13 +737,13 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
           </div>
           <div className="space-y-2">
             {actions.map((action, index) => (
-              <div key={index} className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+              <div key={index} className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                 <select
                   value={action.type}
                   onChange={e =>
                     updateAction(index, { type: e.target.value, config: {} })
                   }
-                  className="flex-1 px-2 py-1 border rounded"
+                  className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   {ACTION_TYPES.map(a => (
                     <option key={a.id} value={a.id}>
@@ -761,7 +761,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                         config: { ...action.config, label: e.target.value },
                       })
                     }
-                    className="flex-1 px-2 py-1 border rounded"
+                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="">Select label...</option>
                     {labels.map(l => (
@@ -780,7 +780,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                         config: { ...action.config, list_id: e.target.value },
                       })
                     }
-                    className="flex-1 px-2 py-1 border rounded"
+                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="">Select list...</option>
                     {lists.map(l => (
@@ -799,7 +799,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                         config: { ...action.config, user_id: e.target.value },
                       })
                     }
-                    className="flex-1 px-2 py-1 border rounded"
+                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="">Select member...</option>
                     {members.map(m => (
@@ -820,7 +820,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                       })
                     }
                     placeholder="+3 days, +1 week, etc."
-                    className="flex-1 px-2 py-1 border rounded"
+                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                 )}
 
@@ -832,7 +832,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                         config: { ...action.config, completed: e.target.value === 'true' },
                       })
                     }
-                    className="flex-1 px-2 py-1 border rounded"
+                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="true">Mark as complete</option>
                     <option value="false">Mark as incomplete</option>
@@ -847,7 +847,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                         config: { ...action.config, user_id: e.target.value },
                       })
                     }
-                    className="flex-1 px-2 py-1 border rounded"
+                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="">Select user...</option>
                     {members.map(m => (
@@ -868,7 +868,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                       })
                     }
                     placeholder="Comment text... (use {card_title}, {board_name})"
-                    className="flex-1 px-2 py-1 border rounded"
+                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                 )}
 
@@ -881,7 +881,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                           config: { ...action.config, recipient_type: e.target.value },
                         })
                       }
-                      className="w-full px-2 py-1 border rounded"
+                      className="w-full px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     >
                       <option value="members">Send to card members</option>
                       <option value="watchers">Send to card watchers</option>
@@ -898,7 +898,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                           })
                         }
                         placeholder="email1@example.com, email2@example.com"
-                        className="w-full px-2 py-1 border rounded"
+                        className="w-full px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       />
                     )}
                     <input
@@ -910,7 +910,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                         })
                       }
                       placeholder="Email subject (use {card_title}, {board_name})"
-                      className="w-full px-2 py-1 border rounded"
+                      className="w-full px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     />
                     <textarea
                       value={(action.config.message as string) || ''}
@@ -920,7 +920,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                         })
                       }
                       placeholder="Email message (use {card_title}, {board_name})"
-                      className="w-full px-2 py-1 border rounded"
+                      className="w-full px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       rows={2}
                     />
                   </div>
@@ -934,7 +934,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                         config: { ...action.config, user_id: e.target.value },
                       })
                     }
-                    className="flex-1 px-2 py-1 border rounded"
+                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="">System (automated)</option>
                     {members.map(m => (
@@ -948,7 +948,7 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                 <button
                   type="button"
                   onClick={() => removeAction(index)}
-                  className="p-1 hover:bg-gray-200 rounded text-red-500"
+                  className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-red-500"
                   disabled={actions.length <= 1}
                 >
                   <Trash2 className={`w-4 h-4 ${actions.length <= 1 ? 'opacity-30' : ''}`} />
@@ -959,11 +959,11 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
         </div>
       </form>
 
-      <div className="flex justify-end gap-2 p-4 border-t">
+      <div className="flex justify-end gap-2 p-4 border-t dark:border-gray-700">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 hover:bg-gray-50 rounded-md"
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md dark:text-gray-200"
         >
           Cancel
         </button>

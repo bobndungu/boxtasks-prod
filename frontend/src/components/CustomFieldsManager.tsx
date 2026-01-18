@@ -141,26 +141,26 @@ function SortableFieldItem({ field, onEdit, onDelete, isDragging }: SortableFiel
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 p-3 bg-white rounded-lg group border ${
-        isDragging ? 'shadow-lg ring-2 ring-blue-500' : 'shadow-sm hover:shadow-md'
+      className={`flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg group border dark:border-gray-700 ${
+        isDragging ? 'shadow-lg ring-2 ring-blue-500' : 'shadow-sm hover:shadow-md dark:shadow-gray-900'
       } transition-shadow`}
     >
       <button
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+        className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
       >
         <GripVertical className="h-4 w-4 text-gray-400" />
       </button>
       <div className="flex items-center gap-2 flex-1 min-w-0">
-        {FIELD_TYPE_ICONS[field.type]}
-        <span className="font-medium truncate">{field.title}</span>
-        <span className="text-xs text-gray-500 px-2 py-0.5 bg-gray-100 rounded flex-shrink-0">
+        <span className="dark:text-gray-300">{FIELD_TYPE_ICONS[field.type]}</span>
+        <span className="font-medium truncate dark:text-gray-100">{field.title}</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded flex-shrink-0">
           {FIELD_TYPE_LABELS[field.type]}
         </span>
         {field.scope && field.scope !== 'board' && (
           <span className={`text-xs px-2 py-0.5 rounded flex-shrink-0 flex items-center gap-1 ${
-            field.scope === 'workspace' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+            field.scope === 'workspace' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
           }`}>
             {SCOPE_ICONS[field.scope]}
             {SCOPE_LABELS[field.scope]}
@@ -173,14 +173,14 @@ function SortableFieldItem({ field, onEdit, onDelete, isDragging }: SortableFiel
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
         <button
           onClick={() => onEdit(field)}
-          className="p-1 hover:bg-gray-200 rounded"
+          className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
           title="Edit"
         >
-          <Edit2 className="h-4 w-4 text-gray-500" />
+          <Edit2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
         </button>
         <button
           onClick={() => onDelete(field)}
-          className="p-1 hover:bg-red-100 rounded"
+          className="p-1 hover:bg-red-100 dark:hover:bg-red-900/50 rounded"
           title="Delete"
         >
           <Trash2 className="h-4 w-4 text-red-500" />
@@ -193,12 +193,12 @@ function SortableFieldItem({ field, onEdit, onDelete, isDragging }: SortableFiel
 // Static field item for drag overlay
 function FieldItemOverlay({ field }: { field: CustomFieldDefinition }) {
   return (
-    <div className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-xl ring-2 ring-blue-500 border">
+    <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-xl ring-2 ring-blue-500 border dark:border-gray-700">
       <GripVertical className="h-4 w-4 text-gray-400" />
       <div className="flex items-center gap-2 flex-1 min-w-0">
-        {FIELD_TYPE_ICONS[field.type]}
-        <span className="font-medium truncate">{field.title}</span>
-        <span className="text-xs text-gray-500 px-2 py-0.5 bg-gray-100 rounded">
+        <span className="dark:text-gray-300">{FIELD_TYPE_ICONS[field.type]}</span>
+        <span className="font-medium truncate dark:text-gray-100">{field.title}</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
           {FIELD_TYPE_LABELS[field.type]}
         </span>
       </div>
@@ -225,19 +225,19 @@ function DroppableSection({ id, title, icon, fields, onEdit, onDelete, isOver }:
       ref={setNodeRef}
       className={`p-3 rounded-lg border-2 border-dashed transition-colors ${
         isOver
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-200 bg-gray-50'
+          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+          : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50'
       }`}
     >
       <div className="flex items-center gap-2 mb-3">
         {icon}
-        <h4 className="font-medium text-sm text-gray-700">{title}</h4>
-        <span className="text-xs text-gray-500">({fields.length})</span>
+        <h4 className="font-medium text-sm text-gray-700 dark:text-gray-200">{title}</h4>
+        <span className="text-xs text-gray-500 dark:text-gray-400">({fields.length})</span>
       </div>
       <SortableContext items={fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
         <div className="space-y-2 min-h-[60px]">
           {fields.length === 0 ? (
-            <p className="text-xs text-gray-400 text-center py-4">
+            <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">
               Drag fields here
             </p>
           ) : (
@@ -573,16 +573,16 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
           <div className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-gray-500" />
-            <h2 className="text-lg font-semibold">Custom Fields</h2>
+            <Settings className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <h2 className="text-lg font-semibold dark:text-gray-100">Custom Fields</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors dark:text-gray-300"
           >
             <X className="h-5 w-5" />
           </button>
@@ -598,7 +598,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
             <div className="space-y-4">
               {/* Drag and Drop Fields */}
               {fields.length === 0 && !showNewForm ? (
-                <p className="text-gray-500 text-center py-4">
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">
                   No custom fields yet. Create one to add extra data to cards.
                 </p>
               ) : (
@@ -610,7 +610,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                   onDragEnd={handleDragEnd}
                 >
                   <div className="space-y-4">
-                    <p className="text-xs text-gray-500 text-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                       Drag fields between sections to change where they appear on cards
                     </p>
 
@@ -646,27 +646,27 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
 
               {/* Edit Field Form */}
               {editingField && (
-                <div className="p-4 border rounded-lg bg-blue-50">
-                  <h3 className="font-medium mb-3">Edit Field</h3>
+                <div className="p-4 border dark:border-gray-600 rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                  <h3 className="font-medium mb-3 dark:text-gray-100">Edit Field</h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Name</label>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-200">Name</label>
                       <input
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Field name"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-1">Type</label>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-200">Type</label>
                       <div className="relative">
                         <select
                           value={editType}
                           onChange={(e) => setEditType(e.target.value as CustomFieldType)}
-                          className="w-full px-3 py-2 border rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border dark:border-gray-600 rounded-md appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           {Object.entries(FIELD_TYPE_LABELS).map(([value, label]) => (
                             <option key={value} value={value}>
@@ -680,12 +680,12 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
 
                     {editType === 'dropdown' && (
                       <div>
-                        <label className="block text-sm font-medium mb-1">Options</label>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-200">Options</label>
                         <div className="flex flex-wrap gap-2 mb-2">
                           {editOptions.map((option) => (
                             <span
                               key={option}
-                              className="inline-flex items-center gap-1 px-2 py-1 bg-white border rounded text-sm"
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded text-sm dark:text-gray-200"
                             >
                               {option}
                               <button
@@ -703,12 +703,12 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                             value={editOptionInput}
                             onChange={(e) => setEditOptionInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addEditOption())}
-                            className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-3 py-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Add option"
                           />
                           <button
                             onClick={addEditOption}
-                            className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                            className="px-3 py-2 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors dark:text-gray-200"
                           >
                             Add
                           </button>
@@ -717,15 +717,15 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                     )}
 
                     <div>
-                      <label className="block text-sm font-medium mb-2">Display Location</label>
+                      <label className="block text-sm font-medium mb-2 dark:text-gray-200">Display Location</label>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setEditDisplayLocation('main')}
                           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border transition-colors ${
                             editDisplayLocation === 'main'
-                              ? 'bg-blue-50 border-blue-500 text-blue-700'
-                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                              ? 'bg-blue-50 dark:bg-blue-900/50 border-blue-500 text-blue-700 dark:text-blue-300'
+                              : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
                           }`}
                         >
                           <PanelLeft className="h-4 w-4" />
@@ -736,8 +736,8 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                           onClick={() => setEditDisplayLocation('sidebar')}
                           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border transition-colors ${
                             editDisplayLocation === 'sidebar'
-                              ? 'bg-purple-50 border-purple-500 text-purple-700'
-                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                              ? 'bg-purple-50 dark:bg-purple-900/50 border-purple-500 text-purple-700 dark:text-purple-300'
+                              : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
                           }`}
                         >
                           <PanelRight className="h-4 w-4" />
@@ -747,7 +747,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-2">Scope</label>
+                      <label className="block text-sm font-medium mb-2 dark:text-gray-200">Scope</label>
                       <div className="flex gap-2">
                         {(['board', 'workspace', 'card'] as CustomFieldScope[]).map((scope) => (
                           <button
@@ -758,11 +758,11 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                             className={`flex-1 flex flex-col items-center gap-1 px-3 py-2 rounded-md border transition-colors ${
                               editScope === scope
                                 ? scope === 'workspace'
-                                  ? 'bg-blue-50 border-blue-500 text-blue-700'
+                                  ? 'bg-blue-50 dark:bg-blue-900/50 border-blue-500 text-blue-700 dark:text-blue-300'
                                   : scope === 'card'
-                                  ? 'bg-purple-50 border-purple-500 text-purple-700'
-                                  : 'bg-green-50 border-green-500 text-green-700'
-                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                                  ? 'bg-purple-50 dark:bg-purple-900/50 border-purple-500 text-purple-700 dark:text-purple-300'
+                                  : 'bg-green-50 dark:bg-green-900/50 border-green-500 text-green-700 dark:text-green-300'
+                                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
                             }`}
                           >
                             {SCOPE_ICONS[scope]}
@@ -770,7 +770,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                           </button>
                         ))}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">{SCOPE_DESCRIPTIONS[editScope]}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{SCOPE_DESCRIPTIONS[editScope]}</p>
                     </div>
 
                     <label className="flex items-center gap-2">
@@ -778,15 +778,15 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                         type="checkbox"
                         checked={editRequired}
                         onChange={(e) => setEditRequired(e.target.checked)}
-                        className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                        className="rounded border-gray-300 dark:border-gray-600 text-blue-500 focus:ring-blue-500 dark:bg-gray-700"
                       />
-                      <span className="text-sm">Required field</span>
+                      <span className="text-sm dark:text-gray-200">Required field</span>
                     </label>
 
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => setEditingField(null)}
-                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                        className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
                       >
                         Cancel
                       </button>
@@ -803,28 +803,28 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
 
               {/* New Field Form */}
               {showNewForm && !editingField && (
-                <div className="p-4 border rounded-lg bg-green-50">
-                  <h3 className="font-medium mb-3">New Custom Field</h3>
+                <div className="p-4 border dark:border-gray-600 rounded-lg bg-green-50 dark:bg-green-900/30">
+                  <h3 className="font-medium mb-3 dark:text-gray-100">New Custom Field</h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Name</label>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-200">Name</label>
                       <input
                         type="text"
                         value={newFieldName}
                         onChange={(e) => setNewFieldName(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="e.g., Priority, Story Points, Sprint"
                         autoFocus
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-1">Type</label>
+                      <label className="block text-sm font-medium mb-1 dark:text-gray-200">Type</label>
                       <div className="relative">
                         <select
                           value={newFieldType}
                           onChange={(e) => setNewFieldType(e.target.value as CustomFieldType)}
-                          className="w-full px-3 py-2 border rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border dark:border-gray-600 rounded-md appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           {Object.entries(FIELD_TYPE_LABELS).map(([value, label]) => (
                             <option key={value} value={value}>
@@ -838,12 +838,12 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
 
                     {newFieldType === 'dropdown' && (
                       <div>
-                        <label className="block text-sm font-medium mb-1">Options</label>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-200">Options</label>
                         <div className="flex flex-wrap gap-2 mb-2">
                           {newFieldOptions.map((option) => (
                             <span
                               key={option}
-                              className="inline-flex items-center gap-1 px-2 py-1 bg-white border rounded text-sm"
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded text-sm dark:text-gray-200"
                             >
                               {option}
                               <button
@@ -861,12 +861,12 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                             value={newOptionInput}
                             onChange={(e) => setNewOptionInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addNewOption())}
-                            className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-3 py-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Add option"
                           />
                           <button
                             onClick={addNewOption}
-                            className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                            className="px-3 py-2 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md transition-colors dark:text-gray-200"
                           >
                             Add
                           </button>
@@ -875,15 +875,15 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                     )}
 
                     <div>
-                      <label className="block text-sm font-medium mb-2">Display Location</label>
+                      <label className="block text-sm font-medium mb-2 dark:text-gray-200">Display Location</label>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setNewFieldDisplayLocation('main')}
                           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border transition-colors ${
                             newFieldDisplayLocation === 'main'
-                              ? 'bg-blue-50 border-blue-500 text-blue-700'
-                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                              ? 'bg-blue-50 dark:bg-blue-900/50 border-blue-500 text-blue-700 dark:text-blue-300'
+                              : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
                           }`}
                         >
                           <PanelLeft className="h-4 w-4" />
@@ -894,8 +894,8 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                           onClick={() => setNewFieldDisplayLocation('sidebar')}
                           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border transition-colors ${
                             newFieldDisplayLocation === 'sidebar'
-                              ? 'bg-purple-50 border-purple-500 text-purple-700'
-                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                              ? 'bg-purple-50 dark:bg-purple-900/50 border-purple-500 text-purple-700 dark:text-purple-300'
+                              : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
                           }`}
                         >
                           <PanelRight className="h-4 w-4" />
@@ -905,7 +905,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-2">Scope</label>
+                      <label className="block text-sm font-medium mb-2 dark:text-gray-200">Scope</label>
                       <div className="flex gap-2">
                         {(['board', 'workspace', 'card'] as CustomFieldScope[]).map((scope) => (
                           <button
@@ -916,11 +916,11 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                             className={`flex-1 flex flex-col items-center gap-1 px-3 py-2 rounded-md border transition-colors ${
                               newFieldScope === scope
                                 ? scope === 'workspace'
-                                  ? 'bg-blue-50 border-blue-500 text-blue-700'
+                                  ? 'bg-blue-50 dark:bg-blue-900/50 border-blue-500 text-blue-700 dark:text-blue-300'
                                   : scope === 'card'
-                                  ? 'bg-purple-50 border-purple-500 text-purple-700'
-                                  : 'bg-green-50 border-green-500 text-green-700'
-                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                                  ? 'bg-purple-50 dark:bg-purple-900/50 border-purple-500 text-purple-700 dark:text-purple-300'
+                                  : 'bg-green-50 dark:bg-green-900/50 border-green-500 text-green-700 dark:text-green-300'
+                                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
                             }`}
                           >
                             {SCOPE_ICONS[scope]}
@@ -928,7 +928,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                           </button>
                         ))}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">{SCOPE_DESCRIPTIONS[newFieldScope]}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{SCOPE_DESCRIPTIONS[newFieldScope]}</p>
                     </div>
 
                     <label className="flex items-center gap-2">
@@ -936,9 +936,9 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                         type="checkbox"
                         checked={newFieldRequired}
                         onChange={(e) => setNewFieldRequired(e.target.checked)}
-                        className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                        className="rounded border-gray-300 dark:border-gray-600 text-blue-500 focus:ring-blue-500 dark:bg-gray-700"
                       />
-                      <span className="text-sm">Required field</span>
+                      <span className="text-sm dark:text-gray-200">Required field</span>
                     </label>
 
                     <div className="flex justify-end gap-2">
@@ -952,7 +952,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
                           setNewFieldDisplayLocation('main');
                           setNewFieldScope('board');
                         }}
-                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                        className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
                       >
                         Cancel
                       </button>
@@ -973,7 +973,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t">
+        <div className="p-4 border-t dark:border-gray-700">
           {!showNewForm && !editingField && (
             <button
               onClick={() => setShowNewForm(true)}
