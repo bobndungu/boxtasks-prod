@@ -129,7 +129,7 @@ export default function Home() {
               to="/register"
               className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 transition-colors"
             >
-              Get Started - It's Free
+              Get Started
             </Link>
             <a
               href="#features"
@@ -173,7 +173,7 @@ export default function Home() {
             <FeatureCard
               icon={<Zap className="h-8 w-8 text-blue-600 dark:text-blue-400" />}
               title="Automation"
-              description="Automate repetitive tasks with Butler automation. Focus on what matters."
+              description="Automate repetitive tasks with our powerful automation rules. Focus on what matters."
             />
           </div>
         </div>
