@@ -14,13 +14,12 @@ export function PWAUpdatePrompt() {
     updateServiceWorker,
   } = useRegisterSW({
     onRegistered(registration: ServiceWorkerRegistration | undefined) {
-      console.log('SW Registered');
-
-      // Check for updates periodically
+      // Check for updates periodically (silently)
       if (registration) {
         setInterval(() => {
-          console.log('Checking for SW updates...');
-          registration.update().catch(console.error);
+          registration.update().catch(() => {
+            // Silently ignore update check failures
+          });
         }, UPDATE_CHECK_INTERVAL);
       }
     },

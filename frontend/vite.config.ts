@@ -60,11 +60,15 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // Only precache the main HTML and essential assets - NOT all JS chunks
+        // This prevents 404 errors when old SWs try to fetch renamed chunks
+        globPatterns: ['**/*.{html,ico,png,svg,woff,woff2}'],
         // CRITICAL: These options ensure new deployments take effect immediately
         skipWaiting: true,           // New SW activates immediately, doesn't wait for tabs to close
         clientsClaim: true,          // New SW takes control of all clients immediately
         cleanupOutdatedCaches: true, // Automatically remove old precache versions
+        // Disable workbox logs in production
+        disableDevLogs: true,
         // Exclude Drupal backend routes from service worker interception
         navigateFallbackDenylist: [
           /^\/api\//,       // Custom API routes

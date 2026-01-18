@@ -18,13 +18,16 @@ export function useServiceWorker() {
     // Check for SW updates every 60 seconds
     onRegistered(registration: ServiceWorkerRegistration | undefined) {
       if (registration) {
-        // Check for updates periodically
+        // Check for updates periodically (silently)
         setInterval(() => {
-          registration.update();
+          registration.update().catch(() => {
+            // Silently ignore update check failures
+          });
         }, 60 * 1000); // Check every 60 seconds
       }
     },
     onRegisterError(error: Error) {
+      // Only log actual registration errors, not routine failures
       console.error('Service worker registration error:', error);
     },
   });
