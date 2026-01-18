@@ -15,12 +15,19 @@ export interface Board {
   updatedAt: string;
 }
 
+export interface BoardMemberSetup {
+  userId: string;
+  roleId: string;
+}
+
 export interface CreateBoardData {
   title: string;
   description?: string;
   workspaceId: string;
   visibility?: 'private' | 'workspace' | 'public';
   background?: string;
+  memberSetup?: 'inherit' | 'just_me' | 'custom';
+  members?: BoardMemberSetup[];
 }
 
 // Transform JSON:API response to Board
@@ -156,6 +163,20 @@ export async function fetchBoard(id: string): Promise<Board> {
 
 // Create a new board
 export async function createBoard(data: CreateBoardData): Promise<Board> {
+  // Build member relationships if provided
+  const relationships: Record<string, unknown> = {
+    field_board_workspace: {
+      data: { type: 'node--workspace', id: data.workspaceId },
+    },
+  };
+
+  // Add board members if custom member setup is used
+  if (data.members && data.members.length > 0) {
+    relationships.field_board_members = {
+      data: data.members.map(m => ({ type: 'user--user', id: m.userId })),
+    };
+  }
+
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board`, {
     method: 'POST',
     headers: {
@@ -172,12 +193,10 @@ export async function createBoard(data: CreateBoardData): Promise<Board> {
           field_board_background: data.background || '#0079BF',
           field_board_starred: false,
           field_board_archived: false,
+          // Store member setup preference
+          field_board_member_setup: data.memberSetup || 'inherit',
         },
-        relationships: {
-          field_board_workspace: {
-            data: { type: 'node--workspace', id: data.workspaceId },
-          },
-        },
+        relationships,
       },
     }),
   });
