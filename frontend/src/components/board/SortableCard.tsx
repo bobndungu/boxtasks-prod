@@ -243,9 +243,8 @@ export function SortableCard({
                 // Same day - show combined format "4:00 PM - 7:00 PM on 15 Jan 2026"
                 const dueDate = new Date(card.dueDate!);
                 const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-                const diffDays = Math.floor((dueDateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                const diffMs = dueDate.getTime() - now.getTime();
+                const diffHours = diffMs / (1000 * 60 * 60);
 
                 let colorClass = 'text-gray-500 dark:text-gray-400';
                 let bgClass = '';
@@ -253,16 +252,16 @@ export function SortableCard({
                 if (card.completed) {
                   colorClass = 'text-green-600 dark:text-green-400';
                   bgClass = 'bg-green-50 dark:bg-green-900/20';
-                } else if (diffDays < 0) {
+                } else if (diffHours < 0) {
+                  // Overdue
                   colorClass = 'text-red-600 dark:text-red-400';
                   bgClass = 'bg-red-50 dark:bg-red-900/20';
-                } else if (diffDays === 0) {
+                } else if (diffHours <= 1) {
+                  // Due within 1 hour
                   colorClass = 'text-amber-600 dark:text-amber-400';
                   bgClass = 'bg-amber-50 dark:bg-amber-900/20';
-                } else if (diffDays <= 2) {
-                  colorClass = 'text-yellow-600 dark:text-yellow-400';
-                  bgClass = 'bg-yellow-50 dark:bg-yellow-900/20';
                 }
+                // More than 1 hour away = gray (default)
 
                 return (
                   <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${colorClass} ${bgClass}`}>
@@ -289,9 +288,8 @@ export function SortableCard({
                   {fieldVisibility.dueDate && card.dueDate && (() => {
                     const dueDate = new Date(card.dueDate);
                     const now = new Date();
-                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                    const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-                    const diffDays = Math.floor((dueDateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                    const diffMs = dueDate.getTime() - now.getTime();
+                    const diffHours = diffMs / (1000 * 60 * 60);
 
                     let colorClass = 'text-gray-500 dark:text-gray-400';
                     let bgClass = '';
@@ -299,16 +297,16 @@ export function SortableCard({
                     if (card.completed) {
                       colorClass = 'text-green-600 dark:text-green-400';
                       bgClass = 'bg-green-50 dark:bg-green-900/20';
-                    } else if (diffDays < 0) {
+                    } else if (diffHours < 0) {
+                      // Overdue
                       colorClass = 'text-red-600 dark:text-red-400';
                       bgClass = 'bg-red-50 dark:bg-red-900/20';
-                    } else if (diffDays === 0) {
+                    } else if (diffHours <= 1) {
+                      // Due within 1 hour
                       colorClass = 'text-amber-600 dark:text-amber-400';
                       bgClass = 'bg-amber-50 dark:bg-amber-900/20';
-                    } else if (diffDays <= 2) {
-                      colorClass = 'text-yellow-600 dark:text-yellow-400';
-                      bgClass = 'bg-yellow-50 dark:bg-yellow-900/20';
                     }
+                    // More than 1 hour away = gray (default)
 
                     const hasTime = dueDate.getHours() !== 0 || dueDate.getMinutes() !== 0;
 
