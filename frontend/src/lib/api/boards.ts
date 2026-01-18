@@ -301,6 +301,33 @@ export async function updateBoardMembers(boardId: string, memberIds: string[]): 
   }
 }
 
+// Update board admins (for custom member setup)
+export async function updateBoardAdmins(boardId: string, adminIds: string[]): Promise<void> {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board/${boardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--board',
+        id: boardId,
+        relationships: {
+          field_board_admins: {
+            data: adminIds.map(id => ({ type: 'user--user', id })),
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to update board admins');
+  }
+}
+
 // Prefetch cache to avoid duplicate requests
 const prefetchedBoards = new Set<string>();
 const prefetchInProgress = new Map<string, Promise<void>>();
@@ -386,6 +413,7 @@ export interface BoardMember {
   displayName: string;
   email: string;
   drupal_id: number;
+  isAdmin?: boolean;
 }
 
 export interface BoardListData {

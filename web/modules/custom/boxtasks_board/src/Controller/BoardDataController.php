@@ -244,18 +244,36 @@ class BoardDataController extends ControllerBase {
       $member_setup = $board->get('field_board_member_setup')->value;
     }
 
+    // Get board admin IDs for role determination.
+    $board_admin_ids = [];
+    if ($board->hasField('field_board_admins')) {
+      foreach ($board->get('field_board_admins') as $admin_ref) {
+        if ($admin_ref->entity) {
+          $board_admin_ids[] = $admin_ref->entity->uuid();
+        }
+      }
+    }
+
+    // Get board owner ID - owner is always considered admin.
+    $board_owner_id = NULL;
+    $board_owner = $board->getOwner();
+    if ($board_owner) {
+      $board_owner_id = $board_owner->uuid();
+    }
+
     if ($member_setup === 'just_me') {
       // Only the board owner.
-      $owner = $board->getOwner();
-      if ($owner) {
-        $members[] = $this->formatUser($owner);
+      if ($board_owner) {
+        $members[] = $this->formatUserWithRole($board_owner, TRUE);
       }
     }
     elseif ($member_setup === 'custom' && $board->hasField('field_board_members')) {
       // Use custom board members.
       foreach ($board->get('field_board_members') as $member_ref) {
         if ($member_ref->entity) {
-          $members[] = $this->formatUser($member_ref->entity);
+          $user = $member_ref->entity;
+          $is_admin = in_array($user->uuid(), $board_admin_ids) || $user->uuid() === $board_owner_id;
+          $members[] = $this->formatUserWithRole($user, $is_admin);
         }
       }
     }
@@ -269,18 +287,31 @@ class BoardDataController extends ControllerBase {
 
         if (!empty($workspace_nodes)) {
           $workspace = reset($workspace_nodes);
-          if ($workspace->hasField('field_workspace_members')) {
-            foreach ($workspace->get('field_workspace_members') as $member_ref) {
-              if ($member_ref->entity) {
-                $members[] = $this->formatUser($member_ref->entity);
+
+          // Get workspace admin IDs for role determination.
+          $workspace_admin_ids = [];
+          if ($workspace->hasField('field_workspace_admins')) {
+            foreach ($workspace->get('field_workspace_admins') as $admin_ref) {
+              if ($admin_ref->entity) {
+                $workspace_admin_ids[] = $admin_ref->entity->uuid();
               }
             }
           }
-          // Also add owner.
+
+          if ($workspace->hasField('field_workspace_members')) {
+            foreach ($workspace->get('field_workspace_members') as $member_ref) {
+              if ($member_ref->entity) {
+                $user = $member_ref->entity;
+                $is_admin = in_array($user->uuid(), $workspace_admin_ids);
+                $members[] = $this->formatUserWithRole($user, $is_admin);
+              }
+            }
+          }
+          // Also add owner as admin.
           if ($workspace->hasField('field_workspace_owner') && !$workspace->get('field_workspace_owner')->isEmpty()) {
             $owner = $workspace->get('field_workspace_owner')->entity;
             if ($owner) {
-              $owner_data = $this->formatUser($owner);
+              $owner_data = $this->formatUserWithRole($owner, TRUE);
               // Avoid duplicates.
               $member_ids = array_column($members, 'id');
               if (!in_array($owner_data['id'], $member_ids)) {
@@ -497,6 +528,24 @@ class BoardDataController extends ControllerBase {
       'displayName' => $display_name,
       'email' => $user->getEmail(),
       'drupal_id' => (int) $user->id(),
+    ];
+  }
+
+  /**
+   * Format user entity to array with role information.
+   */
+  protected function formatUserWithRole($user, bool $is_admin): array {
+    $display_name = $user->getDisplayName();
+    if ($user->hasField('field_display_name') && !$user->get('field_display_name')->isEmpty()) {
+      $display_name = $user->get('field_display_name')->value;
+    }
+
+    return [
+      'id' => $user->uuid(),
+      'displayName' => $display_name,
+      'email' => $user->getEmail(),
+      'drupal_id' => (int) $user->id(),
+      'isAdmin' => $is_admin,
     ];
   }
 

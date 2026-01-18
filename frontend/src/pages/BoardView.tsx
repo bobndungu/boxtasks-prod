@@ -961,7 +961,7 @@ export default function BoardView() {
         id: m.id,
         displayName: m.displayName,
         email: m.email,
-        isAdmin: false, // TODO: Determine from workspace data
+        isAdmin: m.isAdmin || false,
       }));
       setWorkspaceMembers(filteredMembers);
       setAllUsers(filteredMembers);
@@ -3199,6 +3199,7 @@ export default function BoardView() {
             displayName: m.displayName,
             email: m.email,
             drupal_id: 0, // Not needed for display
+            isAdmin: m.isAdmin,
           }))}
         />
       )}

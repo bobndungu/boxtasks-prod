@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2, Shield, Users, ExternalLink, UserCircle } from 'lucide-react';
 import { fetchWorkspaceMembers, fetchAllUsers, updateWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspaces';
-import { updateBoardMembers, type BoardMember } from '../lib/api/boards';
+import { updateBoardMembers, updateBoardAdmins, type BoardMember } from '../lib/api/boards';
 import { toast } from '../lib/stores/toast';
 import { Link } from 'react-router-dom';
 import MemberDropdown from './MemberDropdown';
@@ -45,7 +45,7 @@ export default function BoardMembersModal({
           id: m.id,
           displayName: m.displayName,
           email: m.email,
-          isAdmin: false, // Board members don't have admin status
+          isAdmin: m.isAdmin || false, // Preserve admin status from API
         }));
         setMembers(convertedMembers);
         // Load all users for adding new members (only for custom setup)
@@ -164,7 +164,6 @@ export default function BoardMembersModal({
 
     setIsUpdating(true);
     try {
-      const memberIds = members.map(m => m.id);
       let adminIds = members.filter(m => m.isAdmin).map(m => m.id);
 
       if (member.isAdmin) {
@@ -173,11 +172,33 @@ export default function BoardMembersModal({
         adminIds = [...adminIds, userId];
       }
 
-      await updateWorkspaceMembers(workspaceId, memberIds, adminIds);
-      setMembers(members.map(m =>
-        m.id === userId ? { ...m, isAdmin: !m.isAdmin } : m
-      ));
-      toast.success(`${member.displayName} is ${member.isAdmin ? 'no longer' : 'now'} an admin`);
+      if (isBoardSpecific) {
+        // Update board-specific admins
+        await updateBoardAdmins(boardId, adminIds);
+        const updatedMembers = members.map(m =>
+          m.id === userId ? { ...m, isAdmin: !m.isAdmin } : m
+        );
+        setMembers(updatedMembers);
+        // Notify parent component
+        if (onMembersChange) {
+          onMembersChange(updatedMembers.map(m => ({
+            id: m.id,
+            displayName: m.displayName,
+            email: m.email,
+            drupal_id: 0,
+            isAdmin: m.isAdmin,
+          })));
+        }
+        toast.success(`${member.displayName} is ${member.isAdmin ? 'no longer' : 'now'} a board admin`);
+      } else {
+        // Update workspace members
+        const memberIds = members.map(m => m.id);
+        await updateWorkspaceMembers(workspaceId, memberIds, adminIds);
+        setMembers(members.map(m =>
+          m.id === userId ? { ...m, isAdmin: !m.isAdmin } : m
+        ));
+        toast.success(`${member.displayName} is ${member.isAdmin ? 'no longer' : 'now'} an admin`);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update member role');
     } finally {
@@ -282,8 +303,8 @@ export default function BoardMembersModal({
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
-                    {/* Admin toggle - only show for workspace members, not board-specific */}
-                    {!isBoardSpecific && (
+                    {/* Admin toggle - show for workspace members and board-specific custom members */}
+                    {!isJustMe && (
                       <button
                         onClick={() => handleToggleAdmin(member.id)}
                         disabled={isUpdating}
