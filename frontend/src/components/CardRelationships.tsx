@@ -116,7 +116,7 @@ export function CardRelationships({ cardId, boardId, onRelationshipsChange }: Ca
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="font-medium text-gray-900 flex items-center gap-2">
+        <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
           <Link2 className="h-4 w-4" />
           Linked Cards
           {hasBlockingRelationships && (
@@ -219,7 +219,7 @@ export function CardRelationships({ cardId, boardId, onRelationshipsChange }: Ca
 
       {/* Existing relationships */}
       {!isLoading && relationships.length === 0 && !isAdding && (
-        <p className="text-sm text-gray-500">No linked cards</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">No linked cards</p>
       )}
 
       {!isLoading && relationships.length > 0 && (

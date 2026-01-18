@@ -1513,7 +1513,7 @@ function CardDetailModal({
               })()}
 
               {/* Approval/Rejection Section */}
-              <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+              <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 bg-gray-50 dark:bg-gray-700/50">
                 <div className="flex flex-col gap-2">
                   {/* Status Display */}
                   {(card.isApproved || card.isRejected) && (
@@ -2342,7 +2342,7 @@ function CardDetailModal({
               {/* Checklists */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium text-gray-700 flex items-center">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-white flex items-center">
                     <CheckSquare className="h-4 w-4 mr-2" />
                     Checklists
                   </h4>
@@ -2709,7 +2709,7 @@ function CardDetailModal({
                     </div>
                   </div>
                 )}
-                <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-white mb-3 flex items-center">
                   <Paperclip className="h-4 w-4 mr-2" />
                   Attachments
                 </h4>
@@ -2801,7 +2801,7 @@ function CardDetailModal({
 
               {/* Comments */}
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-white mb-3 flex items-center">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Comments
                 </h4>
@@ -2868,15 +2868,15 @@ function CardDetailModal({
                 ) : (
                   <div className="space-y-3">
                     {comments.map((comment) => (
-                      <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
+                      <div key={comment.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
                         <div className="flex items-start justify-between">
                           <div className="flex items-center mb-1">
                             <div className="w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-medium mr-2">
                               {comment.authorName.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <span className="text-sm font-medium text-gray-800">{comment.authorName}</span>
-                              <span className="text-xs text-gray-500 ml-2">
+                              <span className="text-sm font-medium text-gray-800 dark:text-white">{comment.authorName}</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
                                 {formatDateTime(comment.createdAt)}
                               </span>
                             </div>
@@ -2887,13 +2887,13 @@ function CardDetailModal({
                                 setEditingCommentId(comment.id);
                                 setEditingCommentText(comment.text);
                               }}
-                              className="p-1 text-gray-400 hover:text-gray-600"
+                              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                             >
                               <Edit2 className="h-3 w-3" />
                             </button>
                             <button
                               onClick={() => handleDeleteComment(comment.id)}
-                              className="p-1 text-gray-400 hover:text-red-600"
+                              className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
                             >
                               <Trash2 className="h-3 w-3" />
                             </button>
@@ -2904,7 +2904,7 @@ function CardDetailModal({
                             <textarea
                               value={editingCommentText}
                               onChange={(e) => setEditingCommentText(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 resize-none"
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:border-blue-500 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               rows={2}
                               autoFocus
                             />
@@ -2920,14 +2920,14 @@ function CardDetailModal({
                                   setEditingCommentId(null);
                                   setEditingCommentText('');
                                 }}
-                                className="text-gray-600 px-3 py-1 text-xs"
+                                className="text-gray-600 dark:text-gray-300 px-3 py-1 text-xs"
                               >
                                 Cancel
                               </button>
                             </div>
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-700 ml-9">{comment.text}</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 ml-9">{comment.text}</p>
                         )}
 
                         {/* Reactions */}
@@ -2982,8 +2982,8 @@ function CardDetailModal({
               </div>
 
               {/* Activity */}
-              <div className="border-t border-gray-100 pt-4 mt-2">
-                <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center justify-between">
+              <div className="border-t border-gray-100 dark:border-gray-700 pt-4 mt-2">
+                <h4 className="text-sm font-semibold text-gray-800 dark:text-white mb-3 flex items-center justify-between">
                   <span className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-gray-500" />
                     Activity
@@ -3021,14 +3021,14 @@ function CardDetailModal({
                         data.comment_text || data.field_name || data.checklist_name
                       );
                       return (
-                        <div key={activity.id} className="flex items-start p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 flex items-center justify-center text-xs mr-2.5 flex-shrink-0 font-medium">
+                        <div key={activity.id} className="flex items-start p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center text-xs mr-2.5 flex-shrink-0 font-medium">
                             {activity.authorName.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-700">
-                              <span className="font-medium text-gray-800">{activity.authorName}</span>{' '}
-                              <span className="text-gray-600">{display.label}</span>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              <span className="font-medium text-gray-800 dark:text-white">{activity.authorName}</span>{' '}
+                              <span className="text-gray-600 dark:text-gray-400">{display.label}</span>
                             </p>
                             {/* Title updated - show word diff if both values exist, or just new value */}
                             {activity.type === 'title_updated' && (data?.old_value || data?.new_value) && (
