@@ -66,6 +66,11 @@ function isAbortError(err: unknown): boolean {
   return false;
 }
 
+// Check if user is super admin (uid = 1)
+function isSuperAdmin(user: { uid?: number; isAdmin?: boolean } | null): boolean {
+  return user?.uid === 1;
+}
+
 export function usePermissions(workspaceId: string | undefined): UsePermissionsReturn {
   const { user } = useAuthStore();
   const [permissions, setPermissions] = useState<WorkspaceRole['permissions'] | null>(null);
@@ -165,6 +170,8 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
   }, [workspaceId, user?.id]);
 
   const canView = useCallback((type: 'card' | 'list' | 'board' | 'workspace', isOwner: boolean = false): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
     if (!permissions) return true; // Allow by default while loading
 
     let permission: PermissionLevel;
@@ -184,9 +191,11 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     }
 
     return canPerformAction(permission, isOwner);
-  }, [permissions]);
+  }, [permissions, user]);
 
   const canCreate = useCallback((type: 'card' | 'list' | 'board'): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
     if (!permissions) return true; // Allow by default while loading
 
     let permission: PermissionLevel;
@@ -203,9 +212,11 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     }
 
     return permission === 'any';
-  }, [permissions]);
+  }, [permissions, user]);
 
   const canEdit = useCallback((type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
     if (!permissions) return true; // Allow by default while loading
 
     let permission: PermissionLevel;
@@ -228,9 +239,11 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     }
 
     return canPerformAction(permission, isOwner);
-  }, [permissions]);
+  }, [permissions, user]);
 
   const canDelete = useCallback((type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
     if (!permissions) return true; // Allow by default while loading
 
     let permission: PermissionLevel;
@@ -253,9 +266,11 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     }
 
     return canPerformAction(permission, isOwner);
-  }, [permissions]);
+  }, [permissions, user]);
 
   const canArchive = useCallback((type: 'card', isOwner: boolean): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
     if (!permissions) return true; // Allow by default while loading
 
     if (type === 'card') {
@@ -263,9 +278,11 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     }
 
     return true;
-  }, [permissions]);
+  }, [permissions, user]);
 
   const canMove = useCallback((type: 'card', isOwner: boolean): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
     if (!permissions) return true; // Allow by default while loading
 
     if (type === 'card') {
@@ -273,15 +290,19 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     }
 
     return true;
-  }, [permissions]);
+  }, [permissions, user]);
 
   const canManageMembers = useCallback((): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
     if (!permissions) return false;
 
     return permissions.memberManage === 'any';
-  }, [permissions]);
+  }, [permissions, user]);
 
   const canViewReport = useCallback((reportType: ReportType, isOwner: boolean = false): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
     if (!permissions) return false; // Default to no access for reports
 
     let permission: PermissionLevel;
@@ -301,15 +322,19 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     }
 
     return canPerformAction(permission, isOwner);
-  }, [permissions]);
+  }, [permissions, user]);
 
   const canExportReports = useCallback((): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
     if (!permissions) return false;
 
     return permissions.reportExport === 'any' || permissions.reportExport === 'own';
-  }, [permissions]);
+  }, [permissions, user]);
 
   const canViewAnyReport = useCallback((): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
     if (!permissions) return false;
 
     return (
@@ -318,10 +343,12 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
       permissions.reportActivity !== 'none' ||
       permissions.reportWorkload !== 'none'
     );
-  }, [permissions]);
+  }, [permissions, user]);
 
   const canAccessAdminPage = useCallback((pageType: AdminPageType): boolean => {
-    // Check if user has Drupal administrator role first - they can access everything
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    // Check if user has Drupal administrator role - they can access everything
     if (user?.roles?.includes('administrator') || user?.roles?.includes('box_admin')) {
       return true;
     }

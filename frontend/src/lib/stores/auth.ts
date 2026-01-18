@@ -16,6 +16,7 @@ import {
 
 export interface User {
   id: string;
+  uid?: number;
   username: string;
   email: string;
   displayName: string;
@@ -25,6 +26,7 @@ export interface User {
   timezone?: string;
   mentionHandle?: string;
   roles?: string[];
+  isAdmin?: boolean;
 }
 
 interface AuthState {
@@ -81,6 +83,7 @@ export const useAuthStore = create<AuthState>()(
           if (userData && userData.id) {
             const user: User = {
               id: userData.id,
+              uid: userData.uid,
               username: userData.name,
               email: userData.mail || '',
               displayName: userData.display_name || userData.name,
@@ -89,6 +92,7 @@ export const useAuthStore = create<AuthState>()(
               timezone: userData.timezone || 'UTC',
               mentionHandle: userData.mention_handle || '',
               roles: userData.roles || [],
+              isAdmin: userData.is_admin || false,
             };
             set({ user, isAuthenticated: true, isLoading: false });
             return true;
@@ -277,6 +281,7 @@ export const useAuthStore = create<AuthState>()(
           if (userData && userData.id) {
             const user: User = {
               id: userData.id,
+              uid: userData.uid,
               username: userData.name,
               email: userData.mail || '',
               displayName: userData.display_name || userData.name,
@@ -285,6 +290,7 @@ export const useAuthStore = create<AuthState>()(
               timezone: userData.timezone || 'UTC',
               mentionHandle: userData.mention_handle || '',
               roles: userData.roles || [],
+              isAdmin: userData.is_admin || false,
             };
             set({ user, isAuthenticated: true, isLoading: false });
             return true;
