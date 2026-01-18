@@ -12,6 +12,8 @@ import {
   User,
   Bell,
   BarChart3,
+  Shield,
+  Users,
 } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import { useBoardStore } from '../lib/stores/board';
@@ -266,6 +268,19 @@ export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
                       <Bell className="h-4 w-4 mr-3" />
                       Notification Settings
                     </Link>
+                    {(user?.roles?.includes('administrator') || user?.roles?.includes('admin')) && (
+                      <>
+                        <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
+                        <Link to="/admin/users" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <Users className="h-4 w-4 mr-3" />
+                          User Management
+                        </Link>
+                        <Link to="/admin/roles" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <Shield className="h-4 w-4 mr-3" />
+                          Role Management
+                        </Link>
+                      </>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"

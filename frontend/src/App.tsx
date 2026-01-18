@@ -34,6 +34,8 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
+const AdminUsers = lazy(() => import('./pages/AdminUsers'));
+const AdminRoles = lazy(() => import('./pages/AdminRoles'));
 
 // Loading fallback component
 function PageLoader() {
@@ -183,6 +185,9 @@ const router = createBrowserRouter([
       { path: 'board/:boardId/mindmap/:mindMapId', element: <ProtectedRoute><MindMapView /></ProtectedRoute> },
       { path: 'board/:boardId/reports', element: <ProtectedRoute><BoardReports /></ProtectedRoute> },
       { path: 'reports', element: <ProtectedRoute><Reports /></ProtectedRoute> },
+      // Admin routes
+      { path: 'admin/users', element: <ProtectedRoute><AdminUsers /></ProtectedRoute> },
+      { path: 'admin/roles', element: <ProtectedRoute><AdminRoles /></ProtectedRoute> },
       // 404 catch-all
       { path: '*', element: <NotFound /> },
     ],

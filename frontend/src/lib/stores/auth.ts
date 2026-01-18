@@ -161,6 +161,10 @@ export const useAuthStore = create<AuthState>()(
           if (user && isAuthenticated) {
             // Start session monitoring for existing valid session
             startSessionMonitoring();
+            // If roles are missing, refetch user data to get them
+            if (!user.roles || user.roles.length === 0) {
+              get().fetchUser();
+            }
             set({ isLoading: false });
             return;
           }
