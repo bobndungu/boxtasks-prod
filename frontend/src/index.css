@@ -279,3 +279,42 @@ body {
   color: hsl(var(--muted-foreground));
   margin-bottom: 2rem;
 }
+
+/* Custom Select Styling */
+select {
+  /* Remove default browser styling */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+}
+
+/* Style select options for dark mode */
+select option {
+  background-color: white;
+  color: #111827;
+  padding: 8px 12px;
+}
+
+.dark select option {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
+/* Firefox specific option styling */
+@-moz-document url-prefix() {
+  select option {
+    background-color: white;
+    color: #111827;
+  }
+
+  .dark select option {
+    background-color: #374151;
+    color: #f3f4f6;
+  }
+}
+
+/* Remove default dropdown arrow in IE */
+select::-ms-expand {
+  display: none;
+}

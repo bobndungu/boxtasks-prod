@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Settings } from 'lucide-react';
 import type { ViewType } from './ViewSelector';
+import { Select } from './ui/select';
 
 export interface ViewSettingsData {
   calendar: {
@@ -144,14 +145,15 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-200 block mb-1">
                   Show cards by
                 </label>
-                <select
+                <Select
                   value={settings.calendar.dateField}
                   onChange={(e) => updateCalendarSettings('dateField', e.target.value)}
-                  className="w-full px-2 py-1.5 border dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                >
-                  <option value="dueDate">Due Date</option>
-                  <option value="startDate">Start Date</option>
-                </select>
+                  size="sm"
+                  options={[
+                    { value: 'dueDate', label: 'Due Date' },
+                    { value: 'startDate', label: 'Start Date' },
+                  ]}
+                />
               </div>
               <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                 <input
@@ -172,16 +174,17 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-200 block mb-1">
                   Default time range
                 </label>
-                <select
-                  value={settings.timeline.defaultWeeks}
+                <Select
+                  value={String(settings.timeline.defaultWeeks)}
                   onChange={(e) => updateTimelineSettings('defaultWeeks', Number(e.target.value))}
-                  className="w-full px-2 py-1.5 border dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                >
-                  <option value={2}>2 weeks</option>
-                  <option value={4}>4 weeks</option>
-                  <option value={8}>8 weeks</option>
-                  <option value={12}>12 weeks</option>
-                </select>
+                  size="sm"
+                  options={[
+                    { value: '2', label: '2 weeks' },
+                    { value: '4', label: '4 weeks' },
+                    { value: '8', label: '8 weeks' },
+                    { value: '12', label: '12 weeks' },
+                  ]}
+                />
               </div>
               <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                 <input
@@ -235,24 +238,30 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
                   Default sort
                 </label>
                 <div className="flex gap-2">
-                  <select
-                    value={settings.table.defaultSort}
-                    onChange={(e) => updateTableSettings('defaultSort', e.target.value)}
-                    className="flex-1 px-2 py-1.5 border dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="title">Title</option>
-                    <option value="dueDate">Due Date</option>
-                    <option value="list">List</option>
-                    <option value="completed">Status</option>
-                  </select>
-                  <select
-                    value={settings.table.sortDirection}
-                    onChange={(e) => updateTableSettings('sortDirection', e.target.value)}
-                    className="px-2 py-1.5 border dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="asc">Asc</option>
-                    <option value="desc">Desc</option>
-                  </select>
+                  <div className="flex-1">
+                    <Select
+                      value={settings.table.defaultSort}
+                      onChange={(e) => updateTableSettings('defaultSort', e.target.value)}
+                      size="sm"
+                      options={[
+                        { value: 'title', label: 'Title' },
+                        { value: 'dueDate', label: 'Due Date' },
+                        { value: 'list', label: 'List' },
+                        { value: 'completed', label: 'Status' },
+                      ]}
+                    />
+                  </div>
+                  <div className="w-20">
+                    <Select
+                      value={settings.table.sortDirection}
+                      onChange={(e) => updateTableSettings('sortDirection', e.target.value)}
+                      size="sm"
+                      options={[
+                        { value: 'asc', label: 'Asc' },
+                        { value: 'desc', label: 'Desc' },
+                      ]}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

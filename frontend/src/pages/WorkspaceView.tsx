@@ -21,6 +21,7 @@ import { BoardGridSkeleton, PageLoading } from '../components/BoardSkeleton';
 import { fetchWorkspace } from '../lib/api/workspaces';
 import { fetchBoardsByWorkspace, createBoard, toggleBoardStar, type Board, type CreateBoardData } from '../lib/api/boards';
 import { usePermissions } from '../lib/hooks/usePermissions';
+import MainHeader from '../components/MainHeader';
 
 const BOARD_BACKGROUNDS = [
   '#0079BF', '#D29034', '#519839', '#B04632', '#89609E',
@@ -98,7 +99,8 @@ export default function WorkspaceView() {
 
   if (isLoading && !currentWorkspace) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <MainHeader />
         <PageLoading message="Loading workspace..." />
       </div>
     );
@@ -107,39 +109,41 @@ export default function WorkspaceView() {
   // Access denied if user cannot view the workspace
   if (!canViewWorkspace) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="h-8 w-8 text-red-600" />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <MainHeader />
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-center max-w-md mx-auto p-8">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              You don&apos;t have permission to view this workspace. Contact the workspace admin to request access.
+            </p>
+            <Link
+              to="/workspaces"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Workspaces
+            </Link>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600 mb-6">
-            You don&apos;t have permission to view this workspace. Contact the workspace admin to request access.
-          </p>
-          <Link
-            to="/workspaces"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Workspaces
-          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Main Header */}
+      <MainHeader />
+
+      {/* Workspace Subheader */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 md:top-16 z-40">
         <div className="container mx-auto px-4">
-          <div className="flex items-center h-16">
-            <Link to="/workspaces" className="flex items-center space-x-2 mr-8">
-              <Layout className="h-7 w-7 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">BoxTasks</span>
-            </Link>
-            <div className="flex items-center text-gray-500">
-              <Link to="/workspaces" className="hover:text-gray-700">
+          <div className="flex items-center h-14">
+            <div className="flex items-center text-gray-500 dark:text-gray-400">
+              <Link to="/workspaces" className="hover:text-gray-700 dark:hover:text-gray-300">
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <span className="mx-4">/</span>
@@ -150,34 +154,34 @@ export default function WorkspaceView() {
                 >
                   {currentWorkspace?.title?.charAt(0).toUpperCase() || 'W'}
                 </div>
-                <span className="font-medium text-gray-900">{currentWorkspace?.title || 'Workspace'}</span>
+                <span className="font-medium text-gray-900 dark:text-white">{currentWorkspace?.title || 'Workspace'}</span>
               </div>
             </div>
             <div className="ml-auto flex items-center space-x-2">
               <Link
                 to={`/workspace/${id}/goals`}
-                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
                 <Target className="h-5 w-5" />
-                <span className="text-sm font-medium">Goals</span>
+                <span className="text-sm font-medium hidden sm:inline">Goals</span>
               </Link>
               <Link
                 to={`/workspace/${id}/milestones`}
-                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
                 <Flag className="h-5 w-5" />
-                <span className="text-sm font-medium">Milestones</span>
+                <span className="text-sm font-medium hidden sm:inline">Milestones</span>
               </Link>
               <Link
                 to={`/workspace/${id}/reports`}
-                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
                 <BarChart3 className="h-5 w-5" />
-                <span className="text-sm font-medium">Reports</span>
+                <span className="text-sm font-medium hidden sm:inline">Reports</span>
               </Link>
               <Link
                 to={`/workspace/${id}/settings`}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
                 <Settings className="h-5 w-5" />
               </Link>
@@ -198,9 +202,9 @@ export default function WorkspaceView() {
               {currentWorkspace?.title?.charAt(0).toUpperCase() || 'W'}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{currentWorkspace?.title || 'Workspace'}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{currentWorkspace?.title || 'Workspace'}</h1>
               {currentWorkspace?.description && (
-                <p className="text-gray-500">{currentWorkspace.description}</p>
+                <p className="text-gray-500 dark:text-gray-400">{currentWorkspace.description}</p>
               )}
             </div>
           </div>
@@ -216,24 +220,24 @@ export default function WorkspaceView() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
 
         {/* Boards Grid */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Boards</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Boards</h2>
 
           {isLoading ? (
             <BoardGridSkeleton />
           ) : boards.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-              <Layout className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+              <Layout className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 {canViewBoards ? 'No boards yet' : 'No boards available'}
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
                 {canCreateBoards
                   ? 'Create your first board to start organizing your work'
                   : 'You don\'t have permission to view boards in this workspace'}
@@ -287,7 +291,7 @@ export default function WorkspaceView() {
               {canCreateBoards && (
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="h-28 rounded-lg bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500 transition-colors"
+                  className="h-28 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400 transition-colors"
                 >
                   <Plus className="h-5 w-5 mr-2" />
                   Create new board
@@ -353,9 +357,9 @@ function CreateBoardModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Create Board</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Create Board</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
@@ -370,27 +374,27 @@ function CreateBoardModal({
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Board Title
             </label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               placeholder="Enter board title"
               autoFocus
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               Background
             </label>
             <div className="flex flex-wrap gap-2">
@@ -400,7 +404,7 @@ function CreateBoardModal({
                   type="button"
                   onClick={() => setFormData({ ...formData, background: color })}
                   className={`w-10 h-8 rounded transition-transform ${
-                    formData.background === color ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''
+                    formData.background === color ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 dark:ring-offset-gray-800 scale-110' : ''
                   }`}
                   style={{ backgroundColor: color }}
                 />
@@ -409,7 +413,7 @@ function CreateBoardModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
               Visibility
             </label>
             <div className="space-y-2">
@@ -422,8 +426,8 @@ function CreateBoardModal({
                   key={option.value}
                   className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
                     formData.visibility === option.value
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:bg-gray-50'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                      : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   <input
@@ -436,10 +440,10 @@ function CreateBoardModal({
                     }
                     className="sr-only"
                   />
-                  <option.icon className="h-5 w-5 text-gray-500 mr-3" />
+                  <option.icon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3" />
                   <div>
-                    <span className="font-medium text-gray-900">{option.label}</span>
-                    <p className="text-xs text-gray-500">{option.desc}</p>
+                    <span className="font-medium text-gray-900 dark:text-white">{option.label}</span>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{option.desc}</p>
                   </div>
                 </label>
               ))}
@@ -450,7 +454,7 @@ function CreateBoardModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium"
             >
               Cancel
             </button>

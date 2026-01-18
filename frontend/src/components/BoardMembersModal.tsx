@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Loader2, Users, ExternalLink, UserCircle } from 'lucide-react';
+import { Select } from './ui/select';
 import { fetchWorkspaceMembers, fetchAllUsers, updateWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspaces';
 import { updateBoardMembers, updateBoardAdmins, type BoardMember } from '../lib/api/boards';
 import { fetchWorkspaceRoles, fetchWorkspaceMemberRoles, createMemberRole, updateMemberRole as updateMemberRoleAPI, type WorkspaceRole, type MemberRoleAssignment } from '../lib/api/roles';
@@ -453,17 +454,14 @@ export default function BoardMembersModal({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Select role for this member:
               </label>
-              <select
+              <Select
                 value={selectedRoleId}
                 onChange={(e) => setSelectedRoleId(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.title}
-                  </option>
-                ))}
-              </select>
+                options={roles.map((role) => ({
+                  value: role.id,
+                  label: role.title,
+                }))}
+              />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 {(() => {
                   const selectedRole = roles.find(r => r.id === selectedRoleId);
@@ -535,18 +533,16 @@ export default function BoardMembersModal({
                   <div className="flex items-center gap-2">
                     {/* Role dropdown - show for workspace members and board-specific custom members */}
                     {!isJustMe && roles.length > 0 && (
-                      <select
+                      <Select
                         value={getMemberRole(member.id)?.id || ''}
                         onChange={(e) => handleChangeRole(member.id, e.target.value)}
                         disabled={isUpdating}
-                        className="text-xs px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {roles.map((role) => (
-                          <option key={role.id} value={role.id}>
-                            {role.title}
-                          </option>
-                        ))}
-                      </select>
+                        size="sm"
+                        options={roles.map((role) => ({
+                          value: role.id,
+                          label: role.title,
+                        }))}
+                      />
                     )}
                     {/* Remove button - show for workspace and custom board members, not just_me */}
                     {!isJustMe && (

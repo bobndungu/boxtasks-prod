@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
+import { Select } from './ui/select';
 import {
   X,
   Plus,
@@ -7,7 +8,6 @@ import {
   Edit2,
   GripVertical,
   Loader2,
-  ChevronDown,
   Settings,
   Type,
   Hash,
@@ -662,20 +662,14 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
 
                     <div>
                       <label className="block text-sm font-medium mb-1 dark:text-gray-200">Type</label>
-                      <div className="relative">
-                        <select
-                          value={editType}
-                          onChange={(e) => setEditType(e.target.value as CustomFieldType)}
-                          className="w-full px-3 py-2 border dark:border-gray-600 rounded-md appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          {Object.entries(FIELD_TYPE_LABELS).map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                      </div>
+                      <Select
+                        value={editType}
+                        onChange={(e) => setEditType(e.target.value as CustomFieldType)}
+                        options={Object.entries(FIELD_TYPE_LABELS).map(([value, label]) => ({
+                          value,
+                          label,
+                        }))}
+                      />
                     </div>
 
                     {editType === 'dropdown' && (
@@ -820,20 +814,14 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
 
                     <div>
                       <label className="block text-sm font-medium mb-1 dark:text-gray-200">Type</label>
-                      <div className="relative">
-                        <select
-                          value={newFieldType}
-                          onChange={(e) => setNewFieldType(e.target.value as CustomFieldType)}
-                          className="w-full px-3 py-2 border dark:border-gray-600 rounded-md appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          {Object.entries(FIELD_TYPE_LABELS).map(([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                      </div>
+                      <Select
+                        value={newFieldType}
+                        onChange={(e) => setNewFieldType(e.target.value as CustomFieldType)}
+                        options={Object.entries(FIELD_TYPE_LABELS).map(([value, label]) => ({
+                          value,
+                          label,
+                        }))}
+                      />
                     </div>
 
                     {newFieldType === 'dropdown' && (

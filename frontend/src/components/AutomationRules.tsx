@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
+import { Select } from './ui/select';
 import {
   Zap,
   Plus,
@@ -584,17 +585,14 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
             <Play className="w-4 h-4 inline mr-1" />
             When this happens...
           </label>
-          <select
+          <Select
             value={triggerType}
             onChange={e => setTriggerType(e.target.value)}
-            className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {TRIGGER_TYPES.map(t => (
-              <option key={t.id} value={t.id}>
-                {t.label} - {t.description}
-              </option>
-            ))}
-          </select>
+            options={TRIGGER_TYPES.map(t => ({
+              value: t.id,
+              label: `${t.label} - ${t.description}`,
+            }))}
+          />
         </div>
 
         {/* Conditions */}
@@ -620,57 +618,57 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
             <div className="space-y-2">
               {conditions.map((condition, index) => (
                 <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <select
-                    value={condition.type}
-                    onChange={e =>
-                      updateCondition(index, { type: e.target.value, config: {} })
-                    }
-                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
-                  >
-                    {CONDITION_TYPES.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex-1">
+                    <Select
+                      value={condition.type}
+                      onChange={e =>
+                        updateCondition(index, { type: e.target.value, config: {} })
+                      }
+                      size="sm"
+                      options={CONDITION_TYPES.map(c => ({
+                        value: c.id,
+                        label: c.label,
+                      }))}
+                    />
+                  </div>
 
                   {/* Condition config based on type */}
                   {condition.type === 'card_has_label' && (
-                    <select
-                      value={(condition.config.label as string) || ''}
-                      onChange={e =>
-                        updateCondition(index, {
-                          config: { ...condition.config, label: e.target.value },
-                        })
-                      }
-                      className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
-                    >
-                      <option value="">Select label...</option>
-                      {labels.map(l => (
-                        <option key={l.id} value={l.name}>
-                          {l.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex-1">
+                      <Select
+                        value={(condition.config.label as string) || ''}
+                        onChange={e =>
+                          updateCondition(index, {
+                            config: { ...condition.config, label: e.target.value },
+                          })
+                        }
+                        size="sm"
+                        placeholder="Select label..."
+                        options={labels.map(l => ({
+                          value: l.name,
+                          label: l.name,
+                        }))}
+                      />
+                    </div>
                   )}
 
                   {condition.type === 'card_in_list' && (
-                    <select
-                      value={(condition.config.list_id as string) || ''}
-                      onChange={e =>
-                        updateCondition(index, {
-                          config: { ...condition.config, list_id: e.target.value },
-                        })
-                      }
-                      className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
-                    >
-                      <option value="">Select list...</option>
-                      {lists.map(l => (
-                        <option key={l.id} value={l.id}>
-                          {l.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex-1">
+                      <Select
+                        value={(condition.config.list_id as string) || ''}
+                        onChange={e =>
+                          updateCondition(index, {
+                            config: { ...condition.config, list_id: e.target.value },
+                          })
+                        }
+                        size="sm"
+                        placeholder="Select list..."
+                        options={lists.map(l => ({
+                          value: l.id,
+                          label: l.name,
+                        }))}
+                      />
+                    </div>
                   )}
 
                   {condition.type === 'card_title_contains' && (
@@ -688,22 +686,24 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                   )}
 
                   {(condition.type === 'card_has_watcher' || condition.type === 'card_has_member' || condition.type === 'card_approved_by') && (
-                    <select
-                      value={(condition.config.user_id as string) || ''}
-                      onChange={e =>
-                        updateCondition(index, {
-                          config: { ...condition.config, user_id: e.target.value },
-                        })
-                      }
-                      className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
-                    >
-                      <option value="">Any user (or select specific)</option>
-                      {members.map(m => (
-                        <option key={m.id} value={m.id}>
-                          {m.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex-1">
+                      <Select
+                        value={(condition.config.user_id as string) || ''}
+                        onChange={e =>
+                          updateCondition(index, {
+                            config: { ...condition.config, user_id: e.target.value },
+                          })
+                        }
+                        size="sm"
+                        options={[
+                          { value: '', label: 'Any user (or select specific)' },
+                          ...members.map(m => ({
+                            value: m.id,
+                            label: m.name,
+                          })),
+                        ]}
+                      />
+                    </div>
                   )}
 
                   <button
@@ -738,76 +738,76 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
           <div className="space-y-2">
             {actions.map((action, index) => (
               <div key={index} className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                <select
-                  value={action.type}
-                  onChange={e =>
-                    updateAction(index, { type: e.target.value, config: {} })
-                  }
-                  className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                >
-                  {ACTION_TYPES.map(a => (
-                    <option key={a.id} value={a.id}>
-                      {a.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex-1">
+                  <Select
+                    value={action.type}
+                    onChange={e =>
+                      updateAction(index, { type: e.target.value, config: {} })
+                    }
+                    size="sm"
+                    options={ACTION_TYPES.map(a => ({
+                      value: a.id,
+                      label: a.label,
+                    }))}
+                  />
+                </div>
 
                 {/* Action config based on type */}
                 {action.type === 'add_label' || action.type === 'remove_label' ? (
-                  <select
-                    value={(action.config.label as string) || ''}
-                    onChange={e =>
-                      updateAction(index, {
-                        config: { ...action.config, label: e.target.value },
-                      })
-                    }
-                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="">Select label...</option>
-                    {labels.map(l => (
-                      <option key={l.id} value={l.name}>
-                        {l.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex-1">
+                    <Select
+                      value={(action.config.label as string) || ''}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, label: e.target.value },
+                        })
+                      }
+                      size="sm"
+                      placeholder="Select label..."
+                      options={labels.map(l => ({
+                        value: l.name,
+                        label: l.name,
+                      }))}
+                    />
+                  </div>
                 ) : null}
 
                 {action.type === 'move_card' && (
-                  <select
-                    value={(action.config.list_id as string) || ''}
-                    onChange={e =>
-                      updateAction(index, {
-                        config: { ...action.config, list_id: e.target.value },
-                      })
-                    }
-                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="">Select list...</option>
-                    {lists.map(l => (
-                      <option key={l.id} value={l.id}>
-                        {l.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex-1">
+                    <Select
+                      value={(action.config.list_id as string) || ''}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, list_id: e.target.value },
+                        })
+                      }
+                      size="sm"
+                      placeholder="Select list..."
+                      options={lists.map(l => ({
+                        value: l.id,
+                        label: l.name,
+                      }))}
+                    />
+                  </div>
                 )}
 
                 {action.type === 'add_member' && (
-                  <select
-                    value={(action.config.user_id as string) || ''}
-                    onChange={e =>
-                      updateAction(index, {
-                        config: { ...action.config, user_id: e.target.value },
-                      })
-                    }
-                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="">Select member...</option>
-                    {members.map(m => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex-1">
+                    <Select
+                      value={(action.config.user_id as string) || ''}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, user_id: e.target.value },
+                        })
+                      }
+                      size="sm"
+                      placeholder="Select member..."
+                      options={members.map(m => ({
+                        value: m.id,
+                        label: m.name,
+                      }))}
+                    />
+                  </div>
                 )}
 
                 {action.type === 'set_due_date' && (
@@ -825,37 +825,40 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                 )}
 
                 {action.type === 'mark_complete' && (
-                  <select
-                    value={String(action.config.completed ?? true)}
-                    onChange={e =>
-                      updateAction(index, {
-                        config: { ...action.config, completed: e.target.value === 'true' },
-                      })
-                    }
-                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="true">Mark as complete</option>
-                    <option value="false">Mark as incomplete</option>
-                  </select>
+                  <div className="flex-1">
+                    <Select
+                      value={String(action.config.completed ?? true)}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, completed: e.target.value === 'true' },
+                        })
+                      }
+                      size="sm"
+                      options={[
+                        { value: 'true', label: 'Mark as complete' },
+                        { value: 'false', label: 'Mark as incomplete' },
+                      ]}
+                    />
+                  </div>
                 )}
 
                 {(action.type === 'add_watcher' || action.type === 'remove_watcher') && (
-                  <select
-                    value={(action.config.user_id as string) || ''}
-                    onChange={e =>
-                      updateAction(index, {
-                        config: { ...action.config, user_id: e.target.value },
-                      })
-                    }
-                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="">Select user...</option>
-                    {members.map(m => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex-1">
+                    <Select
+                      value={(action.config.user_id as string) || ''}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, user_id: e.target.value },
+                        })
+                      }
+                      size="sm"
+                      placeholder="Select user..."
+                      options={members.map(m => ({
+                        value: m.id,
+                        label: m.name,
+                      }))}
+                    />
+                  </div>
                 )}
 
                 {action.type === 'add_comment' && (
@@ -874,20 +877,21 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
 
                 {action.type === 'send_email' && (
                   <div className="flex-1 flex flex-col gap-2">
-                    <select
+                    <Select
                       value={(action.config.recipient_type as string) || 'members'}
                       onChange={e =>
                         updateAction(index, {
                           config: { ...action.config, recipient_type: e.target.value },
                         })
                       }
-                      className="w-full px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                    >
-                      <option value="members">Send to card members</option>
-                      <option value="watchers">Send to card watchers</option>
-                      <option value="creator">Send to card creator</option>
-                      <option value="specific">Send to specific emails</option>
-                    </select>
+                      size="sm"
+                      options={[
+                        { value: 'members', label: 'Send to card members' },
+                        { value: 'watchers', label: 'Send to card watchers' },
+                        { value: 'creator', label: 'Send to card creator' },
+                        { value: 'specific', label: 'Send to specific emails' },
+                      ]}
+                    />
                     {action.config.recipient_type === 'specific' && (
                       <input
                         type="text"
@@ -927,22 +931,24 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                 )}
 
                 {(action.type === 'approve_card' || action.type === 'reject_card') && (
-                  <select
-                    value={(action.config.user_id as string) || ''}
-                    onChange={e =>
-                      updateAction(index, {
-                        config: { ...action.config, user_id: e.target.value },
-                      })
-                    }
-                    className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="">System (automated)</option>
-                    {members.map(m => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex-1">
+                    <Select
+                      value={(action.config.user_id as string) || ''}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, user_id: e.target.value },
+                        })
+                      }
+                      size="sm"
+                      options={[
+                        { value: '', label: 'System (automated)' },
+                        ...members.map(m => ({
+                          value: m.id,
+                          label: m.name,
+                        })),
+                      ]}
+                    />
+                  </div>
                 )}
 
                 <button

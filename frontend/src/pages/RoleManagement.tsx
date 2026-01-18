@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
-  Layout,
   ArrowLeft,
   Shield,
   Plus,
@@ -21,6 +20,7 @@ import {
   type WorkspaceRole,
   type PermissionLevel,
 } from '../lib/api/roles';
+import MainHeader from '../components/MainHeader';
 
 type PermissionKey = keyof WorkspaceRole['permissions'];
 
@@ -218,28 +218,30 @@ export default function RoleManagement() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <MainHeader />
+        <div className="flex items-center justify-center pt-20">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Main Header */}
+      <MainHeader />
+
+      {/* Subheader */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 md:top-16 z-40">
         <div className="container mx-auto px-4">
-          <div className="flex items-center h-16">
-            <Link to="/workspaces" className="flex items-center space-x-2 mr-8">
-              <Layout className="h-7 w-7 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">BoxTasks</span>
-            </Link>
-            <div className="flex items-center text-gray-500">
-              <Link to={`/workspace/${id}/settings`} className="hover:text-gray-700">
+          <div className="flex items-center h-14">
+            <div className="flex items-center text-gray-500 dark:text-gray-400">
+              <Link to={`/workspace/${id}/settings`} className="hover:text-gray-700 dark:hover:text-gray-300">
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <span className="mx-4">/</span>
-              <span className="font-medium text-gray-900">Role Management</span>
+              <span className="font-medium text-gray-900 dark:text-white">Role Management</span>
             </div>
           </div>
         </div>
@@ -250,12 +252,12 @@ export default function RoleManagement() {
         {/* Page Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
-              <Shield className="h-6 w-6 text-indigo-600" />
+            <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+              <Shield className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Role Management</h1>
-              <p className="text-gray-500">Configure roles and permissions for this workspace</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Role Management</h1>
+              <p className="text-gray-500 dark:text-gray-400">Configure roles and permissions for this workspace</p>
             </div>
           </div>
           <button
@@ -271,8 +273,8 @@ export default function RoleManagement() {
           <div
             className={`mb-6 px-4 py-3 rounded-lg flex items-center ${
               message.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-600'
-                : 'bg-red-50 border border-red-200 text-red-600'
+                ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400'
+                : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
             }`}
           >
             {message.type === 'success' ? (
@@ -285,40 +287,40 @@ export default function RoleManagement() {
         )}
 
         {/* Roles List */}
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Available Roles</h2>
-            <p className="text-sm text-gray-500 mt-1">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Available Roles</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Global roles apply to all workspaces. Workspace-specific roles only apply here.
             </p>
           </div>
 
           {roles.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
               No roles configured. Create a role to get started.
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-gray-700">
               {roles.map((role) => (
                 <div
                   key={role.id}
-                  className="p-4 hover:bg-gray-50 transition-colors"
+                  className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center mr-3">
-                        <Shield className="h-5 w-5 text-indigo-600" />
+                      <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mr-3">
+                        <Shield className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                       </div>
                       <div>
                         <div className="flex items-center">
-                          <span className="font-medium text-gray-900">{role.title}</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{role.title}</span>
                           {role.isDefault && (
-                            <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                            <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
                               Default
                             </span>
                           )}
                           {role.workspaceId === null && (
-                            <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                            <span className="ml-2 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
                               Global
                             </span>
                           )}
@@ -332,7 +334,7 @@ export default function RoleManagement() {
                             return (
                               <span
                                 key={cat.key}
-                                className={`text-xs px-1.5 py-0.5 rounded bg-${cat.color}-50 text-${cat.color}-600`}
+                                className={`text-xs px-1.5 py-0.5 rounded bg-${cat.color}-50 dark:bg-${cat.color}-900/30 text-${cat.color}-600 dark:text-${cat.color}-400`}
                               >
                                 {cat.label}: {anyCount > 0 && `${anyCount} any`}
                                 {anyCount > 0 && ownCount > 0 && ', '}
@@ -346,7 +348,7 @@ export default function RoleManagement() {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleOpenEdit(role)}
-                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                         title="Edit role"
                       >
                         <Pencil className="h-4 w-4" />
@@ -354,7 +356,7 @@ export default function RoleManagement() {
                       {role.workspaceId !== null && (
                         <button
                           onClick={() => setShowDeleteConfirm(role.id)}
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Delete role"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -372,17 +374,17 @@ export default function RoleManagement() {
       {/* Create/Edit Role Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl my-8">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl my-8">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                   {editingRole ? 'Edit Role' : 'Create Role'}
                 </h2>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                 >
-                  <X className="h-5 w-5 text-gray-500" />
+                  <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
             </div>
@@ -390,30 +392,30 @@ export default function RoleManagement() {
             <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
               {/* Role Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Role Name
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="e.g., Project Manager"
                 />
               </div>
 
               {/* Default Role Toggle */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div>
-                  <p className="font-medium text-gray-900">Default Role</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-medium text-gray-900 dark:text-white">Default Role</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     Automatically assign this role to new members
                   </p>
                 </div>
                 <button
                   onClick={() => setFormData({ ...formData, isDefault: !formData.isDefault })}
                   className={`relative w-11 h-6 rounded-full transition-colors ${
-                    formData.isDefault ? 'bg-blue-600' : 'bg-gray-300'
+                    formData.isDefault ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
                   }`}
                 >
                   <span
@@ -426,16 +428,16 @@ export default function RoleManagement() {
 
               {/* Permissions by Category */}
               {CATEGORIES.map((category) => (
-                <div key={category.key} className="border border-gray-200 rounded-lg overflow-hidden">
-                  <div className={`px-4 py-2 bg-${category.color}-50 border-b border-gray-200`}>
-                    <h3 className={`font-medium text-${category.color}-700`}>{category.label}</h3>
+                <div key={category.key} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                  <div className={`px-4 py-2 bg-${category.color}-50 dark:bg-${category.color}-900/30 border-b border-gray-200 dark:border-gray-700`}>
+                    <h3 className={`font-medium text-${category.color}-700 dark:text-${category.color}-400`}>{category.label}</h3>
                   </div>
-                  <div className="divide-y divide-gray-100">
+                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
                     {PERMISSION_CONFIG.filter((p) => p.category === category.key).map((perm) => (
                       <div key={perm.key} className="px-4 py-3 flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-gray-900">{perm.label}</p>
-                          <p className="text-sm text-gray-500">{perm.description}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{perm.label}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{perm.description}</p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
@@ -443,7 +445,7 @@ export default function RoleManagement() {
                             className={`px-3 py-1 text-sm rounded-md transition-colors ${
                               formData.permissions[perm.key] === 'any'
                                 ? 'bg-green-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                             }`}
                           >
                             Any
@@ -454,7 +456,7 @@ export default function RoleManagement() {
                               className={`px-3 py-1 text-sm rounded-md transition-colors ${
                                 formData.permissions[perm.key] === 'own'
                                   ? 'bg-blue-600 text-white'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                               }`}
                             >
                               Own
@@ -465,7 +467,7 @@ export default function RoleManagement() {
                             className={`px-3 py-1 text-sm rounded-md transition-colors ${
                               formData.permissions[perm.key] === 'none'
                                 ? 'bg-gray-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                             }`}
                           >
                             None
@@ -478,10 +480,10 @@ export default function RoleManagement() {
               ))}
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium"
               >
                 Cancel
               </button>
@@ -510,26 +512,26 @@ export default function RoleManagement() {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
-                  <AlertCircle className="h-5 w-5 text-red-600" />
+                <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mr-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Delete Role</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Delete Role</h2>
               </div>
             </div>
 
             <div className="p-6">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300">
                 Are you sure you want to delete this role? Members assigned to this role will need to be reassigned.
               </p>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg font-medium"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium"
               >
                 Cancel
               </button>

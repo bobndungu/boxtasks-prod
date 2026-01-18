@@ -13,6 +13,7 @@ import {
   Hash,
   Trash2,
 } from 'lucide-react';
+import { Select } from './ui/select';
 import type { CardLabel } from '../lib/api/cards';
 import type { CustomFieldDefinition } from '../lib/api/customFields';
 
@@ -451,28 +452,29 @@ export function AdvancedFilters({
                           {fieldDef.title}
                         </label>
                         {fieldDef.type === 'checkbox' ? (
-                          <select
+                          <Select
                             value={getCustomFieldValue(fieldDef.id)}
                             onChange={(e) => setCustomFieldFilter(fieldDef.id, e.target.value)}
-                            className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                          >
-                            <option value="">Any</option>
-                            <option value="true">Yes</option>
-                            <option value="false">No</option>
-                          </select>
+                            size="sm"
+                            options={[
+                              { value: '', label: 'Any' },
+                              { value: 'true', label: 'Yes' },
+                              { value: 'false', label: 'No' },
+                            ]}
+                          />
                         ) : fieldDef.type === 'dropdown' ? (
-                          <select
+                          <Select
                             value={getCustomFieldValue(fieldDef.id)}
                             onChange={(e) => setCustomFieldFilter(fieldDef.id, e.target.value)}
-                            className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                          >
-                            <option value="">Any</option>
-                            {fieldDef.options?.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
+                            size="sm"
+                            options={[
+                              { value: '', label: 'Any' },
+                              ...(fieldDef.options?.map((opt) => ({
+                                value: opt,
+                                label: opt,
+                              })) || []),
+                            ]}
+                          />
                         ) : (
                           <input
                             type={fieldDef.type === 'number' ? 'number' : 'text'}
