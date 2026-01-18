@@ -21,6 +21,7 @@ import {
 import { formatDate, formatTime } from '../lib/utils/date';
 import { fetchBoardReportData, type BoardReportData, type BoardListStats, type BoardMemberStats, type ActivityItem } from '../lib/api/dashboard';
 import { useMercure } from '../lib/hooks/useMercure';
+import MainHeader from '../components/MainHeader';
 
 export default function BoardReports() {
   const { boardId } = useParams<{ boardId: string }>();
@@ -98,10 +99,13 @@ export default function BoardReports() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-10">
+      {/* Main Header */}
+      <MainHeader />
+
+      {/* Page Subheader */}
+      <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 md:top-16 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-4">
               <Link
                 to={`/board/${boardId}`}
@@ -110,16 +114,16 @@ export default function BoardReports() {
                 <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               </Link>
               <div className="flex items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-blue-600" />
+                <BarChart3 className="h-5 w-5 text-blue-600" />
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Board Reports</h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{data.boardTitle}</p>
+                  <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Board Reports</h1>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{data.boardTitle}</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-4">
               {lastUpdated && (
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="hidden sm:block text-sm text-gray-500 dark:text-gray-400">
                   Last updated: {formatTime(lastUpdated)}
                 </span>
               )}
