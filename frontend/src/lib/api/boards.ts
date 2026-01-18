@@ -274,6 +274,33 @@ export async function restoreBoard(id: string): Promise<Board> {
   return updateBoard(id, { archived: false });
 }
 
+// Update board members (for custom member setup)
+export async function updateBoardMembers(boardId: string, memberIds: string[]): Promise<void> {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/board/${boardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--board',
+        id: boardId,
+        relationships: {
+          field_board_members: {
+            data: memberIds.map(id => ({ type: 'user--user', id })),
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to update board members');
+  }
+}
+
 // Prefetch cache to avoid duplicate requests
 const prefetchedBoards = new Set<string>();
 const prefetchInProgress = new Map<string, Promise<void>>();

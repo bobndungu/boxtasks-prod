@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2, Shield, Users, ExternalLink, UserCircle } from 'lucide-react';
 import { fetchWorkspaceMembers, fetchAllUsers, updateWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspaces';
+import { updateBoardMembers, type BoardMember } from '../lib/api/boards';
 import { toast } from '../lib/stores/toast';
 import { Link } from 'react-router-dom';
 import MemberDropdown from './MemberDropdown';
-import type { BoardMember } from '../lib/api/boards';
 
 interface BoardMembersModalProps {
   boardId: string;
@@ -23,15 +23,14 @@ export default function BoardMembersModal({
   memberSetup = 'inherit',
   onMembersChange,
 }: BoardMembersModalProps) {
-  void boardId; // Used for future board-specific member operations
-  void onMembersChange; // Will be used when board member editing is implemented
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [allUsers, setAllUsers] = useState<WorkspaceMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Determine if we're showing board-specific members or workspace members
-  const isBoardSpecific = memberSetup === 'custom' || memberSetup === 'just_me';
+  const isBoardSpecific = memberSetup === 'custom';
+  const isJustMe = memberSetup === 'just_me';
 
   useEffect(() => {
     loadMembers();
@@ -40,18 +39,20 @@ export default function BoardMembersModal({
   const loadMembers = async () => {
     setIsLoading(true);
     try {
-      if (isBoardSpecific && boardMembers.length > 0) {
+      if ((isBoardSpecific || isJustMe) && boardMembers.length > 0) {
         // Use board-specific members passed from props
         const convertedMembers: WorkspaceMember[] = boardMembers.map(m => ({
           id: m.id,
           displayName: m.displayName,
           email: m.email,
-          isAdmin: false, // Board members don't have admin status in the same way
+          isAdmin: false, // Board members don't have admin status
         }));
         setMembers(convertedMembers);
-        // Still load all users for adding new members
-        const userData = await fetchAllUsers();
-        setAllUsers(userData);
+        // Load all users for adding new members (only for custom setup)
+        if (isBoardSpecific) {
+          const userData = await fetchAllUsers();
+          setAllUsers(userData);
+        }
       } else {
         // Load from workspace
         const [memberData, userData] = await Promise.all([
@@ -71,11 +72,30 @@ export default function BoardMembersModal({
   const handleAddMember = async (user: WorkspaceMember) => {
     setIsUpdating(true);
     try {
-      const memberIds = [...members.map(m => m.id), user.id];
-      const adminIds = members.filter(m => m.isAdmin).map(m => m.id);
-      await updateWorkspaceMembers(workspaceId, memberIds, adminIds);
-      setMembers([...members, { ...user, isAdmin: false }]);
-      toast.success(`${user.displayName} added to workspace`);
+      const newMembers = [...members, { ...user, isAdmin: false }];
+      const memberIds = newMembers.map(m => m.id);
+
+      if (isBoardSpecific) {
+        // Update board-specific members
+        await updateBoardMembers(boardId, memberIds);
+        setMembers(newMembers);
+        // Notify parent component
+        if (onMembersChange) {
+          onMembersChange(newMembers.map(m => ({
+            id: m.id,
+            displayName: m.displayName,
+            email: m.email,
+            drupal_id: 0, // Will be updated on next fetch
+          })));
+        }
+        toast.success(`${user.displayName} added to board`);
+      } else {
+        // Update workspace members
+        const adminIds = members.filter(m => m.isAdmin).map(m => m.id);
+        await updateWorkspaceMembers(workspaceId, memberIds, adminIds);
+        setMembers(newMembers);
+        toast.success(`${user.displayName} added to workspace`);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add member');
     } finally {
@@ -87,19 +107,44 @@ export default function BoardMembersModal({
     const member = members.find(m => m.id === userId);
     if (!member) return;
 
-    // Don't allow removing the last admin
-    if (member.isAdmin && members.filter(m => m.isAdmin).length <= 1) {
+    // Don't allow removing the last admin (workspace only)
+    if (!isBoardSpecific && member.isAdmin && members.filter(m => m.isAdmin).length <= 1) {
       toast.error('Cannot remove the last admin');
+      return;
+    }
+
+    // Don't allow removing the last member from a board
+    if (isBoardSpecific && members.length <= 1) {
+      toast.error('Cannot remove the last member from a board');
       return;
     }
 
     setIsUpdating(true);
     try {
-      const memberIds = members.filter(m => m.id !== userId).map(m => m.id);
-      const adminIds = members.filter(m => m.isAdmin && m.id !== userId).map(m => m.id);
-      await updateWorkspaceMembers(workspaceId, memberIds, adminIds);
-      setMembers(members.filter(m => m.id !== userId));
-      toast.success(`${member.displayName} removed from workspace`);
+      const remainingMembers = members.filter(m => m.id !== userId);
+      const memberIds = remainingMembers.map(m => m.id);
+
+      if (isBoardSpecific) {
+        // Update board-specific members
+        await updateBoardMembers(boardId, memberIds);
+        setMembers(remainingMembers);
+        // Notify parent component
+        if (onMembersChange) {
+          onMembersChange(remainingMembers.map(m => ({
+            id: m.id,
+            displayName: m.displayName,
+            email: m.email,
+            drupal_id: 0,
+          })));
+        }
+        toast.success(`${member.displayName} removed from board`);
+      } else {
+        // Update workspace members
+        const adminIds = members.filter(m => m.isAdmin && m.id !== userId).map(m => m.id);
+        await updateWorkspaceMembers(workspaceId, memberIds, adminIds);
+        setMembers(remainingMembers);
+        toast.success(`${member.displayName} removed from workspace`);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to remove member');
     } finally {
@@ -183,21 +228,23 @@ export default function BoardMembersModal({
           </button>
         </div>
 
-        {/* Add Member Dropdown - Outside scrollable area */}
-        <div className="px-6 pt-4 pb-2 relative z-10">
-          <MemberDropdown
-            members={allUsers}
-            excludeIds={members.map(m => m.id)}
-            onSelect={handleAddMember}
-            placeholder="Add member..."
-            buttonLabel="Add Member"
-            showSelectedInButton={false}
-            loading={isLoading}
-            disabled={isUpdating}
-            emptyMessage="No more users to add"
-            maxHeight="300px"
-          />
-        </div>
+        {/* Add Member Dropdown - Only show for workspace or custom board members, not just_me */}
+        {!isJustMe && (
+          <div className="px-6 pt-4 pb-2 relative z-10">
+            <MemberDropdown
+              members={allUsers}
+              excludeIds={members.map(m => m.id)}
+              onSelect={handleAddMember}
+              placeholder="Add member..."
+              buttonLabel={isBoardSpecific ? 'Add Board Member' : 'Add Member'}
+              showSelectedInButton={false}
+              loading={isLoading}
+              disabled={isUpdating}
+              emptyMessage="No more users to add"
+              maxHeight="300px"
+            />
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           {/* Members List */}
@@ -235,24 +282,30 @@ export default function BoardMembersModal({
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleToggleAdmin(member.id)}
-                      disabled={isUpdating}
-                      className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${
-                        member.isAdmin ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'
-                      }`}
-                      title={member.isAdmin ? 'Remove admin' : 'Make admin'}
-                    >
-                      <Shield className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleRemoveMember(member.id)}
-                      disabled={isUpdating}
-                      className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-gray-200 dark:hover:bg-gray-600"
-                      title="Remove from workspace"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
+                    {/* Admin toggle - only show for workspace members, not board-specific */}
+                    {!isBoardSpecific && (
+                      <button
+                        onClick={() => handleToggleAdmin(member.id)}
+                        disabled={isUpdating}
+                        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${
+                          member.isAdmin ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'
+                        }`}
+                        title={member.isAdmin ? 'Remove admin' : 'Make admin'}
+                      >
+                        <Shield className="h-4 w-4" />
+                      </button>
+                    )}
+                    {/* Remove button - show for workspace and custom board members, not just_me */}
+                    {!isJustMe && (
+                      <button
+                        onClick={() => handleRemoveMember(member.id)}
+                        disabled={isUpdating}
+                        className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-gray-200 dark:hover:bg-gray-600"
+                        title={isBoardSpecific ? 'Remove from board' : 'Remove from workspace'}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
