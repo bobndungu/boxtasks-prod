@@ -1,0 +1,20 @@
+uuid: f8a2c3d1-5e6b-4a9c-8f7d-2b1e0c4a3d5f
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - user
+id: node.field_board_members
+field_name: field_board_members
+entity_type: node
+type: entity_reference
+settings:
+  target_type: user
+module: core
+locked: false
+cardinality: -1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

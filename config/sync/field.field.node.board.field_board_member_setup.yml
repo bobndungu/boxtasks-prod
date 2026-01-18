@@ -1,0 +1,23 @@
+uuid: c3d4e5f6-a7b8-9012-cdef-345678901234
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_board_member_setup
+    - node.type.board
+  module:
+    - options
+id: node.board.field_board_member_setup
+field_name: field_board_member_setup
+entity_type: node
+bundle: board
+label: 'Member Setup'
+description: 'How members are assigned to this board'
+required: false
+translatable: false
+default_value:
+  -
+    value: inherit
+default_value_callback: ''
+settings: {  }
+field_type: list_string
