@@ -159,7 +159,7 @@ export function AdvancedFilters({
       {/* Filter Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`flex items-center gap-1 sm:gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-md text-sm transition-colors ${
+        className={`flex items-center gap-1 md:gap-2 p-1.5 md:px-3 md:py-1.5 rounded-md text-sm transition-colors ${
           activeFilterCount > 0
             ? 'bg-white/20 text-white hover:bg-white/30'
             : 'bg-white/10 text-white hover:bg-white/20'
@@ -167,7 +167,7 @@ export function AdvancedFilters({
         title="Filters"
       >
         <Filter className="h-4 w-4" />
-        <span className="hidden sm:inline">Filters</span>
+        <span className="hidden md:inline">Filters</span>
         {activeFilterCount > 0 && (
           <span className="flex items-center justify-center h-5 w-5 bg-white/30 text-white text-xs rounded-full">
             {activeFilterCount}

@@ -116,11 +116,11 @@ export function SavedViews({
     <div className="relative flex-shrink-0" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 sm:px-2 sm:py-1.5 rounded flex items-center gap-1"
+        className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 md:px-2 md:py-1.5 rounded flex items-center gap-1"
         title="Saved Views"
       >
         <Bookmark className="h-4 w-4" />
-        <span className="text-sm hidden sm:inline">Views</span>
+        <span className="text-sm hidden md:inline">Views</span>
       </button>
 
       {isOpen && (

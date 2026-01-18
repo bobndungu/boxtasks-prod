@@ -2138,8 +2138,8 @@ export default function BoardView() {
         </div>
 
         {/* Row 2: Board Actions */}
-        <div className="px-2 sm:px-4 py-1.5 overflow-x-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-          <div className="flex items-center gap-1 sm:gap-2 min-w-max">
+        <div className="px-2 sm:px-4 py-1.5">
+          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
             {/* Left: Search & Filters */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Search */}
@@ -2181,11 +2181,11 @@ export default function BoardView() {
                     setShowSearch(true);
                     setTimeout(() => searchInputRef.current?.focus(), 0);
                   }}
-                  className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm"
+                  className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 md:px-3 md:py-1.5 rounded flex items-center text-sm"
                   title="Search"
                 >
-                  <Search className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Search</span>
+                  <Search className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Search</span>
                 </button>
               )}
               {/* Advanced Filters */}
@@ -2209,15 +2209,15 @@ export default function BoardView() {
                       setMemberFilter([currentUser.id]);
                     }
                   }}
-                  className={`p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm ${
+                  className={`p-1.5 md:px-3 md:py-1.5 rounded flex items-center text-sm ${
                     memberFilter.length === 1 && memberFilter[0] === currentUser.id
                       ? 'bg-white/20 text-white'
                       : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                   title="My Cards"
                 >
-                  <User className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">My Cards</span>
+                  <User className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">My Cards</span>
                 </button>
               )}
             </div>
@@ -2231,13 +2231,13 @@ export default function BoardView() {
               <div className="relative">
                 <button
                   onClick={() => setShowShareDropdown(!showShareDropdown)}
-                  className={`p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm ${
+                  className={`p-1.5 md:px-3 md:py-1.5 rounded flex items-center text-sm ${
                     showShareDropdown ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                   title="Share"
                 >
-                  <Users className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Share</span>
+                  <Users className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Share</span>
                 </button>
                 {showShareDropdown && (
                   <>
@@ -2290,25 +2290,25 @@ export default function BoardView() {
               {/* Activity Button */}
               <button
                 onClick={toggleActivitySidebar}
-                className={`p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm ${
+                className={`p-1.5 md:px-3 md:py-1.5 rounded flex items-center text-sm ${
                   showActivitySidebar ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
                 title="Activity"
               >
-                <Clock className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Activity</span>
+                <Clock className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Activity</span>
               </button>
 
               {/* Archived Cards Button */}
               <button
                 onClick={() => setShowArchivedPanel(!showArchivedPanel)}
-                className={`p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm ${
+                className={`p-1.5 md:px-3 md:py-1.5 rounded flex items-center text-sm ${
                   showArchivedPanel ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
                 title="Archived"
               >
-                <Archive className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Archived</span>
+                <Archive className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Archived</span>
               </button>
 
               {/* Divider */}
@@ -2343,13 +2343,13 @@ export default function BoardView() {
               <div className="relative flex-shrink-0">
                 <button
                   onClick={() => setShowBoardOptionsMenu(!showBoardOptionsMenu)}
-                  className={`p-1.5 sm:px-3 sm:py-1.5 rounded flex items-center text-sm ${
+                  className={`p-1.5 md:px-3 md:py-1.5 rounded flex items-center text-sm ${
                     showBoardOptionsMenu ? 'bg-white/20 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
                   }`}
                   title="Options"
                 >
-                  <MoreHorizontal className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Options</span>
+                  <MoreHorizontal className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Options</span>
                 </button>
                 {showBoardOptionsMenu && (
                   <>
