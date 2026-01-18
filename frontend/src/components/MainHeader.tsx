@@ -89,7 +89,7 @@ export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
         <div className="max-w-[1920px] mx-auto px-3 lg:px-4 xl:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo & Navigation */}
-            <div className="flex items-center space-x-3 lg:space-x-6 xl:space-x-8">
+            <div className="flex items-center space-x-2 lg:space-x-4 xl:space-x-6">
               <Link to="/dashboard" className="flex items-center space-x-2 flex-shrink-0">
                 <Layout className="h-6 w-6 lg:h-7 lg:w-7 text-blue-600 dark:text-blue-400" />
                 <span className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white">BoxTasks</span>
@@ -195,7 +195,7 @@ export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
                 </div>
                 <Link
                   to="/everything"
-                  className="hidden lg:flex items-center px-2 lg:px-3 py-2 text-sm lg:text-base text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  className="hidden xl:flex items-center px-2 lg:px-3 py-2 text-sm lg:text-base text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                 >
                   <LayoutGrid className="h-4 w-4 mr-1" aria-hidden="true" />
                   Everything
@@ -222,11 +222,11 @@ export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
             <div className="flex items-center space-x-2 lg:space-x-4">
               <button
                 onClick={() => setShowSearch(true)}
-                className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-2 lg:px-3 py-2 w-32 lg:w-48 xl:w-64 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-2 lg:px-3 py-2 w-32 lg:w-40 xl:w-64 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 <Search className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-1 lg:mr-2 flex-shrink-0" />
                 <span className="text-sm text-gray-500 dark:text-gray-400 truncate">Search...</span>
-                <kbd className="ml-auto px-1 lg:px-1.5 py-0.5 text-xs bg-gray-200 dark:bg-gray-600 rounded text-gray-500 dark:text-gray-400 hidden lg:block">⌘K</kbd>
+                <kbd className="ml-auto px-1 lg:px-1.5 py-0.5 text-xs bg-gray-200 dark:bg-gray-600 rounded text-gray-500 dark:text-gray-400 hidden xl:block">⌘K</kbd>
               </button>
               <ThemeToggle />
               <NotificationDropdown />
