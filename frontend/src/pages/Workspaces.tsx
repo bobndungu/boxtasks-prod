@@ -63,7 +63,7 @@ export default function Workspaces() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen w-full bg-gray-50 dark:bg-gray-900">
       <MainHeader />
 
       {/* Subheader with search */}
