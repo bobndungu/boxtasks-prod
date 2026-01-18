@@ -21,6 +21,7 @@ import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   NOTIFICATION_PREFERENCE_LABELS,
   type NotificationPreferences,
+  type EmailDeliveryTiming,
 } from '../lib/api/notifications';
 import {
   isPushSupported,
@@ -370,30 +371,55 @@ export default function Profile() {
                 <MailIcon className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
                 Email Notifications
               </h3>
-              <div className="space-y-3">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Choose which notifications to receive by email and when to receive them
+              </p>
+              <div className="space-y-4">
                 {(Object.keys(notifPrefs.email) as Array<keyof typeof notifPrefs.email>).map((key) => {
                   const labels = NOTIFICATION_PREFERENCE_LABELS[key];
                   if (!labels) return null;
+                  const deliveryKey = key as keyof typeof notifPrefs.emailDelivery;
+                  const hasDeliveryOption = deliveryKey in notifPrefs.emailDelivery;
                   return (
-                    <label key={key} className="flex items-start cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={notifPrefs.email[key]}
-                        onChange={(e) =>
-                          setNotifPrefs({
-                            ...notifPrefs,
-                            email: { ...notifPrefs.email, [key]: e.target.checked },
-                          })
-                        }
-                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded cursor-pointer bg-white dark:bg-gray-700"
-                      />
-                      <div className="ml-3">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">
-                          {labels.label}
-                        </span>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{labels.description}</p>
-                      </div>
-                    </label>
+                    <div key={key} className="flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <label className="flex items-start cursor-pointer group flex-1">
+                        <input
+                          type="checkbox"
+                          checked={notifPrefs.email[key]}
+                          onChange={(e) =>
+                            setNotifPrefs({
+                              ...notifPrefs,
+                              email: { ...notifPrefs.email, [key]: e.target.checked },
+                            })
+                          }
+                          className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded cursor-pointer bg-white dark:bg-gray-700"
+                        />
+                        <div className="ml-3">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">
+                            {labels.label}
+                          </span>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{labels.description}</p>
+                        </div>
+                      </label>
+                      {hasDeliveryOption && notifPrefs.email[key] && (
+                        <select
+                          value={notifPrefs.emailDelivery[deliveryKey]}
+                          onChange={(e) =>
+                            setNotifPrefs({
+                              ...notifPrefs,
+                              emailDelivery: {
+                                ...notifPrefs.emailDelivery,
+                                [deliveryKey]: e.target.value as EmailDeliveryTiming,
+                              },
+                            })
+                          }
+                          className="ml-4 text-sm px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="immediate">Immediately</option>
+                          <option value="digest">In digest</option>
+                        </select>
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -463,23 +489,33 @@ export default function Profile() {
             <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
               <h3 className="font-medium text-gray-900 dark:text-white mb-4">Email Digest</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                Receive a summary of activity instead of individual emails
+                For notifications set to "In digest", how often should we send you a summary?
               </p>
-              <div className="flex space-x-4">
-                {(['none', 'daily', 'weekly'] as const).map((option) => (
-                  <label key={option} className="flex items-center cursor-pointer">
+              <div className="flex flex-wrap gap-4">
+                {([
+                  { value: 'none', label: 'Never (disable digest)' },
+                  { value: 'hourly', label: 'Hourly' },
+                  { value: 'daily', label: 'Daily' },
+                  { value: 'weekly', label: 'Weekly' },
+                ] as const).map((option) => (
+                  <label key={option.value} className="flex items-center cursor-pointer">
                     <input
                       type="radio"
                       name="emailDigest"
-                      value={option}
-                      checked={notifPrefs.emailDigest === option}
-                      onChange={() => setNotifPrefs({ ...notifPrefs, emailDigest: option })}
+                      value={option.value}
+                      checked={notifPrefs.emailDigest === option.value}
+                      onChange={() => setNotifPrefs({ ...notifPrefs, emailDigest: option.value })}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 cursor-pointer bg-white dark:bg-gray-700"
                     />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 capitalize">{option}</span>
+                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{option.label}</span>
                   </label>
                 ))}
               </div>
+              {notifPrefs.emailDigest === 'none' && (
+                <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                  Note: Notifications set to "In digest" will not be sent if digest is disabled.
+                </p>
+              )}
             </div>
 
             {/* Save Button */}

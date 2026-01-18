@@ -249,6 +249,9 @@ export function getNotificationDisplay(type: NotificationType): { icon: string; 
   return displays[type] || { icon: '🔔', label: 'Notification', color: 'text-gray-600' };
 }
 
+// Email delivery timing options
+export type EmailDeliveryTiming = 'immediate' | 'digest';
+
 // Notification Preferences
 export interface NotificationPreferences {
   inApp: {
@@ -265,9 +268,18 @@ export interface NotificationPreferences {
     member_assigned: boolean;
     mentioned: boolean;
     card_due: boolean;
+    comment_added: boolean;
     due_date_approaching: boolean;
   };
-  emailDigest: 'none' | 'daily' | 'weekly';
+  // When to send each email notification (immediate or wait for digest)
+  emailDelivery: {
+    member_assigned: EmailDeliveryTiming;
+    mentioned: EmailDeliveryTiming;
+    card_due: EmailDeliveryTiming;
+    comment_added: EmailDeliveryTiming;
+    due_date_approaching: EmailDeliveryTiming;
+  };
+  emailDigest: 'none' | 'hourly' | 'daily' | 'weekly';
 }
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
@@ -285,7 +297,15 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
     member_assigned: true,
     mentioned: true,
     card_due: true,
+    comment_added: true,
     due_date_approaching: true,
+  },
+  emailDelivery: {
+    member_assigned: 'immediate',
+    mentioned: 'immediate',
+    card_due: 'immediate',
+    comment_added: 'digest',
+    due_date_approaching: 'immediate',
   },
   emailDigest: 'daily',
 };
@@ -311,7 +331,14 @@ export async function fetchNotificationPreferences(userId: string): Promise<Noti
 
   if (prefsJson) {
     try {
-      return JSON.parse(prefsJson);
+      const savedPrefs = JSON.parse(prefsJson);
+      // Merge with defaults to handle new fields added over time
+      return {
+        inApp: { ...DEFAULT_NOTIFICATION_PREFERENCES.inApp, ...savedPrefs.inApp },
+        email: { ...DEFAULT_NOTIFICATION_PREFERENCES.email, ...savedPrefs.email },
+        emailDelivery: { ...DEFAULT_NOTIFICATION_PREFERENCES.emailDelivery, ...savedPrefs.emailDelivery },
+        emailDigest: savedPrefs.emailDigest || DEFAULT_NOTIFICATION_PREFERENCES.emailDigest,
+      };
     } catch {
       return DEFAULT_NOTIFICATION_PREFERENCES;
     }
