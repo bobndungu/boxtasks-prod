@@ -64,22 +64,22 @@ export default function WorkspaceSwitcher() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
       >
         {currentWorkspace ? (
           <>
             <div
-              className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold"
+              className="w-5 h-5 lg:w-6 lg:h-6 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
               style={{ backgroundColor: currentWorkspace.color }}
             >
               {currentWorkspace.title.charAt(0).toUpperCase()}
             </div>
-            <span className="font-medium text-gray-900 dark:text-white max-w-32 truncate">
+            <span className="hidden lg:block font-medium text-sm lg:text-base text-gray-900 dark:text-white max-w-24 lg:max-w-32 truncate">
               {currentWorkspace.title}
             </span>
           </>
         ) : (
-          <span className="text-gray-500 dark:text-gray-400">Select workspace</span>
+          <span className="text-sm lg:text-base text-gray-500 dark:text-gray-400">Select workspace</span>
         )}
         <ChevronDown className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
