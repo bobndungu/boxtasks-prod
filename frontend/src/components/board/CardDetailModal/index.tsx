@@ -2507,7 +2507,9 @@ function CardDetailModal({
                                             <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Assign to</p>
                                           </div>
                                           <div className="max-h-48 overflow-y-auto">
-                                            {allUsers.map((member) => (
+                                            {allUsers
+                                              .filter(u => !['Boxraft Admin', 'n8n_api'].includes(u.displayName))
+                                              .map((member) => (
                                               <button
                                                 key={member.id}
                                                 onClick={() => handleUpdateChecklistItemAssignee(checklist.id, item.id, member.id)}
@@ -3195,46 +3197,41 @@ function CardDetailModal({
                   Add to card
                   {cardMembers.length > 0 && (
                     <span className="text-blue-600 normal-case font-normal">
-                      • {cardMembers.length === 1 ? cardMembers[0].name : `${cardMembers.length} members`}
+                      • {cardMembers[0].name}
                     </span>
                   )}
                 </h4>
                 <div className="space-y-2">
                   {/* Member Assignment Dropdown */}
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">
-                      Members {cardMembers.length > 0 && `(${cardMembers.length})`}
-                    </p>
-                    {/* Current members display */}
-                    {cardMembers.length > 0 && (
-                      <div className="mb-2 flex flex-wrap gap-1">
-                        {cardMembers.map((member) => (
-                          <span
-                            key={member.id}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs"
-                          >
-                            {member.name}
-                            <button
-                              onClick={() => handleToggleMember(member.id, member.name)}
-                              disabled={isTogglingMember}
-                              className="hover:bg-blue-200 rounded-full p-0.5"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </span>
-                        ))}
+                    <p className="text-xs text-gray-500 mb-1">Assign member (1 max)</p>
+                    {cardMembers.length > 0 ? (
+                      <div className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-medium">
+                            {cardMembers[0].name.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="text-sm text-gray-700">{cardMembers[0].name}</span>
+                        </div>
+                        <button
+                          onClick={() => handleToggleMember(cardMembers[0].id, cardMembers[0].name)}
+                          disabled={isTogglingMember}
+                          className="text-red-500 hover:text-red-700 text-xs font-medium"
+                        >
+                          {isTogglingMember ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Remove'}
+                        </button>
                       </div>
+                    ) : (
+                      <MemberDropdown
+                        members={allUsers.filter(u => !['Boxraft Admin', 'n8n_api'].includes(u.displayName))}
+                        onSelect={(member) => handleToggleMember(member.id, member.displayName)}
+                        placeholder="Assign member..."
+                        buttonLabel="Assign Member"
+                        showSelectedInButton={false}
+                        disabled={isTogglingMember}
+                        emptyMessage="No members available"
+                      />
                     )}
-                    <MemberDropdown
-                      members={allUsers}
-                      excludeIds={cardMembers.map(m => m.id)}
-                      onSelect={(member) => handleToggleMember(member.id, member.displayName)}
-                      placeholder="Assign member..."
-                      buttonLabel="Assign Member"
-                      showSelectedInButton={false}
-                      disabled={isTogglingMember}
-                      emptyMessage="All members are assigned"
-                    />
                   </div>
                   <button
                     onClick={handleToggleWatch}
@@ -3282,7 +3279,7 @@ function CardDetailModal({
                       </div>
                     )}
                     <MemberDropdown
-                      members={allUsers}
+                      members={allUsers.filter(u => !['Boxraft Admin', 'n8n_api'].includes(u.displayName))}
                       excludeIds={card.watcherIds || []}
                       onSelect={(member) => handleAddWatcher(member.id, member.displayName)}
                       placeholder="Add watcher..."
