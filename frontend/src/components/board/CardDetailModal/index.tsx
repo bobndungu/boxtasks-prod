@@ -2507,9 +2507,7 @@ function CardDetailModal({
                                             <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Assign to</p>
                                           </div>
                                           <div className="max-h-48 overflow-y-auto">
-                                            {allUsers
-                                              .filter(u => !['Boxraft Admin', 'n8n_api'].includes(u.displayName))
-                                              .map((member) => (
+                                            {allUsers.map((member) => (
                                               <button
                                                 key={member.id}
                                                 onClick={() => handleUpdateChecklistItemAssignee(checklist.id, item.id, member.id)}
@@ -3223,7 +3221,7 @@ function CardDetailModal({
                       </div>
                     ) : (
                       <MemberDropdown
-                        members={allUsers.filter(u => !['Boxraft Admin', 'n8n_api'].includes(u.displayName))}
+                        members={allUsers}
                         onSelect={(member) => handleToggleMember(member.id, member.displayName)}
                         placeholder="Assign member..."
                         buttonLabel="Assign Member"
@@ -3279,7 +3277,7 @@ function CardDetailModal({
                       </div>
                     )}
                     <MemberDropdown
-                      members={allUsers.filter(u => !['Boxraft Admin', 'n8n_api'].includes(u.displayName))}
+                      members={allUsers}
                       excludeIds={card.watcherIds || []}
                       onSelect={(member) => handleAddWatcher(member.id, member.displayName)}
                       placeholder="Add watcher..."
