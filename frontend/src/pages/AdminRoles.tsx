@@ -120,6 +120,9 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   reportActivity: 'none',
   reportWorkload: 'none',
   reportExport: 'none',
+  emailTemplatesManage: 'none',
+  userManagement: 'none',
+  roleManagement: 'none',
 };
 
 export default function AdminRoles() {

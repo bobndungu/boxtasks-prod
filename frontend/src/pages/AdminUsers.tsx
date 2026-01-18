@@ -28,7 +28,7 @@ import {
   setUserStatus,
   type DrupalUser,
 } from '../lib/api/users';
-import { fetchAllWorkspaces, type Workspace } from '../lib/api/workspaces';
+import { fetchWorkspaces, type Workspace } from '../lib/api/workspaces';
 import {
   fetchGlobalRoles,
   createMemberRole,
@@ -89,7 +89,7 @@ export default function AdminUsers() {
     // Load Drupal roles for the role assignment modal
     fetchDrupalRoles().then(setDrupalRoles);
     // Load workspaces and global roles for workspace role assignment
-    fetchAllWorkspaces().then(setWorkspaces);
+    fetchWorkspaces().then(setWorkspaces);
     fetchGlobalRoles().then(setGlobalRoles);
   }, []);
 
