@@ -44,8 +44,9 @@ function formatActivityTime(dateStr: string): { full: string; relative: string }
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
+  const diffSecs = Math.floor(diffMs / 1000);
   let relative: string;
-  if (diffMins < 1) relative = 'Just now';
+  if (diffSecs < 60) relative = `${diffSecs}s ago`;
   else if (diffMins < 60) relative = `${diffMins}m ago`;
   else if (diffHours < 24) relative = `${diffHours}h ago`;
   else if (diffDays < 7) relative = `${diffDays}d ago`;

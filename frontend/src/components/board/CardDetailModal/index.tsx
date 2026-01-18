@@ -1196,9 +1196,10 @@ function CardDetailModal({
     });
 
     // Relative time
+    const diffSecs = Math.floor(diffMs / 1000);
     let relative: string;
-    if (diffMins < 1) {
-      relative = 'Just now';
+    if (diffSecs < 60) {
+      relative = `${diffSecs}s ago`;
     } else if (diffMins < 60) {
       relative = `${diffMins}m ago`;
     } else if (diffHours < 24) {
