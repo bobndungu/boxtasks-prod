@@ -14,7 +14,10 @@ This guide covers deploying BoxTasks to a production environment.
 8. [Security Checklist](#security-checklist)
 9. [Monitoring](#monitoring)
 10. [Maintenance](#maintenance)
-11. [Troubleshooting](#troubleshooting)
+11. [Deployment Scripts](#deployment-scripts)
+12. [PWA Deployment Considerations](#pwa-deployment-considerations)
+13. [Data Freshness Pattern](#data-freshness-pattern)
+14. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -458,6 +461,182 @@ cd ..
 # Disable maintenance mode
 ./vendor/bin/drush state:set system.maintenance_mode 0
 ```
+
+---
+
+## Deployment Scripts
+
+BoxTasks includes automated deployment scripts in the `/scripts/` directory:
+
+### Available Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `deploy-to-production.sh` | Deploy local changes to production |
+| `sync-from-production.sh` | Pull production changes to dev |
+| `production-hotfix.sh` | Commit and sync production hotfixes |
+
+### Standard Deployment
+
+```bash
+# Deploy changes to production
+./scripts/deploy-to-production.sh
+```
+
+This script automatically:
+1. Pushes to remote repository
+2. SSHs to production and pulls changes
+3. Runs `composer install`, `drush cr`, `drush updb`, `drush cim`
+4. Builds the frontend (`npm ci && npm run build`)
+5. Restarts nginx and php-fpm
+6. Verifies the site is up
+7. Syncs dev site to match production
+
+### Emergency Hotfix
+
+If you make a fix directly on production:
+
+```bash
+# SSH to production and make the fix
+ssh root@production-server
+cd /var/www/websites/tasks.boxraft.com
+# Make your changes...
+
+# Then locally, run the hotfix sync
+./scripts/production-hotfix.sh
+# Enter a commit message when prompted
+```
+
+### Sync Dev from Production
+
+```bash
+./scripts/sync-from-production.sh
+```
+
+### Important Rules
+
+- **NEVER** make changes on production without syncing back to dev
+- **NEVER** deploy from dev if production has uncommitted changes
+- **ALWAYS** verify dev matches production with `git fetch origin && git status`
+
+---
+
+## PWA Deployment Considerations
+
+BoxTasks is a Progressive Web App (PWA) with service worker caching. Special considerations apply during deployment.
+
+### Service Worker Auto-Updates
+
+The PWA uses `vite-plugin-pwa` with automatic update behavior:
+
+- **Background checking**: Service worker checks for updates every 60 seconds
+- **Auto-reload**: When new content is available, the app automatically updates
+- **Cache strategy**: Uses StaleWhileRevalidate for API requests, NetworkFirst for navigation
+
+### Cache Busting
+
+Vite automatically generates hashed filenames for assets:
+- `assets/index-[hash].js`
+- `assets/index-[hash].css`
+
+The service worker's `globPatterns` are configured to cache these properly.
+
+### Post-Deployment Verification
+
+After deploying, verify PWA updates are working:
+
+1. **Check service worker registration**:
+   - Open browser DevTools → Application → Service Workers
+   - Verify "Status" shows "activated and running"
+
+2. **Force service worker update** (if needed):
+   ```javascript
+   // In browser console
+   navigator.serviceWorker.getRegistrations().then(registrations => {
+     registrations.forEach(reg => reg.unregister());
+   });
+   caches.keys().then(keys => {
+     keys.forEach(key => caches.delete(key));
+   });
+   location.reload();
+   ```
+
+3. **Verify manifest**: Check `/manifest.webmanifest` returns correct version
+
+### Workbox Configuration
+
+The service worker is configured with:
+
+```typescript
+// vite.config.ts
+workbox: {
+  globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+  runtimeCaching: [
+    {
+      urlPattern: /^https:\/\/.*\/jsonapi\/.*/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'api-cache',
+        expiration: { maxEntries: 100, maxAgeSeconds: 300 }
+      }
+    },
+    {
+      urlPattern: /^https:\/\/.*\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'image-cache',
+        expiration: { maxEntries: 50, maxAgeSeconds: 86400 }
+      }
+    }
+  ]
+}
+```
+
+---
+
+## Data Freshness Pattern
+
+BoxTasks implements a data freshness pattern to ensure the UI always reflects the latest server state after mutations.
+
+### The Problem
+
+When a modal or child component makes API changes (POST, PATCH, DELETE), the parent component's state becomes stale. This causes confusing UX where changes appear to work but then "disappear" when the modal is closed/reopened.
+
+### The Solution
+
+Always refetch data after mutations to ensure UI consistency:
+
+**Option 1: Pass refetch callback to modals**
+```typescript
+// Parent component
+const { data, refetch } = useBoardData(boardId);
+
+<BoardMembersModal
+  onMembersChange={() => refetch()}  // Refetch board data after any change
+/>
+```
+
+**Option 2: Invalidate queries after mutations**
+```typescript
+import { useQueryClient } from '@tanstack/react-query';
+
+const queryClient = useQueryClient();
+
+const handleUpdateMember = async () => {
+  await updateMember(data);
+  queryClient.invalidateQueries({ queryKey: ['board', boardId] });
+};
+```
+
+### Checklist for New Features
+
+When implementing features that modify data:
+- [ ] Does the mutation update the server?
+- [ ] Does the UI refetch data after the mutation?
+- [ ] Does closing and reopening the modal show the correct state?
+- [ ] Does a full page reload show the correct state?
+
+---
 
 ### Audit Log Cleanup
 
