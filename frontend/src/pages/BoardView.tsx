@@ -3201,6 +3201,7 @@ export default function BoardView() {
             drupal_id: 0, // Not needed for display
             isAdmin: m.isAdmin,
           }))}
+          onRefresh={loadBoardData}
         />
       )}
 

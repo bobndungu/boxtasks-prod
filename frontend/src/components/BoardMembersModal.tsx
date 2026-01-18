@@ -13,6 +13,7 @@ interface BoardMembersModalProps {
   boardMembers?: BoardMember[];
   memberSetup?: 'inherit' | 'just_me' | 'custom';
   onMembersChange?: (members: BoardMember[]) => void;
+  onRefresh?: () => void; // Callback to refresh board data after changes
 }
 
 export default function BoardMembersModal({
@@ -22,6 +23,7 @@ export default function BoardMembersModal({
   boardMembers = [],
   memberSetup = 'inherit',
   onMembersChange,
+  onRefresh,
 }: BoardMembersModalProps) {
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [allUsers, setAllUsers] = useState<WorkspaceMember[]>([]);
@@ -89,6 +91,8 @@ export default function BoardMembersModal({
           })));
         }
         toast.success(`${user.displayName} added to board`);
+        // Refresh parent data to ensure consistency
+        onRefresh?.();
       } else {
         // Update workspace members
         const adminIds = members.filter(m => m.isAdmin).map(m => m.id);
@@ -138,6 +142,8 @@ export default function BoardMembersModal({
           })));
         }
         toast.success(`${member.displayName} removed from board`);
+        // Refresh parent data to ensure consistency
+        onRefresh?.();
       } else {
         // Update workspace members
         const adminIds = members.filter(m => m.isAdmin && m.id !== userId).map(m => m.id);
@@ -190,6 +196,8 @@ export default function BoardMembersModal({
           })));
         }
         toast.success(`${member.displayName} is ${member.isAdmin ? 'no longer' : 'now'} a board admin`);
+        // Refresh parent data to ensure consistency
+        onRefresh?.();
       } else {
         // Update workspace members
         const memberIds = members.map(m => m.id);

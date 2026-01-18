@@ -417,6 +417,73 @@ export function useBoards(workspaceId: string) {
 
 ---
 
+## Data Freshness Pattern (CRITICAL)
+
+**IMPORTANT: Always ensure UI reflects the latest data after any mutation.**
+
+### Problem
+When a modal or child component makes API changes (POST, PATCH, DELETE), the parent component's state becomes stale. This causes confusing UX where changes appear to work but then "disappear" when the modal is closed/reopened.
+
+### Solution: Always Refetch After Mutations
+
+**Option 1: Pass a refetch callback to modals**
+```typescript
+// Parent component
+const { data, refetch } = useBoardData(boardId);
+
+<BoardMembersModal
+  onMembersChange={() => refetch()}  // Refetch board data after any change
+/>
+
+// Modal component
+const handleAddMember = async () => {
+  await addMember(userId);
+  onMembersChange?.();  // Trigger parent refetch
+};
+```
+
+**Option 2: Invalidate queries after mutations**
+```typescript
+import { useQueryClient } from '@tanstack/react-query';
+
+const queryClient = useQueryClient();
+
+const handleUpdateMember = async () => {
+  await updateMember(data);
+  // Invalidate all board-related queries to force refetch
+  queryClient.invalidateQueries({ queryKey: ['board', boardId] });
+};
+```
+
+**Option 3: Refetch consolidated data directly**
+```typescript
+// In modal after successful mutation
+const handleToggleAdmin = async (userId: string) => {
+  await updateBoardAdmins(boardId, adminIds);
+
+  // Refetch board data to get fresh state
+  const freshData = await fetchBoardData(boardId);
+  setMembers(freshData.members.map(m => ({...})));
+};
+```
+
+### Rules for Mutations
+
+1. **NEVER rely on local state alone** after a mutation - always sync with server
+2. **Always provide refetch callbacks** to modals that modify data
+3. **Test the full cycle**: make change → close modal → reopen modal → verify change persists
+4. **Consider optimistic updates** for better UX, but always validate with server response
+
+### Checklist for New Features
+
+When implementing features that modify data:
+- [ ] Does the mutation update the server?
+- [ ] Does the UI refetch data after the mutation?
+- [ ] Does closing and reopening the modal show the correct state?
+- [ ] Does a full page reload show the correct state?
+
+---
+
 ## Mercure Real-time Pattern
 
 ### Drupal Publisher
