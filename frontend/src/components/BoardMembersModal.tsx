@@ -24,6 +24,7 @@ export default function BoardMembersModal({
   onMembersChange,
 }: BoardMembersModalProps) {
   void boardId; // Used for future board-specific member operations
+  void onMembersChange; // Will be used when board member editing is implemented
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [allUsers, setAllUsers] = useState<WorkspaceMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
