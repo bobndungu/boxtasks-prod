@@ -1,0 +1,7 @@
+services:
+  boxtasks_notification.commands:
+    class: Drupal\boxtasks_notification\Commands\NotificationCommands
+    arguments:
+      - '@boxtasks_notification.email'
+    tags:
+      - { name: drush.command }
