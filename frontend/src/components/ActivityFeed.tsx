@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Clock, ArrowRight, RefreshCw, CheckCircle, Archive, Trash2, MessageSquare, User, Tag, Calendar, Paperclip, FileText, Building, Users, Pencil } from 'lucide-react';
 import { fetchActivitiesByCard, fetchActivitiesByBoard, type Activity, type ActivityType, type ActivityData, getActivityDisplay } from '../lib/api/activities';
 import ActivityDiff from './ActivityDiff';
+import { renderTextWithMentions } from '../lib/utils/highlight';
 
 interface ActivityFeedProps {
   cardId?: string;
@@ -281,7 +282,7 @@ function ActivityDataDisplay({ type, data }: { type: ActivityType; data: Activit
     return (
       <div className="mt-1.5 text-xs">
         <div className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1.5 rounded italic">
-          "{data.comment_text}"
+          "{renderTextWithMentions(data.comment_text)}"
         </div>
       </div>
     );

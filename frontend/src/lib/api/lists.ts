@@ -41,6 +41,26 @@ function transformList(data: Record<string, unknown>): BoardList {
   };
 }
 
+// Fetch a single list by ID
+export async function fetchList(id: string): Promise<BoardList> {
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/board_list/${id}`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch list');
+  }
+
+  const result = await response.json();
+  return transformList(result.data);
+}
+
 // Fetch all lists for a board (excludes archived by default)
 export async function fetchListsByBoard(boardId: string, includeArchived = false): Promise<BoardList[]> {
   const archivedFilter = includeArchived ? '' : '&filter[field_list_archived][value]=0';

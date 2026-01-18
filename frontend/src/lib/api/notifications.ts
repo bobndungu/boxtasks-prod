@@ -1,4 +1,6 @@
 import { getAccessToken, fetchWithCsrf } from './client';
+import { fetchCard } from './cards';
+import { fetchList } from './lists';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -343,6 +345,21 @@ export async function updateNotificationPreferences(
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.errors?.[0]?.detail || 'Failed to update notification preferences');
+  }
+}
+
+// Helper function to get the board ID from a card ID
+// This is used for notification navigation to cards
+export async function fetchCardBoardId(cardId: string): Promise<string | null> {
+  try {
+    const card = await fetchCard(cardId);
+    if (!card.listId) return null;
+
+    const list = await fetchList(card.listId);
+    return list.boardId || null;
+  } catch (error) {
+    console.error('Failed to fetch card board ID:', error);
+    return null;
   }
 }
 

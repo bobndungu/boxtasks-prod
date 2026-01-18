@@ -10,6 +10,7 @@ import {
   markAllNotificationsRead,
   deleteNotification,
   getNotificationDisplay,
+  fetchCardBoardId,
   type Notification,
 } from '../lib/api/notifications';
 import { formatDateShort } from '../lib/utils/date';
@@ -174,9 +175,13 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
 
     // Navigate to card if there's a card reference
     if (notification.cardId) {
-      // You could use React Router's navigate here
-      // For now, we'll just close the dropdown
       setIsOpen(false);
+
+      // Fetch the board ID for this card and navigate
+      const boardId = await fetchCardBoardId(notification.cardId);
+      if (boardId) {
+        navigate(`/board/${boardId}?card=${notification.cardId}`);
+      }
     }
   };
 

@@ -62,6 +62,7 @@ import { toast } from '../../../lib/stores/toast';
 import { TimeTracker } from '../../TimeTracker';
 import { formatDate, formatDateTime, formatDateTimeCompact, formatDateCompact, formatDateRange } from '../../../lib/utils/date';
 import { renderWordDiff } from '../../../lib/utils/diff';
+import { renderTextWithMentions } from '../../../lib/utils/highlight';
 import { EstimateEditor } from '../../EstimateEditor';
 import { GoogleDocsEmbed } from '../../GoogleDocsEmbed';
 import MemberDropdown from '../../MemberDropdown';
@@ -2927,7 +2928,7 @@ function CardDetailModal({
                             </div>
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-700 dark:text-gray-300 ml-9">{comment.text}</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 ml-9">{renderTextWithMentions(comment.text)}</p>
                         )}
 
                         {/* Reactions */}
@@ -3115,7 +3116,7 @@ function CardDetailModal({
                             {activity.type === 'comment_added' && data?.comment_text && (
                               <div className="mt-1 text-xs">
                                 <div className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1.5 rounded italic">
-                                  "{data.comment_text}"
+                                  "{renderTextWithMentions(data.comment_text)}"
                                 </div>
                               </div>
                             )}
@@ -3131,7 +3132,7 @@ function CardDetailModal({
                             {activity.type === 'comment_updated' && data?.comment_text && !data?.old_value && (
                               <div className="mt-1 text-xs">
                                 <div className="bg-green-50 text-green-700 px-2 py-1.5 rounded italic">
-                                  "{data.comment_text}"
+                                  "{renderTextWithMentions(data.comment_text)}"
                                 </div>
                               </div>
                             )}
