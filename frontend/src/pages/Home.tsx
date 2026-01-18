@@ -51,7 +51,7 @@ export default function Home() {
             <span className="text-2xl font-bold text-white">BoxTasks</span>
           </div>
           <div className="flex items-center space-x-4">
-            <ThemeToggle />
+            <ThemeToggle variant="light" />
             {isAuthenticated && user ? (
               <>
                 <Link

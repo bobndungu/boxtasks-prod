@@ -46,19 +46,11 @@ export const useThemeStore = create<ThemeState>()(
       },
 
       toggleTheme: () => {
-        const currentMode = get().mode;
-        // Cycle: light -> dark -> system -> light
-        let newMode: ThemeMode;
-        if (currentMode === 'light') {
-          newMode = 'dark';
-        } else if (currentMode === 'dark') {
-          newMode = 'system';
-        } else {
-          newMode = 'light';
-        }
-        const resolvedTheme = newMode === 'system' ? getSystemTheme() : newMode;
-        applyTheme(resolvedTheme);
-        set({ mode: newMode, resolvedTheme });
+        const { resolvedTheme } = get();
+        // Simple toggle between light and dark based on current resolved theme
+        const newMode: ThemeMode = resolvedTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(newMode);
+        set({ mode: newMode, resolvedTheme: newMode });
       },
     }),
     {

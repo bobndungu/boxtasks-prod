@@ -4,9 +4,10 @@ import { useThemeStore } from '../lib/stores/theme';
 interface ThemeToggleProps {
   showLabel?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'light';
 }
 
-export function ThemeToggle({ showLabel = false, size = 'md' }: ThemeToggleProps) {
+export function ThemeToggle({ showLabel = false, size = 'md', variant = 'default' }: ThemeToggleProps) {
   const { mode, toggleTheme } = useThemeStore();
 
   const sizeClasses = {
@@ -21,10 +22,15 @@ export function ThemeToggle({ showLabel = false, size = 'md' }: ThemeToggleProps
     lg: 'h-6 w-6',
   };
 
+  const variantClasses = {
+    default: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700',
+    light: 'text-white hover:bg-white/20',
+  };
+
   return (
     <button
       onClick={toggleTheme}
-      className={`${sizeClasses[size]} rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2`}
+      className={`${sizeClasses[size]} rounded-lg ${variantClasses[variant]} transition-colors flex items-center gap-2`}
       aria-label={`Toggle theme (currently ${mode})`}
       title={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
     >
