@@ -2,8 +2,8 @@ _core:
   default_config_hash: ijfbzDTN4CbE7Sr-6ubWzy_t1vH4OtU1doNCLssVz-4
 langcode: en
 uuid: 38ab1113-31f9-433c-a77d-26ab25e14ffc
-name: BoxTasks2
-mail: admin@example.com
+name: BoxTasks
+mail: noreply@tasks.boxraft.com
 slogan: ''
 page:
   403: ''
