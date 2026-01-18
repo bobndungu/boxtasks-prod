@@ -14,7 +14,7 @@ import {
   User,
   ArrowRight,
 } from 'lucide-react';
-import { formatDateShort, formatDateTime } from '../lib/utils/date';
+import { formatDateShort } from '../lib/utils/date';
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { useBoardStore } from '../lib/stores/board';
