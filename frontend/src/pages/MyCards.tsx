@@ -9,7 +9,7 @@ import {
   type MyCardsFilters,
   type MyCardsStats
 } from '../lib/api/globalViews';
-import { fetchStarredBoards, fetchRecentBoards, prefetchBoard } from '../lib/api/boards';
+import { fetchStarredBoards, fetchRecentBoards } from '../lib/api/boards';
 import {
   Layout,
   Plus,
