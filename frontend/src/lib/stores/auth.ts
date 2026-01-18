@@ -24,6 +24,7 @@ export interface User {
   jobTitle?: string;
   timezone?: string;
   mentionHandle?: string;
+  roles?: string[];
 }
 
 interface AuthState {
@@ -74,6 +75,12 @@ export const useAuthStore = create<AuthState>()(
           // Find the logged-in user (filter by username)
           const userData = data.data?.find((u: { attributes: { name: string } }) => u.attributes.name === username);
           if (userData) {
+            // Extract roles from relationships
+            const roleRefs = userData.relationships?.roles?.data || [];
+            const roles = roleRefs.map((r: { id: string; meta?: { drupal_internal__target_id?: string } }) =>
+              r.meta?.drupal_internal__target_id || r.id
+            );
+
             const user: User = {
               id: userData.id,
               username: userData.attributes.name,
@@ -83,6 +90,7 @@ export const useAuthStore = create<AuthState>()(
               jobTitle: userData.attributes.field_job_title || '',
               timezone: userData.attributes.field_timezone || userData.attributes.timezone || 'UTC',
               mentionHandle: userData.attributes.field_mention_handle || '',
+              roles,
             };
             set({ user, isAuthenticated: true, isLoading: false });
             return true;
@@ -286,6 +294,12 @@ export const useAuthStore = create<AuthState>()(
           const userAttributes = userData.data?.attributes;
 
           if (userAttributes) {
+            // Extract roles from relationships
+            const roleRefs = userData.data?.relationships?.roles?.data || [];
+            const roles = roleRefs.map((r: { id: string; meta?: { drupal_internal__target_id?: string } }) =>
+              r.meta?.drupal_internal__target_id || r.id
+            );
+
             const user: User = {
               id: userData.data.id,
               username: userAttributes.name,
@@ -295,6 +309,7 @@ export const useAuthStore = create<AuthState>()(
               jobTitle: userAttributes.field_job_title || '',
               timezone: userAttributes.field_timezone || userAttributes.timezone || 'UTC',
               mentionHandle: userAttributes.field_mention_handle || '',
+              roles,
             };
             set({ user, isAuthenticated: true, isLoading: false });
             return true;

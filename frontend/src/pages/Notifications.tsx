@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Check, CheckCheck, X, Clock, ExternalLink, ArrowLeft } from 'lucide-react';
+import { Bell, Check, CheckCheck, X, Clock, ExternalLink, ArrowLeft, Settings } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import {
   fetchNotifications,
@@ -114,15 +114,24 @@ export default function Notifications() {
             </div>
           </div>
 
-          {unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllAsRead}
-              className="flex items-center px-4 py-2 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllAsRead}
+                className="flex items-center px-4 py-2 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+              >
+                <CheckCheck className="h-4 w-4 mr-2" />
+                Mark all as read
+              </button>
+            )}
+            <Link
+              to="/notifications/settings"
+              className="flex items-center px-4 py-2 text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
-              <CheckCheck className="h-4 w-4 mr-2" />
-              Mark all as read
-            </button>
-          )}
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Link>
+          </div>
         </div>
 
         {/* Notifications List */}

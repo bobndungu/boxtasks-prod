@@ -1,0 +1,47 @@
+# Email template management routes.
+
+boxtasks_notification.email_templates:
+  path: '/api/email-templates'
+  defaults:
+    _controller: '\Drupal\boxtasks_notification\Controller\EmailTemplateController::getTemplates'
+  methods: [GET]
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _auth: ['oauth2']
+    no_cache: TRUE
+
+boxtasks_notification.email_template_update:
+  path: '/api/email-templates/{type}'
+  defaults:
+    _controller: '\Drupal\boxtasks_notification\Controller\EmailTemplateController::updateTemplate'
+  methods: [PATCH]
+  requirements:
+    _permission: 'administer site configuration'
+    type: '[a-z_]+'
+  options:
+    _auth: ['oauth2']
+    no_cache: TRUE
+
+boxtasks_notification.email_template_reset:
+  path: '/api/email-templates/{type}/reset'
+  defaults:
+    _controller: '\Drupal\boxtasks_notification\Controller\EmailTemplateController::resetTemplate'
+  methods: [POST]
+  requirements:
+    _permission: 'administer site configuration'
+    type: '[a-z_]+'
+  options:
+    _auth: ['oauth2']
+    no_cache: TRUE
+
+boxtasks_notification.email_template_preview:
+  path: '/api/email-templates/preview'
+  defaults:
+    _controller: '\Drupal\boxtasks_notification\Controller\EmailTemplateController::previewTemplate'
+  methods: [POST]
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _auth: ['oauth2']
+    no_cache: TRUE

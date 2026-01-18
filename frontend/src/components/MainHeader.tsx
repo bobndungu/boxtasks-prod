@@ -5,12 +5,12 @@ import {
   Plus,
   Star,
   Clock,
-  Settings,
   LogOut,
   ChevronDown,
   Search,
   LayoutGrid,
   User,
+  Bell,
 } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import { useBoardStore } from '../lib/stores/board';
@@ -243,8 +243,12 @@ export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
                   </div>
                   <div className="py-1">
                     <Link to="/profile" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <Settings className="h-4 w-4 mr-3" />
-                      Profile & Settings
+                      <User className="h-4 w-4 mr-3" />
+                      Profile
+                    </Link>
+                    <Link to="/notifications/settings" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <Bell className="h-4 w-4 mr-3" />
+                      Notification Settings
                     </Link>
                     <button
                       onClick={handleLogout}

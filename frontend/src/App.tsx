@@ -30,6 +30,7 @@ const WorkspaceReports = lazy(() => import('./pages/WorkspaceReports'));
 const MindMapView = lazy(() => import('./pages/MindMapView'));
 const BoardReports = lazy(() => import('./pages/BoardReports'));
 const Notifications = lazy(() => import('./pages/Notifications'));
+const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
 
@@ -174,6 +175,7 @@ const router = createBrowserRouter([
       { path: 'everything', element: <ProtectedRoute><EverythingView /></ProtectedRoute> },
       { path: 'my-cards', element: <ProtectedRoute><MyCards /></ProtectedRoute> },
       { path: 'notifications', element: <ProtectedRoute><Notifications /></ProtectedRoute> },
+      { path: 'notifications/settings', element: <ProtectedRoute><NotificationSettings /></ProtectedRoute> },
       { path: 'workspace/:workspaceId/goals', element: <ProtectedRoute><Goals /></ProtectedRoute> },
       { path: 'workspace/:workspaceId/milestones', element: <ProtectedRoute><Milestones /></ProtectedRoute> },
       { path: 'workspace/:workspaceId/reports', element: <ProtectedRoute><WorkspaceReports /></ProtectedRoute> },

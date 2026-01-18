@@ -1,4 +1,5 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import {
   User,
   Mail,
@@ -9,27 +10,12 @@ import {
   Loader2,
   Camera,
   Bell,
-  MailIcon,
   AtSign,
+  ChevronRight,
 } from 'lucide-react';
 import MainHeader from '../components/MainHeader';
 import { useAuthStore, type User as UserType } from '../lib/stores/auth';
 import { getAccessToken } from '../lib/api/client';
-import {
-  fetchNotificationPreferences,
-  updateNotificationPreferences,
-  DEFAULT_NOTIFICATION_PREFERENCES,
-  NOTIFICATION_PREFERENCE_LABELS,
-  type NotificationPreferences,
-  type EmailDeliveryTiming,
-} from '../lib/api/notifications';
-import {
-  isPushSupported,
-  isPushSubscribed,
-  subscribeToPush,
-  unsubscribeFromPush,
-  getNotificationPermission,
-} from '../lib/api/push';
 
 const TIMEZONES = [
   'UTC',
@@ -46,6 +32,7 @@ const TIMEZONES = [
   'Asia/Shanghai',
   'Asia/Singapore',
   'Australia/Sydney',
+  'Africa/Nairobi',
 ];
 
 export default function Profile() {
@@ -60,27 +47,6 @@ export default function Profile() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
-  const [notifLoading, setNotifLoading] = useState(false);
-  const [notifMessage, setNotifMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [pushSupported, setPushSupported] = useState(false);
-  const [pushEnabled, setPushEnabled] = useState(false);
-  const [pushLoading, setPushLoading] = useState(false);
-
-  // Load notification preferences
-  useEffect(() => {
-    if (user?.id) {
-      fetchNotificationPreferences(user.id)
-        .then(setNotifPrefs)
-        .catch(console.error);
-    }
-  }, [user?.id]);
-
-  // Check push notification status
-  useEffect(() => {
-    setPushSupported(isPushSupported());
-    isPushSubscribed().then(setPushEnabled);
-  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -306,256 +272,24 @@ export default function Profile() {
           </form>
         </div>
 
-        {/* Notification Preferences */}
-        <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Bell className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-2" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Notification Preferences</h2>
-              </div>
-              {notifMessage && (
-                <span
-                  className={`text-sm ${
-                    notifMessage.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                  }`}
-                >
-                  {notifMessage.text}
-                </span>
-              )}
+        {/* Notification Settings Link */}
+        <Link
+          to="/notifications/settings"
+          className="mt-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors block"
+        >
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-4">
+              <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Control how you receive notifications
-            </p>
-          </div>
-
-          <div className="p-6 space-y-8">
-            {/* In-App Notifications */}
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
-                <Bell className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
-                In-App Notifications
-              </h3>
-              <div className="space-y-3">
-                {(Object.keys(notifPrefs.inApp) as Array<keyof typeof notifPrefs.inApp>).map((key) => {
-                  const labels = NOTIFICATION_PREFERENCE_LABELS[key];
-                  if (!labels) return null;
-                  return (
-                    <label key={key} className="flex items-start cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={notifPrefs.inApp[key]}
-                        onChange={(e) =>
-                          setNotifPrefs({
-                            ...notifPrefs,
-                            inApp: { ...notifPrefs.inApp, [key]: e.target.checked },
-                          })
-                        }
-                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded cursor-pointer bg-white dark:bg-gray-700"
-                      />
-                      <div className="ml-3">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">
-                          {labels.label}
-                        </span>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{labels.description}</p>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Email Notifications */}
-            <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-              <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
-                <MailIcon className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
-                Email Notifications
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Choose which notifications to receive by email and when to receive them
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Notification Settings</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Manage in-app, email, and push notification preferences
               </p>
-              <div className="space-y-4">
-                {(Object.keys(notifPrefs.email) as Array<keyof typeof notifPrefs.email>).map((key) => {
-                  const labels = NOTIFICATION_PREFERENCE_LABELS[key];
-                  if (!labels) return null;
-                  const deliveryKey = key as keyof typeof notifPrefs.emailDelivery;
-                  const hasDeliveryOption = deliveryKey in notifPrefs.emailDelivery;
-                  return (
-                    <div key={key} className="flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <label className="flex items-start cursor-pointer group flex-1">
-                        <input
-                          type="checkbox"
-                          checked={notifPrefs.email[key]}
-                          onChange={(e) =>
-                            setNotifPrefs({
-                              ...notifPrefs,
-                              email: { ...notifPrefs.email, [key]: e.target.checked },
-                            })
-                          }
-                          className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded cursor-pointer bg-white dark:bg-gray-700"
-                        />
-                        <div className="ml-3">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">
-                            {labels.label}
-                          </span>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{labels.description}</p>
-                        </div>
-                      </label>
-                      {hasDeliveryOption && notifPrefs.email[key] && (
-                        <select
-                          value={notifPrefs.emailDelivery[deliveryKey]}
-                          onChange={(e) =>
-                            setNotifPrefs({
-                              ...notifPrefs,
-                              emailDelivery: {
-                                ...notifPrefs.emailDelivery,
-                                [deliveryKey]: e.target.value as EmailDeliveryTiming,
-                              },
-                            })
-                          }
-                          className="ml-4 text-sm px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="immediate">Immediately</option>
-                          <option value="digest">In digest</option>
-                        </select>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Push Notifications */}
-            {pushSupported && (
-              <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center">
-                  <Bell className="h-4 w-4 mr-2 text-purple-600 dark:text-purple-400" />
-                  Browser Push Notifications
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                  Receive instant notifications in your browser, even when BoxTasks is closed
-                </p>
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {pushEnabled ? 'Push notifications are enabled' : 'Enable push notifications'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {getNotificationPermission() === 'denied'
-                        ? 'Permission denied - please enable in browser settings'
-                        : pushEnabled
-                        ? 'You will receive notifications for important events'
-                        : 'Get notified instantly when something happens'}
-                    </p>
-                  </div>
-                  <button
-                    onClick={async () => {
-                      if (!user?.id) return;
-                      setPushLoading(true);
-                      try {
-                        if (pushEnabled) {
-                          await unsubscribeFromPush(user.id);
-                          setPushEnabled(false);
-                        } else {
-                          const subscription = await subscribeToPush(user.id);
-                          setPushEnabled(!!subscription);
-                        }
-                      } catch (error) {
-                        console.error('Push subscription error:', error);
-                      } finally {
-                        setPushLoading(false);
-                      }
-                    }}
-                    disabled={pushLoading || getNotificationPermission() === 'denied'}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center ${
-                      pushEnabled
-                        ? 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500'
-                        : 'bg-purple-600 text-white hover:bg-purple-700'
-                    }`}
-                  >
-                    {pushLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : pushEnabled ? (
-                      'Disable'
-                    ) : (
-                      'Enable'
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Email Digest */}
-            <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-              <h3 className="font-medium text-gray-900 dark:text-white mb-4">Email Digest</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                For notifications set to "In digest", how often should we send you a summary?
-              </p>
-              <div className="flex flex-wrap gap-4">
-                {([
-                  { value: 'none', label: 'Never (disable digest)' },
-                  { value: 'hourly', label: 'Hourly' },
-                  { value: 'daily', label: 'Daily' },
-                  { value: 'weekly', label: 'Weekly' },
-                ] as const).map((option) => (
-                  <label key={option.value} className="flex items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      name="emailDigest"
-                      value={option.value}
-                      checked={notifPrefs.emailDigest === option.value}
-                      onChange={() => setNotifPrefs({ ...notifPrefs, emailDigest: option.value })}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 cursor-pointer bg-white dark:bg-gray-700"
-                    />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{option.label}</span>
-                  </label>
-                ))}
-              </div>
-              {notifPrefs.emailDigest === 'none' && (
-                <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-                  Note: Notifications set to "In digest" will not be sent if digest is disabled.
-                </p>
-              )}
-            </div>
-
-            {/* Save Button */}
-            <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={async () => {
-                  if (!user?.id) return;
-                  setNotifLoading(true);
-                  setNotifMessage(null);
-                  try {
-                    await updateNotificationPreferences(user.id, notifPrefs);
-                    setNotifMessage({ type: 'success', text: 'Preferences saved!' });
-                    setTimeout(() => setNotifMessage(null), 3000);
-                  } catch (error) {
-                    setNotifMessage({
-                      type: 'error',
-                      text: error instanceof Error ? error.message : 'Failed to save preferences',
-                    });
-                  } finally {
-                    setNotifLoading(false);
-                  }
-                }}
-                disabled={notifLoading}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-              >
-                {notifLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Notification Preferences
-                  </>
-                )}
-              </button>
             </div>
           </div>
-        </div>
+          <ChevronRight className="h-5 w-5 text-gray-400" />
+        </Link>
 
         {/* Danger Zone */}
         <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
