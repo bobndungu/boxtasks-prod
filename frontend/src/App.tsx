@@ -8,6 +8,7 @@ import { ErrorBoundary, BoardErrorBoundary } from './components/ErrorBoundary';
 import { SkipLinks } from './components/SkipLinks';
 import { PWAUpdatePrompt, OfflineIndicator, PWAInstallPrompt } from './components/PWAPrompt';
 import { SessionExpiryWarning } from './components/SessionExpiryWarning';
+import MentionToastContainer from './components/MentionToastContainer';
 
 // Lazy loaded pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
@@ -136,6 +137,7 @@ function RootLayout() {
       <ToastContainer />
       <PWAUpdatePrompt />
       <OfflineIndicator />
+      <MentionToastContainer />
       <PWAInstallPrompt />
       <SessionExpiryWarning />
       <Suspense fallback={<PageLoader />}>
