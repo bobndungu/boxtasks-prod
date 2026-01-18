@@ -283,7 +283,7 @@ export default function AdminRoles() {
           </div>
           <div className="flex gap-3">
             <Link
-              to="/admin/users"
+              to="/manage/users"
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
             >
               <Users className="h-4 w-4" />

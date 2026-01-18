@@ -185,9 +185,9 @@ const router = createBrowserRouter([
       { path: 'board/:boardId/mindmap/:mindMapId', element: <ProtectedRoute><MindMapView /></ProtectedRoute> },
       { path: 'board/:boardId/reports', element: <ProtectedRoute><BoardReports /></ProtectedRoute> },
       { path: 'reports', element: <ProtectedRoute><Reports /></ProtectedRoute> },
-      // Admin routes
-      { path: 'admin/users', element: <ProtectedRoute><AdminUsers /></ProtectedRoute> },
-      { path: 'admin/roles', element: <ProtectedRoute><AdminRoles /></ProtectedRoute> },
+      // Admin routes (using /manage to avoid Drupal /admin conflict)
+      { path: 'manage/users', element: <ProtectedRoute><AdminUsers /></ProtectedRoute> },
+      { path: 'manage/roles', element: <ProtectedRoute><AdminRoles /></ProtectedRoute> },
       // 404 catch-all
       { path: '*', element: <NotFound /> },
     ],
