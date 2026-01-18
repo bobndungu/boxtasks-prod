@@ -9,6 +9,7 @@
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeInterface;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * Implements hook_entity_presave().
@@ -39,7 +40,7 @@ function boxtasks_card_entity_presave(EntityInterface $entity): void {
     $due_timestamp = strtotime($due_date);
 
     if ($start_timestamp > $due_timestamp) {
-      throw new \InvalidArgumentException('Start date cannot be later than the due date.');
+      throw new UnprocessableEntityHttpException('Start date cannot be later than the due date.');
     }
   }
 }
