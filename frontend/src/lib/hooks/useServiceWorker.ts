@@ -16,7 +16,7 @@ export function useServiceWorker() {
     updateServiceWorker,
   } = useRegisterSW({
     // Check for SW updates every 60 seconds
-    onRegisteredSW(swUrl, registration) {
+    onRegistered(registration: ServiceWorkerRegistration | undefined) {
       if (registration) {
         // Check for updates periodically
         setInterval(() => {
@@ -24,7 +24,7 @@ export function useServiceWorker() {
         }, 60 * 1000); // Check every 60 seconds
       }
     },
-    onRegisterError(error) {
+    onRegisterError(error: Error) {
       console.error('Service worker registration error:', error);
     },
   });
