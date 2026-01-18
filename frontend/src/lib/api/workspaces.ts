@@ -232,6 +232,12 @@ export async function updateWorkspaceMembers(
   return transformWorkspace(result.data);
 }
 
+// System/admin user names that should be hidden from user dropdowns
+const SYSTEM_USER_NAMES = ['n8n_api', 'n8n api', 'boxraft admin', 'box admin'];
+
+// Drupal roles that indicate a super admin (should be hidden from member dropdowns)
+const SUPER_ADMIN_ROLES = ['administrator', 'box_admin'];
+
 // Fetch all users (for dropdowns)
 export async function fetchAllUsers(): Promise<WorkspaceMember[]> {
   const response = await fetch(
@@ -257,9 +263,25 @@ export async function fetchAllUsers(): Promise<WorkspaceMember[]> {
       const uid = attrs.drupal_internal__uid as number;
       // Skip anonymous user (uid 0)
       if (uid === 0) return null;
+
+      // Get user roles
+      const roles = (attrs.roles as Array<{ target_id: string }> | undefined)?.map(r => r.target_id) || [];
+
+      // Skip super admin users
+      if (SUPER_ADMIN_ROLES.some(role => roles.includes(role))) {
+        return null;
+      }
+
+      const displayName = (attrs.field_display_name as string) || (attrs.field_full_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown';
+
+      // Skip system users by name
+      if (SYSTEM_USER_NAMES.includes(displayName.toLowerCase())) {
+        return null;
+      }
+
       return {
         id: user.id as string,
-        displayName: (attrs.field_display_name as string) || (attrs.field_full_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown',
+        displayName,
         email: (attrs.mail as string) || '',
         isAdmin: false,
       };
@@ -288,13 +310,34 @@ export async function searchUsers(query: string): Promise<WorkspaceMember[]> {
   const result = await response.json();
   const users = result.data || [];
 
-  return users.map((user: Record<string, unknown>) => {
-    const attrs = user.attributes as Record<string, unknown>;
-    return {
-      id: user.id as string,
-      displayName: (attrs.field_display_name as string) || (attrs.field_full_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown',
-      email: (attrs.mail as string) || '',
-      isAdmin: false,
-    };
-  });
+  return users
+    .map((user: Record<string, unknown>) => {
+      const attrs = user.attributes as Record<string, unknown>;
+      const uid = attrs.drupal_internal__uid as number;
+      // Skip anonymous user (uid 0)
+      if (uid === 0) return null;
+
+      // Get user roles
+      const roles = (attrs.roles as Array<{ target_id: string }> | undefined)?.map(r => r.target_id) || [];
+
+      // Skip super admin users
+      if (SUPER_ADMIN_ROLES.some(role => roles.includes(role))) {
+        return null;
+      }
+
+      const displayName = (attrs.field_display_name as string) || (attrs.field_full_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown';
+
+      // Skip system users by name
+      if (SYSTEM_USER_NAMES.includes(displayName.toLowerCase())) {
+        return null;
+      }
+
+      return {
+        id: user.id as string,
+        displayName,
+        email: (attrs.mail as string) || '',
+        isAdmin: false,
+      };
+    })
+    .filter((user: WorkspaceMember | null): user is WorkspaceMember => user !== null);
 }

@@ -57,6 +57,27 @@ class DashboardDataController extends ControllerBase {
   }
 
   /**
+   * Check if a user is a super admin (should be hidden from member lists).
+   *
+   * @param mixed $user
+   *   The user entity.
+   *
+   * @return bool
+   *   TRUE if the user is a super admin.
+   */
+  protected function isSuperAdmin($user): bool {
+    // Check user roles.
+    $roles = $user->getRoles();
+
+    // Users with 'administrator' or 'box_admin' role are super admins.
+    if (in_array('administrator', $roles) || in_array('box_admin', $roles)) {
+      return TRUE;
+    }
+
+    return FALSE;
+  }
+
+  /**
    * Authenticate user from OAuth Bearer token (JWT).
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
@@ -361,6 +382,11 @@ class DashboardDataController extends ControllerBase {
         }
 
         foreach ($members as $member) {
+          // Skip super admins from team stats list.
+          if ($this->isSuperAdmin($member)) {
+            continue;
+          }
+
           $member_id = $member->id();
           $member_stats = $member_card_stats[$member_id] ?? [
             'assigned' => 0,

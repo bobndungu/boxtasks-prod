@@ -19,9 +19,10 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
     return AccessResult::neutral();
   }
 
-  // Admins bypass all checks.
-  if ($account->hasPermission('administer nodes')) {
-    return AccessResult::allowed()->cachePerPermissions();
+  // Super admins (Box Admin) bypass all checks.
+  // Check both permission and role to ensure administrators always have access.
+  if ($account->hasPermission('administer nodes') || boxtasks_role_is_super_admin($account)) {
+    return AccessResult::allowed()->cachePerPermissions()->cachePerUser();
   }
 
   // Get the permission checker service.
@@ -81,4 +82,36 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
   return AccessResult::forbidden()
     ->cachePerUser()
     ->addCacheableDependency($node);
+}
+
+/**
+ * Check if a user is a super admin (Box Admin).
+ *
+ * Super admins can see all workspaces, boards, and content
+ * without needing to be added as members.
+ *
+ * @param \Drupal\Core\Session\AccountInterface $account
+ *   The user account to check.
+ *
+ * @return bool
+ *   TRUE if the user is a super admin.
+ */
+function boxtasks_role_is_super_admin(AccountInterface $account): bool {
+  // Check for administrator role.
+  $roles = $account->getRoles();
+
+  // Users with 'administrator' role are super admins.
+  if (in_array('administrator', $roles)) {
+    return TRUE;
+  }
+
+  // Also check for any role containing 'admin' in case of custom admin roles.
+  // But exclude 'workspace_admin' as that's a different permission level.
+  foreach ($roles as $role) {
+    if ($role === 'administrator' || $role === 'box_admin') {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }

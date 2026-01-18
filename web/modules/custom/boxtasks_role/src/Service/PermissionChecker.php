@@ -106,6 +106,27 @@ class PermissionChecker {
   }
 
   /**
+   * Check if the current user is a super admin.
+   *
+   * @return bool
+   *   TRUE if the current user is a super admin.
+   */
+  public function isSuperAdmin(): bool {
+    // Check for 'administer nodes' permission.
+    if ($this->currentUser->hasPermission('administer nodes')) {
+      return TRUE;
+    }
+
+    // Check for administrator role.
+    $roles = $this->currentUser->getRoles();
+    if (in_array('administrator', $roles) || in_array('box_admin', $roles)) {
+      return TRUE;
+    }
+
+    return FALSE;
+  }
+
+  /**
    * Check if user can view a board.
    *
    * @param \Drupal\node\NodeInterface $board
@@ -119,8 +140,8 @@ class PermissionChecker {
   public function canViewBoard(NodeInterface $board, ?int $user_id = NULL): bool {
     $user_id = $user_id ?? $this->currentUser->id();
 
-    // Admins can always view.
-    if ($this->currentUser->hasPermission('administer nodes')) {
+    // Super admins can always view.
+    if ($this->isSuperAdmin()) {
       return TRUE;
     }
 
@@ -168,8 +189,8 @@ class PermissionChecker {
   public function canViewWorkspace(NodeInterface $workspace, ?int $user_id = NULL): bool {
     $user_id = $user_id ?? $this->currentUser->id();
 
-    // Admins can always view.
-    if ($this->currentUser->hasPermission('administer nodes')) {
+    // Super admins can always view.
+    if ($this->isSuperAdmin()) {
       return TRUE;
     }
 
@@ -211,8 +232,8 @@ class PermissionChecker {
   public function checkPermission(string $permission, string $workspace_id, ?int $owner_id = NULL, ?int $user_id = NULL): bool {
     $user_id = $user_id ?? $this->currentUser->id();
 
-    // Admins can do everything.
-    if ($this->currentUser->hasPermission('administer nodes')) {
+    // Super admins can do everything.
+    if ($this->isSuperAdmin()) {
       return TRUE;
     }
 

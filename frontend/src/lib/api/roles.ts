@@ -42,6 +42,10 @@ export interface WorkspaceRole {
     reportActivity: PermissionLevel;
     reportWorkload: PermissionLevel;
     reportExport: PermissionLevel;
+    // Admin page permissions
+    emailTemplatesManage: PermissionLevel;
+    userManagement: PermissionLevel;
+    roleManagement: PermissionLevel;
   };
 }
 
@@ -96,6 +100,10 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       reportActivity: (attrs.field_perm_report_activity as PermissionLevel) || 'none',
       reportWorkload: (attrs.field_perm_report_workload as PermissionLevel) || 'none',
       reportExport: (attrs.field_perm_report_export as PermissionLevel) || 'none',
+      // Admin page permissions
+      emailTemplatesManage: (attrs.field_perm_email_templates as PermissionLevel) || 'none',
+      userManagement: (attrs.field_perm_user_management as PermissionLevel) || 'none',
+      roleManagement: (attrs.field_perm_role_management as PermissionLevel) || 'none',
     },
   };
 }
@@ -420,6 +428,10 @@ export async function createWorkspaceRole(
           field_perm_report_activity: permissions.reportActivity,
           field_perm_report_workload: permissions.reportWorkload,
           field_perm_report_export: permissions.reportExport,
+          // Admin page permissions
+          field_perm_email_templates: permissions.emailTemplatesManage,
+          field_perm_user_management: permissions.userManagement,
+          field_perm_role_management: permissions.roleManagement,
         },
         ...(Object.keys(relationships).length > 0 && { relationships }),
       },
@@ -534,6 +546,16 @@ export async function updateWorkspaceRole(
     }
     if (updates.permissions.reportExport !== undefined) {
       attributes.field_perm_report_export = updates.permissions.reportExport;
+    }
+    // Admin page permissions
+    if (updates.permissions.emailTemplatesManage !== undefined) {
+      attributes.field_perm_email_templates = updates.permissions.emailTemplatesManage;
+    }
+    if (updates.permissions.userManagement !== undefined) {
+      attributes.field_perm_user_management = updates.permissions.userManagement;
+    }
+    if (updates.permissions.roleManagement !== undefined) {
+      attributes.field_perm_role_management = updates.permissions.roleManagement;
     }
   }
 

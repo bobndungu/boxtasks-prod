@@ -13,6 +13,9 @@ import {
   X,
   Save,
   Check,
+  Briefcase,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import MainHeader from '../components/MainHeader';
 import { useAuthStore } from '../lib/stores/auth';
@@ -25,6 +28,18 @@ import {
   setUserStatus,
   type DrupalUser,
 } from '../lib/api/users';
+import { fetchAllWorkspaces, type Workspace } from '../lib/api/workspaces';
+import {
+  fetchGlobalRoles,
+  createMemberRole,
+  deleteMemberRole,
+  updateMemberRole,
+  type WorkspaceRole,
+  type MemberRoleAssignment,
+} from '../lib/api/roles';
+import { getAccessToken } from '../lib/api/client';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
 export default function AdminUsers() {
   const { user: currentUser } = useAuthStore();
@@ -53,6 +68,15 @@ export default function AdminUsers() {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [roleSaving, setRoleSaving] = useState(false);
   const [roleMessage, setRoleMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [roleTab, setRoleTab] = useState<'drupal' | 'workspace'>('drupal');
+
+  // Workspace role assignment state
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [globalRoles, setGlobalRoles] = useState<WorkspaceRole[]>([]);
+  const [userWorkspaceRoles, setUserWorkspaceRoles] = useState<MemberRoleAssignment[]>([]);
+  const [wsRolesLoading, setWsRolesLoading] = useState(false);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<string>('');
+  const [selectedWorkspaceRole, setSelectedWorkspaceRole] = useState<string>('');
 
   // Check if current user is admin
   const isAdmin = currentUser?.roles?.includes('administrator') || currentUser?.roles?.includes('admin');
@@ -64,6 +88,9 @@ export default function AdminUsers() {
   useEffect(() => {
     // Load Drupal roles for the role assignment modal
     fetchDrupalRoles().then(setDrupalRoles);
+    // Load workspaces and global roles for workspace role assignment
+    fetchAllWorkspaces().then(setWorkspaces);
+    fetchGlobalRoles().then(setGlobalRoles);
   }, []);
 
   const loadUsers = async () => {
@@ -138,16 +165,157 @@ export default function AdminUsers() {
     }
   };
 
+  // Fetch user's workspace role assignments
+  const fetchUserWorkspaceRoles = async (userId: string) => {
+    setWsRolesLoading(true);
+    try {
+      // Fetch all member_role nodes for this user
+      const response = await fetch(
+        `${API_URL}/jsonapi/node/member_role?filter[field_member_role_user.id]=${userId}&include=field_member_role_role,field_member_role_workspace`,
+        {
+          headers: {
+            'Accept': 'application/vnd.api+json',
+            'Authorization': `Bearer ${getAccessToken()}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        setUserWorkspaceRoles([]);
+        return;
+      }
+
+      const result = await response.json();
+      if (!Array.isArray(result.data)) {
+        setUserWorkspaceRoles([]);
+        return;
+      }
+
+      // Transform the data
+      const assignments: MemberRoleAssignment[] = result.data.map((item: Record<string, unknown>) => {
+        const rels = item.relationships as Record<string, { data: { id: string } | null }> | undefined;
+        const roleId = rels?.field_member_role_role?.data?.id || '';
+        const workspaceId = rels?.field_member_role_workspace?.data?.id || '';
+
+        // Find the role and workspace from included
+        let roleName = '';
+        let workspaceName = '';
+        if (result.included) {
+          const roleData = result.included.find((inc: Record<string, unknown>) => inc.id === roleId);
+          if (roleData) {
+            const roleAttrs = roleData.attributes as Record<string, unknown>;
+            roleName = roleAttrs.title as string || '';
+          }
+          const workspaceData = result.included.find((inc: Record<string, unknown>) => inc.id === workspaceId);
+          if (workspaceData) {
+            const wsAttrs = workspaceData.attributes as Record<string, unknown>;
+            workspaceName = wsAttrs.title as string || '';
+          }
+        }
+
+        return {
+          id: item.id as string,
+          workspaceId,
+          userId,
+          roleId,
+          role: { id: roleId, title: roleName } as WorkspaceRole,
+          workspaceName,
+        };
+      });
+
+      setUserWorkspaceRoles(assignments);
+    } catch (error) {
+      console.error('Failed to fetch user workspace roles:', error);
+      setUserWorkspaceRoles([]);
+    } finally {
+      setWsRolesLoading(false);
+    }
+  };
+
   const openRoleModal = (user: DrupalUser) => {
     setRoleUser(user);
     setSelectedRoles(user.roles || []);
     setRoleMessage(null);
+    setRoleTab('drupal');
+    setSelectedWorkspace('');
+    setSelectedWorkspaceRole('');
+    // Fetch user's workspace roles
+    fetchUserWorkspaceRoles(user.id);
   };
 
   const closeRoleModal = () => {
     setRoleUser(null);
     setSelectedRoles([]);
     setRoleMessage(null);
+    setUserWorkspaceRoles([]);
+    setRoleTab('drupal');
+  };
+
+  const handleAddWorkspaceRole = async () => {
+    if (!roleUser || !selectedWorkspace || !selectedWorkspaceRole) return;
+
+    // Check if already assigned to this workspace
+    if (userWorkspaceRoles.some(r => r.workspaceId === selectedWorkspace)) {
+      setRoleMessage({ type: 'error', text: 'User already has a role in this workspace' });
+      return;
+    }
+
+    setRoleSaving(true);
+    setRoleMessage(null);
+    try {
+      await createMemberRole(selectedWorkspace, roleUser.id, selectedWorkspaceRole);
+      setRoleMessage({ type: 'success', text: 'Workspace role assigned successfully' });
+      // Refresh the list
+      await fetchUserWorkspaceRoles(roleUser.id);
+      setSelectedWorkspace('');
+      setSelectedWorkspaceRole('');
+    } catch (error) {
+      setRoleMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to assign workspace role',
+      });
+    } finally {
+      setRoleSaving(false);
+    }
+  };
+
+  const handleRemoveWorkspaceRole = async (assignmentId: string) => {
+    if (!roleUser) return;
+    if (!confirm('Are you sure you want to remove this workspace role?')) return;
+
+    setRoleSaving(true);
+    setRoleMessage(null);
+    try {
+      await deleteMemberRole(assignmentId);
+      setRoleMessage({ type: 'success', text: 'Workspace role removed successfully' });
+      await fetchUserWorkspaceRoles(roleUser.id);
+    } catch (error) {
+      setRoleMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to remove workspace role',
+      });
+    } finally {
+      setRoleSaving(false);
+    }
+  };
+
+  const handleUpdateWorkspaceRole = async (assignmentId: string, newRoleId: string) => {
+    if (!roleUser) return;
+
+    setRoleSaving(true);
+    setRoleMessage(null);
+    try {
+      await updateMemberRole(assignmentId, newRoleId);
+      setRoleMessage({ type: 'success', text: 'Workspace role updated successfully' });
+      await fetchUserWorkspaceRoles(roleUser.id);
+    } catch (error) {
+      setRoleMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to update workspace role',
+      });
+    } finally {
+      setRoleSaving(false);
+    }
   };
 
   const toggleRole = (roleId: string) => {
@@ -531,7 +699,7 @@ export default function AdminUsers() {
       {/* Role Management Modal */}
       {roleUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Manage Roles</h2>
@@ -544,37 +712,175 @@ export default function AdminUsers() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-6">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Select the Drupal roles for this user. These roles control site-wide permissions.
-              </p>
-              <div className="space-y-2">
-                {drupalRoles.map((role) => (
-                  <label
-                    key={role.id}
-                    className="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedRoles.includes(role.id)}
-                      onChange={() => toggleRole(role.id)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
-                    />
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{role.label}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{role.id}</p>
-                    </div>
-                    {selectedRoles.includes(role.id) && (
-                      <Check className="h-4 w-4 text-blue-600 ml-auto" />
-                    )}
-                  </label>
-                ))}
-                {drupalRoles.length === 0 && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                    No roles available
-                  </p>
-                )}
+
+            {/* Tabs */}
+            <div className="border-b border-gray-200 dark:border-gray-700 px-6">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setRoleTab('drupal')}
+                  className={`py-3 px-1 border-b-2 text-sm font-medium transition-colors ${
+                    roleTab === 'drupal'
+                      ? 'border-purple-600 text-purple-600 dark:text-purple-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Drupal Roles
+                  </div>
+                </button>
+                <button
+                  onClick={() => setRoleTab('workspace')}
+                  className={`py-3 px-1 border-b-2 text-sm font-medium transition-colors ${
+                    roleTab === 'workspace'
+                      ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    Workspace Roles
+                  </div>
+                </button>
               </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1">
+              {roleTab === 'drupal' ? (
+                <>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    Select the Drupal roles for this user. These roles control site-wide permissions.
+                  </p>
+                  <div className="space-y-2">
+                    {drupalRoles.map((role) => (
+                      <label
+                        key={role.id}
+                        className="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedRoles.includes(role.id)}
+                          onChange={() => toggleRole(role.id)}
+                          className="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
+                        />
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{role.label}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{role.id}</p>
+                        </div>
+                        {selectedRoles.includes(role.id) && (
+                          <Check className="h-4 w-4 text-blue-600 ml-auto" />
+                        )}
+                      </label>
+                    ))}
+                    {drupalRoles.length === 0 && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                        No roles available
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    Assign workspace-level roles to control permissions within specific workspaces.
+                  </p>
+
+                  {/* Current workspace role assignments */}
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Assignments</h3>
+                    {wsRolesLoading ? (
+                      <div className="text-center py-4">
+                        <Loader2 className="h-5 w-5 animate-spin text-blue-600 mx-auto" />
+                      </div>
+                    ) : userWorkspaceRoles.length === 0 ? (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        No workspace roles assigned
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {userWorkspaceRoles.map((assignment) => {
+                          const workspace = workspaces.find(w => w.id === assignment.workspaceId);
+                          return (
+                            <div
+                              key={assignment.id}
+                              className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                            >
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {(assignment as MemberRoleAssignment & { workspaceName?: string }).workspaceName || workspace?.title || 'Unknown Workspace'}
+                                </p>
+                                <select
+                                  value={assignment.roleId}
+                                  onChange={(e) => handleUpdateWorkspaceRole(assignment.id, e.target.value)}
+                                  disabled={roleSaving}
+                                  className="mt-1 text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+                                >
+                                  {globalRoles.map(role => (
+                                    <option key={role.id} value={role.id}>{role.title}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <button
+                                onClick={() => handleRemoveWorkspaceRole(assignment.id)}
+                                disabled={roleSaving}
+                                className="ml-2 p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg disabled:opacity-50"
+                                title="Remove assignment"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Add new workspace role */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add New Assignment</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Workspace</label>
+                        <select
+                          value={selectedWorkspace}
+                          onChange={(e) => setSelectedWorkspace(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                        >
+                          <option value="">Select a workspace...</option>
+                          {workspaces
+                            .filter(w => !userWorkspaceRoles.some(r => r.workspaceId === w.id))
+                            .map(workspace => (
+                              <option key={workspace.id} value={workspace.id}>{workspace.title}</option>
+                            ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Role</label>
+                        <select
+                          value={selectedWorkspaceRole}
+                          onChange={(e) => setSelectedWorkspaceRole(e.target.value)}
+                          disabled={!selectedWorkspace}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm disabled:opacity-50"
+                        >
+                          <option value="">Select a role...</option>
+                          {globalRoles.map(role => (
+                            <option key={role.id} value={role.id}>{role.title}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <button
+                        onClick={handleAddWorkspaceRole}
+                        disabled={roleSaving || !selectedWorkspace || !selectedWorkspaceRole}
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {roleSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                        Add Workspace Role
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+
               {roleMessage && (
                 <div
                   className={`mt-4 p-3 rounded-lg text-sm ${
@@ -587,21 +893,24 @@ export default function AdminUsers() {
                 </div>
               )}
             </div>
+
             <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
               <button
                 onClick={closeRoleModal}
                 className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
-                Cancel
+                {roleTab === 'drupal' ? 'Cancel' : 'Close'}
               </button>
-              <button
-                onClick={handleSaveRoles}
-                disabled={roleSaving}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                {roleSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shield className="h-4 w-4" />}
-                Save Roles
-              </button>
+              {roleTab === 'drupal' && (
+                <button
+                  onClick={handleSaveRoles}
+                  disabled={roleSaving}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {roleSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shield className="h-4 w-4" />}
+                  Save Drupal Roles
+                </button>
+              )}
             </div>
           </div>
         </div>

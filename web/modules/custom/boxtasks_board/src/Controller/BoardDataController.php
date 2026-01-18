@@ -262,8 +262,8 @@ class BoardDataController extends ControllerBase {
     }
 
     if ($member_setup === 'just_me') {
-      // Only the board owner.
-      if ($board_owner) {
+      // Only the board owner (skip if super admin).
+      if ($board_owner && !$this->isSuperAdmin($board_owner)) {
         $members[] = $this->formatUserWithRole($board_owner, TRUE);
       }
     }
@@ -272,6 +272,10 @@ class BoardDataController extends ControllerBase {
       foreach ($board->get('field_board_members') as $member_ref) {
         if ($member_ref->entity) {
           $user = $member_ref->entity;
+          // Skip super admins from member list.
+          if ($this->isSuperAdmin($user)) {
+            continue;
+          }
           $is_admin = in_array($user->uuid(), $board_admin_ids) || $user->uuid() === $board_owner_id;
           $members[] = $this->formatUserWithRole($user, $is_admin);
         }
@@ -302,15 +306,19 @@ class BoardDataController extends ControllerBase {
             foreach ($workspace->get('field_workspace_members') as $member_ref) {
               if ($member_ref->entity) {
                 $user = $member_ref->entity;
+                // Skip super admins from member list.
+                if ($this->isSuperAdmin($user)) {
+                  continue;
+                }
                 $is_admin = in_array($user->uuid(), $workspace_admin_ids);
                 $members[] = $this->formatUserWithRole($user, $is_admin);
               }
             }
           }
-          // Also add owner as admin.
+          // Also add owner as admin (skip if super admin).
           if ($workspace->hasField('field_workspace_owner') && !$workspace->get('field_workspace_owner')->isEmpty()) {
             $owner = $workspace->get('field_workspace_owner')->entity;
-            if ($owner) {
+            if ($owner && !$this->isSuperAdmin($owner)) {
               $owner_data = $this->formatUserWithRole($owner, TRUE);
               // Avoid duplicates.
               $member_ids = array_column($members, 'id');
@@ -512,6 +520,27 @@ class BoardDataController extends ControllerBase {
       'authorId' => $author_id,
       'drupal_id' => (int) $card->id(),
     ];
+  }
+
+  /**
+   * Check if a user is a super admin (should be hidden from member lists).
+   *
+   * @param mixed $user
+   *   The user entity.
+   *
+   * @return bool
+   *   TRUE if the user is a super admin.
+   */
+  protected function isSuperAdmin($user): bool {
+    // Check user roles.
+    $roles = $user->getRoles();
+
+    // Users with 'administrator' or 'box_admin' role are super admins.
+    if (in_array('administrator', $roles) || in_array('box_admin', $roles)) {
+      return TRUE;
+    }
+
+    return FALSE;
   }
 
   /**

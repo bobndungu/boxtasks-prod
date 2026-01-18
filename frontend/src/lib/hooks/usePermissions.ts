@@ -4,6 +4,7 @@ import { fetchMemberRole, fetchDefaultRole, canPerformAction } from '../api/role
 import type { WorkspaceRole, PermissionLevel } from '../api/roles';
 
 export type ReportType = 'performance' | 'tasks' | 'activity' | 'workload';
+export type AdminPageType = 'emailTemplates' | 'userManagement' | 'roleManagement';
 
 interface UsePermissionsReturn {
   permissions: WorkspaceRole['permissions'] | null;
@@ -19,6 +20,7 @@ interface UsePermissionsReturn {
   canViewReport: (reportType: ReportType, isOwner?: boolean) => boolean;
   canExportReports: () => boolean;
   canViewAnyReport: () => boolean;
+  canAccessAdminPage: (pageType: AdminPageType) => boolean;
   refetch: () => Promise<void>;
 }
 
@@ -49,6 +51,9 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   reportActivity: 'none',
   reportWorkload: 'none',
   reportExport: 'none',
+  emailTemplatesManage: 'none',
+  userManagement: 'none',
+  roleManagement: 'none',
 };
 
 // Check if error is an abort error (navigation/unmount)
@@ -315,6 +320,30 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     );
   }, [permissions]);
 
+  const canAccessAdminPage = useCallback((pageType: AdminPageType): boolean => {
+    // Check if user has Drupal administrator role first - they can access everything
+    if (user?.roles?.includes('administrator') || user?.roles?.includes('box_admin')) {
+      return true;
+    }
+
+    if (!permissions) return false;
+
+    let permission: PermissionLevel;
+    switch (pageType) {
+      case 'emailTemplates':
+        permission = permissions.emailTemplatesManage;
+        break;
+      case 'userManagement':
+        permission = permissions.userManagement;
+        break;
+      case 'roleManagement':
+        permission = permissions.roleManagement;
+        break;
+    }
+
+    return permission === 'any';
+  }, [permissions, user]);
+
   return {
     permissions,
     loading,
@@ -329,6 +358,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canViewReport,
     canExportReports,
     canViewAnyReport,
+    canAccessAdminPage,
     refetch,
   };
 }
