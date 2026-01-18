@@ -235,8 +235,8 @@ export async function updateWorkspaceMembers(
 // System/admin user names that should be hidden from user dropdowns
 const SYSTEM_USER_NAMES = ['n8n_api', 'n8n api', 'boxraft admin', 'box admin'];
 
-// Drupal roles that indicate a super admin (should be hidden from member dropdowns)
-const SUPER_ADMIN_ROLES = ['administrator', 'box_admin'];
+// Super admin is ONLY uid = 1 (not based on roles)
+const SUPER_ADMIN_UID = 1;
 
 // Fetch all users (for dropdowns)
 export async function fetchAllUsers(): Promise<WorkspaceMember[]> {
@@ -264,11 +264,8 @@ export async function fetchAllUsers(): Promise<WorkspaceMember[]> {
       // Skip anonymous user (uid 0)
       if (uid === 0) return null;
 
-      // Get user roles
-      const roles = (attrs.roles as Array<{ target_id: string }> | undefined)?.map(r => r.target_id) || [];
-
-      // Skip super admin users
-      if (SUPER_ADMIN_ROLES.some(role => roles.includes(role))) {
+      // Skip super admin (uid = 1 only)
+      if (uid === SUPER_ADMIN_UID) {
         return null;
       }
 
@@ -317,11 +314,8 @@ export async function searchUsers(query: string): Promise<WorkspaceMember[]> {
       // Skip anonymous user (uid 0)
       if (uid === 0) return null;
 
-      // Get user roles
-      const roles = (attrs.roles as Array<{ target_id: string }> | undefined)?.map(r => r.target_id) || [];
-
-      // Skip super admin users
-      if (SUPER_ADMIN_ROLES.some(role => roles.includes(role))) {
+      // Skip super admin (uid = 1 only)
+      if (uid === SUPER_ADMIN_UID) {
         return null;
       }
 

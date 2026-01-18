@@ -108,22 +108,15 @@ class PermissionChecker {
   /**
    * Check if the current user is a super admin.
    *
+   * Super admin is specifically uid = 1 only.
+   * Having administrator role does NOT make someone a super admin.
+   *
    * @return bool
-   *   TRUE if the current user is a super admin.
+   *   TRUE if the current user is a super admin (uid = 1).
    */
   public function isSuperAdmin(): bool {
-    // Check for 'administer nodes' permission.
-    if ($this->currentUser->hasPermission('administer nodes')) {
-      return TRUE;
-    }
-
-    // Check for administrator role.
-    $roles = $this->currentUser->getRoles();
-    if (in_array('administrator', $roles) || in_array('box_admin', $roles)) {
-      return TRUE;
-    }
-
-    return FALSE;
+    // Super admin is ONLY uid = 1
+    return (int) $this->currentUser->id() === 1;
   }
 
   /**

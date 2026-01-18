@@ -525,22 +525,18 @@ class BoardDataController extends ControllerBase {
   /**
    * Check if a user is a super admin (should be hidden from member lists).
    *
+   * Super admin is specifically uid = 1 only.
+   * Having administrator role does NOT make someone a super admin.
+   *
    * @param mixed $user
    *   The user entity.
    *
    * @return bool
-   *   TRUE if the user is a super admin.
+   *   TRUE if the user is a super admin (uid = 1).
    */
   protected function isSuperAdmin($user): bool {
-    // Check user roles.
-    $roles = $user->getRoles();
-
-    // Users with 'administrator' or 'box_admin' role are super admins.
-    if (in_array('administrator', $roles) || in_array('box_admin', $roles)) {
-      return TRUE;
-    }
-
-    return FALSE;
+    // Super admin is ONLY uid = 1
+    return (int) $user->id() === 1;
   }
 
   /**
