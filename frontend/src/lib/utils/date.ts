@@ -186,3 +186,111 @@ export function parseDate(dateString: string | null | undefined): Date | null {
   const date = new Date(dateString);
   return isNaN(date.getTime()) ? null : date;
 }
+
+/**
+ * Format a date with time first, then day and month (e.g., "9:00 PM - 15 Jan 2026")
+ */
+export function formatDateTimeCompact(date: string | Date | null | undefined): string {
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return '';
+
+  const timeStr = dateObj.toLocaleString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: EAT_TIMEZONE,
+  });
+
+  const dateStr = dateObj.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: EAT_TIMEZONE,
+  });
+
+  return `${timeStr} - ${dateStr}`;
+}
+
+/**
+ * Format just the date portion (e.g., "15 Jan 2026")
+ */
+export function formatDateCompact(date: string | Date | null | undefined): string {
+  if (!date) return '';
+
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return '';
+
+  return dateObj.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: EAT_TIMEZONE,
+  });
+}
+
+/**
+ * Check if two dates are on the same day (in EAT timezone)
+ */
+export function isSameDay(date1: string | Date | null | undefined, date2: string | Date | null | undefined): boolean {
+  if (!date1 || !date2) return false;
+
+  const d1 = typeof date1 === 'string' ? new Date(date1) : date1;
+  const d2 = typeof date2 === 'string' ? new Date(date2) : date2;
+
+  if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return false;
+
+  const d1Str = d1.toLocaleDateString('en-US', { timeZone: EAT_TIMEZONE });
+  const d2Str = d2.toLocaleDateString('en-US', { timeZone: EAT_TIMEZONE });
+
+  return d1Str === d2Str;
+}
+
+/**
+ * Format a smart date range for cards with both start and due dates
+ * - Same day: "4:00 PM - 7:00 PM on 15 Jan 2026"
+ * - Different days: shows separate formatted dates
+ */
+export function formatDateRange(
+  startDate: string | Date | null | undefined,
+  dueDate: string | Date | null | undefined
+): { combined: boolean; display: string } | null {
+  if (!startDate || !dueDate) return null;
+
+  const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+  const due = typeof dueDate === 'string' ? new Date(dueDate) : dueDate;
+
+  if (isNaN(start.getTime()) || isNaN(due.getTime())) return null;
+
+  // Check if same day
+  if (isSameDay(start, due)) {
+    const startTime = start.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: EAT_TIMEZONE,
+    });
+
+    const dueTime = due.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: EAT_TIMEZONE,
+    });
+
+    const dateStr = due.toLocaleString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: EAT_TIMEZONE,
+    });
+
+    return {
+      combined: true,
+      display: `${startTime} - ${dueTime} on ${dateStr}`,
+    };
+  }
+
+  return null;
+}

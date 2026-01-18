@@ -16,7 +16,7 @@ import {
 import { LABEL_COLORS } from './constants';
 import type { SortableCardProps } from './types';
 import { highlightText } from '../../lib/utils/highlight';
-import { formatDateShort, formatDateTime } from '../../lib/utils/date';
+import { formatDateCompact, formatDateTimeCompact, formatDateRange } from '../../lib/utils/date';
 
 export function SortableCard({
   card,
@@ -232,49 +232,94 @@ export function SortableCard({
 
         {/* Dates */}
         {((fieldVisibility.startDate && card.startDate) || (fieldVisibility.dueDate && card.dueDate) || card.description) && (
-          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-            {fieldVisibility.startDate && card.startDate && (() => {
-              const startDate = new Date(card.startDate);
-              const hasTime = startDate.getHours() !== 0 || startDate.getMinutes() !== 0;
+          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 flex-wrap">
+            {(() => {
+              // Check if we can show a combined date range (same day with both dates)
+              const dateRange = fieldVisibility.startDate && fieldVisibility.dueDate
+                ? formatDateRange(card.startDate, card.dueDate)
+                : null;
 
-              return (
-                <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20">
-                  <Clock className="h-3 w-3" />
-                  <span>{hasTime ? formatDateTime(card.startDate) : formatDateShort(card.startDate)}</span>
-                </span>
-              );
-            })()}
-            {fieldVisibility.dueDate && card.dueDate && (() => {
-              const dueDate = new Date(card.dueDate);
-              const now = new Date();
-              const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-              const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-              const diffDays = Math.floor((dueDateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+              if (dateRange?.combined) {
+                // Same day - show combined format "4:00 PM - 7:00 PM on 15 Jan 2026"
+                const dueDate = new Date(card.dueDate!);
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                const diffDays = Math.floor((dueDateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-              let colorClass = 'text-gray-500 dark:text-gray-400';
-              let bgClass = '';
+                let colorClass = 'text-gray-500 dark:text-gray-400';
+                let bgClass = '';
 
-              if (card.completed) {
-                colorClass = 'text-green-600 dark:text-green-400';
-                bgClass = 'bg-green-50 dark:bg-green-900/20';
-              } else if (diffDays < 0) {
-                colorClass = 'text-red-600 dark:text-red-400';
-                bgClass = 'bg-red-50 dark:bg-red-900/20';
-              } else if (diffDays === 0) {
-                colorClass = 'text-amber-600 dark:text-amber-400';
-                bgClass = 'bg-amber-50 dark:bg-amber-900/20';
-              } else if (diffDays <= 2) {
-                colorClass = 'text-yellow-600 dark:text-yellow-400';
-                bgClass = 'bg-yellow-50 dark:bg-yellow-900/20';
+                if (card.completed) {
+                  colorClass = 'text-green-600 dark:text-green-400';
+                  bgClass = 'bg-green-50 dark:bg-green-900/20';
+                } else if (diffDays < 0) {
+                  colorClass = 'text-red-600 dark:text-red-400';
+                  bgClass = 'bg-red-50 dark:bg-red-900/20';
+                } else if (diffDays === 0) {
+                  colorClass = 'text-amber-600 dark:text-amber-400';
+                  bgClass = 'bg-amber-50 dark:bg-amber-900/20';
+                } else if (diffDays <= 2) {
+                  colorClass = 'text-yellow-600 dark:text-yellow-400';
+                  bgClass = 'bg-yellow-50 dark:bg-yellow-900/20';
+                }
+
+                return (
+                  <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${colorClass} ${bgClass}`}>
+                    <Calendar className="h-3 w-3" />
+                    <span>{dateRange.display}</span>
+                  </span>
+                );
               }
 
-              const hasTime = dueDate.getHours() !== 0 || dueDate.getMinutes() !== 0;
-
+              // Different days or only one date - show separately
               return (
-                <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${colorClass} ${bgClass}`}>
-                  <Calendar className="h-3 w-3" />
-                  <span>Due: {hasTime ? formatDateTime(card.dueDate) : formatDateShort(card.dueDate)}</span>
-                </span>
+                <>
+                  {fieldVisibility.startDate && card.startDate && (() => {
+                    const startDate = new Date(card.startDate);
+                    const hasTime = startDate.getHours() !== 0 || startDate.getMinutes() !== 0;
+
+                    return (
+                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20">
+                        <Clock className="h-3 w-3" />
+                        <span>{hasTime ? formatDateTimeCompact(card.startDate) : formatDateCompact(card.startDate)}</span>
+                      </span>
+                    );
+                  })()}
+                  {fieldVisibility.dueDate && card.dueDate && (() => {
+                    const dueDate = new Date(card.dueDate);
+                    const now = new Date();
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                    const diffDays = Math.floor((dueDateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+                    let colorClass = 'text-gray-500 dark:text-gray-400';
+                    let bgClass = '';
+
+                    if (card.completed) {
+                      colorClass = 'text-green-600 dark:text-green-400';
+                      bgClass = 'bg-green-50 dark:bg-green-900/20';
+                    } else if (diffDays < 0) {
+                      colorClass = 'text-red-600 dark:text-red-400';
+                      bgClass = 'bg-red-50 dark:bg-red-900/20';
+                    } else if (diffDays === 0) {
+                      colorClass = 'text-amber-600 dark:text-amber-400';
+                      bgClass = 'bg-amber-50 dark:bg-amber-900/20';
+                    } else if (diffDays <= 2) {
+                      colorClass = 'text-yellow-600 dark:text-yellow-400';
+                      bgClass = 'bg-yellow-50 dark:bg-yellow-900/20';
+                    }
+
+                    const hasTime = dueDate.getHours() !== 0 || dueDate.getMinutes() !== 0;
+
+                    return (
+                      <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${colorClass} ${bgClass}`}>
+                        <Calendar className="h-3 w-3" />
+                        <span>Due: {hasTime ? formatDateTimeCompact(card.dueDate) : formatDateCompact(card.dueDate)}</span>
+                      </span>
+                    );
+                  })()}
+                </>
               );
             })()}
           </div>
@@ -305,7 +350,7 @@ export function SortableCard({
               const truncateLength = fieldVisibility.expanded ? 60 : 30;
 
               if (fieldDef.type === 'date' && cfv.value) {
-                displayValue = formatDateShort(cfv.value);
+                displayValue = formatDateCompact(cfv.value);
               } else if (fieldDef.type === 'checkbox') {
                 displayValue = cfv.value === 'true' ? 'Yes' : 'No';
               } else if (fieldDef.type === 'currency' && cfv.value) {

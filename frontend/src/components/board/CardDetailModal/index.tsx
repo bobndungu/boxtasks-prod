@@ -59,7 +59,7 @@ import type { TaxonomyTerm } from '../../../lib/api/taxonomies';
 import { useAuthStore } from '../../../lib/stores/auth';
 import { toast } from '../../../lib/stores/toast';
 import { TimeTracker } from '../../TimeTracker';
-import { formatDate, formatDateTime, formatDateShort, formatRelativeTime } from '../../../lib/utils/date';
+import { formatDate, formatDateTime, formatRelativeTime, formatDateTimeCompact, formatDateCompact, formatDateRange } from '../../../lib/utils/date';
 import { EstimateEditor } from '../../EstimateEditor';
 import { GoogleDocsEmbed } from '../../GoogleDocsEmbed';
 import MemberDropdown from '../../MemberDropdown';
@@ -1346,45 +1346,74 @@ function CardDetailModal({
                 </div>
               )}
 
-              {/* Start Date Display */}
-              {startDate && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Start Date</h4>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-100 text-blue-700">
-                      <Clock className="h-4 w-4 mr-2" />
-                      {formatDateTime(startDate)}
-                    </span>
-                    <button
-                      onClick={() => setShowStartDatePicker(true)}
-                      className="text-gray-500 hover:text-gray-700 text-sm"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Due Date Display */}
-              {dueDate && (
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center px-3 py-1.5 rounded text-sm font-medium ${
-                      new Date(dueDate) < new Date() ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Due: {formatDateTime(dueDate)}
-                      {new Date(dueDate) < new Date() && ' (overdue)'}
-                    </span>
-                    <button
-                      onClick={() => setShowDatePicker(true)}
-                      className="text-gray-500 hover:text-gray-700 text-sm"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* Date Display - Smart format when both dates on same day */}
+              {(() => {
+                const dateRange = formatDateRange(startDate, dueDate);
+                if (dateRange?.combined) {
+                  // Both dates on same day - show combined format
+                  return (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Date & Time</h4>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded text-sm font-medium ${
+                          new Date(dueDate) < new Date() ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          <Clock className="h-4 w-4 mr-2" />
+                          {dateRange.display}
+                          {new Date(dueDate) < new Date() && ' (overdue)'}
+                        </span>
+                        <button
+                          onClick={() => setShowStartDatePicker(true)}
+                          className="text-gray-500 hover:text-gray-700 text-sm"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+                // Separate display for different days or single date
+                return (
+                  <>
+                    {startDate && (
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Start Date</h4>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-100 text-blue-700">
+                            <Clock className="h-4 w-4 mr-2" />
+                            {formatDateTimeCompact(startDate)}
+                          </span>
+                          <button
+                            onClick={() => setShowStartDatePicker(true)}
+                            className="text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {dueDate && (
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded text-sm font-medium ${
+                            new Date(dueDate) < new Date() ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            <Calendar className="h-4 w-4 mr-2" />
+                            Due: {formatDateTimeCompact(dueDate)}
+                            {new Date(dueDate) < new Date() && ' (overdue)'}
+                          </span>
+                          <button
+                            onClick={() => setShowDatePicker(true)}
+                            className="text-gray-500 hover:text-gray-700 text-sm"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               {/* Approval/Rejection Section */}
               <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
@@ -2428,7 +2457,7 @@ function CardDetailModal({
                                         }`}
                                       >
                                         <Calendar className="h-3 w-3 mr-1" />
-                                        {formatDateShort(item.dueDate)}
+                                        {formatDateCompact(item.dueDate)}
                                       </button>
                                     )}
                                     {!item.dueDate && (
