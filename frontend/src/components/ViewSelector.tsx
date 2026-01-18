@@ -53,7 +53,7 @@ export function ViewSelector({ currentView, onViewChange, className = '' }: View
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-lg shadow-lg py-1 z-50">
+        <div className="absolute top-full left-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-1 z-50">
           {VIEW_OPTIONS.map((option) => (
             <button
               key={option.type}
@@ -61,18 +61,18 @@ export function ViewSelector({ currentView, onViewChange, className = '' }: View
                 onViewChange(option.type);
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-gray-100 transition-colors ${
+              className={`w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
                 currentView === option.type
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                  : 'text-gray-700 dark:text-gray-300'
               }`}
             >
-              <span className={currentView === option.type ? 'text-blue-600' : 'text-gray-400'}>
+              <span className={currentView === option.type ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}>
                 {option.icon}
               </span>
               <span>{option.label}</span>
               {currentView === option.type && (
-                <svg className="ml-auto h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="ml-auto h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               )}

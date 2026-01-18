@@ -132,8 +132,8 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1 w-64 bg-white rounded-lg shadow-lg py-2 z-50">
-          <div className="px-3 py-1.5 text-xs font-medium text-gray-500 uppercase border-b">
+        <div className="absolute top-full right-0 mt-1 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 py-2 z-50">
+          <div className="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase border-b dark:border-gray-700">
             {currentView} View Settings
           </div>
 
@@ -141,24 +141,24 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
           {currentView === 'calendar' && (
             <div className="p-3 space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-200 block mb-1">
                   Show cards by
                 </label>
                 <select
                   value={settings.calendar.dateField}
                   onChange={(e) => updateCalendarSettings('dateField', e.target.value)}
-                  className="w-full px-2 py-1.5 border rounded text-sm"
+                  className="w-full px-2 py-1.5 border dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="dueDate">Due Date</option>
                   <option value="startDate">Start Date</option>
                 </select>
               </div>
-              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settings.calendar.showCompleted}
                   onChange={(e) => updateCalendarSettings('showCompleted', e.target.checked)}
-                  className="rounded border-gray-300"
+                  className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                 />
                 Show completed cards
               </label>
@@ -169,13 +169,13 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
           {currentView === 'timeline' && (
             <div className="p-3 space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-200 block mb-1">
                   Default time range
                 </label>
                 <select
                   value={settings.timeline.defaultWeeks}
                   onChange={(e) => updateTimelineSettings('defaultWeeks', Number(e.target.value))}
-                  className="w-full px-2 py-1.5 border rounded text-sm"
+                  className="w-full px-2 py-1.5 border dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value={2}>2 weeks</option>
                   <option value={4}>4 weeks</option>
@@ -183,12 +183,12 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
                   <option value={12}>12 weeks</option>
                 </select>
               </div>
-              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settings.timeline.showCompletedCards}
                   onChange={(e) => updateTimelineSettings('showCompletedCards', e.target.checked)}
-                  className="rounded border-gray-300"
+                  className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                 />
                 Show completed cards
               </label>
@@ -199,7 +199,7 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
           {currentView === 'table' && (
             <div className="p-3 space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-200 block mb-2">
                   Visible columns
                 </label>
                 <div className="space-y-1">
@@ -213,13 +213,13 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
                   ].map((col) => (
                     <label
                       key={col.id}
-                      className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                      className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
                     >
                       <input
                         type="checkbox"
                         checked={settings.table.visibleColumns.includes(col.id)}
                         onChange={() => toggleTableColumn(col.id)}
-                        className="rounded border-gray-300"
+                        className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                         disabled={col.id === 'title'} // Title always visible
                       />
                       {col.label}
@@ -231,14 +231,14 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-200 block mb-1">
                   Default sort
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={settings.table.defaultSort}
                     onChange={(e) => updateTableSettings('defaultSort', e.target.value)}
-                    className="flex-1 px-2 py-1.5 border rounded text-sm"
+                    className="flex-1 px-2 py-1.5 border dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="title">Title</option>
                     <option value="dueDate">Due Date</option>
@@ -248,7 +248,7 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
                   <select
                     value={settings.table.sortDirection}
                     onChange={(e) => updateTableSettings('sortDirection', e.target.value)}
-                    className="px-2 py-1.5 border rounded text-sm"
+                    className="px-2 py-1.5 border dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="asc">Asc</option>
                     <option value="desc">Desc</option>
@@ -261,7 +261,7 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
           {/* Dashboard Settings */}
           {currentView === 'dashboard' && (
             <div className="p-3 space-y-2">
-              <label className="text-sm font-medium text-gray-700 block mb-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-200 block mb-2">
                 Show sections
               </label>
               {[
@@ -272,13 +272,13 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
               ].map((item) => (
                 <label
                   key={item.key}
-                  className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                  className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={settings.dashboard[item.key]}
                     onChange={(e) => updateDashboardSettings(item.key, e.target.checked)}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                   />
                   {item.label}
                 </label>
@@ -287,7 +287,7 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
           )}
 
           {/* Reset button */}
-          <div className="px-3 pt-2 border-t mt-2">
+          <div className="px-3 pt-2 border-t dark:border-gray-700 mt-2">
             <button
               onClick={() => {
                 const defaultForView = DEFAULT_VIEW_SETTINGS[currentView as keyof typeof DEFAULT_VIEW_SETTINGS];
@@ -298,7 +298,7 @@ export function ViewSettings({ currentView, settings, onSettingsChange }: ViewSe
                   });
                 }
               }}
-              className="text-xs text-gray-500 hover:text-gray-700"
+              className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             >
               Reset to defaults
             </button>

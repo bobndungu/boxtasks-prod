@@ -2314,15 +2314,15 @@ export default function BoardView() {
                 {showBoardOptionsMenu && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowBoardOptionsMenu(false)} />
-                    <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 w-56">
+                    <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 w-56">
                       <button
                         onClick={() => {
                           setShowCustomFields(true);
                           setShowBoardOptionsMenu(false);
                         }}
-                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
-                        <Settings className="h-4 w-4 mr-3 text-gray-500" />
+                        <Settings className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
                         Custom Fields
                       </button>
                       <button
@@ -2330,9 +2330,9 @@ export default function BoardView() {
                           setShowAutomationRules(true);
                           setShowBoardOptionsMenu(false);
                         }}
-                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
-                        <Zap className="h-4 w-4 mr-3 text-gray-500" />
+                        <Zap className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
                         Automation Rules
                       </button>
                       <button
@@ -2340,28 +2340,28 @@ export default function BoardView() {
                           setShowMindMaps(true);
                           setShowBoardOptionsMenu(false);
                         }}
-                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
-                        <GitBranch className="h-4 w-4 mr-3 text-gray-500" />
+                        <GitBranch className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
                         Mind Maps
                       </button>
                       <Link
                         to={`/board/${id}/reports`}
-                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                         onClick={() => setShowBoardOptionsMenu(false)}
                       >
-                        <BarChart3 className="h-4 w-4 mr-3 text-gray-500" />
+                        <BarChart3 className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
                         Reports
                       </Link>
-                      <div className="border-t border-gray-200 my-1" />
+                      <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
                       <button
                         onClick={() => {
                           setShowFieldVisibilityMenu(true);
                           setShowBoardOptionsMenu(false);
                         }}
-                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
-                        <EyeOff className="h-4 w-4 mr-3 text-gray-500" />
+                        <EyeOff className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
                         Show/Hide Fields
                       </button>
                     </div>
@@ -2376,90 +2376,90 @@ export default function BoardView() {
         {showFieldVisibilityMenu && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setShowFieldVisibilityMenu(false)} />
-            <div className="fixed right-4 top-28 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50 w-56">
-              <h5 className="text-sm font-medium text-gray-700 mb-2 pb-2 border-b">Card Fields Visibility</h5>
+            <div className="fixed right-4 top-28 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-50 w-56">
+              <h5 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 pb-2 border-b dark:border-gray-700">Card Fields Visibility</h5>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={fieldVisibility.labels}
                     onChange={(e) => setFieldVisibility((prev) => ({ ...prev, labels: e.target.checked }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
                   />
-                  <span className="text-sm text-gray-700">Labels</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Labels</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={fieldVisibility.startDate}
                     onChange={(e) => setFieldVisibility((prev) => ({ ...prev, startDate: e.target.checked }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
                   />
-                  <span className="text-sm text-gray-700">Start Date</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Start Date</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={fieldVisibility.dueDate}
                     onChange={(e) => setFieldVisibility((prev) => ({ ...prev, dueDate: e.target.checked }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
                   />
-                  <span className="text-sm text-gray-700">Due Date</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Due Date</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={fieldVisibility.members}
                     onChange={(e) => setFieldVisibility((prev) => ({ ...prev, members: e.target.checked }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
                   />
-                  <span className="text-sm text-gray-700">Members</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Members</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={fieldVisibility.customFields}
                     onChange={(e) => setFieldVisibility((prev) => ({ ...prev, customFields: e.target.checked }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
                   />
-                  <span className="text-sm text-gray-700">Custom Fields</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Custom Fields</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={fieldVisibility.checklists}
                     onChange={(e) => setFieldVisibility((prev) => ({ ...prev, checklists: e.target.checked }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
                   />
-                  <span className="text-sm text-gray-700">Checklist Count</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Checklist Count</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={fieldVisibility.comments}
                     onChange={(e) => setFieldVisibility((prev) => ({ ...prev, comments: e.target.checked }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
                   />
-                  <span className="text-sm text-gray-700">Comment Count</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Comment Count</span>
                 </label>
               </div>
-              <div className="border-t border-gray-200 mt-3 pt-3">
+              <div className="border-t border-gray-200 dark:border-gray-700 mt-3 pt-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={fieldVisibility.expanded}
                     onChange={(e) => setFieldVisibility((prev) => ({ ...prev, expanded: e.target.checked }))}
-                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    className="rounded border-gray-300 dark:border-gray-600 text-purple-600 focus:ring-purple-500 dark:bg-gray-700"
                   />
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-700">Expanded View</span>
-                    <span className="text-xs text-gray-500">Show description, badges, full labels</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Expanded View</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">Show description, badges, full labels</span>
                   </div>
                 </label>
               </div>
               <button
                 onClick={() => setShowFieldVisibilityMenu(false)}
-                className="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm"
+                className="w-full mt-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm"
               >
                 Close
               </button>
@@ -2697,14 +2697,14 @@ export default function BoardView() {
 
       {/* Activity Sidebar */}
       {showActivitySidebar && (
-        <div className="w-80 bg-white shadow-lg overflow-hidden flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
-            <h3 className="font-semibold text-gray-800">Board Activity</h3>
+        <div className="w-80 bg-white dark:bg-gray-800 shadow-lg overflow-hidden flex flex-col">
+          <div className="p-4 border-b dark:border-gray-700 flex items-center justify-between">
+            <h3 className="font-semibold text-gray-800 dark:text-white">Board Activity</h3>
             <button
               onClick={() => setShowActivitySidebar(false)}
-              className="p-1 hover:bg-gray-100 rounded"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
             >
-              <X className="h-5 w-5 text-gray-500" />
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
@@ -2713,7 +2713,7 @@ export default function BoardView() {
                 <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
               </div>
             ) : boardActivities.length === 0 ? (
-              <p className="text-gray-500 text-sm text-center py-8">No activity yet</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-8">No activity yet</p>
             ) : (
               <div className="space-y-4">
                 {boardActivities.map((activity) => {
@@ -2724,14 +2724,14 @@ export default function BoardView() {
                         {activity.authorName.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-700">
-                          <span className="font-medium">{activity.authorName}</span>{' '}
-                          <span>{display.label}</span>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <span className="font-medium text-gray-800 dark:text-white">{activity.authorName}</span>{' '}
+                          <span className="text-gray-600 dark:text-gray-400">{display.label}</span>
                         </p>
                         {activity.description && (
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{activity.description}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{activity.description}</p>
                         )}
-                        <p className="text-xs text-gray-400 mt-1">{formatBoardActivityTime(activity.createdAt)}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatBoardActivityTime(activity.createdAt)}</p>
                       </div>
                     </div>
                   );
@@ -2739,10 +2739,10 @@ export default function BoardView() {
               </div>
             )}
           </div>
-          <div className="p-3 border-t">
+          <div className="p-3 border-t dark:border-gray-700">
             <button
               onClick={loadBoardActivities}
-              className="w-full text-sm text-blue-600 hover:text-blue-700 py-2"
+              className="w-full text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 py-2"
             >
               Refresh
             </button>
@@ -2752,14 +2752,14 @@ export default function BoardView() {
 
       {/* Archived Cards Panel */}
       {showArchivedPanel && (
-        <div className="w-80 bg-white shadow-lg overflow-hidden flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
-            <h3 className="font-semibold text-gray-800">Archived Cards</h3>
+        <div className="w-80 bg-white dark:bg-gray-800 shadow-lg overflow-hidden flex flex-col">
+          <div className="p-4 border-b dark:border-gray-700 flex items-center justify-between">
+            <h3 className="font-semibold text-gray-800 dark:text-white">Archived Cards</h3>
             <button
               onClick={() => setShowArchivedPanel(false)}
-              className="p-1 hover:bg-gray-100 rounded"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
             >
-              <X className="h-5 w-5 text-gray-500" />
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
@@ -2769,9 +2769,9 @@ export default function BoardView() {
               </div>
             ) : archivedCards.length === 0 ? (
               <div className="text-center py-8">
-                <Archive className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">No archived cards</p>
-                <p className="text-gray-400 text-xs mt-1">Archived cards will appear here</p>
+                <Archive className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No archived cards</p>
+                <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Archived cards will appear here</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -2780,12 +2780,12 @@ export default function BoardView() {
                   return (
                     <div
                       key={card.id}
-                      className="bg-gray-50 rounded-lg p-3 border border-gray-200"
+                      className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600"
                     >
-                      <h4 className="font-medium text-gray-800 text-sm">{card.title}</h4>
-                      <p className="text-xs text-gray-500 mt-1">From: {listName}</p>
+                      <h4 className="font-medium text-gray-800 dark:text-white text-sm">{card.title}</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">From: {listName}</p>
                       {card.description && (
-                        <p className="text-xs text-gray-400 mt-1 line-clamp-2">{card.description}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">{card.description}</p>
                       )}
                       <div className="flex items-center gap-2 mt-3">
                         <button
@@ -2798,7 +2798,7 @@ export default function BoardView() {
                         {canDelete('card', card.authorId === currentUser?.id) && (
                           <button
                             onClick={() => handleDeleteArchivedCard(card)}
-                            className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 text-xs font-medium rounded transition-colors flex items-center justify-center"
+                            className="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 text-xs font-medium rounded transition-colors flex items-center justify-center"
                             title="Delete permanently"
                           >
                             <Trash2 className="h-3 w-3" />
@@ -2811,10 +2811,10 @@ export default function BoardView() {
               </div>
             )}
           </div>
-          <div className="p-3 border-t">
+          <div className="p-3 border-t dark:border-gray-700">
             <button
               onClick={loadArchivedCards}
-              className="w-full text-sm text-blue-600 hover:text-blue-700 py-2"
+              className="w-full text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 py-2"
             >
               Refresh
             </button>

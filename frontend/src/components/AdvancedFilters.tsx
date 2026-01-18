@@ -176,15 +176,15 @@ export function AdvancedFilters({
 
       {/* Filter Panel */}
       {isExpanded && (
-        <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border z-50">
+        <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border dark:border-gray-700 z-50">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b">
-            <h3 className="font-semibold text-gray-800">Filters</h3>
+          <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
+            <h3 className="font-semibold text-gray-800 dark:text-white">Filters</h3>
             <div className="flex items-center gap-2">
               {activeFilterCount > 0 && (
                 <button
                   onClick={clearAllFilters}
-                  className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+                  className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center gap-1"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Clear all
@@ -192,25 +192,25 @@ export function AdvancedFilters({
               )}
               <button
                 onClick={() => setIsExpanded(false)}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
               >
-                <X className="h-4 w-4 text-gray-500" />
+                <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
           </div>
 
           <div className="max-h-96 overflow-y-auto">
             {/* Labels Section */}
-            <div className="border-b">
+            <div className="border-b dark:border-gray-700">
               <button
                 onClick={() => toggleSection('labels')}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 <div className="flex items-center gap-2">
-                  <Tag className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium text-gray-700">Labels</span>
+                  <Tag className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <span className="font-medium text-gray-700 dark:text-gray-200">Labels</span>
                   {filters.labels.length > 0 && (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
                       {filters.labels.length}
                     </span>
                   )}
@@ -250,16 +250,16 @@ export function AdvancedFilters({
             </div>
 
             {/* Members Section */}
-            <div className="border-b">
+            <div className="border-b dark:border-gray-700">
               <button
                 onClick={() => toggleSection('members')}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium text-gray-700">Members</span>
+                  <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <span className="font-medium text-gray-700 dark:text-gray-200">Members</span>
                   {filters.members.length > 0 && (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
                       {filters.members.length}
                     </span>
                   )}
@@ -277,8 +277,8 @@ export function AdvancedFilters({
                       onClick={() => toggleMember(currentUserId)}
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
                         filters.members.includes(currentUserId)
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                          : 'hover:bg-gray-100'
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       <User className="h-4 w-4" />
@@ -296,8 +296,8 @@ export function AdvancedFilters({
                         onClick={() => toggleMember(member.id)}
                         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
                           filters.members.includes(member.id)
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                            : 'hover:bg-gray-100'
+                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                         }`}
                       >
                         {member.avatar ? (
@@ -307,7 +307,7 @@ export function AdvancedFilters({
                             className="h-5 w-5 rounded-full"
                           />
                         ) : (
-                          <div className="h-5 w-5 rounded-full bg-gray-300 flex items-center justify-center text-xs">
+                          <div className="h-5 w-5 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-xs text-gray-700 dark:text-gray-300">
                             {member.name[0]}
                           </div>
                         )}
@@ -322,16 +322,16 @@ export function AdvancedFilters({
             </div>
 
             {/* Due Date Section */}
-            <div className="border-b">
+            <div className="border-b dark:border-gray-700">
               <button
                 onClick={() => toggleSection('dueDate')}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium text-gray-700">Due Date</span>
+                  <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <span className="font-medium text-gray-700 dark:text-gray-200">Due Date</span>
                   {filters.dueDateFilter && (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
                       1
                     </span>
                   )}
@@ -354,8 +354,8 @@ export function AdvancedFilters({
                       }
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
                         filters.dueDateFilter === option.value
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                          : 'hover:bg-gray-100'
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       {option.icon}
@@ -370,16 +370,16 @@ export function AdvancedFilters({
             </div>
 
             {/* Completion Status Section */}
-            <div className="border-b">
+            <div className="border-b dark:border-gray-700">
               <button
                 onClick={() => toggleSection('completion')}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 <div className="flex items-center gap-2">
-                  <CheckSquare className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium text-gray-700">Status</span>
+                  <CheckSquare className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <span className="font-medium text-gray-700 dark:text-gray-200">Status</span>
                   {filters.completionStatus && (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
                       1
                     </span>
                   )}
@@ -402,8 +402,8 @@ export function AdvancedFilters({
                       }
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
                         filters.completionStatus === option.value
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                          : 'hover:bg-gray-100'
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                       }`}
                     >
                       <CheckSquare
@@ -413,7 +413,7 @@ export function AdvancedFilters({
                       />
                       <span>{option.label}</span>
                       {filters.completionStatus === option.value && (
-                        <CheckSquare className="h-4 w-4 ml-auto text-blue-600" />
+                        <CheckSquare className="h-4 w-4 ml-auto text-blue-600 dark:text-blue-400" />
                       )}
                     </button>
                   ))}
@@ -426,13 +426,13 @@ export function AdvancedFilters({
               <div>
                 <button
                   onClick={() => toggleSection('customFields')}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50"
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   <div className="flex items-center gap-2">
-                    <Hash className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium text-gray-700">Custom Fields</span>
+                    <Hash className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <span className="font-medium text-gray-700 dark:text-gray-200">Custom Fields</span>
                     {filters.customFields.length > 0 && (
-                      <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                      <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
                         {filters.customFields.length}
                       </span>
                     )}
@@ -447,14 +447,14 @@ export function AdvancedFilters({
                   <div className="px-4 pb-3 space-y-3">
                     {customFieldDefs.map((fieldDef) => (
                       <div key={fieldDef.id}>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                           {fieldDef.title}
                         </label>
                         {fieldDef.type === 'checkbox' ? (
                           <select
                             value={getCustomFieldValue(fieldDef.id)}
                             onChange={(e) => setCustomFieldFilter(fieldDef.id, e.target.value)}
-                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                           >
                             <option value="">Any</option>
                             <option value="true">Yes</option>
@@ -464,7 +464,7 @@ export function AdvancedFilters({
                           <select
                             value={getCustomFieldValue(fieldDef.id)}
                             onChange={(e) => setCustomFieldFilter(fieldDef.id, e.target.value)}
-                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                           >
                             <option value="">Any</option>
                             {fieldDef.options?.map((opt) => (
@@ -479,7 +479,7 @@ export function AdvancedFilters({
                             value={getCustomFieldValue(fieldDef.id)}
                             onChange={(e) => setCustomFieldFilter(fieldDef.id, e.target.value)}
                             placeholder={`Filter by ${fieldDef.title.toLowerCase()}...`}
-                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                           />
                         )}
                       </div>
@@ -492,8 +492,8 @@ export function AdvancedFilters({
 
           {/* Footer */}
           {activeFilterCount > 0 && (
-            <div className="px-4 py-3 border-t bg-gray-50 rounded-b-xl">
-              <div className="text-sm text-gray-600">
+            <div className="px-4 py-3 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-b-xl">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active
               </div>
             </div>
