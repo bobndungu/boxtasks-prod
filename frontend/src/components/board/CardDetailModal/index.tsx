@@ -61,6 +61,7 @@ import { useAuthStore } from '../../../lib/stores/auth';
 import { toast } from '../../../lib/stores/toast';
 import { TimeTracker } from '../../TimeTracker';
 import { formatDate, formatDateTime, formatDateTimeCompact, formatDateCompact, formatDateRange } from '../../../lib/utils/date';
+import { renderWordDiff } from '../../../lib/utils/diff';
 import { EstimateEditor } from '../../EstimateEditor';
 import { GoogleDocsEmbed } from '../../GoogleDocsEmbed';
 import MemberDropdown from '../../MemberDropdown';
@@ -3043,12 +3044,11 @@ function CardDetailModal({
                                 </div>
                               </div>
                             )}
-                            {/* Comment updated - show inline diff */}
+                            {/* Comment updated - show inline word diff */}
                             {activity.type === 'comment_updated' && data?.old_value && data?.new_value && (
                               <div className="mt-1 text-xs">
                                 <div className="bg-gray-100 text-gray-700 px-2 py-1.5 rounded italic">
-                                  "<span className="bg-red-100 text-red-700 line-through">{data.old_value}</span>{' '}
-                                  <span className="bg-green-100 text-green-700">{data.new_value}</span>"
+                                  "{renderWordDiff(data.old_value, data.new_value)}"
                                 </div>
                               </div>
                             )}
