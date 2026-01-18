@@ -2715,7 +2715,7 @@ function CardDetailModal({
                 </h4>
 
                 {/* Upload button */}
-                <label className="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer mb-3">
+                <label className="inline-flex items-center px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg cursor-pointer mb-3 text-gray-700 dark:text-gray-300">
                   {isUploading ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
