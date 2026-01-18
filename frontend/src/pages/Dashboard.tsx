@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Bell,
   BarChart3,
+  Shield,
 } from 'lucide-react';
 import { formatDateShort } from '../lib/utils/date';
 import { useAuthStore } from '../lib/stores/auth';
@@ -464,9 +465,22 @@ export default function Dashboard() {
                       Notifications
                     </Link>
                     <Link to="/notifications/settings" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <Settings className="h-4 w-4 mr-3" />
-                      Settings
+                      <Bell className="h-4 w-4 mr-3" />
+                      Notification Settings
                     </Link>
+                    {(user?.uid === 1 || user?.isAdmin || user?.roles?.includes('administrator') || user?.roles?.includes('admin')) && (
+                      <>
+                        <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
+                        <Link to="/manage/users" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <Users className="h-4 w-4 mr-3" />
+                          User Management
+                        </Link>
+                        <Link to="/manage/roles" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <Shield className="h-4 w-4 mr-3" />
+                          Role Management
+                        </Link>
+                      </>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="flex items-center w-full px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
