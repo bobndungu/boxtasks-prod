@@ -44,6 +44,7 @@ const PERMISSION_CATEGORIES = {
       { key: 'listCreate', label: 'Create lists' },
       { key: 'listEdit', label: 'Edit lists' },
       { key: 'listDelete', label: 'Delete lists' },
+      { key: 'listArchive', label: 'Archive lists' },
     ],
   },
   boards: {
@@ -53,6 +54,7 @@ const PERMISSION_CATEGORIES = {
       { key: 'boardCreate', label: 'Create boards' },
       { key: 'boardEdit', label: 'Edit boards' },
       { key: 'boardDelete', label: 'Delete boards' },
+      { key: 'boardArchive', label: 'Archive boards' },
     ],
   },
   workspaces: {
@@ -61,6 +63,7 @@ const PERMISSION_CATEGORIES = {
       { key: 'workspaceView', label: 'View workspaces' },
       { key: 'workspaceEdit', label: 'Edit workspaces' },
       { key: 'workspaceDelete', label: 'Delete workspaces' },
+      { key: 'workspaceArchive', label: 'Archive workspaces' },
     ],
   },
   members: {
@@ -74,6 +77,7 @@ const PERMISSION_CATEGORIES = {
     permissions: [
       { key: 'commentEdit', label: 'Edit comments' },
       { key: 'commentDelete', label: 'Delete comments' },
+      { key: 'commentArchive', label: 'Archive comments' },
     ],
   },
   reports: {
@@ -105,16 +109,20 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   listCreate: 'none',
   listEdit: 'none',
   listDelete: 'none',
+  listArchive: 'own',
   boardView: 'any',
   boardCreate: 'none',
   boardEdit: 'none',
   boardDelete: 'none',
+  boardArchive: 'own',
   workspaceView: 'any',
   workspaceEdit: 'none',
   workspaceDelete: 'none',
+  workspaceArchive: 'none',
   memberManage: 'none',
   commentEdit: 'own',
   commentDelete: 'own',
+  commentArchive: 'own',
   reportPerformance: 'none',
   reportTasks: 'none',
   reportActivity: 'none',

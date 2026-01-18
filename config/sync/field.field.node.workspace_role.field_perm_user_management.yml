@@ -2,17 +2,17 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_perm_report_workload
+    - field.storage.node.field_perm_user_management
     - node.type.workspace_role
   module:
     - node
     - options
-id: node.workspace_role.field_perm_report_workload
-field_name: field_perm_report_workload
+id: node.workspace_role.field_perm_user_management
+field_name: field_perm_user_management
 entity_type: node
 bundle: workspace_role
-label: 'View Workload Reports'
-description: 'Permission level for View Workload Reports.'
+label: 'User Management'
+description: 'Permission level for User Management.'
 required: false
 translatable: false
 default_value:

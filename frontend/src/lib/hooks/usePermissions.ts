@@ -14,7 +14,7 @@ interface UsePermissionsReturn {
   canCreate: (type: 'card' | 'list' | 'board') => boolean;
   canEdit: (type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean) => boolean;
   canDelete: (type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean) => boolean;
-  canArchive: (type: 'card', isOwner: boolean) => boolean;
+  canArchive: (type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean) => boolean;
   canMove: (type: 'card', isOwner: boolean) => boolean;
   canManageMembers: () => boolean;
   canViewReport: (reportType: ReportType, isOwner?: boolean) => boolean;
@@ -36,16 +36,20 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   listCreate: 'any',
   listEdit: 'any',
   listDelete: 'own',
+  listArchive: 'own',
   boardView: 'any',
   boardCreate: 'any',
   boardEdit: 'own',
   boardDelete: 'own',
+  boardArchive: 'own',
   workspaceView: 'any',
   workspaceEdit: 'none',
   workspaceDelete: 'none',
+  workspaceArchive: 'none',
   memberManage: 'none',
   commentEdit: 'own',
   commentDelete: 'own',
+  commentArchive: 'own',
   reportPerformance: 'none',
   reportTasks: 'none',
   reportActivity: 'none',
@@ -268,16 +272,31 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     return canPerformAction(permission, isOwner);
   }, [permissions, user]);
 
-  const canArchive = useCallback((type: 'card', isOwner: boolean): boolean => {
+  const canArchive = useCallback((type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean): boolean => {
     // Super admin (uid=1) bypasses all permission checks
     if (isSuperAdmin(user)) return true;
     if (!permissions) return true; // Allow by default while loading
 
-    if (type === 'card') {
-      return canPerformAction(permissions.cardArchive, isOwner);
+    let permission: PermissionLevel;
+    switch (type) {
+      case 'card':
+        permission = permissions.cardArchive;
+        break;
+      case 'list':
+        permission = permissions.listArchive;
+        break;
+      case 'board':
+        permission = permissions.boardArchive;
+        break;
+      case 'workspace':
+        permission = permissions.workspaceArchive;
+        break;
+      case 'comment':
+        permission = permissions.commentArchive;
+        break;
     }
 
-    return true;
+    return canPerformAction(permission, isOwner);
   }, [permissions, user]);
 
   const canMove = useCallback((type: 'card', isOwner: boolean): boolean => {

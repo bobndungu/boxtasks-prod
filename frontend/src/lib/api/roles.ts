@@ -22,20 +22,24 @@ export interface WorkspaceRole {
     listCreate: PermissionLevel;
     listEdit: PermissionLevel;
     listDelete: PermissionLevel;
+    listArchive: PermissionLevel;
     // Board permissions
     boardView: PermissionLevel;
     boardCreate: PermissionLevel; // Only 'any' or 'none'
     boardEdit: PermissionLevel;
     boardDelete: PermissionLevel;
+    boardArchive: PermissionLevel;
     // Workspace permissions
     workspaceView: PermissionLevel; // Only 'any' or 'none'
     workspaceEdit: PermissionLevel; // Only 'any' or 'none'
     workspaceDelete: PermissionLevel; // Only 'any' or 'none'
+    workspaceArchive: PermissionLevel; // Only 'any' or 'none'
     // Member management
     memberManage: PermissionLevel;
     // Comment permissions
     commentEdit: PermissionLevel;
     commentDelete: PermissionLevel;
+    commentArchive: PermissionLevel;
     // Report permissions
     reportPerformance: PermissionLevel;
     reportTasks: PermissionLevel;
@@ -80,20 +84,24 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       listCreate: (attrs.field_perm_list_create as PermissionLevel) || 'none',
       listEdit: (attrs.field_perm_list_edit as PermissionLevel) || 'none',
       listDelete: (attrs.field_perm_list_delete as PermissionLevel) || 'none',
+      listArchive: (attrs.field_perm_list_archive as PermissionLevel) || 'own',
       // Board permissions
       boardView: (attrs.field_perm_board_view as PermissionLevel) || 'none',
       boardCreate: (attrs.field_perm_board_create as PermissionLevel) || 'none',
       boardEdit: (attrs.field_perm_board_edit as PermissionLevel) || 'none',
       boardDelete: (attrs.field_perm_board_delete as PermissionLevel) || 'none',
+      boardArchive: (attrs.field_perm_board_archive as PermissionLevel) || 'own',
       // Workspace permissions
       workspaceView: (attrs.field_perm_workspace_view as PermissionLevel) || 'none',
       workspaceEdit: (attrs.field_perm_workspace_edit as PermissionLevel) || 'none',
       workspaceDelete: (attrs.field_perm_workspace_delete as PermissionLevel) || 'none',
+      workspaceArchive: (attrs.field_perm_workspace_archive as PermissionLevel) || 'none',
       // Member management
       memberManage: (attrs.field_perm_member_manage as PermissionLevel) || 'none',
       // Comment permissions
       commentEdit: (attrs.field_perm_comment_edit as PermissionLevel) || 'none',
       commentDelete: (attrs.field_perm_comment_delete as PermissionLevel) || 'none',
+      commentArchive: (attrs.field_perm_comment_archive as PermissionLevel) || 'own',
       // Report permissions
       reportPerformance: (attrs.field_perm_report_performance as PermissionLevel) || 'none',
       reportTasks: (attrs.field_perm_report_tasks as PermissionLevel) || 'none',
@@ -408,20 +416,24 @@ export async function createWorkspaceRole(
           field_perm_list_create: permissions.listCreate,
           field_perm_list_edit: permissions.listEdit,
           field_perm_list_delete: permissions.listDelete,
+          field_perm_list_archive: permissions.listArchive,
           // Board permissions
           field_perm_board_view: permissions.boardView,
           field_perm_board_create: permissions.boardCreate,
           field_perm_board_edit: permissions.boardEdit,
           field_perm_board_delete: permissions.boardDelete,
+          field_perm_board_archive: permissions.boardArchive,
           // Workspace permissions
           field_perm_workspace_view: permissions.workspaceView,
           field_perm_workspace_edit: permissions.workspaceEdit,
           field_perm_workspace_delete: permissions.workspaceDelete,
+          field_perm_workspace_archive: permissions.workspaceArchive,
           // Member management
           field_perm_member_manage: permissions.memberManage,
           // Comment permissions
           field_perm_comment_edit: permissions.commentEdit,
           field_perm_comment_delete: permissions.commentDelete,
+          field_perm_comment_archive: permissions.commentArchive,
           // Report permissions
           field_perm_report_performance: permissions.reportPerformance,
           field_perm_report_tasks: permissions.reportTasks,
@@ -497,6 +509,9 @@ export async function updateWorkspaceRole(
     if (updates.permissions.listDelete !== undefined) {
       attributes.field_perm_list_delete = updates.permissions.listDelete;
     }
+    if (updates.permissions.listArchive !== undefined) {
+      attributes.field_perm_list_archive = updates.permissions.listArchive;
+    }
     // Board permissions
     if (updates.permissions.boardView !== undefined) {
       attributes.field_perm_board_view = updates.permissions.boardView;
@@ -510,6 +525,9 @@ export async function updateWorkspaceRole(
     if (updates.permissions.boardDelete !== undefined) {
       attributes.field_perm_board_delete = updates.permissions.boardDelete;
     }
+    if (updates.permissions.boardArchive !== undefined) {
+      attributes.field_perm_board_archive = updates.permissions.boardArchive;
+    }
     // Workspace permissions
     if (updates.permissions.workspaceView !== undefined) {
       attributes.field_perm_workspace_view = updates.permissions.workspaceView;
@@ -519,6 +537,9 @@ export async function updateWorkspaceRole(
     }
     if (updates.permissions.workspaceDelete !== undefined) {
       attributes.field_perm_workspace_delete = updates.permissions.workspaceDelete;
+    }
+    if (updates.permissions.workspaceArchive !== undefined) {
+      attributes.field_perm_workspace_archive = updates.permissions.workspaceArchive;
     }
     // Member management
     if (updates.permissions.memberManage !== undefined) {
@@ -530,6 +551,9 @@ export async function updateWorkspaceRole(
     }
     if (updates.permissions.commentDelete !== undefined) {
       attributes.field_perm_comment_delete = updates.permissions.commentDelete;
+    }
+    if (updates.permissions.commentArchive !== undefined) {
+      attributes.field_perm_comment_archive = updates.permissions.commentArchive;
     }
     // Report permissions
     if (updates.permissions.reportPerformance !== undefined) {
