@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Clock, ArrowRight, RefreshCw, CheckCircle, Archive, Trash2, MessageSquare, User, Tag, Calendar, Paperclip, FileText, Building, Users } from 'lucide-react';
-import { fetchActivitiesByCard, fetchActivitiesByBoard, type Activity, type ActivityType, getActivityDisplay } from '../lib/api/activities';
+import { Clock, ArrowRight, RefreshCw, CheckCircle, Archive, Trash2, MessageSquare, User, Tag, Calendar, Paperclip, FileText, Building, Users, Pencil } from 'lucide-react';
+import { fetchActivitiesByCard, fetchActivitiesByBoard, type Activity, type ActivityType, type ActivityData, getActivityDisplay } from '../lib/api/activities';
 import ActivityDiff from './ActivityDiff';
-import { formatDateShort } from '../lib/utils/date';
 
 interface ActivityFeedProps {
   cardId?: string;
@@ -12,78 +11,21 @@ interface ActivityFeedProps {
   compact?: boolean;
 }
 
-interface ActivityMeta {
-  oldValue?: string;
-  newValue?: string;
-  fieldName?: string;
-  fromList?: string;
-  toList?: string;
-}
-
-// Parse activity description for metadata
-function parseActivityMeta(description: string, type: ActivityType): ActivityMeta {
-  const meta: ActivityMeta = {};
-
-  // First, try to parse the entire description as JSON (new format from Drupal)
+// Format date for display (e.g., "2024-01-15" -> "Jan 15, 2024")
+function formatDateValue(dateStr: string): string {
+  if (!dateStr) return '';
   try {
-    if (description.startsWith('{') && description.endsWith('}')) {
-      const parsed = JSON.parse(description);
-      if (parsed.old !== undefined) meta.oldValue = parsed.old;
-      if (parsed.new !== undefined) meta.newValue = parsed.new;
-      if (parsed.field) meta.fieldName = formatFieldName(parsed.field);
-      if (parsed.from_list) meta.fromList = parsed.from_list;
-      if (parsed.to_list) meta.toList = parsed.to_list;
-      return meta;
-    }
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   } catch {
-    // Not JSON format, continue with regex parsing
+    return dateStr;
   }
-
-  // Parse card movement: "moved from X to Y"
-  if (type === 'card_moved') {
-    const moveMatch = description.match(/from "?([^"]+)"? to "?([^"]+)"?/i);
-    if (moveMatch) {
-      meta.fromList = moveMatch[1];
-      meta.toList = moveMatch[2];
-    }
-  }
-
-  // Parse field changes: "changed X from Y to Z"
-  const changeMatch = description.match(/changed (\w+) from "?([^"]+)"? to "?([^"]+)"?/i);
-  if (changeMatch) {
-    meta.fieldName = changeMatch[1];
-    meta.oldValue = changeMatch[2];
-    meta.newValue = changeMatch[3];
-  }
-
-  // Parse description updates: old vs new description in JSON format (legacy)
-  if (type === 'description_updated' || type === 'card_updated') {
-    try {
-      const jsonMatch = description.match(/\{[^}]+\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        meta.oldValue = parsed.old || parsed.oldValue;
-        meta.newValue = parsed.new || parsed.newValue;
-        meta.fieldName = parsed.field ? formatFieldName(parsed.field) : 'Description';
-      }
-    } catch {
-      // Not JSON format, use as-is
-    }
-  }
-
-  return meta;
 }
 
-// Format field name for display
-function formatFieldName(fieldName: string): string {
-  // Remove common prefixes
-  const name = fieldName.replace(/^field_card_/, '').replace(/^field_/, '');
-  // Convert snake_case to Title Case
-  return name
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
 
 // Get icon for activity type
 function getActivityIcon(type: ActivityType) {
@@ -123,6 +65,8 @@ function getActivityIcon(type: ActivityType) {
       return <Paperclip className="h-4 w-4 text-gray-500" />;
     case 'description_updated':
       return <FileText className="h-4 w-4 text-gray-500" />;
+    case 'title_updated':
+      return <Pencil className="h-4 w-4 text-blue-500" />;
     case 'department_set':
     case 'department_changed':
     case 'department_removed':
@@ -136,8 +80,8 @@ function getActivityIcon(type: ActivityType) {
   }
 }
 
-// Format relative time
-function formatRelativeTime(dateStr: string): string {
+// Format activity time with full date and relative time
+function formatActivityTime(dateStr: string): { fullDate: string; relative: string } {
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -145,11 +89,191 @@ function formatRelativeTime(dateStr: string): string {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return formatDateShort(date);
+  // Full date format: "Jan 15 at 2:30 PM"
+  const fullDate = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }) + ' at ' + date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  // Relative time
+  let relative: string;
+  if (diffMins < 1) {
+    relative = 'Just now';
+  } else if (diffMins < 60) {
+    relative = `${diffMins}m ago`;
+  } else if (diffHours < 24) {
+    relative = `${diffHours}h ago`;
+  } else if (diffDays < 7) {
+    relative = `${diffDays}d ago`;
+  } else {
+    relative = `${Math.floor(diffDays / 7)}w ago`;
+  }
+
+  return { fullDate, relative };
+}
+
+// Component to display activity data with diffs
+function ActivityDataDisplay({ type, data }: { type: ActivityType; data: ActivityData | null }) {
+  if (!data) return null;
+
+  // Card moved - show from/to lists
+  if (type === 'card_moved' && data.from_list && data.to_list) {
+    return (
+      <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+        <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+          {data.from_list}
+        </span>
+        <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+        <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+          {data.to_list}
+        </span>
+      </div>
+    );
+  }
+
+  // Due date changes
+  if ((type === 'due_date_set' || type === 'due_date_updated' || type === 'due_date_removed') && (data.old_value || data.new_value || data.due_date)) {
+    const oldDate = data.old_value ? formatDateValue(data.old_value) : null;
+    const newDate = data.new_value || data.due_date ? formatDateValue(data.new_value || data.due_date || '') : null;
+
+    if (type === 'due_date_set' && newDate) {
+      return (
+        <div className="mt-1.5 text-xs">
+          <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded">
+            {newDate}
+          </span>
+        </div>
+      );
+    }
+
+    if (type === 'due_date_removed' && oldDate) {
+      return (
+        <div className="mt-1.5 text-xs">
+          <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded line-through">
+            {oldDate}
+          </span>
+        </div>
+      );
+    }
+
+    if (type === 'due_date_updated' && oldDate && newDate) {
+      return (
+        <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+          <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded line-through">
+            {oldDate}
+          </span>
+          <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+          <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded">
+            {newDate}
+          </span>
+        </div>
+      );
+    }
+  }
+
+  // Start date changes
+  if ((type === 'start_date_set' || type === 'start_date_updated' || type === 'start_date_removed') && (data.old_value || data.new_value || data.start_date)) {
+    const oldDate = data.old_value ? formatDateValue(data.old_value) : null;
+    const newDate = data.new_value || data.start_date ? formatDateValue(data.new_value || data.start_date || '') : null;
+
+    if (type === 'start_date_set' && newDate) {
+      return (
+        <div className="mt-1.5 text-xs">
+          <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded">
+            {newDate}
+          </span>
+        </div>
+      );
+    }
+
+    if (type === 'start_date_removed' && oldDate) {
+      return (
+        <div className="mt-1.5 text-xs">
+          <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded line-through">
+            {oldDate}
+          </span>
+        </div>
+      );
+    }
+
+    if (type === 'start_date_updated' && oldDate && newDate) {
+      return (
+        <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+          <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded line-through">
+            {oldDate}
+          </span>
+          <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+          <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded">
+            {newDate}
+          </span>
+        </div>
+      );
+    }
+  }
+
+  // Title changes
+  if (data.old_value && data.new_value && (type === 'title_updated' || type === 'card_updated' || data.field_name === 'title')) {
+    // Check if this looks like a title change (not too long)
+    if (data.old_value.length < 200 && data.new_value.length < 200) {
+      return (
+        <div className="mt-1.5 flex items-center gap-1.5 text-xs flex-wrap">
+          <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded line-through">
+            {data.old_value}
+          </span>
+          <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+          <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded">
+            {data.new_value}
+          </span>
+        </div>
+      );
+    }
+  }
+
+  // Label changes
+  if ((type === 'label_added' || type === 'label_removed') && data.label) {
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className={`px-1.5 py-0.5 rounded ${
+          type === 'label_added'
+            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through'
+        }`}>
+          {data.label}
+        </span>
+      </div>
+    );
+  }
+
+  // Member changes
+  if ((type === 'member_added' || type === 'member_removed') && data.member_name) {
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className={`px-1.5 py-0.5 rounded ${
+          type === 'member_added'
+            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+        }`}>
+          {data.member_name}
+        </span>
+      </div>
+    );
+  }
+
+  // Checklist changes
+  if (type === 'checklist_added' && data.checklist_name) {
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded">
+          {data.checklist_name}
+        </span>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export default function ActivityFeed({
@@ -216,7 +340,18 @@ export default function ActivityFeed({
     <div className={compact ? 'space-y-2' : 'space-y-4'}>
       {activities.map((activity) => {
         const display = getActivityDisplay(activity.type);
-        const meta = parseActivityMeta(activity.description || '', activity.type);
+        const time = formatActivityTime(activity.createdAt);
+        const hasStructuredData = activity.data && (
+          activity.data.from_list ||
+          activity.data.to_list ||
+          activity.data.old_value ||
+          activity.data.new_value ||
+          activity.data.due_date ||
+          activity.data.start_date ||
+          activity.data.label ||
+          activity.data.member_name ||
+          activity.data.checklist_name
+        );
 
         return (
           <div
@@ -242,39 +377,29 @@ export default function ActivityFeed({
                   </p>
                 </div>
 
-                {/* Card movement visualization */}
-                {activity.type === 'card_moved' && meta.fromList && meta.toList && (
-                  <div className="mt-2 flex items-center gap-2 text-sm">
-                    <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-700 dark:text-gray-300">
-                      {meta.fromList}
-                    </span>
-                    <ArrowRight className="h-4 w-4 text-gray-400" />
-                    <span className="bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded text-blue-700 dark:text-blue-300">
-                      {meta.toList}
-                    </span>
-                  </div>
-                )}
+                {/* Structured activity data display */}
+                {showDiffs && <ActivityDataDisplay type={activity.type} data={activity.data} />}
 
-                {/* Field change diff */}
-                {showDiffs && meta.oldValue && meta.newValue && (
+                {/* Description diff for text changes (description field) */}
+                {showDiffs && activity.type === 'description_updated' && activity.data?.old_value && activity.data?.new_value && (
                   <ActivityDiff
-                    oldText={meta.oldValue}
-                    newText={meta.newValue}
-                    fieldName={meta.fieldName}
+                    oldText={activity.data.old_value}
+                    newText={activity.data.new_value}
+                    fieldName="Description"
                     showInline={true}
                   />
                 )}
 
-                {/* Activity description (if no diff parsed) */}
-                {activity.description && !meta.oldValue && !meta.fromList && (
+                {/* Fallback: Activity description (if no structured data) */}
+                {activity.description && !hasStructuredData && (
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
                     {activity.description}
                   </p>
                 )}
 
-                {/* Timestamp */}
+                {/* Timestamp with full date and relative time */}
                 <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                  {formatRelativeTime(activity.createdAt)}
+                  {time.fullDate} · {time.relative}
                 </p>
               </div>
             </div>

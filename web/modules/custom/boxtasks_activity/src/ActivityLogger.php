@@ -358,63 +358,27 @@ class ActivityLogger {
         return "$user_name attached $filename to \"$card_title\"";
 
       case self::TYPE_DESCRIPTION_UPDATED:
-        // Store old/new values in JSON format for diff display
-        $old_desc = $data['old_value'] ?? '';
-        $new_desc = $data['new_value'] ?? '';
-        return json_encode([
-          'message' => "$user_name updated description on \"$card_title\"",
-          'old' => $old_desc,
-          'new' => $new_desc,
-          'field' => 'description',
-        ]);
+        return "$user_name updated the description on \"$card_title\"";
 
       case self::TYPE_TITLE_UPDATED:
-        $old_title = $data['old_value'] ?? '';
-        $new_title = $data['new_value'] ?? $card_title;
-        return json_encode([
-          'message' => "$user_name renamed card",
-          'old' => $old_title,
-          'new' => $new_title,
-          'field' => 'title',
-        ]);
+        return "$user_name renamed the card \"$card_title\"";
 
       case self::TYPE_CUSTOM_FIELD_UPDATED:
         $field_name = $data['field_name'] ?? 'a field';
-        $old_value = $data['old_value'] ?? '';
-        $new_value = $data['new_value'] ?? '';
-        return json_encode([
-          'message' => "$user_name updated $field_name on \"$card_title\"",
-          'old' => $old_value,
-          'new' => $new_value,
-          'field' => $field_name,
-        ]);
+        return "$user_name updated $field_name on \"$card_title\"";
 
       case self::TYPE_DUE_DATE_UPDATED:
-        $old_date = $data['old_value'] ?? '';
-        $new_date = $data['new_value'] ?? '';
-        return json_encode([
-          'message' => "$user_name changed due date on \"$card_title\"",
-          'old' => $old_date,
-          'new' => $new_date,
-          'field' => 'due_date',
-        ]);
+        return "$user_name changed the due date on \"$card_title\"";
 
       case self::TYPE_START_DATE_SET:
-        $date = $data['start_date'] ?? '';
+        $date = $data['start_date'] ?? $data['new_value'] ?? '';
         return "$user_name set start date to $date on \"$card_title\"";
 
       case self::TYPE_START_DATE_REMOVED:
-        return "$user_name removed start date from \"$card_title\"";
+        return "$user_name removed the start date from \"$card_title\"";
 
       case self::TYPE_START_DATE_UPDATED:
-        $old_date = $data['old_value'] ?? '';
-        $new_date = $data['new_value'] ?? '';
-        return json_encode([
-          'message' => "$user_name changed start date on \"$card_title\"",
-          'old' => $old_date,
-          'new' => $new_date,
-          'field' => 'start_date',
-        ]);
+        return "$user_name changed the start date on \"$card_title\"";
 
       default:
         return "$user_name updated \"$card_title\"";

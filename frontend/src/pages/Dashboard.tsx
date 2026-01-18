@@ -12,13 +12,14 @@ import {
   Search,
   LayoutGrid,
   User,
+  ArrowRight,
 } from 'lucide-react';
-import { formatDateShort } from '../lib/utils/date';
+import { formatDateShort, formatDateTime } from '../lib/utils/date';
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { useBoardStore } from '../lib/stores/board';
 import { fetchStarredBoards, fetchRecentBoards, prefetchBoard } from '../lib/api/boards';
-import { fetchActivitiesByBoard, type Activity } from '../lib/api/activities';
+import { fetchActivitiesByBoard, type Activity, type ActivityData } from '../lib/api/activities';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
 import SearchModal from '../components/SearchModal';
 import NotificationDropdown from '../components/NotificationDropdown';
@@ -34,8 +35,8 @@ function getActivityLabel(type: ActivityType): string {
   return display.label;
 }
 
-// Helper function to format activity time
-function formatActivityTime(dateStr: string): string {
+// Helper function to format activity time with full date and relative
+function formatActivityTime(dateStr: string): { full: string; relative: string } {
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -43,11 +44,135 @@ function formatActivityTime(dateStr: string): string {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return formatDateShort(date);
+  let relative: string;
+  if (diffMins < 1) relative = 'Just now';
+  else if (diffMins < 60) relative = `${diffMins}m ago`;
+  else if (diffHours < 24) relative = `${diffHours}h ago`;
+  else if (diffDays < 7) relative = `${diffDays}d ago`;
+  else relative = formatDateShort(date);
+
+  return {
+    full: formatDateTime(date),
+    relative,
+  };
+}
+
+// Format a date value for display
+function formatDateValue(value: string | undefined): string {
+  if (!value) return '';
+  try {
+    const date = new Date(value);
+    return formatDateShort(date);
+  } catch {
+    return value;
+  }
+}
+
+// Activity diff display component for Dashboard
+function ActivityDiffDisplay({ type, data }: { type: ActivityType; data: ActivityData | null }) {
+  if (!data) return null;
+
+  // Card moved - show from/to lists
+  if (type === 'card_moved' && data.from_list && data.to_list) {
+    return (
+      <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+        <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+          {data.from_list}
+        </span>
+        <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+        <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+          {data.to_list}
+        </span>
+      </div>
+    );
+  }
+
+  // Date changes - show old/new values
+  if ((type === 'due_date_updated' || type === 'start_date_updated') && data.old_value && data.new_value) {
+    return (
+      <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+        <span className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded line-through">
+          {formatDateValue(data.old_value)}
+        </span>
+        <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+        <span className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded">
+          {formatDateValue(data.new_value)}
+        </span>
+      </div>
+    );
+  }
+
+  // Date set - show new value
+  if ((type === 'due_date_set' || type === 'start_date_set') && (data.new_value || data.due_date || data.start_date)) {
+    const value = data.new_value || data.due_date || data.start_date;
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded">
+          {formatDateValue(value)}
+        </span>
+      </div>
+    );
+  }
+
+  // Date removed - show old value
+  if ((type === 'due_date_removed' || type === 'start_date_removed') && data.old_value) {
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded line-through">
+          {formatDateValue(data.old_value)}
+        </span>
+      </div>
+    );
+  }
+
+  // Title change
+  if (type === 'title_updated' && data.old_value && data.new_value) {
+    return (
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
+        <span className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded line-through max-w-[150px] truncate">
+          {data.old_value}
+        </span>
+        <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+        <span className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded max-w-[150px] truncate">
+          {data.new_value}
+        </span>
+      </div>
+    );
+  }
+
+  // Label changes
+  if ((type === 'label_added' || type === 'label_removed') && data.label) {
+    const isRemoved = type === 'label_removed';
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className={`px-1.5 py-0.5 rounded ${
+          isRemoved
+            ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 line-through'
+            : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+        }`}>
+          {data.label}
+        </span>
+      </div>
+    );
+  }
+
+  // Member changes
+  if ((type === 'member_added' || type === 'member_removed') && data.member_name) {
+    const isRemoved = type === 'member_removed';
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className={`px-1.5 py-0.5 rounded ${
+          isRemoved
+            ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+            : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+        }`}>
+          {isRemoved ? '−' : '+'} {data.member_name}
+        </span>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export default function Dashboard() {
@@ -511,30 +636,37 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {activities.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm font-medium flex-shrink-0">
-                        {activity.authorName.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 dark:text-white">
-                          <span className="font-medium">{activity.authorName}</span>
-                          {' '}
-                          <span className="text-gray-600 dark:text-gray-400">
-                            {getActivityLabel(activity.type)}
-                          </span>
-                        </p>
-                        {activity.description && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
-                            {activity.description}
+                  {activities.map((activity) => {
+                    const time = formatActivityTime(activity.createdAt);
+                    return (
+                      <div key={activity.id} className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm font-medium flex-shrink-0">
+                          {activity.authorName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900 dark:text-white">
+                            <span className="font-medium">{activity.authorName}</span>
+                            {' '}
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {getActivityLabel(activity.type)}
+                            </span>
                           </p>
-                        )}
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                          {formatActivityTime(activity.createdAt)}
-                        </p>
+                          {/* Show diff visualization if data is available */}
+                          <ActivityDiffDisplay type={activity.type} data={activity.data} />
+                          {/* Show description only if no diff data */}
+                          {activity.description && !activity.data && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
+                              {activity.description}
+                            </p>
+                          )}
+                          {/* Timestamp with full date and relative time */}
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1" title={time.full}>
+                            {time.full} · {time.relative}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>

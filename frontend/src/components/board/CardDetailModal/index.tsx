@@ -34,6 +34,7 @@ import {
   ArrowRightLeft,
   ChevronDown,
   Star,
+  ArrowRight,
 } from 'lucide-react';
 import { fetchAllBoards, type Board } from '../../../lib/api/boards';
 import { fetchListsByBoard, type BoardList } from '../../../lib/api/lists';
@@ -59,7 +60,7 @@ import type { TaxonomyTerm } from '../../../lib/api/taxonomies';
 import { useAuthStore } from '../../../lib/stores/auth';
 import { toast } from '../../../lib/stores/toast';
 import { TimeTracker } from '../../TimeTracker';
-import { formatDate, formatDateTime, formatRelativeTime, formatDateTimeCompact, formatDateCompact, formatDateRange } from '../../../lib/utils/date';
+import { formatDate, formatDateTime, formatDateTimeCompact, formatDateCompact, formatDateRange } from '../../../lib/utils/date';
 import { EstimateEditor } from '../../EstimateEditor';
 import { GoogleDocsEmbed } from '../../GoogleDocsEmbed';
 import MemberDropdown from '../../MemberDropdown';
@@ -1172,8 +1173,53 @@ function CardDetailModal({
     }
   };
 
-  const formatActivityTime = (dateStr: string) => {
-    return formatRelativeTime(dateStr) || 'Just now';
+  const formatActivityTime = (dateStr: string): { fullDate: string; relative: string } => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    // Full date format: "Jan 15, 2026, 2:30 PM"
+    const fullDate = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }) + ', ' + date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+
+    // Relative time
+    let relative: string;
+    if (diffMins < 1) {
+      relative = 'Just now';
+    } else if (diffMins < 60) {
+      relative = `${diffMins}m ago`;
+    } else if (diffHours < 24) {
+      relative = `${diffHours}h ago`;
+    } else if (diffDays < 7) {
+      relative = `${diffDays}d ago`;
+    } else {
+      relative = `${Math.floor(diffDays / 7)}w ago`;
+    }
+
+    return { fullDate, relative };
+  };
+
+  const formatDateValue = (dateStr: string): string => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return dateStr;
+    }
   };
 
   const handleTitleBlur = () => {
@@ -2916,6 +2962,12 @@ function CardDetailModal({
                   <div className={`space-y-2 ${showAllActivities ? 'max-h-96 overflow-y-auto pr-2' : ''}`}>
                     {(showAllActivities ? activities : activities.slice(0, 5)).map((activity) => {
                       const display = getActivityDisplay(activity.type);
+                      const time = formatActivityTime(activity.createdAt);
+                      const data = activity.data;
+                      const hasStructuredData = data && (
+                        data.from_list || data.to_list || data.old_value || data.new_value ||
+                        data.due_date || data.start_date || data.label || data.member_name
+                      );
                       return (
                         <div key={activity.id} className="flex items-start p-2 rounded-lg hover:bg-gray-50 transition-colors">
                           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 flex items-center justify-center text-xs mr-2.5 flex-shrink-0 font-medium">
@@ -2926,10 +2978,64 @@ function CardDetailModal({
                               <span className="font-medium text-gray-800">{activity.authorName}</span>{' '}
                               <span className="text-gray-600">{display.label}</span>
                             </p>
-                            {activity.description && (
+                            {/* Card moved - show from/to lists */}
+                            {activity.type === 'card_moved' && data?.from_list && data?.to_list && (
+                              <div className="mt-1 flex items-center gap-1.5 text-xs">
+                                <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{data.from_list}</span>
+                                <ArrowRight className="h-3 w-3 text-gray-400" />
+                                <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{data.to_list}</span>
+                              </div>
+                            )}
+                            {/* Due date changes */}
+                            {(activity.type === 'due_date_set' || activity.type === 'due_date_updated') && (data?.new_value || data?.due_date) && (
+                              <div className="mt-1 text-xs">
+                                {data?.old_value && (
+                                  <>
+                                    <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded line-through mr-1.5">{formatDateValue(data.old_value)}</span>
+                                    <ArrowRight className="h-3 w-3 text-gray-400 inline mx-1" />
+                                  </>
+                                )}
+                                <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{formatDateValue(data?.new_value || data?.due_date || '')}</span>
+                              </div>
+                            )}
+                            {activity.type === 'due_date_removed' && data?.old_value && (
+                              <div className="mt-1 text-xs">
+                                <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded line-through">{formatDateValue(data.old_value)}</span>
+                              </div>
+                            )}
+                            {/* Start date changes */}
+                            {(activity.type === 'start_date_set' || activity.type === 'start_date_updated') && (data?.new_value || data?.start_date) && (
+                              <div className="mt-1 text-xs">
+                                {data?.old_value && (
+                                  <>
+                                    <span className="bg-red-100 text-red-700 px-1.5 py-0.5 rounded line-through mr-1.5">{formatDateValue(data.old_value)}</span>
+                                    <ArrowRight className="h-3 w-3 text-gray-400 inline mx-1" />
+                                  </>
+                                )}
+                                <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{formatDateValue(data?.new_value || data?.start_date || '')}</span>
+                              </div>
+                            )}
+                            {/* Label changes */}
+                            {(activity.type === 'label_added' || activity.type === 'label_removed') && data?.label && (
+                              <div className="mt-1 text-xs">
+                                <span className={`px-1.5 py-0.5 rounded ${activity.type === 'label_added' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700 line-through'}`}>
+                                  {data.label}
+                                </span>
+                              </div>
+                            )}
+                            {/* Member changes */}
+                            {(activity.type === 'member_added' || activity.type === 'member_removed') && data?.member_name && (
+                              <div className="mt-1 text-xs">
+                                <span className={`px-1.5 py-0.5 rounded ${activity.type === 'member_added' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                                  {data.member_name}
+                                </span>
+                              </div>
+                            )}
+                            {/* Fallback description if no structured data */}
+                            {activity.description && !hasStructuredData && (
                               <p className="text-xs text-gray-500 mt-0.5 truncate">{activity.description}</p>
                             )}
-                            <p className="text-xs text-gray-400 mt-0.5">{formatActivityTime(activity.createdAt)}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{time.fullDate} · {time.relative}</p>
                           </div>
                         </div>
                       );

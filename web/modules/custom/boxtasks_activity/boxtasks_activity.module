@@ -226,18 +226,82 @@ function boxtasks_activity_node_update(NodeInterface $node): void {
         ActivityLogger::TYPE_DUE_DATE_SET,
         $node,
         NULL,
-        ['due_date' => $current_due]
+        ['due_date' => $current_due, 'new_value' => $current_due]
       );
     }
     elseif (!$current_due && $original_due) {
-      $logger->logCardActivity(ActivityLogger::TYPE_DUE_DATE_REMOVED, $node);
-    }
-    elseif ($current_due) {
       $logger->logCardActivity(
-        ActivityLogger::TYPE_DUE_DATE_SET,
+        ActivityLogger::TYPE_DUE_DATE_REMOVED,
         $node,
         NULL,
-        ['due_date' => $current_due]
+        ['old_value' => $original_due]
+      );
+    }
+    else {
+      $logger->logCardActivity(
+        ActivityLogger::TYPE_DUE_DATE_UPDATED,
+        $node,
+        NULL,
+        ['old_value' => $original_due, 'new_value' => $current_due]
+      );
+    }
+  }
+
+  // Check for start date change.
+  if ($node->hasField('field_card_start_date') && $original->hasField('field_card_start_date')) {
+    $current_start = $node->get('field_card_start_date')->value;
+    $original_start = $original->get('field_card_start_date')->value;
+
+    if ($current_start !== $original_start) {
+      if ($current_start && !$original_start) {
+        $logger->logCardActivity(
+          ActivityLogger::TYPE_START_DATE_SET,
+          $node,
+          NULL,
+          ['start_date' => $current_start, 'new_value' => $current_start]
+        );
+      }
+      elseif (!$current_start && $original_start) {
+        $logger->logCardActivity(
+          ActivityLogger::TYPE_START_DATE_REMOVED,
+          $node,
+          NULL,
+          ['old_value' => $original_start]
+        );
+      }
+      else {
+        $logger->logCardActivity(
+          ActivityLogger::TYPE_START_DATE_UPDATED,
+          $node,
+          NULL,
+          ['old_value' => $original_start, 'new_value' => $current_start]
+        );
+      }
+    }
+  }
+
+  // Check for title change.
+  $current_title = $node->getTitle();
+  $original_title = $original->getTitle();
+  if ($current_title !== $original_title) {
+    $logger->logCardActivity(
+      ActivityLogger::TYPE_TITLE_UPDATED,
+      $node,
+      NULL,
+      ['old_value' => $original_title, 'new_value' => $current_title]
+    );
+  }
+
+  // Check for description change.
+  if ($node->hasField('field_card_description') && $original->hasField('field_card_description')) {
+    $current_desc = $node->get('field_card_description')->value ?? '';
+    $original_desc = $original->get('field_card_description')->value ?? '';
+    if ($current_desc !== $original_desc) {
+      $logger->logCardActivity(
+        ActivityLogger::TYPE_DESCRIPTION_UPDATED,
+        $node,
+        NULL,
+        ['old_value' => $original_desc, 'new_value' => $current_desc]
       );
     }
   }

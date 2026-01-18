@@ -39,6 +39,7 @@ export type ActivityType =
   | 'attachment_added'
   | 'attachment_removed'
   | 'description_updated'
+  | 'title_updated'
   | 'department_set'
   | 'department_changed'
   | 'department_removed'
@@ -52,6 +53,19 @@ export type ActivityType =
   | 'card_rejected'
   | 'card_rejection_removed';
 
+export interface ActivityData {
+  old_value?: string;
+  new_value?: string;
+  from_list?: string;
+  to_list?: string;
+  due_date?: string;
+  start_date?: string;
+  label?: string;
+  member_name?: string;
+  checklist_name?: string;
+  field_name?: string;
+}
+
 export interface Activity {
   id: string;
   type: ActivityType;
@@ -61,6 +75,7 @@ export interface Activity {
   authorId: string;
   authorName: string;
   createdAt: string;
+  data: ActivityData | null;
 }
 
 // Transform JSON:API response to Activity
@@ -83,6 +98,17 @@ function transformActivity(data: Record<string, unknown>, included?: Record<stri
   const rawDescription = (attrs.field_activity_description as { value?: string })?.value || '';
   const description = rawDescription ? decodeHtmlEntities(rawDescription) : '';
 
+  // Parse activity data JSON
+  let activityData: ActivityData | null = null;
+  const rawData = attrs.field_activity_data as string | null;
+  if (rawData) {
+    try {
+      activityData = JSON.parse(rawData) as ActivityData;
+    } catch {
+      // Invalid JSON, ignore
+    }
+  }
+
   return {
     id: data.id as string,
     type: (attrs.field_activity_type as ActivityType) || 'card_updated',
@@ -92,6 +118,7 @@ function transformActivity(data: Record<string, unknown>, included?: Record<stri
     authorId,
     authorName,
     createdAt: attrs.created as string,
+    data: activityData,
   };
 }
 
@@ -122,6 +149,7 @@ export function getActivityDisplay(type: ActivityType): { icon: string; label: s
     start_date_removed: { icon: '📅', label: 'removed the start date' },
     start_date_updated: { icon: '📅', label: 'changed the start date' },
     description_updated: { icon: '📄', label: 'updated the description' },
+    title_updated: { icon: '✏️', label: 'renamed the card' },
     checklist_added: { icon: '☑️', label: 'added a checklist' },
     checklist_item_completed: { icon: '✅', label: 'completed a checklist item' },
     checklist_item_uncompleted: { icon: '⬜', label: 'uncompleted a checklist item' },
