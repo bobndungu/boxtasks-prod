@@ -18,6 +18,17 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+// Create axios instance for custom API endpoints (non-JSON:API)
+// This is used for endpoints like /api/board/{id}/data that don't follow JSON:API spec
+export const customApiClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  withCredentials: true,
+});
+
 // Token management
 let accessToken: string | null = null;
 let csrfToken: string | null = null;
@@ -359,6 +370,44 @@ apiClient.interceptors.response.use(
 
       // Refresh failed - emit session expired event instead of abrupt redirect
       // This allows the UI to show a proper message to the user
+      emitSessionEvent('expired', 'Your session has expired. Please log in again.');
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Add the same interceptors to customApiClient for non-JSON:API endpoints
+customApiClient.interceptors.request.use(
+  async (config) => {
+    const token = getAccessToken();
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+customApiClient.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+    // Handle authentication errors
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      // Try to refresh the token
+      const newTokens = await refreshAccessToken();
+      if (newTokens) {
+        // Retry the original request with new token
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${newTokens.access_token}`;
+        return customApiClient(originalRequest);
+      }
+
+      // Refresh failed - emit session expired event
       emitSessionEvent('expired', 'Your session has expired. Please log in again.');
     }
     return Promise.reject(error);

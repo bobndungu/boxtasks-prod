@@ -1,4 +1,4 @@
-import { getAccessToken, fetchWithCsrf } from './client';
+import { getAccessToken, fetchWithCsrf, customApiClient } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -492,33 +492,11 @@ export interface ConsolidatedBoardData {
 /**
  * Fetch all board data in a single API call.
  * This is the optimized endpoint that reduces 9 API calls to 1.
- * Supports both OAuth tokens and session cookie authentication.
+ * Uses apiClient for automatic token refresh on 401 errors.
  */
 export async function fetchBoardData(boardId: string): Promise<ConsolidatedBoardData> {
-  const token = getAccessToken();
-
-  // Build headers - include token if available, but also send cookies
-  const headers: Record<string, string> = {
-    'Accept': 'application/json',
-  };
-
-  // Add Authorization header if we have an OAuth token
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(
-    `${API_URL}/api/board/${boardId}/data`,
-    {
-      headers,
-      credentials: 'include', // Include session cookies for cookie-based auth
-    }
+  const response = await customApiClient.get<ConsolidatedBoardData>(
+    `/api/board/${boardId}/data`
   );
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Failed to fetch board data: ${response.status} ${text}`);
-  }
-
-  return response.json();
+  return response.data;
 }
