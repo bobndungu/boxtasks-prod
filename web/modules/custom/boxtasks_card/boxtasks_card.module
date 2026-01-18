@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ * BoxTasks Card module.
+ *
+ * Provides validation and functionality for card entities.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_entity_presave().
+ *
+ * Validates that the start date is not later than the due date for cards.
+ */
+function boxtasks_card_entity_presave(EntityInterface $entity): void {
+  // Only validate card nodes.
+  if (!$entity instanceof NodeInterface || $entity->bundle() !== 'card') {
+    return;
+  }
+
+  // Get start date and due date values.
+  $start_date = NULL;
+  $due_date = NULL;
+
+  if ($entity->hasField('field_card_start_date') && !$entity->get('field_card_start_date')->isEmpty()) {
+    $start_date = $entity->get('field_card_start_date')->value;
+  }
+
+  if ($entity->hasField('field_card_due_date') && !$entity->get('field_card_due_date')->isEmpty()) {
+    $due_date = $entity->get('field_card_due_date')->value;
+  }
+
+  // If both dates are set, validate that start date is not after due date.
+  if ($start_date && $due_date) {
+    $start_timestamp = strtotime($start_date);
+    $due_timestamp = strtotime($due_date);
+
+    if ($start_timestamp > $due_timestamp) {
+      throw new \InvalidArgumentException('Start date cannot be later than the due date.');
+    }
+  }
+}

@@ -1192,6 +1192,15 @@ function CardDetailModal({
   };
 
   const handleDueDateSave = (date: string) => {
+    // Validate: due date must not be before start date
+    if (date && startDate) {
+      const dueDateObj = new Date(date);
+      const startDateObj = new Date(startDate);
+      if (dueDateObj < startDateObj) {
+        toast.error('Due date cannot be before the start date');
+        return;
+      }
+    }
     setDueDate(date);
     onUpdate(card.id, { dueDate: date || undefined });
     setShowDatePicker(false);
@@ -1204,6 +1213,15 @@ function CardDetailModal({
   };
 
   const handleStartDateSave = (date: string) => {
+    // Validate: start date must not be after due date
+    if (date && dueDate) {
+      const startDateObj = new Date(date);
+      const dueDateObj = new Date(dueDate);
+      if (startDateObj > dueDateObj) {
+        toast.error('Start date cannot be after the due date');
+        return;
+      }
+    }
     const hadStartDate = !!card.startDate;
     setStartDate(date);
     onUpdate(card.id, { startDate: date || undefined });
@@ -3076,8 +3094,12 @@ function CardDetailModal({
                           type="datetime-local"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
+                          max={dueDate || undefined}
                           className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
                         />
+                        {dueDate && (
+                          <p className="text-xs text-gray-500 mt-1">Must be before or on the due date</p>
+                        )}
                         <div className="flex space-x-2 mt-3">
                           <button
                             onClick={() => handleStartDateSave(startDate)}
@@ -3118,8 +3140,12 @@ function CardDetailModal({
                           type="datetime-local"
                           value={dueDate}
                           onChange={(e) => setDueDate(e.target.value)}
+                          min={startDate || undefined}
                           className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
                         />
+                        {startDate && (
+                          <p className="text-xs text-gray-500 mt-1">Must be on or after the start date</p>
+                        )}
                         <div className="flex space-x-2 mt-3">
                           <button
                             onClick={() => handleDueDateSave(dueDate)}
