@@ -1,0 +1,4 @@
+administer boxtasks email templates:
+  title: 'Administer email templates'
+  description: 'Edit and manage notification email templates for BoxTasks.'
+  restrict access: true

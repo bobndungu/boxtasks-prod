@@ -7,6 +7,7 @@ module:
   block: 0
   block_content: 0
   boxtasks_activity: 0
+  boxtasks_api: 0
   boxtasks_attachment: 0
   boxtasks_automation: 0
   boxtasks_board: 0

@@ -6,7 +6,7 @@ boxtasks_notification.email_templates:
     _controller: '\Drupal\boxtasks_notification\Controller\EmailTemplateController::getTemplates'
   methods: [GET]
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'administer boxtasks email templates'
   options:
     _auth: ['oauth2']
     no_cache: TRUE
@@ -17,7 +17,7 @@ boxtasks_notification.email_template_update:
     _controller: '\Drupal\boxtasks_notification\Controller\EmailTemplateController::updateTemplate'
   methods: [PATCH]
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'administer boxtasks email templates'
     type: '[a-z_]+'
   options:
     _auth: ['oauth2']
@@ -29,7 +29,7 @@ boxtasks_notification.email_template_reset:
     _controller: '\Drupal\boxtasks_notification\Controller\EmailTemplateController::resetTemplate'
   methods: [POST]
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'administer boxtasks email templates'
     type: '[a-z_]+'
   options:
     _auth: ['oauth2']
@@ -41,7 +41,7 @@ boxtasks_notification.email_template_preview:
     _controller: '\Drupal\boxtasks_notification\Controller\EmailTemplateController::previewTemplate'
   methods: [POST]
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'administer boxtasks email templates'
   options:
     _auth: ['oauth2']
     no_cache: TRUE

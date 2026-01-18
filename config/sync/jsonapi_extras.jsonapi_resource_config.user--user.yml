@@ -1,3 +1,7 @@
+uuid: null
+langcode: en
+status: true
+dependencies: {  }
 id: user--user
 disabled: false
 path: user/user
