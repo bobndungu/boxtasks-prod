@@ -6,6 +6,9 @@ services:
       - '@current_user'
       - '@?boxtasks_realtime.mercure_publisher'
 
+  boxtasks_notification.template:
+    class: Drupal\boxtasks_notification\EmailTemplateService
+
   boxtasks_notification.email:
     class: Drupal\boxtasks_notification\EmailNotificationService
     arguments:
@@ -13,3 +16,11 @@ services:
       - '@current_user'
       - '@plugin.manager.mail'
       - '@boxtasks_notification.notifier'
+      - '@boxtasks_notification.template'
+
+  boxtasks_notification.commands:
+    class: Drupal\boxtasks_notification\Commands\NotificationCommands
+    arguments:
+      - '@boxtasks_notification.email'
+    tags:
+      - { name: drush.command }
