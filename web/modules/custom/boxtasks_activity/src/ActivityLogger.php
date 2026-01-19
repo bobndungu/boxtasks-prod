@@ -394,17 +394,17 @@ class ActivityLogger {
 
       case self::TYPE_DEPARTMENT_SET:
         $department = $data['department_name'] ?? 'a department';
-        return "$user_name set department to \"$department\" on \"$card_title\"";
+        return $department;
 
       case self::TYPE_DEPARTMENT_REMOVED:
-        return "$user_name removed department on \"$card_title\"";
+        return "Removed";
 
       case self::TYPE_CLIENT_SET:
         $client = $data['client_name'] ?? 'a client';
-        return "$user_name set client to \"$client\" on \"$card_title\"";
+        return $client;
 
       case self::TYPE_CLIENT_REMOVED:
-        return "$user_name removed client on \"$card_title\"";
+        return "Removed";
 
       case self::TYPE_WATCHER_ADDED:
         $watcher = $data['watcher_name'] ?? 'a watcher';
