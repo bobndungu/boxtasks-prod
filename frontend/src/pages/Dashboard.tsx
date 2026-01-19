@@ -229,6 +229,38 @@ function ActivityDiffDisplay({ type, data, boardId }: { type: ActivityType; data
     );
   }
 
+  // Department changes
+  if ((type === 'department_set' || type === 'department_changed' || type === 'department_removed') && data.department_name) {
+    const isRemoved = type === 'department_removed';
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className={`px-1.5 py-0.5 rounded ${
+          isRemoved
+            ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+            : 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400'
+        }`}>
+          {data.department_name}
+        </span>
+      </div>
+    );
+  }
+
+  // Client changes
+  if ((type === 'client_set' || type === 'client_changed' || type === 'client_removed') && data.client_name) {
+    const isRemoved = type === 'client_removed';
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className={`px-1.5 py-0.5 rounded ${
+          isRemoved
+            ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+            : 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400'
+        }`}>
+          {data.client_name}
+        </span>
+      </div>
+    );
+  }
+
   return null;
 }
 

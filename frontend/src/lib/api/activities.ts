@@ -68,6 +68,8 @@ export interface ActivityData {
   field_name?: string;
   comment_text?: string;
   comment_id?: string;
+  department_name?: string;
+  client_name?: string;
 }
 
 export interface Activity {

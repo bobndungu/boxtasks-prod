@@ -3106,7 +3106,8 @@ function CardDetailModal({
                       const hasStructuredData = data && (
                         data.from_list || data.to_list || data.old_value || data.new_value ||
                         data.due_date || data.start_date || data.label || data.member_name ||
-                        data.watcher_name || data.comment_text || data.field_name || data.checklist_name
+                        data.watcher_name || data.comment_text || data.field_name || data.checklist_name ||
+                        data.department_name || data.client_name
                       );
                       return (
                         <div key={activity.id} className="flex items-start p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
@@ -3204,6 +3205,22 @@ function CardDetailModal({
                               <div className="mt-1 text-xs">
                                 <span className={`px-1.5 py-0.5 rounded ${activity.type === 'watcher_added' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' : 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'}`}>
                                   {data.watcher_name}
+                                </span>
+                              </div>
+                            )}
+                            {/* Department changes */}
+                            {(activity.type === 'department_set' || activity.type === 'department_changed' || activity.type === 'department_removed') && data?.department_name && (
+                              <div className="mt-1 text-xs">
+                                <span className={`px-1.5 py-0.5 rounded ${activity.type === 'department_removed' ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300'}`}>
+                                  {data.department_name}
+                                </span>
+                              </div>
+                            )}
+                            {/* Client changes */}
+                            {(activity.type === 'client_set' || activity.type === 'client_changed' || activity.type === 'client_removed') && data?.client_name && (
+                              <div className="mt-1 text-xs">
+                                <span className={`px-1.5 py-0.5 rounded ${activity.type === 'client_removed' ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300'}`}>
+                                  {data.client_name}
                                 </span>
                               </div>
                             )}

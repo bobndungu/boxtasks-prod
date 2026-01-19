@@ -302,6 +302,38 @@ function ActivityDataDisplay({ type, data, boardId }: { type: ActivityType; data
     );
   }
 
+  // Department changes
+  if ((type === 'department_set' || type === 'department_changed' || type === 'department_removed') && data.department_name) {
+    const isRemoved = type === 'department_removed';
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className={`px-1.5 py-0.5 rounded ${
+          isRemoved
+            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+            : 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+        }`}>
+          {data.department_name}
+        </span>
+      </div>
+    );
+  }
+
+  // Client changes
+  if ((type === 'client_set' || type === 'client_changed' || type === 'client_removed') && data.client_name) {
+    const isRemoved = type === 'client_removed';
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className={`px-1.5 py-0.5 rounded ${
+          isRemoved
+            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+            : 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'
+        }`}>
+          {data.client_name}
+        </span>
+      </div>
+    );
+  }
+
   // Checklist changes
   if (type === 'checklist_added' && data.checklist_name) {
     return (
@@ -435,9 +467,12 @@ export default function ActivityFeed({
           activity.data.start_date ||
           activity.data.label ||
           activity.data.member_name ||
+          activity.data.watcher_name ||
           activity.data.checklist_name ||
           activity.data.comment_text ||
-          activity.data.field_name
+          activity.data.field_name ||
+          activity.data.department_name ||
+          activity.data.client_name
         );
 
         return (
