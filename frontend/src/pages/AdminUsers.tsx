@@ -79,7 +79,6 @@ export default function AdminUsers() {
     email: '',
     bio: '',
     jobTitle: '',
-    timezone: '',
   });
   const [editSaving, setEditSaving] = useState(false);
   const [editMessage, setEditMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -278,7 +277,6 @@ export default function AdminUsers() {
         email: freshUser.email || '',
         bio: freshUser.bio || '',
         jobTitle: freshUser.jobTitle || '',
-        timezone: freshUser.timezone || '',
       });
       setEditMessage(null);
     }
@@ -286,7 +284,7 @@ export default function AdminUsers() {
 
   const closeEditModal = () => {
     setEditingUser(null);
-    setEditForm({ username: '', displayName: '', email: '', bio: '', jobTitle: '', timezone: '' });
+    setEditForm({ username: '', displayName: '', email: '', bio: '', jobTitle: '' });
     setEditMessage(null);
   };
 
@@ -999,18 +997,6 @@ export default function AdminUsers() {
                   value={editForm.bio}
                   onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Timezone
-                </label>
-                <input
-                  type="text"
-                  value={editForm.timezone}
-                  onChange={(e) => setEditForm({ ...editForm, timezone: e.target.value })}
-                  placeholder="e.g., Africa/Nairobi"
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 />
               </div>
