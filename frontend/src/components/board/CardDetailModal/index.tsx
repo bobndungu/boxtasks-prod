@@ -766,9 +766,10 @@ function CardDetailModal({
       try {
         await createActivity({
           type: 'watcher_added',
-          description: `${currentUser?.displayName || 'User'} added ${userName} as watcher on "${card.title}"`,
+          description: `added a watcher`,
           cardId: card.id,
           boardId: boardId || undefined,
+          data: { watcher_name: userName },
         });
         // Refresh activities list
         const cardActivities = await fetchActivitiesByCard(card.id);
@@ -802,9 +803,10 @@ function CardDetailModal({
       try {
         await createActivity({
           type: 'watcher_removed',
-          description: `${currentUser?.displayName || 'User'} removed ${userName} as watcher from "${card.title}"`,
+          description: `removed a watcher`,
           cardId: card.id,
           boardId: boardId || undefined,
+          data: { watcher_name: userName },
         });
         // Refresh activities list
         const cardActivities = await fetchActivitiesByCard(card.id);
@@ -3037,7 +3039,7 @@ function CardDetailModal({
                       const hasStructuredData = data && (
                         data.from_list || data.to_list || data.old_value || data.new_value ||
                         data.due_date || data.start_date || data.label || data.member_name ||
-                        data.comment_text || data.field_name || data.checklist_name
+                        data.watcher_name || data.comment_text || data.field_name || data.checklist_name
                       );
                       return (
                         <div key={activity.id} className="flex items-start p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
@@ -3127,6 +3129,14 @@ function CardDetailModal({
                               <div className="mt-1 text-xs">
                                 <span className={`px-1.5 py-0.5 rounded ${activity.type === 'member_added' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
                                   {data.member_name}
+                                </span>
+                              </div>
+                            )}
+                            {/* Watcher changes */}
+                            {(activity.type === 'watcher_added' || activity.type === 'watcher_removed') && data?.watcher_name && (
+                              <div className="mt-1 text-xs">
+                                <span className={`px-1.5 py-0.5 rounded ${activity.type === 'watcher_added' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' : 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'}`}>
+                                  {data.watcher_name}
                                 </span>
                               </div>
                             )}

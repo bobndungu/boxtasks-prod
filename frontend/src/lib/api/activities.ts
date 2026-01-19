@@ -63,6 +63,7 @@ export interface ActivityData {
   start_date?: string;
   label?: string;
   member_name?: string;
+  watcher_name?: string;
   checklist_name?: string;
   field_name?: string;
   comment_text?: string;
@@ -106,7 +107,9 @@ function transformActivity(data: Record<string, unknown>, included?: Record<stri
   const rawData = attrs.field_activity_data as string | null;
   if (rawData) {
     try {
-      activityData = JSON.parse(rawData) as ActivityData;
+      // Decode HTML entities before parsing (Drupal may HTML-encode the JSON)
+      const decodedData = decodeHtmlEntities(rawData);
+      activityData = JSON.parse(decodedData) as ActivityData;
     } catch {
       // Invalid JSON, ignore
     }
@@ -224,23 +227,24 @@ export async function fetchActivitiesByBoard(boardId: string): Promise<Activity[
 }
 
 // Create a new activity
-export async function createActivity(data: {
+export async function createActivity(params: {
   type: ActivityType;
   description?: string;
   cardId?: string;
   boardId?: string;
+  data?: Partial<ActivityData>;
 }): Promise<Activity> {
   const relationships: Record<string, unknown> = {};
 
-  if (data.cardId) {
+  if (params.cardId) {
     relationships.field_activity_card = {
-      data: { type: 'node--card', id: data.cardId },
+      data: { type: 'node--card', id: params.cardId },
     };
   }
 
-  if (data.boardId) {
+  if (params.boardId) {
     relationships.field_activity_board = {
-      data: { type: 'node--board', id: data.boardId },
+      data: { type: 'node--board', id: params.boardId },
     };
   }
 
@@ -254,9 +258,10 @@ export async function createActivity(data: {
       data: {
         type: 'node--activity',
         attributes: {
-          title: `Activity: ${data.type}`,
-          field_activity_type: data.type,
-          field_activity_description: data.description ? { value: data.description } : null,
+          title: `Activity: ${params.type}`,
+          field_activity_type: params.type,
+          field_activity_description: params.description ? { value: params.description } : null,
+          field_activity_data: params.data ? JSON.stringify(params.data) : null,
         },
         ...(Object.keys(relationships).length > 0 && { relationships }),
       },
