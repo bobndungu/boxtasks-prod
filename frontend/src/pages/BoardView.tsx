@@ -51,7 +51,7 @@ import {
 import { useBoardStore } from '../lib/stores/board';
 import { updateBoard, toggleBoardStar, fetchBoardData } from '../lib/api/boards';
 import { createList, updateList, deleteList, archiveList, type BoardList } from '../lib/api/lists';
-import { createCard, updateCard, deleteCard, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, addGoogleDoc, removeGoogleDoc, normalizeDateFromDrupal, type Card, type CardLabel } from '../lib/api/cards';
+import { createCard, updateCard, deleteCard, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, addGoogleDoc, removeGoogleDoc, normalizeDateFromDrupal, normalizeCardFromMercure, formatDateForApi, type Card, type CardLabel } from '../lib/api/cards';
 import { type CardComment } from '../lib/api/comments';
 import { type TaxonomyTerm } from '../lib/api/taxonomies';
 import { fetchActivitiesByBoard, getActivityDisplay, createActivity, type Activity } from '../lib/api/activities';
@@ -393,7 +393,8 @@ export default function BoardView() {
   // Real-time updates via Mercure
   const mercureConnection = useBoardUpdates(id, {
     onCardCreated: (cardData) => {
-      const card = cardData as Card;
+      // Normalize dates from Mercure to ensure correct timezone handling
+      const card = normalizeCardFromMercure(cardData as Record<string, unknown>) as unknown as Card;
       if (card.listId) {
         setCardsByList((prev) => {
           const newMap = new Map(prev);
@@ -420,7 +421,8 @@ export default function BoardView() {
       }
     },
     onCardUpdated: (cardData) => {
-      const incomingCard = cardData as Card;
+      // Normalize dates from Mercure to ensure correct timezone handling
+      const incomingCard = normalizeCardFromMercure(cardData as Record<string, unknown>) as unknown as Card;
       // Check if incoming data has complete member/watcher info (not just IDs with "Unknown User")
       const hasCompleteMemberData = incomingCard.members?.length &&
         incomingCard.members.every(m => m.name && m.name !== 'Unknown User');
@@ -1148,7 +1150,7 @@ export default function BoardView() {
           title: titleToCreate,
           listId,
           position: pinnedCount, // Position after pinned cards (at top of non-pinned)
-          dueDate: autodueDueDate.toISOString(),
+          dueDate: formatDateForApi(autodueDueDate),
           creatorId: currentUser?.id, // Auto-assign creator
         });
 
@@ -1223,7 +1225,7 @@ export default function BoardView() {
         description: template.description,
         labels: template.labels.length > 0 ? template.labels : undefined,
         position: pinnedCount, // Position after pinned cards (at top of non-pinned)
-        dueDate: autoDueDate.toISOString(),
+        dueDate: formatDateForApi(autoDueDate),
         creatorId: currentUser?.id, // Auto-assign creator
       });
 
@@ -1644,7 +1646,7 @@ export default function BoardView() {
         description: card.description,
         position: pinnedCount, // Position after pinned cards (at top of non-pinned)
         labels: card.labels,
-        dueDate: autoDueDate.toISOString(),
+        dueDate: formatDateForApi(autoDueDate),
         creatorId: currentUser?.id, // Auto-assign creator
       });
 

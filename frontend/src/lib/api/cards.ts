@@ -41,6 +41,68 @@ export function normalizeDateFromDrupal(dateStr: string | null | undefined): str
   return dateStr + 'Z';
 }
 
+/**
+ * Convert a date string (with timezone info) to the format expected by datetime-local input.
+ * datetime-local expects "YYYY-MM-DDTHH:MM" in LOCAL time (no timezone suffix).
+ * This converts UTC or timezone-aware dates to local time format.
+ */
+export function formatDateForInput(dateStr: string | null | undefined): string {
+  if (!dateStr) return '';
+  try {
+    // Parse the date - JavaScript Date handles both 'Z' suffix and timezone offsets
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+
+    // Format as local datetime for the input
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Convert a Date object to local datetime string for use with createCard/updateCard.
+ * IMPORTANT: Use this instead of date.toISOString() to avoid timezone offset issues.
+ *
+ * toISOString() converts to UTC which causes a 3-hour offset when formatDateForDrupal
+ * adds the +03:00 EAT timezone suffix to what it assumes is local time.
+ *
+ * This function returns the date in local time format (e.g., "2026-01-19T21:20:00")
+ * which formatDateForDrupal will correctly interpret as EAT time.
+ */
+export function formatDateForApi(date: Date | null | undefined): string | undefined {
+  if (!date || isNaN(date.getTime())) return undefined;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Normalize card data received from Mercure real-time updates.
+ * Mercure sends dates in UTC with 'Z' suffix, but this ensures consistent normalization.
+ */
+export function normalizeCardFromMercure(cardData: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...cardData,
+    dueDate: normalizeDateFromDrupal(cardData.dueDate as string | null | undefined),
+    startDate: normalizeDateFromDrupal(cardData.startDate as string | null | undefined),
+    approvedAt: normalizeDateFromDrupal(cardData.approvedAt as string | null | undefined),
+    rejectedAt: normalizeDateFromDrupal(cardData.rejectedAt as string | null | undefined),
+  };
+}
+
 export type CardLabel = 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'blue';
 
 export interface CardMember {

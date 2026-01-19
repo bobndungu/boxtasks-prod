@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 import { fetchAllBoards, type Board } from '../../../lib/api/boards';
 import { fetchListsByBoard, type BoardList } from '../../../lib/api/lists';
-import type { Card, CardLabel, CardMember } from '../../../lib/api/cards';
+import { formatDateForInput, type Card, type CardLabel, type CardMember } from '../../../lib/api/cards';
 import {
   updateCard,
   watchCard,
@@ -139,9 +139,10 @@ function CardDetailModal({
   const [description, setDescription] = useState(card.description || '');
   const [editingDescription, setEditingDescription] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [dueDate, setDueDate] = useState(card.dueDate || '');
+  // Format dates for datetime-local input (local time without timezone suffix)
+  const [dueDate, setDueDate] = useState(formatDateForInput(card.dueDate));
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [startDate, setStartDate] = useState(card.startDate || '');
+  const [startDate, setStartDate] = useState(formatDateForInput(card.startDate));
   const [comments, setComments] = useState<CardComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isLoadingComments, setIsLoadingComments] = useState(true);
