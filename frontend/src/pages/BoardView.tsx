@@ -696,6 +696,28 @@ export default function BoardView() {
     onActivityCreated: (activityData) => {
       // Pass the activity to CardDetailModal for real-time updates
       setNewMercureActivity(activityData);
+
+      // Also update the board activity sidebar in real-time
+      const newActivity: Activity = {
+        id: activityData.id,
+        type: activityData.type as Activity['type'],
+        description: activityData.description,
+        cardId: activityData.cardId,
+        boardId: activityData.boardId,
+        authorId: activityData.authorId || '',
+        authorName: activityData.authorName,
+        createdAt: activityData.createdAt,
+        data: activityData.data as Activity['data'],
+      };
+
+      // Prepend to activities list (newest first)
+      setBoardActivities(prev => {
+        // Avoid duplicates by checking if this activity already exists
+        if (prev.some(a => a.id === newActivity.id)) {
+          return prev;
+        }
+        return [newActivity, ...prev];
+      });
     },
   });
 
