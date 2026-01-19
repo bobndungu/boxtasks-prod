@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Clock, ArrowRight, RefreshCw, CheckCircle, Archive, Trash2, MessageSquare, User, Tag, Calendar, Paperclip, FileText, Building, Users, Pencil } from 'lucide-react';
 import { fetchActivitiesByCard, fetchActivitiesByBoard, type Activity, type ActivityType, type ActivityData, getActivityDisplay } from '../lib/api/activities';
 import ActivityDiff from './ActivityDiff';
@@ -463,10 +464,20 @@ export default function ActivityFeed({
                   </p>
                 )}
 
-                {/* Timestamp with full date and relative time */}
-                <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                  {time.fullDate} · {time.relative}
-                </p>
+                {/* Timestamp with full date and relative time - clickable to card */}
+                {activity.cardId && activity.boardId ? (
+                  <Link
+                    to={`/board/${activity.boardId}?card=${activity.cardId}`}
+                    className="mt-1 text-xs text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 hover:underline cursor-pointer inline-block"
+                    title={`${time.fullDate} - Click to view card`}
+                  >
+                    {time.fullDate} · {time.relative}
+                  </Link>
+                ) : (
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    {time.fullDate} · {time.relative}
+                  </p>
+                )}
               </div>
             </div>
           </div>

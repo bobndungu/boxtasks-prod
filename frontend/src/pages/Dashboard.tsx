@@ -741,10 +741,20 @@ export default function Dashboard() {
                               {activity.description}
                             </p>
                           )}
-                          {/* Timestamp with full date and relative time */}
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1" title={time.full}>
-                            {time.full} · {time.relative}
-                          </p>
+                          {/* Timestamp with full date and relative time - clickable to card */}
+                          {activity.cardId && activity.boardId ? (
+                            <Link
+                              to={`/board/${activity.boardId}?card=${activity.cardId}`}
+                              className="text-xs text-gray-400 dark:text-gray-500 mt-1 hover:text-blue-500 dark:hover:text-blue-400 hover:underline cursor-pointer inline-block"
+                              title={`${time.full} - Click to view card`}
+                            >
+                              {time.full} · {time.relative}
+                            </Link>
+                          ) : (
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1" title={time.full}>
+                              {time.full} · {time.relative}
+                            </p>
+                          )}
                         </div>
                       </div>
                     );

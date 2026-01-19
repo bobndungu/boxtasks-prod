@@ -2851,7 +2851,18 @@ export default function BoardView() {
                         {activity.description && !hasStructuredData && (
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{activity.description}</p>
                         )}
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatBoardActivityTime(activity.createdAt)}</p>
+                        {/* Timestamp - clickable to open card */}
+                        {activity.cardId ? (
+                          <Link
+                            to={`/board/${id}?card=${activity.cardId}`}
+                            className="text-xs text-gray-400 dark:text-gray-500 mt-1 hover:text-blue-500 dark:hover:text-blue-400 hover:underline cursor-pointer inline-block"
+                            title="Click to view card"
+                          >
+                            {formatBoardActivityTime(activity.createdAt)}
+                          </Link>
+                        ) : (
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatBoardActivityTime(activity.createdAt)}</p>
+                        )}
                       </div>
                     </div>
                   );
