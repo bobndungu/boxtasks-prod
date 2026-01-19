@@ -63,3 +63,14 @@ boxtasks_user.pending_users.reject:
   requirements:
     _permission: 'administer users'
     uid: \d+
+
+# User Management
+boxtasks_user.users.delete:
+  path: '/api/users/{uid}/delete'
+  defaults:
+    _controller: '\Drupal\boxtasks_user\Controller\PendingUsersController::deleteUser'
+    _title: 'Delete User'
+  methods: [POST]
+  requirements:
+    _permission: 'administer users'
+    uid: \d+

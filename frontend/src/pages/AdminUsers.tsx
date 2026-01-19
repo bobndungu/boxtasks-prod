@@ -34,6 +34,7 @@ import {
   updateUserRoles,
   fetchDrupalRoles,
   setUserStatus,
+  deleteUser,
   type DrupalUser,
 } from '../lib/api/users';
 import { fetchWorkspaces, type Workspace } from '../lib/api/workspaces';
@@ -73,6 +74,7 @@ export default function AdminUsers() {
   // Edit modal state
   const [editingUser, setEditingUser] = useState<DrupalUser | null>(null);
   const [editForm, setEditForm] = useState({
+    username: '',
     displayName: '',
     email: '',
     bio: '',
@@ -271,6 +273,7 @@ export default function AdminUsers() {
     if (freshUser) {
       setEditingUser(freshUser);
       setEditForm({
+        username: freshUser.username || '',
         displayName: freshUser.displayName || '',
         email: freshUser.email || '',
         bio: freshUser.bio || '',
@@ -283,7 +286,7 @@ export default function AdminUsers() {
 
   const closeEditModal = () => {
     setEditingUser(null);
-    setEditForm({ displayName: '', email: '', bio: '', jobTitle: '', timezone: '' });
+    setEditForm({ username: '', displayName: '', email: '', bio: '', jobTitle: '', timezone: '' });
     setEditMessage(null);
   };
 
@@ -508,6 +511,29 @@ export default function AdminUsers() {
       setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
     } catch (error) {
       console.error('Failed to toggle user status:', error);
+    }
+  };
+
+  const handleDeleteUser = async (user: DrupalUser) => {
+    // Prevent deletion of current user
+    if (user.id === currentUser?.id) {
+      return;
+    }
+    const confirmed = await confirm({
+      title: 'Delete User',
+      message: `Are you sure you want to permanently delete "${user.displayName || user.username}"? This action cannot be undone and will remove all their data.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) {
+      return;
+    }
+    try {
+      await deleteUser(user.uid.toString());
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+    } catch (error) {
+      console.error('Failed to delete user:', error);
     }
   };
 
@@ -851,6 +877,15 @@ export default function AdminUsers() {
                             >
                               {user.status ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                             </button>
+                            {user.uid > 1 && user.id !== currentUser?.id && (
+                              <button
+                                onClick={() => handleDeleteUser(user)}
+                                className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                                title="Delete user"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -908,6 +943,21 @@ export default function AdminUsers() {
               </button>
             </div>
             <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={editForm.username}
+                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  placeholder="username"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Used for login and @mentions
+                </p>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Display Name

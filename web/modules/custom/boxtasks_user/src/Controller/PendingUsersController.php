@@ -138,4 +138,61 @@ class PendingUsersController extends ControllerBase {
     }
   }
 
+  /**
+   * Delete a user account.
+   *
+   * @param int $uid
+   *   The user ID to delete.
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   The JSON response.
+   */
+  public function deleteUser(int $uid): JsonResponse {
+    $user = User::load($uid);
+
+    if (!$user) {
+      return new JsonResponse(['message' => 'User not found'], 404);
+    }
+
+    // Prevent deletion of user 1 (super admin) and current user.
+    $currentUser = \Drupal::currentUser();
+    if ($uid == 1) {
+      return new JsonResponse(['message' => 'Cannot delete the super admin account'], 403);
+    }
+
+    if ($uid == $currentUser->id()) {
+      return new JsonResponse(['message' => 'Cannot delete your own account'], 403);
+    }
+
+    try {
+      $username = $user->getAccountName();
+      $email = $user->getEmail();
+
+      // Delete the user and their content.
+      $user->delete();
+
+      \Drupal::logger('boxtasks_user')->notice('User @username (@email) deleted by @admin', [
+        '@username' => $username,
+        '@email' => $email,
+        '@admin' => $currentUser->getAccountName(),
+      ]);
+
+      return new JsonResponse([
+        'success' => TRUE,
+        'message' => 'User deleted successfully',
+        'user' => [
+          'username' => $username,
+          'email' => $email,
+        ],
+      ]);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('boxtasks_user')->error('Failed to delete user @uid: @message', [
+        '@uid' => $uid,
+        '@message' => $e->getMessage(),
+      ]);
+      return new JsonResponse(['message' => 'Failed to delete user'], 500);
+    }
+  }
+
 }

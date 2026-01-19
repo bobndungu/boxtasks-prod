@@ -140,6 +140,7 @@ export async function searchUsers(query: string): Promise<DrupalUser[]> {
 export async function updateUser(
   userId: string,
   updates: Partial<{
+    username: string;
     displayName: string;
     email: string;
     bio: string;
@@ -151,6 +152,9 @@ export async function updateUser(
 ): Promise<DrupalUser> {
   const attributes: Record<string, unknown> = {};
 
+  if (updates.username !== undefined) {
+    attributes.name = updates.username;
+  }
   if (updates.displayName !== undefined) {
     attributes.field_display_name = updates.displayName;
   }
@@ -280,4 +284,25 @@ export async function fetchDrupalRoles(): Promise<Array<{ id: string; label: str
  */
 export async function setUserStatus(userId: string, active: boolean): Promise<DrupalUser> {
   return updateUser(userId, { status: active });
+}
+
+/**
+ * Delete a user account.
+ * Requires admin permission.
+ */
+export async function deleteUser(userId: string): Promise<{ success: boolean; message: string }> {
+  const response = await fetchWithCsrf(`${API_URL}/api/users/${userId}/delete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to delete user');
+  }
+
+  return response.json();
 }
