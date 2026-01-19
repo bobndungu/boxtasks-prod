@@ -17,6 +17,12 @@ interface UsePermissionsReturn {
   canArchive: (type: 'card' | 'list' | 'board' | 'workspace' | 'comment', isOwner: boolean) => boolean;
   canMove: (type: 'card', isOwner: boolean) => boolean;
   canManageMembers: () => boolean;
+  // Granular member permissions
+  canViewMembers: (scope: 'workspace' | 'board') => boolean;
+  canAddMembers: (scope: 'workspace' | 'board') => boolean;
+  canRemoveMembers: (scope: 'workspace' | 'board') => boolean;
+  // Role permissions
+  canViewRoles: () => boolean;
   canViewReport: (reportType: ReportType, isOwner?: boolean) => boolean;
   canExportReports: () => boolean;
   canViewAnyReport: () => boolean;
@@ -46,6 +52,15 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   workspaceEdit: 'none',
   workspaceDelete: 'none',
   workspaceArchive: 'none',
+  // Granular member permissions
+  memberView: 'none',
+  memberAdd: 'none',
+  memberRemove: 'none',
+  // Board member permissions
+  boardMemberView: 'none',
+  boardMemberAdd: 'none',
+  boardMemberRemove: 'none',
+  // Legacy member management (deprecated)
   memberManage: 'none',
   commentEdit: 'own',
   commentDelete: 'own',
@@ -58,6 +73,7 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   emailTemplatesManage: 'none',
   userManagement: 'none',
   roleManagement: 'none',
+  roleView: 'none',
 };
 
 // Check if error is an abort error (navigation/unmount)
@@ -316,7 +332,72 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     if (isSuperAdmin(user)) return true;
     if (!permissions) return false;
 
-    return permissions.memberManage === 'any';
+    // Check legacy memberManage OR any of the new granular permissions
+    return (
+      permissions.memberManage === 'any' ||
+      permissions.memberView === 'any' ||
+      permissions.memberAdd === 'any' ||
+      permissions.memberRemove === 'any' ||
+      permissions.boardMemberView === 'any' ||
+      permissions.boardMemberAdd === 'any' ||
+      permissions.boardMemberRemove === 'any'
+    );
+  }, [permissions, user]);
+
+  // Granular member view permission
+  const canViewMembers = useCallback((scope: 'workspace' | 'board'): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return false;
+
+    if (scope === 'workspace') {
+      // Check new permission OR legacy memberManage
+      return permissions.memberView === 'any' || permissions.memberManage === 'any';
+    }
+    // For board scope, check board-specific permission OR legacy memberManage
+    return permissions.boardMemberView === 'any' || permissions.memberManage === 'any';
+  }, [permissions, user]);
+
+  // Granular member add permission
+  const canAddMembers = useCallback((scope: 'workspace' | 'board'): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return false;
+
+    if (scope === 'workspace') {
+      // Check new permission OR legacy memberManage
+      return permissions.memberAdd === 'any' || permissions.memberManage === 'any';
+    }
+    // For board scope, check board-specific permission OR legacy memberManage
+    return permissions.boardMemberAdd === 'any' || permissions.memberManage === 'any';
+  }, [permissions, user]);
+
+  // Granular member remove permission
+  const canRemoveMembers = useCallback((scope: 'workspace' | 'board'): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return false;
+
+    if (scope === 'workspace') {
+      // Check new permission OR legacy memberManage
+      return permissions.memberRemove === 'any' || permissions.memberManage === 'any';
+    }
+    // For board scope, check board-specific permission OR legacy memberManage
+    return permissions.boardMemberRemove === 'any' || permissions.memberManage === 'any';
+  }, [permissions, user]);
+
+  // Role view permission
+  const canViewRoles = useCallback((): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    // Check if user has Drupal administrator role - they can access everything
+    if (user?.roles?.includes('administrator') || user?.roles?.includes('box_admin')) {
+      return true;
+    }
+    if (!permissions) return false;
+
+    // Check roleView OR roleManagement (if they can manage, they can view)
+    return permissions.roleView === 'any' || permissions.roleManagement === 'any';
   }, [permissions, user]);
 
   const canViewReport = useCallback((reportType: ReportType, isOwner: boolean = false): boolean => {
@@ -401,6 +482,12 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canArchive,
     canMove,
     canManageMembers,
+    // Granular member permissions
+    canViewMembers,
+    canAddMembers,
+    canRemoveMembers,
+    // Role permissions
+    canViewRoles,
     canViewReport,
     canExportReports,
     canViewAnyReport,

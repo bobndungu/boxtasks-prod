@@ -104,7 +104,7 @@ export default function BoardView() {
   const { user: currentUser } = useAuthStore();
 
   // Role-based permissions
-  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
+  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
 
   // Check if user can view this board (after permissions are loaded)
   // Note: Board ownership is not tracked individually - workspace membership determines access
@@ -2136,13 +2136,15 @@ export default function BoardView() {
                   <Star className={`h-4 w-4 sm:h-5 sm:w-5 ${currentBoard?.starred ? 'fill-current' : ''}`} />
                 </button>
 
-                <button
-                  onClick={() => setShowBoardMembers(true)}
-                  className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
-                  title="Board Members"
-                >
-                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-                </button>
+                {canViewMembers('board') && (
+                  <button
+                    onClick={() => setShowBoardMembers(true)}
+                    className="p-1 sm:p-1.5 rounded text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
+                    title="Board Members"
+                  >
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                )}
 
                 <button
                   onClick={() => setShowBoardSettings(true)}

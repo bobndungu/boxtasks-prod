@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, Users, ExternalLink, UserCircle } from 'lucide-react';
+import { X, Loader2, Users, ExternalLink, UserCircle, Lock } from 'lucide-react';
 import { Select } from './ui/select';
 import { fetchWorkspaceMembers, fetchAllUsers, updateWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspaces';
 import { updateBoardMembers, updateBoardAdmins, type BoardMember } from '../lib/api/boards';
@@ -7,6 +7,7 @@ import { fetchWorkspaceRoles, fetchWorkspaceMemberRoles, createMemberRole, updat
 import { toast } from '../lib/stores/toast';
 import { Link } from 'react-router-dom';
 import MemberDropdown from './MemberDropdown';
+import { usePermissions } from '../lib/hooks/usePermissions';
 
 // System users that should not appear in member dropdowns
 const SYSTEM_USER_NAMES = ['n8n_api', 'n8n api', 'boxraft admin'];
@@ -51,6 +52,12 @@ export default function BoardMembersModal({
   // Determine if we're showing board-specific members or workspace members
   const isBoardSpecific = memberSetup === 'custom';
   const isJustMe = memberSetup === 'just_me';
+
+  // Get granular permissions for member management
+  const { canAddMembers, canRemoveMembers } = usePermissions(workspaceId);
+  const permissionScope = isBoardSpecific ? 'board' : 'workspace';
+  const canAdd = canAddMembers(permissionScope);
+  const canRemove = canRemoveMembers(permissionScope);
 
   // Load members only once on mount, not on every prop change
   useEffect(() => {
@@ -416,8 +423,8 @@ export default function BoardMembersModal({
           </button>
         </div>
 
-        {/* Add Member Dropdown - Only show for workspace or custom board members, not just_me */}
-        {!isJustMe && !pendingMember && (
+        {/* Add Member Dropdown - Only show if user has permission and not just_me */}
+        {!isJustMe && !pendingMember && canAdd && (
           <div className="px-6 pt-4 pb-2 relative z-10">
             <MemberDropdown
               members={allUsers}
@@ -431,6 +438,16 @@ export default function BoardMembersModal({
               emptyMessage="No more users to add"
               maxHeight="300px"
             />
+          </div>
+        )}
+
+        {/* No permission notice for adding members */}
+        {!isJustMe && !pendingMember && !canAdd && (
+          <div className="px-6 pt-4 pb-2">
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 rounded-lg p-3">
+              <Lock className="h-4 w-4" />
+              <span>You don't have permission to add members</span>
+            </div>
           </div>
         )}
 
@@ -544,8 +561,8 @@ export default function BoardMembersModal({
                         }))}
                       />
                     )}
-                    {/* Remove button - show for workspace and custom board members, not just_me */}
-                    {!isJustMe && (
+                    {/* Remove button - show if user has permission and not just_me */}
+                    {!isJustMe && canRemove && (
                       <button
                         onClick={() => handleRemoveMember(member.id)}
                         disabled={isUpdating}

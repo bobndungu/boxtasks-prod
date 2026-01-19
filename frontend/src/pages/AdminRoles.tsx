@@ -66,10 +66,20 @@ const PERMISSION_CATEGORIES = {
       { key: 'workspaceArchive', label: 'Archive workspaces' },
     ],
   },
-  members: {
-    label: 'Members',
+  workspaceMembers: {
+    label: 'Workspace Members',
     permissions: [
-      { key: 'memberManage', label: 'Manage members' },
+      { key: 'memberView', label: 'View members' },
+      { key: 'memberAdd', label: 'Add members' },
+      { key: 'memberRemove', label: 'Remove members' },
+    ],
+  },
+  boardMembers: {
+    label: 'Board Members',
+    permissions: [
+      { key: 'boardMemberView', label: 'View board members' },
+      { key: 'boardMemberAdd', label: 'Add board members' },
+      { key: 'boardMemberRemove', label: 'Remove board members' },
     ],
   },
   comments: {
@@ -88,6 +98,15 @@ const PERMISSION_CATEGORIES = {
       { key: 'reportActivity', label: 'View activity reports' },
       { key: 'reportWorkload', label: 'View workload reports' },
       { key: 'reportExport', label: 'Export reports' },
+    ],
+  },
+  admin: {
+    label: 'Administration',
+    permissions: [
+      { key: 'roleView', label: 'View roles' },
+      { key: 'roleManagement', label: 'Manage roles' },
+      { key: 'emailTemplatesManage', label: 'Manage email templates' },
+      { key: 'userManagement', label: 'Manage users' },
     ],
   },
 };
@@ -119,6 +138,15 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   workspaceEdit: 'none',
   workspaceDelete: 'none',
   workspaceArchive: 'none',
+  // Granular member permissions
+  memberView: 'none',
+  memberAdd: 'none',
+  memberRemove: 'none',
+  // Board member permissions
+  boardMemberView: 'none',
+  boardMemberAdd: 'none',
+  boardMemberRemove: 'none',
+  // Legacy member management (deprecated)
   memberManage: 'none',
   commentEdit: 'own',
   commentDelete: 'own',
@@ -131,6 +159,7 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   emailTemplatesManage: 'none',
   userManagement: 'none',
   roleManagement: 'none',
+  roleView: 'none',
 };
 
 export default function AdminRoles() {

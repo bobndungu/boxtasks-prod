@@ -1,0 +1,24 @@
+uuid: 2a3b4c5d-6e7f-8901-bcde-f12345678904
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_board_member_view
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_board_member_view
+field_name: field_perm_board_member_view
+entity_type: node
+bundle: workspace_role
+label: 'View Board Members'
+description: 'Permission to view board members list.'
+required: false
+translatable: false
+default_value:
+  -
+    value: none
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -34,7 +34,15 @@ export interface WorkspaceRole {
     workspaceEdit: PermissionLevel; // Only 'any' or 'none'
     workspaceDelete: PermissionLevel; // Only 'any' or 'none'
     workspaceArchive: PermissionLevel; // Only 'any' or 'none'
-    // Member management
+    // Workspace member permissions (granular)
+    memberView: PermissionLevel;
+    memberAdd: PermissionLevel;
+    memberRemove: PermissionLevel;
+    // Board member permissions
+    boardMemberView: PermissionLevel;
+    boardMemberAdd: PermissionLevel;
+    boardMemberRemove: PermissionLevel;
+    // Member management (deprecated, kept for backward compatibility)
     memberManage: PermissionLevel;
     // Comment permissions
     commentEdit: PermissionLevel;
@@ -50,6 +58,7 @@ export interface WorkspaceRole {
     emailTemplatesManage: PermissionLevel;
     userManagement: PermissionLevel;
     roleManagement: PermissionLevel;
+    roleView: PermissionLevel;
   };
 }
 
@@ -96,7 +105,15 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       workspaceEdit: (attrs.field_perm_workspace_edit as PermissionLevel) || 'none',
       workspaceDelete: (attrs.field_perm_workspace_delete as PermissionLevel) || 'none',
       workspaceArchive: (attrs.field_perm_workspace_archive as PermissionLevel) || 'none',
-      // Member management
+      // Workspace member permissions (granular)
+      memberView: (attrs.field_perm_member_view as PermissionLevel) || 'none',
+      memberAdd: (attrs.field_perm_member_add as PermissionLevel) || 'none',
+      memberRemove: (attrs.field_perm_member_remove as PermissionLevel) || 'none',
+      // Board member permissions
+      boardMemberView: (attrs.field_perm_board_member_view as PermissionLevel) || 'none',
+      boardMemberAdd: (attrs.field_perm_board_member_add as PermissionLevel) || 'none',
+      boardMemberRemove: (attrs.field_perm_board_member_remove as PermissionLevel) || 'none',
+      // Member management (deprecated, kept for backward compatibility)
       memberManage: (attrs.field_perm_member_manage as PermissionLevel) || 'none',
       // Comment permissions
       commentEdit: (attrs.field_perm_comment_edit as PermissionLevel) || 'none',
@@ -112,6 +129,7 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       emailTemplatesManage: (attrs.field_perm_email_templates as PermissionLevel) || 'none',
       userManagement: (attrs.field_perm_user_management as PermissionLevel) || 'none',
       roleManagement: (attrs.field_perm_role_management as PermissionLevel) || 'none',
+      roleView: (attrs.field_perm_role_view as PermissionLevel) || 'none',
     },
   };
 }
@@ -428,7 +446,15 @@ export async function createWorkspaceRole(
           field_perm_workspace_edit: permissions.workspaceEdit,
           field_perm_workspace_delete: permissions.workspaceDelete,
           field_perm_workspace_archive: permissions.workspaceArchive,
-          // Member management
+          // Workspace member permissions (granular)
+          field_perm_member_view: permissions.memberView,
+          field_perm_member_add: permissions.memberAdd,
+          field_perm_member_remove: permissions.memberRemove,
+          // Board member permissions
+          field_perm_board_member_view: permissions.boardMemberView,
+          field_perm_board_member_add: permissions.boardMemberAdd,
+          field_perm_board_member_remove: permissions.boardMemberRemove,
+          // Member management (deprecated)
           field_perm_member_manage: permissions.memberManage,
           // Comment permissions
           field_perm_comment_edit: permissions.commentEdit,
@@ -444,6 +470,7 @@ export async function createWorkspaceRole(
           field_perm_email_templates: permissions.emailTemplatesManage,
           field_perm_user_management: permissions.userManagement,
           field_perm_role_management: permissions.roleManagement,
+          field_perm_role_view: permissions.roleView,
         },
         ...(Object.keys(relationships).length > 0 && { relationships }),
       },
@@ -541,7 +568,27 @@ export async function updateWorkspaceRole(
     if (updates.permissions.workspaceArchive !== undefined) {
       attributes.field_perm_workspace_archive = updates.permissions.workspaceArchive;
     }
-    // Member management
+    // Workspace member permissions (granular)
+    if (updates.permissions.memberView !== undefined) {
+      attributes.field_perm_member_view = updates.permissions.memberView;
+    }
+    if (updates.permissions.memberAdd !== undefined) {
+      attributes.field_perm_member_add = updates.permissions.memberAdd;
+    }
+    if (updates.permissions.memberRemove !== undefined) {
+      attributes.field_perm_member_remove = updates.permissions.memberRemove;
+    }
+    // Board member permissions
+    if (updates.permissions.boardMemberView !== undefined) {
+      attributes.field_perm_board_member_view = updates.permissions.boardMemberView;
+    }
+    if (updates.permissions.boardMemberAdd !== undefined) {
+      attributes.field_perm_board_member_add = updates.permissions.boardMemberAdd;
+    }
+    if (updates.permissions.boardMemberRemove !== undefined) {
+      attributes.field_perm_board_member_remove = updates.permissions.boardMemberRemove;
+    }
+    // Member management (deprecated)
     if (updates.permissions.memberManage !== undefined) {
       attributes.field_perm_member_manage = updates.permissions.memberManage;
     }
@@ -580,6 +627,9 @@ export async function updateWorkspaceRole(
     }
     if (updates.permissions.roleManagement !== undefined) {
       attributes.field_perm_role_management = updates.permissions.roleManagement;
+    }
+    if (updates.permissions.roleView !== undefined) {
+      attributes.field_perm_role_view = updates.permissions.roleView;
     }
   }
 

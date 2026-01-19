@@ -1,0 +1,24 @@
+uuid: 2a3b4c5d-6e7f-8901-bcde-f12345678902
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_member_add
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_member_add
+field_name: field_perm_member_add
+entity_type: node
+bundle: workspace_role
+label: 'Add Members'
+description: 'Permission to add members to the workspace.'
+required: false
+translatable: false
+default_value:
+  -
+    value: none
+default_value_callback: ''
+settings: {  }
+field_type: list_string

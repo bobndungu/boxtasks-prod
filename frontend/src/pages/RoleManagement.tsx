@@ -28,7 +28,7 @@ interface PermissionConfig {
   key: PermissionKey;
   label: string;
   description: string;
-  category: 'card' | 'list' | 'board' | 'workspace' | 'report' | 'other';
+  category: 'card' | 'list' | 'board' | 'workspace' | 'member' | 'board_member' | 'report' | 'admin' | 'other';
   allowOwn: boolean;
 }
 
@@ -57,14 +57,27 @@ const PERMISSION_CONFIG: PermissionConfig[] = [
   { key: 'workspaceEdit', label: 'Edit Workspace', description: 'Can edit workspace settings', category: 'workspace', allowOwn: false },
   { key: 'workspaceDelete', label: 'Delete Workspace', description: 'Can delete the workspace', category: 'workspace', allowOwn: false },
   { key: 'workspaceArchive', label: 'Archive Workspace', description: 'Can archive the workspace', category: 'workspace', allowOwn: false },
+  // Workspace member permissions
+  { key: 'memberView', label: 'View Members', description: 'Can view workspace members list', category: 'member', allowOwn: false },
+  { key: 'memberAdd', label: 'Add Members', description: 'Can add members to workspace', category: 'member', allowOwn: false },
+  { key: 'memberRemove', label: 'Remove Members', description: 'Can remove members from workspace', category: 'member', allowOwn: false },
+  // Board member permissions
+  { key: 'boardMemberView', label: 'View Board Members', description: 'Can view board members list', category: 'board_member', allowOwn: false },
+  { key: 'boardMemberAdd', label: 'Add Board Members', description: 'Can add members to boards', category: 'board_member', allowOwn: false },
+  { key: 'boardMemberRemove', label: 'Remove Board Members', description: 'Can remove members from boards', category: 'board_member', allowOwn: false },
   // Report permissions
   { key: 'reportPerformance', label: 'Performance Reports', description: 'Can view user performance reports', category: 'report', allowOwn: true },
   { key: 'reportTasks', label: 'Task Reports', description: 'Can view task duration and completion reports', category: 'report', allowOwn: true },
   { key: 'reportActivity', label: 'Activity Reports', description: 'Can view activity reports', category: 'report', allowOwn: true },
   { key: 'reportWorkload', label: 'Workload Reports', description: 'Can view workload distribution reports', category: 'report', allowOwn: true },
   { key: 'reportExport', label: 'Export Reports', description: 'Can export reports to CSV/PDF', category: 'report', allowOwn: false },
+  // Admin permissions
+  { key: 'roleView', label: 'View Roles', description: 'Can view workspace roles configuration', category: 'admin', allowOwn: false },
+  { key: 'roleManagement', label: 'Manage Roles', description: 'Can create/edit/delete roles', category: 'admin', allowOwn: false },
+  { key: 'emailTemplatesManage', label: 'Manage Email Templates', description: 'Can manage email templates', category: 'admin', allowOwn: false },
+  { key: 'userManagement', label: 'Manage Users', description: 'Can manage users', category: 'admin', allowOwn: false },
   // Other permissions
-  { key: 'memberManage', label: 'Manage Members', description: 'Can add/remove members', category: 'other', allowOwn: false },
+  { key: 'memberManage', label: 'Manage Members (Legacy)', description: 'Legacy permission - use granular member permissions above', category: 'other', allowOwn: false },
   { key: 'commentEdit', label: 'Edit Comments', description: 'Can edit comments', category: 'other', allowOwn: true },
   { key: 'commentDelete', label: 'Delete Comments', description: 'Can delete comments', category: 'other', allowOwn: true },
   { key: 'commentArchive', label: 'Archive Comments', description: 'Can archive comments', category: 'other', allowOwn: true },
@@ -75,7 +88,10 @@ const CATEGORIES = [
   { key: 'list', label: 'Lists', color: 'green' },
   { key: 'board', label: 'Boards', color: 'purple' },
   { key: 'workspace', label: 'Workspace', color: 'amber' },
+  { key: 'member', label: 'Workspace Members', color: 'teal' },
+  { key: 'board_member', label: 'Board Members', color: 'indigo' },
   { key: 'report', label: 'Reports', color: 'cyan' },
+  { key: 'admin', label: 'Administration', color: 'rose' },
   { key: 'other', label: 'Other', color: 'gray' },
 ] as const;
 
@@ -100,6 +116,15 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
   workspaceEdit: 'none',
   workspaceDelete: 'none',
   workspaceArchive: 'none',
+  // Granular member permissions
+  memberView: 'none',
+  memberAdd: 'none',
+  memberRemove: 'none',
+  // Board member permissions
+  boardMemberView: 'none',
+  boardMemberAdd: 'none',
+  boardMemberRemove: 'none',
+  // Legacy member management
   memberManage: 'none',
   commentEdit: 'own',
   commentDelete: 'own',
@@ -112,6 +137,7 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
   emailTemplatesManage: 'none',
   userManagement: 'none',
   roleManagement: 'none',
+  roleView: 'none',
 });
 
 export default function RoleManagement() {
