@@ -340,8 +340,9 @@ export function formatDateRange(
 
 /**
  * Format a smart date range without year (for board view)
- * - Same day: "4:00 PM - 7:00 PM on 15 Jan"
- * - Different days: shows separate formatted dates
+ * - Same day with times: "4:00 PM - 7:00 PM, 15 Jan"
+ * - Different days, same month: "15 - 20 Jan" or "15 Jan 4PM - 20 Jan 7PM"
+ * - Different days, different months: "15 Jan - 20 Feb"
  */
 export function formatDateRangeNoYear(
   startDate: string | Date | null | undefined,
@@ -354,33 +355,85 @@ export function formatDateRangeNoYear(
 
   if (isNaN(start.getTime()) || isNaN(due.getTime())) return null;
 
+  // Check if dates have meaningful times (not midnight)
+  const startHasTime = start.getHours() !== 0 || start.getMinutes() !== 0;
+  const dueHasTime = due.getHours() !== 0 || due.getMinutes() !== 0;
+
+  // Get date parts in EAT timezone
+  const startDay = parseInt(start.toLocaleString('en-US', { day: 'numeric', timeZone: EAT_TIMEZONE }));
+  const startMonth = start.toLocaleString('en-US', { month: 'short', timeZone: EAT_TIMEZONE });
+  const dueDay = parseInt(due.toLocaleString('en-US', { day: 'numeric', timeZone: EAT_TIMEZONE }));
+  const dueMonth = due.toLocaleString('en-US', { month: 'short', timeZone: EAT_TIMEZONE });
+
   // Check if same day
   if (isSameDay(start, due)) {
-    const startTime = start.toLocaleString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: EAT_TIMEZONE,
-    });
+    if (startHasTime && dueHasTime) {
+      const startTime = start.toLocaleString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: EAT_TIMEZONE,
+      });
 
-    const dueTime = due.toLocaleString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: EAT_TIMEZONE,
-    });
+      const dueTime = due.toLocaleString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: EAT_TIMEZONE,
+      });
 
-    const dateStr = due.toLocaleString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      timeZone: EAT_TIMEZONE,
-    });
-
-    return {
-      combined: true,
-      display: `${startTime} - ${dueTime} on ${dateStr}`,
-    };
+      return {
+        combined: true,
+        display: `${startTime} - ${dueTime}, ${startDay} ${startMonth}`,
+      };
+    }
+    // Same day but no times - just return null, will show single date
+    return null;
   }
 
-  return null;
+  // Different days - create a smart range
+  const sameMonth = startMonth === dueMonth;
+
+  if (startHasTime || dueHasTime) {
+    // At least one has time - show compact format with times
+    const startTimeStr = startHasTime
+      ? start.toLocaleString('en-US', { hour: 'numeric', hour12: true, timeZone: EAT_TIMEZONE }).replace(' ', '')
+      : '';
+    const dueTimeStr = dueHasTime
+      ? due.toLocaleString('en-US', { hour: 'numeric', hour12: true, timeZone: EAT_TIMEZONE }).replace(' ', '')
+      : '';
+
+    if (sameMonth) {
+      // Same month: "15 4PM - 20 7PM Jan"
+      const startPart = startHasTime ? `${startDay} ${startTimeStr}` : `${startDay}`;
+      const duePart = dueHasTime ? `${dueDay} ${dueTimeStr}` : `${dueDay}`;
+      return {
+        combined: true,
+        display: `${startPart} - ${duePart} ${startMonth}`,
+      };
+    } else {
+      // Different months: "15 Jan 4PM - 20 Feb 7PM"
+      const startPart = startHasTime ? `${startDay} ${startMonth} ${startTimeStr}` : `${startDay} ${startMonth}`;
+      const duePart = dueHasTime ? `${dueDay} ${dueMonth} ${dueTimeStr}` : `${dueDay} ${dueMonth}`;
+      return {
+        combined: true,
+        display: `${startPart} - ${duePart}`,
+      };
+    }
+  } else {
+    // No times - simple date range
+    if (sameMonth) {
+      // Same month: "15 - 20 Jan"
+      return {
+        combined: true,
+        display: `${startDay} - ${dueDay} ${startMonth}`,
+      };
+    } else {
+      // Different months: "15 Jan - 20 Feb"
+      return {
+        combined: true,
+        display: `${startDay} ${startMonth} - ${dueDay} ${dueMonth}`,
+      };
+    }
+  }
 }
