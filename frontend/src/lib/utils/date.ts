@@ -395,31 +395,32 @@ export function formatDateRangeNoYear(
   const sameMonth = startMonth === dueMonth;
 
   if (startHasTime || dueHasTime) {
-    // At least one has time - show compact format with times
-    const startTimeStr = startHasTime
-      ? start.toLocaleString('en-US', { hour: 'numeric', hour12: true, timeZone: EAT_TIMEZONE }).replace(' ', '')
-      : '';
-    const dueTimeStr = dueHasTime
-      ? due.toLocaleString('en-US', { hour: 'numeric', hour12: true, timeZone: EAT_TIMEZONE }).replace(' ', '')
-      : '';
+    // At least one has time - show format like "19 Jan @ 8pm - 20 Jan @ 2pm"
+    const formatTimeCompact = (date: Date, hasTime: boolean): string => {
+      if (!hasTime) return '';
+      const timeStr = date.toLocaleString('en-US', {
+        hour: 'numeric',
+        hour12: true,
+        timeZone: EAT_TIMEZONE
+      }).toLowerCase().replace(' ', '');
+      return `@ ${timeStr}`;
+    };
 
-    if (sameMonth) {
-      // Same month: "15 4PM - 20 7PM Jan"
-      const startPart = startHasTime ? `${startDay} ${startTimeStr}` : `${startDay}`;
-      const duePart = dueHasTime ? `${dueDay} ${dueTimeStr}` : `${dueDay}`;
-      return {
-        combined: true,
-        display: `${startPart} - ${duePart} ${startMonth}`,
-      };
-    } else {
-      // Different months: "15 Jan 4PM - 20 Feb 7PM"
-      const startPart = startHasTime ? `${startDay} ${startMonth} ${startTimeStr}` : `${startDay} ${startMonth}`;
-      const duePart = dueHasTime ? `${dueDay} ${dueMonth} ${dueTimeStr}` : `${dueDay} ${dueMonth}`;
-      return {
-        combined: true,
-        display: `${startPart} - ${duePart}`,
-      };
-    }
+    const startTimeStr = formatTimeCompact(start, startHasTime);
+    const dueTimeStr = formatTimeCompact(due, dueHasTime);
+
+    // Always show full date for each side: "19 Jan @ 8pm - 20 Jan @ 2pm"
+    const startPart = startHasTime
+      ? `${startDay} ${startMonth} ${startTimeStr}`
+      : `${startDay} ${startMonth}`;
+    const duePart = dueHasTime
+      ? `${dueDay} ${dueMonth} ${dueTimeStr}`
+      : `${dueDay} ${dueMonth}`;
+
+    return {
+      combined: true,
+      display: `${startPart} - ${duePart}`,
+    };
   } else {
     // No times - simple date range
     if (sameMonth) {
