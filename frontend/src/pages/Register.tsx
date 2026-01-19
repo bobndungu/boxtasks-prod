@@ -24,7 +24,8 @@ const MicrosoftIcon = () => (
 export default function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -53,11 +54,21 @@ export default function Register() {
       return;
     }
 
+    // Validate first and last name
+    if (!formData.firstName.trim()) {
+      setError('First name is required');
+      return;
+    }
+    if (!formData.lastName.trim()) {
+      setError('Last name is required');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Register via Drupal's user registration endpoint
+      // Register via custom BoxTasks registration endpoint
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site'}/user/register?_format=json`,
+        `${import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site'}/api/boxtasks/register`,
         {
           method: 'POST',
           headers: {
@@ -65,9 +76,10 @@ export default function Register() {
             'Accept': 'application/json',
           },
           body: JSON.stringify({
-            name: [{ value: formData.username }],
-            mail: [{ value: formData.email }],
-            pass: [{ value: formData.password }],
+            firstName: formData.firstName.trim(),
+            lastName: formData.lastName.trim(),
+            email: formData.email.trim(),
+            password: formData.password,
           }),
         }
       );
@@ -115,20 +127,37 @@ export default function Register() {
               </div>
             )}
 
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                Username
-              </label>
-              <input
-                id="username"
-                type="text"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                placeholder="Choose a username"
-                required
-                disabled={isLoading}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  placeholder="John"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  placeholder="Doe"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
             </div>
 
             <div>

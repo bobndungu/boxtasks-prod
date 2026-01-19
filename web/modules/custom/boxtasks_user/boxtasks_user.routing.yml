@@ -5,3 +5,12 @@ boxtasks_user.social_auth_token:
     _title: 'Social Auth Token'
   requirements:
     _user_is_logged_in: 'TRUE'
+
+boxtasks_user.register:
+  path: '/api/boxtasks/register'
+  defaults:
+    _controller: '\Drupal\boxtasks_user\Controller\UserRegistrationController::register'
+    _title: 'User Registration'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
