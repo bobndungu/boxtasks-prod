@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import MainHeader from '../components/MainHeader';
 import { useAuthStore } from '../lib/stores/auth';
+import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
 import {
   fetchUsers,
   fetchUser,
@@ -59,6 +60,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
 export default function AdminUsers() {
   const { user: currentUser } = useAuthStore();
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [users, setUsers] = useState<DrupalUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -190,7 +192,14 @@ export default function AdminUsers() {
   };
 
   const handleRejectUser = async (userId: string, username: string) => {
-    if (!confirm(`Are you sure you want to reject and delete the registration for "${username}"?`)) {
+    const confirmed = await confirm({
+      title: 'Reject Registration',
+      message: `Are you sure you want to reject and delete the registration for "${username}"? This action cannot be undone.`,
+      confirmLabel: 'Reject',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) {
       return;
     }
     setProcessingUserId(userId);
@@ -413,7 +422,14 @@ export default function AdminUsers() {
 
   const handleRemoveWorkspaceRole = async (assignmentId: string) => {
     if (!roleUser) return;
-    if (!confirm('Are you sure you want to remove this workspace role?')) return;
+    const confirmed = await confirm({
+      title: 'Remove Workspace Role',
+      message: 'Are you sure you want to remove this workspace role? The user will lose access associated with this role.',
+      confirmLabel: 'Remove',
+      cancelLabel: 'Cancel',
+      variant: 'warning',
+    });
+    if (!confirmed) return;
 
     setRoleSaving(true);
     setRoleMessage(null);
@@ -476,7 +492,15 @@ export default function AdminUsers() {
   };
 
   const handleToggleStatus = async (user: DrupalUser) => {
-    if (!confirm(`Are you sure you want to ${user.status ? 'block' : 'unblock'} ${user.displayName}?`)) {
+    const action = user.status ? 'block' : 'unblock';
+    const confirmed = await confirm({
+      title: `${user.status ? 'Block' : 'Unblock'} User`,
+      message: `Are you sure you want to ${action} ${user.displayName}?${user.status ? ' They will not be able to log in.' : ''}`,
+      confirmLabel: user.status ? 'Block' : 'Unblock',
+      cancelLabel: 'Cancel',
+      variant: user.status ? 'danger' : 'info',
+    });
+    if (!confirmed) {
       return;
     }
     try {
@@ -1191,6 +1215,9 @@ export default function AdminUsers() {
           </div>
         </div>
       )}
+
+      {/* Styled Confirmation Dialog */}
+      <ConfirmDialog />
     </div>
   );
 }
