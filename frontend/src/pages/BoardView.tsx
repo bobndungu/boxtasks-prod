@@ -3336,6 +3336,9 @@ export default function BoardView() {
               color: LABEL_COLORS[color],
             }))}
             members={workspaceMembers.map(m => ({ id: m.id, name: m.displayName }))}
+            departments={departments.map(d => ({ id: d.id, name: d.name }))}
+            clients={clients.map(c => ({ id: c.id, name: c.name }))}
+            customFields={customFieldDefs.map(f => ({ id: f.id, title: f.title, type: f.type, options: f.options }))}
             onClose={() => setShowAutomationRules(false)}
           />
           </div>

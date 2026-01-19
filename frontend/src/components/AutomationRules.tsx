@@ -40,6 +40,9 @@ interface AutomationRulesProps {
   lists: Array<{ id: string; name: string }>;
   labels: Array<{ id: string; name: string; color: string }>;
   members: Array<{ id: string; name: string }>;
+  departments?: Array<{ id: string; name: string }>;
+  clients?: Array<{ id: string; name: string }>;
+  customFields?: Array<{ id: string; title: string; type: string; options?: string[] }>;
   onClose?: () => void;
 }
 
@@ -48,6 +51,9 @@ export function AutomationRules({
   lists,
   labels,
   members,
+  departments = [],
+  clients = [],
+  customFields = [],
   onClose,
 }: AutomationRulesProps) {
   const { confirm, ConfirmDialog } = useConfirmDialog();
@@ -171,6 +177,9 @@ export function AutomationRules({
         lists={lists}
         labels={labels}
         members={members}
+        departments={departments}
+        clients={clients}
+        customFields={customFields}
         onSave={handleSaveRule}
         onCancel={() => {
           setShowEditor(false);
@@ -475,6 +484,9 @@ interface RuleEditorProps {
   lists: Array<{ id: string; name: string }>;
   labels: Array<{ id: string; name: string; color: string }>;
   members: Array<{ id: string; name: string }>;
+  departments: Array<{ id: string; name: string }>;
+  clients: Array<{ id: string; name: string }>;
+  customFields: Array<{ id: string; title: string; type: string; options?: string[] }>;
   onSave: (rule: {
     name: string;
     triggerType: string;
@@ -485,7 +497,7 @@ interface RuleEditorProps {
   onCancel: () => void;
 }
 
-function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEditorProps) {
+function RuleEditor({ rule, lists, labels, members, departments, clients, customFields, onSave, onCancel }: RuleEditorProps) {
   const [name, setName] = useState(rule?.name || '');
   const [triggerType, setTriggerType] = useState(rule?.triggerType || 'card_created');
   const triggerConfig = rule?.triggerConfig || {};
@@ -702,6 +714,126 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                             label: m.name,
                           })),
                         ]}
+                      />
+                    </div>
+                  )}
+
+                  {condition.type === 'card_has_department' && (
+                    <div className="flex-1">
+                      <Select
+                        value={(condition.config.department_id as string) || ''}
+                        onChange={e =>
+                          updateCondition(index, {
+                            config: { ...condition.config, department_id: e.target.value },
+                          })
+                        }
+                        size="sm"
+                        placeholder="Select department..."
+                        options={departments.map(d => ({
+                          value: d.id,
+                          label: d.name,
+                        }))}
+                      />
+                    </div>
+                  )}
+
+                  {condition.type === 'card_has_client' && (
+                    <div className="flex-1">
+                      <Select
+                        value={(condition.config.client_id as string) || ''}
+                        onChange={e =>
+                          updateCondition(index, {
+                            config: { ...condition.config, client_id: e.target.value },
+                          })
+                        }
+                        size="sm"
+                        placeholder="Select client..."
+                        options={clients.map(c => ({
+                          value: c.id,
+                          label: c.name,
+                        }))}
+                      />
+                    </div>
+                  )}
+
+                  {condition.type === 'custom_field_equals' && (
+                    <div className="flex-1 flex gap-2">
+                      <Select
+                        value={(condition.config.field_id as string) || ''}
+                        onChange={e =>
+                          updateCondition(index, {
+                            config: { ...condition.config, field_id: e.target.value, value: '' },
+                          })
+                        }
+                        size="sm"
+                        placeholder="Select field..."
+                        options={customFields.map(f => ({
+                          value: f.id,
+                          label: f.title,
+                        }))}
+                      />
+                      {Boolean(condition.config.field_id) && customFields.find(f => f.id === condition.config.field_id)?.type === 'dropdown' && (
+                        <Select
+                          value={(condition.config.value as string) || ''}
+                          onChange={e =>
+                            updateCondition(index, {
+                              config: { ...condition.config, value: e.target.value },
+                            })
+                          }
+                          size="sm"
+                          placeholder="Select value..."
+                          options={(customFields.find(f => f.id === condition.config.field_id)?.options || []).map(opt => ({
+                            value: opt,
+                            label: opt,
+                          }))}
+                        />
+                      )}
+                      {Boolean(condition.config.field_id) && customFields.find(f => f.id === condition.config.field_id)?.type === 'checkbox' && (
+                        <Select
+                          value={(condition.config.value as string) || ''}
+                          onChange={e =>
+                            updateCondition(index, {
+                              config: { ...condition.config, value: e.target.value },
+                            })
+                          }
+                          size="sm"
+                          options={[
+                            { value: 'true', label: 'Checked' },
+                            { value: 'false', label: 'Unchecked' },
+                          ]}
+                        />
+                      )}
+                      {Boolean(condition.config.field_id) && !['dropdown', 'checkbox'].includes(customFields.find(f => f.id === condition.config.field_id)?.type || '') && (
+                        <input
+                          type={customFields.find(f => f.id === condition.config.field_id)?.type === 'number' ? 'number' : 'text'}
+                          value={(condition.config.value as string) || ''}
+                          onChange={e =>
+                            updateCondition(index, {
+                              config: { ...condition.config, value: e.target.value },
+                            })
+                          }
+                          placeholder="Value..."
+                          className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {condition.type === 'custom_field_not_empty' && (
+                    <div className="flex-1">
+                      <Select
+                        value={(condition.config.field_id as string) || ''}
+                        onChange={e =>
+                          updateCondition(index, {
+                            config: { ...condition.config, field_id: e.target.value },
+                          })
+                        }
+                        size="sm"
+                        placeholder="Select field..."
+                        options={customFields.map(f => ({
+                          value: f.id,
+                          label: f.title,
+                        }))}
                       />
                     </div>
                   )}
@@ -948,6 +1080,122 @@ function RuleEditor({ rule, lists, labels, members, onSave, onCancel }: RuleEdit
                         })),
                       ]}
                     />
+                  </div>
+                )}
+
+                {action.type === 'set_department' && (
+                  <div className="flex-1">
+                    <Select
+                      value={(action.config.department_id as string) || ''}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, department_id: e.target.value },
+                        })
+                      }
+                      size="sm"
+                      placeholder="Select department..."
+                      options={departments.map(d => ({
+                        value: d.id,
+                        label: d.name,
+                      }))}
+                    />
+                  </div>
+                )}
+
+                {action.type === 'set_client' && (
+                  <div className="flex-1">
+                    <Select
+                      value={(action.config.client_id as string) || ''}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, client_id: e.target.value },
+                        })
+                      }
+                      size="sm"
+                      placeholder="Select client..."
+                      options={clients.map(c => ({
+                        value: c.id,
+                        label: c.name,
+                      }))}
+                    />
+                  </div>
+                )}
+
+                {action.type === 'set_custom_field' && (
+                  <div className="flex-1 flex gap-2">
+                    <Select
+                      value={(action.config.field_id as string) || ''}
+                      onChange={e =>
+                        updateAction(index, {
+                          config: { ...action.config, field_id: e.target.value, value: '' },
+                        })
+                      }
+                      size="sm"
+                      placeholder="Select field..."
+                      options={customFields.map(f => ({
+                        value: f.id,
+                        label: f.title,
+                      }))}
+                    />
+                    {Boolean(action.config.field_id) && customFields.find(f => f.id === action.config.field_id)?.type === 'dropdown' && (customFields.find(f => f.id === action.config.field_id)?.options?.length ?? 0) > 0 && (
+                      <Select
+                        value={(action.config.value as string) || ''}
+                        onChange={e =>
+                          updateAction(index, {
+                            config: { ...action.config, value: e.target.value },
+                          })
+                        }
+                        size="sm"
+                        placeholder="Select value..."
+                        options={(customFields.find(f => f.id === action.config.field_id)?.options || []).map(opt => ({
+                          value: opt,
+                          label: opt,
+                        }))}
+                      />
+                    )}
+                    {Boolean(action.config.field_id) && customFields.find(f => f.id === action.config.field_id)?.type === 'checkbox' && (
+                      <Select
+                        value={(action.config.value as string) || ''}
+                        onChange={e =>
+                          updateAction(index, {
+                            config: { ...action.config, value: e.target.value },
+                          })
+                        }
+                        size="sm"
+                        options={[
+                          { value: 'true', label: 'Check' },
+                          { value: 'false', label: 'Uncheck' },
+                        ]}
+                      />
+                    )}
+                    {Boolean(action.config.field_id) && customFields.find(f => f.id === action.config.field_id)?.type === 'rating' && (
+                      <Select
+                        value={(action.config.value as string) || ''}
+                        onChange={e =>
+                          updateAction(index, {
+                            config: { ...action.config, value: e.target.value },
+                          })
+                        }
+                        size="sm"
+                        options={[1, 2, 3, 4, 5].map(n => ({
+                          value: String(n),
+                          label: `${n} star${n > 1 ? 's' : ''}`,
+                        }))}
+                      />
+                    )}
+                    {Boolean(action.config.field_id) && !['dropdown', 'checkbox', 'rating'].includes(customFields.find(f => f.id === action.config.field_id)?.type || '') && (
+                      <input
+                        type={['number', 'currency'].includes(customFields.find(f => f.id === action.config.field_id)?.type || '') ? 'number' : 'text'}
+                        value={(action.config.value as string) || ''}
+                        onChange={e =>
+                          updateAction(index, {
+                            config: { ...action.config, value: e.target.value },
+                          })
+                        }
+                        placeholder="Value..."
+                        className="flex-1 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      />
+                    )}
                   </div>
                 )}
 
