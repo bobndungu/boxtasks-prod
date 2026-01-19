@@ -16,7 +16,7 @@ import {
 import { LABEL_COLORS } from './constants';
 import type { SortableCardProps } from './types';
 import { highlightText } from '../../lib/utils/highlight';
-import { formatDateCompactNoYear, formatDateTimeCompactNoYear, formatDateRangeNoYear } from '../../lib/utils/date';
+import { formatDateCompactNoYear, formatDateTimeCompactNoYear, formatDateRangeNoYear, hasTimeInEAT } from '../../lib/utils/date';
 
 export function SortableCard({
   card,
@@ -275,8 +275,7 @@ export function SortableCard({
               return (
                 <>
                   {fieldVisibility.startDate && card.startDate && (() => {
-                    const startDate = new Date(card.startDate);
-                    const hasTime = startDate.getHours() !== 0 || startDate.getMinutes() !== 0;
+                    const hasTime = hasTimeInEAT(card.startDate);
 
                     return (
                       <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20">
@@ -308,7 +307,7 @@ export function SortableCard({
                     }
                     // More than 1 hour away = gray (default)
 
-                    const hasTime = dueDate.getHours() !== 0 || dueDate.getMinutes() !== 0;
+                    const hasTime = hasTimeInEAT(card.dueDate);
 
                     return (
                       <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${colorClass} ${bgClass}`}>

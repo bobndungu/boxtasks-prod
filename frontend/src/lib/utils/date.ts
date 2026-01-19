@@ -274,6 +274,33 @@ export function formatDateCompactNoYear(date: string | Date | null | undefined):
 }
 
 /**
+ * Get the hours and minutes of a date in EAT timezone
+ * This is needed because Date.getHours() returns local time, not EAT time
+ */
+export function getTimeInEAT(date: Date): { hours: number; minutes: number } {
+  const timeStr = date.toLocaleString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: EAT_TIMEZONE,
+  });
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return { hours, minutes };
+}
+
+/**
+ * Check if a date has a meaningful time (not midnight) in EAT timezone
+ */
+export function hasTimeInEAT(date: string | Date | null | undefined): boolean {
+  if (!date) return false;
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return false;
+
+  const { hours, minutes } = getTimeInEAT(dateObj);
+  return hours !== 0 || minutes !== 0;
+}
+
+/**
  * Check if two dates are on the same day (in EAT timezone)
  */
 export function isSameDay(date1: string | Date | null | undefined, date2: string | Date | null | undefined): boolean {
@@ -355,9 +382,9 @@ export function formatDateRangeNoYear(
 
   if (isNaN(start.getTime()) || isNaN(due.getTime())) return null;
 
-  // Check if dates have meaningful times (not midnight)
-  const startHasTime = start.getHours() !== 0 || start.getMinutes() !== 0;
-  const dueHasTime = due.getHours() !== 0 || due.getMinutes() !== 0;
+  // Check if dates have meaningful times (not midnight) in EAT timezone
+  const startHasTime = hasTimeInEAT(start);
+  const dueHasTime = hasTimeInEAT(due);
 
   // Get date parts in EAT timezone
   const startDay = parseInt(start.toLocaleString('en-US', { day: 'numeric', timeZone: EAT_TIMEZONE }));
