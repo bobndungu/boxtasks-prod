@@ -2797,6 +2797,10 @@ export default function BoardView() {
               <div className="space-y-4">
                 {boardActivities.map((activity) => {
                   const display = getActivityDisplay(activity.type);
+                  const data = activity.data;
+                  const hasStructuredData = data && (
+                    data.member_name || data.watcher_name || data.label || data.from_list || data.to_list
+                  );
                   return (
                     <div key={activity.id} className="flex items-start">
                       <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-medium mr-3 flex-shrink-0">
@@ -2807,7 +2811,44 @@ export default function BoardView() {
                           <span className="font-medium text-gray-800 dark:text-white">{activity.authorName}</span>{' '}
                           <span className="text-gray-600 dark:text-gray-400">{display.label}</span>
                         </p>
-                        {activity.description && (
+                        {/* Member changes */}
+                        {(activity.type === 'member_added' || activity.type === 'member_removed') && data?.member_name && (
+                          <div className="mt-1 text-xs">
+                            <span className={`px-1.5 py-0.5 rounded ${
+                              activity.type === 'member_added'
+                                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                            }`}>
+                              {data.member_name}
+                            </span>
+                          </div>
+                        )}
+                        {/* Watcher changes */}
+                        {(activity.type === 'watcher_added' || activity.type === 'watcher_removed') && data?.watcher_name && (
+                          <div className="mt-1 text-xs">
+                            <span className={`px-1.5 py-0.5 rounded ${
+                              activity.type === 'watcher_added'
+                                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                            }`}>
+                              {data.watcher_name}
+                            </span>
+                          </div>
+                        )}
+                        {/* Label changes */}
+                        {(activity.type === 'label_added' || activity.type === 'label_removed') && data?.label && (
+                          <div className="mt-1 text-xs">
+                            <span className={`px-1.5 py-0.5 rounded ${
+                              activity.type === 'label_added'
+                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through'
+                            }`}>
+                              {data.label}
+                            </span>
+                          </div>
+                        )}
+                        {/* Show description only if no structured data */}
+                        {activity.description && !hasStructuredData && (
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{activity.description}</p>
                         )}
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatBoardActivityTime(activity.createdAt)}</p>

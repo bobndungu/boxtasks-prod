@@ -193,6 +193,22 @@ function ActivityDiffDisplay({ type, data }: { type: ActivityType; data: Activit
     );
   }
 
+  // Watcher changes
+  if ((type === 'watcher_added' || type === 'watcher_removed') && data.watcher_name) {
+    const isRemoved = type === 'watcher_removed';
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className={`px-1.5 py-0.5 rounded ${
+          isRemoved
+            ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+            : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
+        }`}>
+          {data.watcher_name}
+        </span>
+      </div>
+    );
+  }
+
   return null;
 }
 

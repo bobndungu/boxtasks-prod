@@ -266,6 +266,21 @@ function ActivityDataDisplay({ type, data }: { type: ActivityType; data: Activit
     );
   }
 
+  // Watcher changes
+  if ((type === 'watcher_added' || type === 'watcher_removed') && data.watcher_name) {
+    return (
+      <div className="mt-1.5 text-xs">
+        <span className={`px-1.5 py-0.5 rounded ${
+          type === 'watcher_added'
+            ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+        }`}>
+          {data.watcher_name}
+        </span>
+      </div>
+    );
+  }
+
   // Checklist changes
   if (type === 'checklist_added' && data.checklist_name) {
     return (
