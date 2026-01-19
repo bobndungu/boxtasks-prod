@@ -69,7 +69,10 @@ export interface ActivityData {
   comment_text?: string;
   comment_id?: string;
   department_name?: string;
+  old_department_name?: string;
   client_name?: string;
+  old_client_name?: string;
+  card_title?: string;
 }
 
 export interface Activity {

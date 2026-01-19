@@ -47,8 +47,10 @@ class ActivityLogger {
   public const TYPE_START_DATE_REMOVED = 'start_date_removed';
   public const TYPE_START_DATE_UPDATED = 'start_date_updated';
   public const TYPE_DEPARTMENT_SET = 'department_set';
+  public const TYPE_DEPARTMENT_CHANGED = 'department_changed';
   public const TYPE_DEPARTMENT_REMOVED = 'department_removed';
   public const TYPE_CLIENT_SET = 'client_set';
+  public const TYPE_CLIENT_CHANGED = 'client_changed';
   public const TYPE_CLIENT_REMOVED = 'client_removed';
   public const TYPE_WATCHER_ADDED = 'watcher_added';
   public const TYPE_WATCHER_REMOVED = 'watcher_removed';
@@ -187,6 +189,9 @@ class ActivityLogger {
       }
     }
 
+    // Always include card_title in the data for display purposes.
+    $data['card_title'] = $card->getTitle();
+
     if (!$description) {
       $description = $this->generateCardDescription($type, $card, $data);
     }
@@ -283,8 +288,10 @@ class ActivityLogger {
       self::TYPE_START_DATE_REMOVED => 'Start date removed',
       self::TYPE_START_DATE_UPDATED => 'Start date updated',
       self::TYPE_DEPARTMENT_SET => 'Department set',
+      self::TYPE_DEPARTMENT_CHANGED => 'Department changed',
       self::TYPE_DEPARTMENT_REMOVED => 'Department removed',
       self::TYPE_CLIENT_SET => 'Client set',
+      self::TYPE_CLIENT_CHANGED => 'Client changed',
       self::TYPE_CLIENT_REMOVED => 'Client removed',
       self::TYPE_WATCHER_ADDED => 'Watcher added',
       self::TYPE_WATCHER_REMOVED => 'Watcher removed',
@@ -396,15 +403,27 @@ class ActivityLogger {
         $department = $data['department_name'] ?? 'a department';
         return $department;
 
+      case self::TYPE_DEPARTMENT_CHANGED:
+        $old_dept = $data['old_department_name'] ?? '';
+        $new_dept = $data['department_name'] ?? 'a department';
+        return $old_dept ? "$old_dept → $new_dept" : $new_dept;
+
       case self::TYPE_DEPARTMENT_REMOVED:
-        return "Removed";
+        $old_dept = $data['old_department_name'] ?? '';
+        return $old_dept ?: "Removed";
 
       case self::TYPE_CLIENT_SET:
         $client = $data['client_name'] ?? 'a client';
         return $client;
 
+      case self::TYPE_CLIENT_CHANGED:
+        $old_client = $data['old_client_name'] ?? '';
+        $new_client = $data['client_name'] ?? 'a client';
+        return $old_client ? "$old_client → $new_client" : $new_client;
+
       case self::TYPE_CLIENT_REMOVED:
-        return "Removed";
+        $old_client = $data['old_client_name'] ?? '';
+        return $old_client ?: "Removed";
 
       case self::TYPE_WATCHER_ADDED:
         $watcher = $data['watcher_name'] ?? 'a watcher';

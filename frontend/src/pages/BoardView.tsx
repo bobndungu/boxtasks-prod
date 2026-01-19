@@ -2842,7 +2842,7 @@ export default function BoardView() {
                   const display = getActivityDisplay(activity.type);
                   const data = activity.data;
                   const hasStructuredData = data && (
-                    data.member_name || data.watcher_name || data.label || data.from_list || data.to_list || data.department_name || data.client_name
+                    data.member_name || data.watcher_name || data.label || data.from_list || data.to_list || data.department_name || data.client_name || data.old_department_name || data.old_client_name || data.card_title
                   );
                   return (
                     <div key={activity.id} className="flex items-start">
@@ -2892,26 +2892,50 @@ export default function BoardView() {
                         )}
                         {/* Department changes */}
                         {(activity.type === 'department_set' || activity.type === 'department_changed' || activity.type === 'department_removed') && data?.department_name && (
-                          <div className="mt-1 text-xs">
-                            <span className={`px-1.5 py-0.5 rounded ${
-                              activity.type === 'department_removed'
-                                ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                                : 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
-                            }`}>
-                              {data.department_name}
-                            </span>
+                          <div className="mt-1 flex items-center gap-1.5 text-xs">
+                            {activity.type === 'department_changed' && data.old_department_name ? (
+                              <>
+                                <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+                                  {data.old_department_name}
+                                </span>
+                                <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 px-1.5 py-0.5 rounded">
+                                  {data.department_name}
+                                </span>
+                              </>
+                            ) : (
+                              <span className={`px-1.5 py-0.5 rounded ${
+                                activity.type === 'department_removed'
+                                  ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                  : 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                              }`}>
+                                {data.department_name}
+                              </span>
+                            )}
                           </div>
                         )}
                         {/* Client changes */}
                         {(activity.type === 'client_set' || activity.type === 'client_changed' || activity.type === 'client_removed') && data?.client_name && (
-                          <div className="mt-1 text-xs">
-                            <span className={`px-1.5 py-0.5 rounded ${
-                              activity.type === 'client_removed'
-                                ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                                : 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'
-                            }`}>
-                              {data.client_name}
-                            </span>
+                          <div className="mt-1 flex items-center gap-1.5 text-xs">
+                            {activity.type === 'client_changed' && data.old_client_name ? (
+                              <>
+                                <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+                                  {data.old_client_name}
+                                </span>
+                                <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                <span className="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 px-1.5 py-0.5 rounded">
+                                  {data.client_name}
+                                </span>
+                              </>
+                            ) : (
+                              <span className={`px-1.5 py-0.5 rounded ${
+                                activity.type === 'client_removed'
+                                  ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                  : 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'
+                              }`}>
+                                {data.client_name}
+                              </span>
+                            )}
                           </div>
                         )}
                         {/* Card moved - show from/to lists */}
@@ -2930,18 +2954,20 @@ export default function BoardView() {
                         {activity.description && !hasStructuredData && (
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{activity.description}</p>
                         )}
-                        {/* Timestamp - clickable to open card */}
-                        {activity.cardId ? (
+                        {/* Card name badge - clickable to open card */}
+                        {activity.cardId && data?.card_title && (
                           <Link
                             to={`/board/${id}?card=${activity.cardId}`}
-                            className="text-xs text-gray-400 dark:text-gray-500 mt-1 hover:text-blue-500 dark:hover:text-blue-400 hover:underline cursor-pointer inline-block"
+                            className="mt-1.5 inline-block"
                             title="Click to view card"
                           >
-                            {formatBoardActivityTime(activity.createdAt)}
+                            <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                              {data.card_title}
+                            </span>
                           </Link>
-                        ) : (
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatBoardActivityTime(activity.createdAt)}</p>
                         )}
+                        {/* Timestamp */}
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatBoardActivityTime(activity.createdAt)}</p>
                       </div>
                     </div>
                   );

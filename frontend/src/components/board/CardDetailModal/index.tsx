@@ -3184,18 +3184,42 @@ function CardDetailModal({
                             )}
                             {/* Department changes */}
                             {(activity.type === 'department_set' || activity.type === 'department_changed' || activity.type === 'department_removed') && data?.department_name && (
-                              <div className="mt-1 text-xs">
-                                <span className={`px-1.5 py-0.5 rounded ${activity.type === 'department_removed' ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300'}`}>
-                                  {data.department_name}
-                                </span>
+                              <div className="mt-1 flex items-center gap-1.5 text-xs">
+                                {activity.type === 'department_changed' && data.old_department_name ? (
+                                  <>
+                                    <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+                                      {data.old_department_name}
+                                    </span>
+                                    <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                    <span className="bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300 px-1.5 py-0.5 rounded">
+                                      {data.department_name}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className={`px-1.5 py-0.5 rounded ${activity.type === 'department_removed' ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300'}`}>
+                                    {data.department_name}
+                                  </span>
+                                )}
                               </div>
                             )}
                             {/* Client changes */}
                             {(activity.type === 'client_set' || activity.type === 'client_changed' || activity.type === 'client_removed') && data?.client_name && (
-                              <div className="mt-1 text-xs">
-                                <span className={`px-1.5 py-0.5 rounded ${activity.type === 'client_removed' ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300'}`}>
-                                  {data.client_name}
-                                </span>
+                              <div className="mt-1 flex items-center gap-1.5 text-xs">
+                                {activity.type === 'client_changed' && data.old_client_name ? (
+                                  <>
+                                    <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+                                      {data.old_client_name}
+                                    </span>
+                                    <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                    <span className="bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300 px-1.5 py-0.5 rounded">
+                                      {data.client_name}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className={`px-1.5 py-0.5 rounded ${activity.type === 'client_removed' ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300'}`}>
+                                    {data.client_name}
+                                  </span>
+                                )}
                               </div>
                             )}
                             {/* Comment added - show comment text */}

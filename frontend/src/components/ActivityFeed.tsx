@@ -304,32 +304,54 @@ function ActivityDataDisplay({ type, data, boardId }: { type: ActivityType; data
 
   // Department changes
   if ((type === 'department_set' || type === 'department_changed' || type === 'department_removed') && data.department_name) {
-    const isRemoved = type === 'department_removed';
     return (
-      <div className="mt-1.5 text-xs">
-        <span className={`px-1.5 py-0.5 rounded ${
-          isRemoved
-            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-            : 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
-        }`}>
-          {data.department_name}
-        </span>
+      <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+        {type === 'department_changed' && data.old_department_name ? (
+          <>
+            <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+              {data.old_department_name}
+            </span>
+            <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+            <span className="bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 px-1.5 py-0.5 rounded">
+              {data.department_name}
+            </span>
+          </>
+        ) : (
+          <span className={`px-1.5 py-0.5 rounded ${
+            type === 'department_removed'
+              ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+              : 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+          }`}>
+            {data.department_name}
+          </span>
+        )}
       </div>
     );
   }
 
   // Client changes
   if ((type === 'client_set' || type === 'client_changed' || type === 'client_removed') && data.client_name) {
-    const isRemoved = type === 'client_removed';
     return (
-      <div className="mt-1.5 text-xs">
-        <span className={`px-1.5 py-0.5 rounded ${
-          isRemoved
-            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-            : 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'
-        }`}>
-          {data.client_name}
-        </span>
+      <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+        {type === 'client_changed' && data.old_client_name ? (
+          <>
+            <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+              {data.old_client_name}
+            </span>
+            <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+            <span className="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 px-1.5 py-0.5 rounded">
+              {data.client_name}
+            </span>
+          </>
+        ) : (
+          <span className={`px-1.5 py-0.5 rounded ${
+            type === 'client_removed'
+              ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+              : 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'
+          }`}>
+            {data.client_name}
+          </span>
+        )}
       </div>
     );
   }

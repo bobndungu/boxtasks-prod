@@ -428,31 +428,34 @@ function boxtasks_activity_node_update(NodeInterface $node): void {
     $original_dept_id = $original->get('field_card_department')->target_id;
 
     if ($current_dept_id !== $original_dept_id) {
+      $current_dept_name = $current_dept_id ? _boxtasks_activity_get_taxonomy_term_name($current_dept_id) : '';
+      $old_dept_name = $original_dept_id ? _boxtasks_activity_get_taxonomy_term_name($original_dept_id) : '';
+
       if ($current_dept_id && !$original_dept_id) {
         // Department was set.
-        $dept_name = _boxtasks_activity_get_taxonomy_term_name($current_dept_id);
         $logger->logCardActivity(
           ActivityLogger::TYPE_DEPARTMENT_SET,
           $node,
           NULL,
-          ['department_name' => $dept_name]
+          ['department_name' => $current_dept_name]
         );
       }
       elseif (!$current_dept_id && $original_dept_id) {
         // Department was removed.
         $logger->logCardActivity(
           ActivityLogger::TYPE_DEPARTMENT_REMOVED,
-          $node
+          $node,
+          NULL,
+          ['old_department_name' => $old_dept_name, 'department_name' => $old_dept_name]
         );
       }
       else {
         // Department was changed.
-        $dept_name = _boxtasks_activity_get_taxonomy_term_name($current_dept_id);
         $logger->logCardActivity(
-          ActivityLogger::TYPE_DEPARTMENT_SET,
+          ActivityLogger::TYPE_DEPARTMENT_CHANGED,
           $node,
           NULL,
-          ['department_name' => $dept_name]
+          ['old_department_name' => $old_dept_name, 'department_name' => $current_dept_name]
         );
       }
     }
@@ -464,31 +467,34 @@ function boxtasks_activity_node_update(NodeInterface $node): void {
     $original_client_id = $original->get('field_card_client')->target_id;
 
     if ($current_client_id !== $original_client_id) {
+      $current_client_name = $current_client_id ? _boxtasks_activity_get_taxonomy_term_name($current_client_id) : '';
+      $old_client_name = $original_client_id ? _boxtasks_activity_get_taxonomy_term_name($original_client_id) : '';
+
       if ($current_client_id && !$original_client_id) {
         // Client was set.
-        $client_name = _boxtasks_activity_get_taxonomy_term_name($current_client_id);
         $logger->logCardActivity(
           ActivityLogger::TYPE_CLIENT_SET,
           $node,
           NULL,
-          ['client_name' => $client_name]
+          ['client_name' => $current_client_name]
         );
       }
       elseif (!$current_client_id && $original_client_id) {
         // Client was removed.
         $logger->logCardActivity(
           ActivityLogger::TYPE_CLIENT_REMOVED,
-          $node
+          $node,
+          NULL,
+          ['old_client_name' => $old_client_name, 'client_name' => $old_client_name]
         );
       }
       else {
         // Client was changed.
-        $client_name = _boxtasks_activity_get_taxonomy_term_name($current_client_id);
         $logger->logCardActivity(
-          ActivityLogger::TYPE_CLIENT_SET,
+          ActivityLogger::TYPE_CLIENT_CHANGED,
           $node,
           NULL,
-          ['client_name' => $client_name]
+          ['old_client_name' => $old_client_name, 'client_name' => $current_client_name]
         );
       }
     }

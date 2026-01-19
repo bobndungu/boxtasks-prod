@@ -231,32 +231,54 @@ function ActivityDiffDisplay({ type, data, boardId }: { type: ActivityType; data
 
   // Department changes
   if ((type === 'department_set' || type === 'department_changed' || type === 'department_removed') && data.department_name) {
-    const isRemoved = type === 'department_removed';
     return (
-      <div className="mt-1.5 text-xs">
-        <span className={`px-1.5 py-0.5 rounded ${
-          isRemoved
-            ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-            : 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400'
-        }`}>
-          {data.department_name}
-        </span>
+      <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+        {type === 'department_changed' && data.old_department_name ? (
+          <>
+            <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+              {data.old_department_name}
+            </span>
+            <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+            <span className="bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 px-1.5 py-0.5 rounded">
+              {data.department_name}
+            </span>
+          </>
+        ) : (
+          <span className={`px-1.5 py-0.5 rounded ${
+            type === 'department_removed'
+              ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+              : 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400'
+          }`}>
+            {data.department_name}
+          </span>
+        )}
       </div>
     );
   }
 
   // Client changes
   if ((type === 'client_set' || type === 'client_changed' || type === 'client_removed') && data.client_name) {
-    const isRemoved = type === 'client_removed';
     return (
-      <div className="mt-1.5 text-xs">
-        <span className={`px-1.5 py-0.5 rounded ${
-          isRemoved
-            ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-            : 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400'
-        }`}>
-          {data.client_name}
-        </span>
+      <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+        {type === 'client_changed' && data.old_client_name ? (
+          <>
+            <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+              {data.old_client_name}
+            </span>
+            <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+            <span className="bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 px-1.5 py-0.5 rounded">
+              {data.client_name}
+            </span>
+          </>
+        ) : (
+          <span className={`px-1.5 py-0.5 rounded ${
+            type === 'client_removed'
+              ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+              : 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400'
+          }`}>
+            {data.client_name}
+          </span>
+        )}
       </div>
     );
   }
@@ -793,20 +815,22 @@ export default function Dashboard() {
                               {activity.description}
                             </p>
                           )}
-                          {/* Timestamp with full date and relative time - clickable to card */}
-                          {activity.cardId && activity.boardId ? (
+                          {/* Card name badge - clickable to open card */}
+                          {activity.cardId && activity.boardId && activity.data?.card_title && (
                             <Link
                               to={`/board/${activity.boardId}?card=${activity.cardId}`}
-                              className="text-xs text-gray-400 dark:text-gray-500 mt-1 hover:text-blue-500 dark:hover:text-blue-400 hover:underline cursor-pointer inline-block"
-                              title={`${time.full} - Click to view card`}
+                              className="mt-1.5 inline-block"
+                              title="Click to view card"
                             >
-                              {time.full} · {time.relative}
+                              <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                                {activity.data.card_title}
+                              </span>
                             </Link>
-                          ) : (
-                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1" title={time.full}>
-                              {time.full} · {time.relative}
-                            </p>
                           )}
+                          {/* Timestamp with full date and relative time */}
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1" title={time.full}>
+                            {time.full} · {time.relative}
+                          </p>
                         </div>
                       </div>
                     );
