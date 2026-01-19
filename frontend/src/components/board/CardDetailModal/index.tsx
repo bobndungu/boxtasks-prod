@@ -3562,66 +3562,82 @@ function CardDetailModal({
                       )}
                     </div>
                   </div>
-                  {/* Client Dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowClientPicker(!showClientPicker)}
-                      className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center justify-between text-gray-700 dark:text-gray-300"
-                    >
-                      <span className="flex items-center">
-                        <Building2 className="h-4 w-4 mr-2" />
-                        Client
-                      </span>
-                      {card.client && (
-                        <span className="bg-teal-100 text-teal-700 text-xs px-1.5 py-0.5 rounded">
+                  {/* Client Dropdown - Watchers style */}
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Client
+                    </p>
+                    {/* Current client display */}
+                    {card.client && (
+                      <div className="mb-2 flex flex-wrap gap-1">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 rounded-full text-xs">
+                          <Building2 className="h-3 w-3" />
                           {card.client.name}
-                        </span>
-                      )}
-                    </button>
-                    {showClientPicker && (
-                      <>
-                        <div className="fixed inset-0 z-[51]" onClick={() => setShowClientPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-[52] w-64">
-                          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Select Client</h5>
-                          <div className="space-y-1 max-h-48 overflow-y-auto">
-                            {clients.map((clnt) => (
-                              <button
-                                key={clnt.id}
-                                onClick={() => handleClientChange(clnt.id)}
-                                disabled={isUpdatingClient}
-                                className={`w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 text-left disabled:opacity-50 ${
-                                  card.client?.id === clnt.id ? 'bg-teal-50 border border-teal-200' : ''
-                                }`}
-                              >
-                                <Building2 className="h-4 w-4 text-teal-600" />
-                                <span className="text-sm text-gray-700">{clnt.name}</span>
-                                {card.client?.id === clnt.id && (
-                                  <Check className="h-4 w-4 text-teal-600 ml-auto" />
-                                )}
-                              </button>
-                            ))}
-                            {clients.length === 0 && (
-                              <p className="text-xs text-gray-400 text-center py-2">No clients available</p>
-                            )}
-                          </div>
-                          {card.client && (
-                            <button
-                              onClick={() => handleClientChange(null)}
-                              disabled={isUpdatingClient}
-                              className="w-full mt-2 text-red-600 hover:text-red-700 text-sm"
-                            >
-                              Remove Client
-                            </button>
-                          )}
                           <button
-                            onClick={() => setShowClientPicker(false)}
-                            className="w-full mt-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
+                            onClick={() => handleClientChange(null)}
+                            disabled={isUpdatingClient}
+                            className="hover:bg-teal-200 dark:hover:bg-teal-800 rounded-full p-0.5"
                           >
-                            Close
+                            <X className="h-3 w-3" />
                           </button>
-                        </div>
-                      </>
+                        </span>
+                      </div>
                     )}
+                    {/* Client picker dropdown */}
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowClientPicker(!showClientPicker)}
+                        disabled={isUpdatingClient}
+                        className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center text-gray-700 dark:text-gray-300 disabled:opacity-50"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        {card.client ? 'Change Client' : 'Add Client'}
+                      </button>
+                      {showClientPicker && (
+                        <>
+                          <div className="fixed inset-0 z-[51]" onClick={() => setShowClientPicker(false)} />
+                          <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 z-[52] w-56 max-h-64">
+                            <input
+                              type="text"
+                              placeholder="Search clients..."
+                              className="w-full px-2 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded mb-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                              onChange={(e) => {
+                                const searchTerm = e.target.value.toLowerCase();
+                                const dropdown = e.target.nextElementSibling;
+                                if (dropdown) {
+                                  const buttons = dropdown.querySelectorAll('button');
+                                  buttons.forEach((btn) => {
+                                    const text = btn.textContent?.toLowerCase() || '';
+                                    (btn as HTMLElement).style.display = text.includes(searchTerm) ? '' : 'none';
+                                  });
+                                }
+                              }}
+                            />
+                            <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                              {clients.map((clnt) => (
+                                <button
+                                  key={clnt.id}
+                                  onClick={() => handleClientChange(clnt.id)}
+                                  disabled={isUpdatingClient}
+                                  className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-left disabled:opacity-50 ${
+                                    card.client?.id === clnt.id ? 'bg-teal-50 dark:bg-teal-900/30' : ''
+                                  }`}
+                                >
+                                  <Building2 className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                                  <span className="text-sm text-gray-700 dark:text-gray-200 flex-1">{clnt.name}</span>
+                                  {card.client?.id === clnt.id && (
+                                    <Check className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                                  )}
+                                </button>
+                              ))}
+                              {clients.length === 0 && (
+                                <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-2">No clients available</p>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                   <div className="relative">
                     <label className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center cursor-pointer text-gray-700 dark:text-gray-300">
