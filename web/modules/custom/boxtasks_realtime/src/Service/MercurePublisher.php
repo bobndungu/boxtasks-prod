@@ -629,11 +629,13 @@ class MercurePublisher {
     }
 
     if ($card->hasField('field_card_due_date') && !$card->get('field_card_due_date')->isEmpty()) {
-      $data['dueDate'] = $card->get('field_card_due_date')->value;
+      // Append 'Z' to indicate UTC - Drupal stores dates in UTC but without timezone suffix
+      $data['dueDate'] = $card->get('field_card_due_date')->value . 'Z';
     }
 
     if ($card->hasField('field_card_start_date') && !$card->get('field_card_start_date')->isEmpty()) {
-      $data['startDate'] = $card->get('field_card_start_date')->value;
+      // Append 'Z' to indicate UTC - Drupal stores dates in UTC but without timezone suffix
+      $data['startDate'] = $card->get('field_card_start_date')->value . 'Z';
     }
 
     if ($card->hasField('field_card_labels') && !$card->get('field_card_labels')->isEmpty()) {
