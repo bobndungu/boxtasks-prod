@@ -3501,66 +3501,66 @@ function CardDetailModal({
                       </div>
                     )}
                   </div>
-                  {/* Department Dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowDepartmentPicker(!showDepartmentPicker)}
-                      className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center justify-between text-gray-700 dark:text-gray-300"
-                    >
-                      <span className="flex items-center">
-                        <Briefcase className="h-4 w-4 mr-2" />
-                        Department
-                      </span>
-                      {card.department && (
-                        <span className="bg-purple-100 text-purple-700 text-xs px-1.5 py-0.5 rounded">
+                  {/* Department Dropdown - Watchers style */}
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Department
+                    </p>
+                    {/* Current department display */}
+                    {card.department && (
+                      <div className="mb-2 flex flex-wrap gap-1">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-full text-xs">
+                          <Briefcase className="h-3 w-3" />
                           {card.department.name}
-                        </span>
-                      )}
-                    </button>
-                    {showDepartmentPicker && (
-                      <>
-                        <div className="fixed inset-0 z-[51]" onClick={() => setShowDepartmentPicker(false)} />
-                        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-[52] w-64">
-                          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Select Department</h5>
-                          <div className="space-y-1 max-h-48 overflow-y-auto">
-                            {departments.map((dept) => (
-                              <button
-                                key={dept.id}
-                                onClick={() => handleDepartmentChange(dept.id)}
-                                disabled={isUpdatingDepartment}
-                                className={`w-full flex items-center gap-2 px-2 py-2 rounded hover:bg-gray-100 text-left disabled:opacity-50 ${
-                                  card.department?.id === dept.id ? 'bg-purple-50 border border-purple-200' : ''
-                                }`}
-                              >
-                                <Briefcase className="h-4 w-4 text-purple-600" />
-                                <span className="text-sm text-gray-700">{dept.name}</span>
-                                {card.department?.id === dept.id && (
-                                  <Check className="h-4 w-4 text-purple-600 ml-auto" />
-                                )}
-                              </button>
-                            ))}
-                            {departments.length === 0 && (
-                              <p className="text-xs text-gray-400 text-center py-2">No departments available</p>
-                            )}
-                          </div>
-                          {card.department && (
-                            <button
-                              onClick={() => handleDepartmentChange(null)}
-                              disabled={isUpdatingDepartment}
-                              className="w-full mt-2 text-red-600 hover:text-red-700 text-sm"
-                            >
-                              Remove Department
-                            </button>
-                          )}
                           <button
-                            onClick={() => setShowDepartmentPicker(false)}
-                            className="w-full mt-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
+                            onClick={() => handleDepartmentChange(null)}
+                            disabled={isUpdatingDepartment}
+                            className="hover:bg-purple-200 dark:hover:bg-purple-800 rounded-full p-0.5"
                           >
-                            Close
+                            <X className="h-3 w-3" />
                           </button>
-                        </div>
-                      </>
+                        </span>
+                      </div>
                     )}
+                    {/* Department picker dropdown */}
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowDepartmentPicker(!showDepartmentPicker)}
+                        disabled={isUpdatingDepartment}
+                        className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-2 rounded text-left text-sm flex items-center text-gray-700 dark:text-gray-300 disabled:opacity-50"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        {card.department ? 'Change Department' : 'Add Department'}
+                      </button>
+                      {showDepartmentPicker && (
+                        <>
+                          <div className="fixed inset-0 z-[51]" onClick={() => setShowDepartmentPicker(false)} />
+                          <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 z-[52] w-56">
+                            <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                              {departments.map((dept) => (
+                                <button
+                                  key={dept.id}
+                                  onClick={() => handleDepartmentChange(dept.id)}
+                                  disabled={isUpdatingDepartment}
+                                  className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-left disabled:opacity-50 ${
+                                    card.department?.id === dept.id ? 'bg-purple-50 dark:bg-purple-900/30' : ''
+                                  }`}
+                                >
+                                  <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                                  <span className="text-sm text-gray-700 dark:text-gray-200 flex-1">{dept.name}</span>
+                                  {card.department?.id === dept.id && (
+                                    <Check className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                                  )}
+                                </button>
+                              ))}
+                              {departments.length === 0 && (
+                                <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-2">No departments available</p>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                   {/* Client Dropdown */}
                   <div className="relative">
