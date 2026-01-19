@@ -60,17 +60,40 @@ class UserRegistrationController extends ControllerBase {
     // Generate username: FirstL format.
     $username = $this->generateUsername($firstName, $lastName);
 
+    // Check registration settings.
+    $config = \Drupal::config('user.settings');
+    $register = $config->get('register');
+
+    // If registration is admin_only, reject the registration.
+    if ($register === 'admin_only') {
+      return new JsonResponse([
+        'message' => 'Registration is currently disabled. Please contact an administrator.',
+      ], 403);
+    }
+
+    // Check if approval is required.
+    $requireApproval = ($register === 'visitors_admin_approval');
+
     try {
       // Create the user.
       $user = User::create([
         'name' => $username,
         'mail' => $email,
         'pass' => $password,
-        'status' => 1, // Active user.
+        'status' => $requireApproval ? 0 : 1, // Inactive if approval required.
         'field_first_name' => $firstName,
         'field_last_name' => $lastName,
+        'field_pending_approval' => $requireApproval ? 1 : 0,
       ]);
       $user->save();
+
+      // Return different response based on approval requirement.
+      if ($requireApproval) {
+        return new JsonResponse([
+          'message' => 'Registration submitted successfully. An administrator will review your request.',
+          'pending' => TRUE,
+        ], 201);
+      }
 
       return new JsonResponse([
         'message' => 'Account created successfully',

@@ -14,3 +14,52 @@ boxtasks_user.register:
   methods: [POST]
   requirements:
     _access: 'TRUE'
+
+# Registration Settings
+boxtasks_user.registration_settings.get:
+  path: '/api/registration/settings'
+  defaults:
+    _controller: '\Drupal\boxtasks_user\Controller\RegistrationSettingsController::getSettings'
+    _title: 'Registration Settings'
+  methods: [GET]
+  requirements:
+    _permission: 'administer users'
+
+boxtasks_user.registration_settings.update:
+  path: '/api/registration/settings'
+  defaults:
+    _controller: '\Drupal\boxtasks_user\Controller\RegistrationSettingsController::updateSettings'
+    _title: 'Update Registration Settings'
+  methods: [POST]
+  requirements:
+    _permission: 'administer users'
+
+# Pending Users
+boxtasks_user.pending_users.list:
+  path: '/api/users/pending'
+  defaults:
+    _controller: '\Drupal\boxtasks_user\Controller\PendingUsersController::getPendingUsers'
+    _title: 'Pending Users'
+  methods: [GET]
+  requirements:
+    _permission: 'administer users'
+
+boxtasks_user.pending_users.approve:
+  path: '/api/users/{uid}/approve'
+  defaults:
+    _controller: '\Drupal\boxtasks_user\Controller\PendingUsersController::approveUser'
+    _title: 'Approve User'
+  methods: [POST]
+  requirements:
+    _permission: 'administer users'
+    uid: \d+
+
+boxtasks_user.pending_users.reject:
+  path: '/api/users/{uid}/reject'
+  defaults:
+    _controller: '\Drupal\boxtasks_user\Controller\PendingUsersController::rejectUser'
+    _title: 'Reject User'
+  methods: [POST]
+  requirements:
+    _permission: 'administer users'
+    uid: \d+

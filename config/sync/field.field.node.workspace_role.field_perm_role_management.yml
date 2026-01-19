@@ -1,3 +1,4 @@
+uuid: bb7d29de-3e6c-452d-9aa9-b222398b0581
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission level for Role Management.'
 required: false
 translatable: false
 default_value:
-  - value: 'none'
+  -
+    value: none
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

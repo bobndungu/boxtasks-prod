@@ -1,3 +1,4 @@
+uuid: 3224a5ba-431d-4589-ad5a-39350c482dda
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission level for View Activity Reports.'
 required: false
 translatable: false
 default_value:
-  - value: 'none'
+  -
+    value: none
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

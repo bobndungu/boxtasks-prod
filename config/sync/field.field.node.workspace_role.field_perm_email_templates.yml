@@ -1,3 +1,4 @@
+uuid: 74f2b578-279d-402f-9dae-a7987d84dfc1
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission level for Manage Email Templates.'
 required: false
 translatable: false
 default_value:
-  - value: 'none'
+  -
+    value: none
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

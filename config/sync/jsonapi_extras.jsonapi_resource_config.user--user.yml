@@ -73,3 +73,21 @@ resourceFields:
     publicName: roles
     enhancer:
       id: ''
+  field_first_name:
+    disabled: false
+    fieldName: field_first_name
+    publicName: field_first_name
+    enhancer:
+      id: ''
+  field_last_name:
+    disabled: false
+    fieldName: field_last_name
+    publicName: field_last_name
+    enhancer:
+      id: ''
+  field_pending_approval:
+    disabled: false
+    fieldName: field_pending_approval
+    publicName: field_pending_approval
+    enhancer:
+      id: ''

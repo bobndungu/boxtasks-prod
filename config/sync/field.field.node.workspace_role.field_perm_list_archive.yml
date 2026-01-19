@@ -1,3 +1,4 @@
+uuid: 0dabedf2-f2b2-4afe-9186-3dee221dd462
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission level for Archive Lists.'
 required: false
 translatable: false
 default_value:
-  - value: 'own'
+  -
+    value: own
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

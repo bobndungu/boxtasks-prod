@@ -1,3 +1,4 @@
+uuid: 4fc56276-5453-471b-86a8-1298ee346878
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission level for Export Reports.'
 required: false
 translatable: false
 default_value:
-  - value: 'none'
+  -
+    value: none
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

@@ -17,6 +17,12 @@ import {
   Plus,
   Trash2,
   RefreshCw,
+  Settings,
+  Clock,
+  CheckCircle,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import MainHeader from '../components/MainHeader';
 import { useAuthStore } from '../lib/stores/auth';
@@ -39,6 +45,15 @@ import {
   type MemberRoleAssignment,
 } from '../lib/api/roles';
 import { getAccessToken } from '../lib/api/client';
+import {
+  getRegistrationSettings,
+  updateRegistrationSettings,
+  getPendingUsers,
+  approveUser,
+  rejectUser,
+  type RegistrationSettings,
+  type PendingUser,
+} from '../lib/api/registration-settings';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -81,6 +96,15 @@ export default function AdminUsers() {
   const [selectedWorkspace, setSelectedWorkspace] = useState<string>('');
   const [selectedWorkspaceRole, setSelectedWorkspaceRole] = useState<string>('');
 
+  // Registration settings state
+  const [registrationSettings, setRegistrationSettings] = useState<RegistrationSettings | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
+  const [pendingLoading, setPendingLoading] = useState(false);
+  const [pendingCollapsed, setPendingCollapsed] = useState(false);
+  const [processingUserId, setProcessingUserId] = useState<string | null>(null);
+
   // Check if current user is admin
   const isAdmin = currentUser?.roles?.includes('administrator') || currentUser?.roles?.includes('admin');
 
@@ -106,6 +130,90 @@ export default function AdminUsers() {
     fetchWorkspaces().then(setWorkspaces);
     fetchGlobalRoles().then(setGlobalRoles);
   }, []);
+
+  // Load registration settings and pending users
+  useEffect(() => {
+    loadRegistrationSettings();
+    loadPendingUsers();
+  }, []);
+
+  const loadRegistrationSettings = async () => {
+    setSettingsLoading(true);
+    try {
+      const settings = await getRegistrationSettings();
+      setRegistrationSettings(settings);
+    } catch (error) {
+      console.error('Failed to load registration settings:', error);
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
+
+  const loadPendingUsers = async () => {
+    setPendingLoading(true);
+    try {
+      const response = await getPendingUsers();
+      setPendingUsers(response.users);
+    } catch (error) {
+      console.error('Failed to load pending users:', error);
+    } finally {
+      setPendingLoading(false);
+    }
+  };
+
+  const handleToggleApprovalSetting = async () => {
+    if (!registrationSettings) return;
+    setSettingsSaving(true);
+    try {
+      const newValue = !registrationSettings.requireApproval;
+      await updateRegistrationSettings({ requireApproval: newValue });
+      setRegistrationSettings({ ...registrationSettings, requireApproval: newValue });
+    } catch (error) {
+      console.error('Failed to update registration settings:', error);
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
+  const handleApproveUser = async (userId: string) => {
+    setProcessingUserId(userId);
+    try {
+      await approveUser(userId);
+      // Remove from pending list and reload users
+      setPendingUsers((prev) => prev.filter((u) => u.id !== userId));
+      loadUsers(true); // Refresh user list to show newly approved user
+    } catch (error) {
+      console.error('Failed to approve user:', error);
+    } finally {
+      setProcessingUserId(null);
+    }
+  };
+
+  const handleRejectUser = async (userId: string, username: string) => {
+    if (!confirm(`Are you sure you want to reject and delete the registration for "${username}"?`)) {
+      return;
+    }
+    setProcessingUserId(userId);
+    try {
+      await rejectUser(userId);
+      setPendingUsers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (error) {
+      console.error('Failed to reject user:', error);
+    } finally {
+      setProcessingUserId(null);
+    }
+  };
+
+  const formatTimeAgo = (timestamp: number) => {
+    const seconds = Math.floor((Date.now() - timestamp * 1000) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
 
   const loadUsers = async (silent = false) => {
     if (silent) {
@@ -475,6 +583,137 @@ export default function AdminUsers() {
             )}
           </div>
         </div>
+
+        {/* Registration Settings */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <Settings className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white">Registration Settings</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Control how new users can register
+              </p>
+            </div>
+            {settingsLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+            ) : (
+              <label className="flex items-center gap-3 cursor-pointer">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Require admin approval
+                </span>
+                <button
+                  onClick={handleToggleApprovalSetting}
+                  disabled={settingsSaving}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    registrationSettings?.requireApproval
+                      ? 'bg-blue-600'
+                      : 'bg-gray-300 dark:bg-gray-600'
+                  } ${settingsSaving ? 'opacity-50' : ''}`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      registrationSettings?.requireApproval ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </label>
+            )}
+          </div>
+        </div>
+
+        {/* Pending Approvals */}
+        {registrationSettings?.requireApproval && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-6 overflow-hidden">
+            <button
+              onClick={() => setPendingCollapsed(!pendingCollapsed)}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/30"
+            >
+              <div className="flex items-center gap-3">
+                <Clock className="h-5 w-5 text-amber-500" />
+                <div className="text-left">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                    Pending Approvals
+                    {pendingUsers.length > 0 && (
+                      <span className="ml-2 px-2 py-0.5 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full">
+                        {pendingUsers.length}
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Users waiting for account approval
+                  </p>
+                </div>
+              </div>
+              {pendingCollapsed ? (
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              ) : (
+                <ChevronUp className="h-5 w-5 text-gray-400" />
+              )}
+            </button>
+
+            {!pendingCollapsed && (
+              <div className="border-t border-gray-200 dark:border-gray-700">
+                {pendingLoading ? (
+                  <div className="p-8 text-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-600 mx-auto" />
+                  </div>
+                ) : pendingUsers.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      No pending registrations
+                    </p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {pendingUsers.map((user) => (
+                      <div
+                        key={user.id}
+                        className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/30"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center text-white font-semibold">
+                            {user.firstName?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase() || '?'}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {user.firstName} {user.lastName}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {user.email} &bull; {formatTimeAgo(user.created)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleApproveUser(user.id)}
+                            disabled={processingUserId === user.id}
+                            className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-1.5"
+                          >
+                            {processingUserId === user.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4" />
+                            )}
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectUser(user.id, `${user.firstName} ${user.lastName}`)}
+                            disabled={processingUserId === user.id}
+                            className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-1.5"
+                          >
+                            <XCircle className="h-4 w-4" />
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Users Table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">

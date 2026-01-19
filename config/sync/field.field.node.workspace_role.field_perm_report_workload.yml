@@ -1,3 +1,4 @@
+uuid: cdc43f6f-d580-495a-8c5c-9a8958e65b0d
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission level for View Workload Reports.'
 required: false
 translatable: false
 default_value:
-  - value: 'none'
+  -
+    value: none
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

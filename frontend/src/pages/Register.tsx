@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Layout, Eye, EyeOff, Loader2, Check } from 'lucide-react';
+import { Layout, Eye, EyeOff, Loader2, Check, CheckCircle, Clock } from 'lucide-react';
 
 // Social login icons as SVG components
 const GoogleIcon = () => (
@@ -33,6 +33,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingApproval, setPendingApproval] = useState(false);
 
   const passwordRequirements = [
     { label: 'At least 8 characters', met: formData.password.length >= 8 },
@@ -84,13 +85,19 @@ export default function Register() {
         }
       );
 
+      const data = await response.json();
+
       if (response.ok) {
-        // Registration successful, redirect to login
-        navigate('/login', {
-          state: { message: 'Account created successfully! Please log in.' }
-        });
+        // Check if registration requires approval
+        if (data.pending) {
+          setPendingApproval(true);
+        } else {
+          // Registration successful with auto-approval, redirect to login
+          navigate('/login', {
+            state: { message: 'Account created successfully! Please log in.' }
+          });
+        }
       } else {
-        const data = await response.json();
         setError(data.message || 'Registration failed. Please try again.');
       }
     } catch {
@@ -113,14 +120,46 @@ export default function Register() {
       {/* Register Form */}
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
-          <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
-            Create your account
-          </h1>
-          <p className="text-gray-500 text-center mb-8">
-            Start organizing your work for free
-          </p>
+          {pendingApproval ? (
+            /* Pending Approval Success Message */
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-6">
+                <Clock className="h-8 w-8 text-amber-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Registration Submitted
+              </h1>
+              <div className="flex items-center justify-center gap-2 text-green-600 mb-4">
+                <CheckCircle className="h-5 w-5" />
+                <span className="font-medium">Successfully received</span>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Your registration has been submitted successfully. An administrator will review your request and you will be notified when your account is approved.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-800">
+                  <strong>What happens next?</strong><br />
+                  An administrator will review your registration. Once approved, you&apos;ll be able to log in with your credentials.
+                </p>
+              </div>
+              <Link
+                to="/login"
+                className="inline-flex items-center justify-center w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Back to Login
+              </Link>
+            </div>
+          ) : (
+            /* Registration Form */
+            <>
+              <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
+                Create your account
+              </h1>
+              <p className="text-gray-500 text-center mb-8">
+                Start organizing your work for free
+              </p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
                 {error}
@@ -275,21 +314,23 @@ export default function Register() {
                 <span className="ml-2 text-sm font-medium text-gray-700">Microsoft</span>
               </a>
             </div>
-          </form>
+              </form>
 
-          <p className="mt-8 text-center text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
-              Sign in
-            </Link>
-          </p>
+              <p className="mt-8 text-center text-gray-600">
+                Already have an account?{' '}
+                <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+                  Sign in
+                </Link>
+              </p>
 
-          <p className="mt-4 text-center text-xs text-gray-400">
-            By creating an account, you agree to our{' '}
-            <a href="#" className="underline hover:text-gray-600">Terms of Service</a>
-            {' '}and{' '}
-            <a href="#" className="underline hover:text-gray-600">Privacy Policy</a>
-          </p>
+              <p className="mt-4 text-center text-xs text-gray-400">
+                By creating an account, you agree to our{' '}
+                <a href="#" className="underline hover:text-gray-600">Terms of Service</a>
+                {' '}and{' '}
+                <a href="#" className="underline hover:text-gray-600">Privacy Policy</a>
+              </p>
+            </>
+          )}
         </div>
       </main>
 

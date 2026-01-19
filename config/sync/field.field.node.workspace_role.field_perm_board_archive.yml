@@ -1,3 +1,4 @@
+uuid: f5f49e26-ee5b-4d3c-aee5-16609302dd65
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission level for Archive Boards.'
 required: false
 translatable: false
 default_value:
-  - value: 'own'
+  -
+    value: own
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

@@ -1,3 +1,4 @@
+uuid: ea499917-17ca-4924-9abe-e56f938a39ee
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission level for Archive Cards.'
 required: false
 translatable: false
 default_value:
-  - value: 'own'
+  -
+    value: own
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

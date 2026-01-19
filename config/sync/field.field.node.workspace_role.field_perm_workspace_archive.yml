@@ -1,3 +1,4 @@
+uuid: 7d4bb2c4-0223-4764-8d92-2c407d5f7c38
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission level for Archive Workspaces.'
 required: false
 translatable: false
 default_value:
-  - value: 'none'
+  -
+    value: none
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

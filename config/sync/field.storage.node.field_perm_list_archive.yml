@@ -1,3 +1,4 @@
+uuid: 9292c380-b9f6-411e-a1e4-4edc3a3c9066
 langcode: en
 status: true
 dependencies:
@@ -10,14 +11,20 @@ entity_type: node
 type: list_string
 settings:
   allowed_values:
-    - { value: 'any', label: 'Any' }
-    - { value: 'own', label: 'Own' }
-    - { value: 'none', label: 'None' }
+    -
+      value: any
+      label: Any
+    -
+      value: own
+      label: Own
+    -
+      value: none
+      label: None
   allowed_values_function: ''
 module: options
 locked: false
 cardinality: 1
 translatable: true
-indexes: {}
+indexes: {  }
 persist_with_no_fields: false
 custom_storage: false

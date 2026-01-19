@@ -1,3 +1,4 @@
+uuid: d8eebbfa-209a-49cf-b6d7-64ee790ddce1
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission level for View Tasks Reports.'
 required: false
 translatable: false
 default_value:
-  - value: 'none'
+  -
+    value: none
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string
