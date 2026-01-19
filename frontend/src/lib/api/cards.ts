@@ -3,11 +3,12 @@ import { getAccessToken, fetchWithCsrf } from './client';
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
 // Helper function to format dates for Drupal JSON:API datetime fields
-// Drupal JSON:API requires RFC 3339 format: Y-m-d\TH:i:sP (e.g., 2026-01-26T11:30:00+00:00)
+// Drupal JSON:API requires RFC 3339 format: Y-m-d\TH:i:sP (e.g., 2026-01-26T11:30:00+03:00)
+// All dates are in EAT (East Africa Time, UTC+3)
 function formatDateForDrupal(dateStr: string | null | undefined): string | null {
   if (!dateStr) return null;
   let formatted = dateStr;
-  // Remove existing timezone info - we'll add UTC timezone at the end
+  // Remove existing timezone info - we'll add EAT timezone at the end
   formatted = formatted.replace(/[+-]\d{2}:\d{2}$/, '').replace(/[+-]\d{4}$/, '').replace('Z', '');
   // Remove milliseconds if present
   formatted = formatted.replace(/\.\d{3}/, '');
@@ -19,16 +20,16 @@ function formatDateForDrupal(dateStr: string | null | undefined): string | null 
   if (!formatted.includes('T')) {
     formatted += 'T12:00:00';
   }
-  // Add UTC timezone suffix (required by Drupal JSON:API RFC 3339 format)
-  formatted += '+00:00';
+  // Add EAT timezone suffix (East Africa Time, UTC+3)
+  formatted += '+03:00';
   return formatted;
 }
 
 /**
  * Helper function to normalize dates FROM Drupal JSON:API.
  * Drupal returns datetime fields without timezone suffix (e.g., "2026-01-17T18:07:23").
- * JavaScript interprets such strings as LOCAL time, but they are actually UTC.
- * This function ensures dates are properly marked as UTC so they display correctly.
+ * Drupal internally converts and stores dates in UTC.
+ * This function marks dates as UTC so they display correctly in the user's local timezone (EAT).
  */
 export function normalizeDateFromDrupal(dateStr: string | null | undefined): string | undefined {
   if (!dateStr) return undefined;
@@ -36,7 +37,7 @@ export function normalizeDateFromDrupal(dateStr: string | null | undefined): str
   if (/[+-]\d{2}:\d{2}$/.test(dateStr) || /Z$/.test(dateStr)) {
     return dateStr;
   }
-  // Add 'Z' to indicate UTC - Drupal stores datetime fields in UTC
+  // Add 'Z' to indicate UTC - Drupal stores datetime fields in UTC internally
   return dateStr + 'Z';
 }
 
@@ -803,17 +804,21 @@ export async function unwatchCard(cardId: string, userId: string): Promise<Card>
 }
 
 // Assign a member to a card
-export async function assignMember(cardId: string, userId: string): Promise<Card> {
-  // First fetch current members
-  const card = await fetchCard(cardId);
-  const currentMembers = card.memberIds || [];
+// Accepts optional currentMemberIds to skip the initial fetch
+export async function assignMember(
+  cardId: string,
+  userId: string,
+  currentMemberIds?: string[]
+): Promise<{ memberIds: string[] }> {
+  // Use provided memberIds or fetch if not provided
+  const existingMembers = currentMemberIds ?? [];
 
   // Add user if not already assigned
-  if (currentMembers.includes(userId)) {
-    return card;
+  if (existingMembers.includes(userId)) {
+    return { memberIds: existingMembers };
   }
 
-  const newMembers = [...currentMembers, userId];
+  const newMembers = [...existingMembers, userId];
 
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
     method: 'PATCH',
@@ -839,22 +844,26 @@ export async function assignMember(cardId: string, userId: string): Promise<Card
     throw new Error(error.errors?.[0]?.detail || 'Failed to assign member');
   }
 
-  // Fetch the updated card to get member details
-  return fetchCard(cardId);
+  // Return the new member IDs directly - caller can do optimistic update
+  return { memberIds: newMembers };
 }
 
 // Unassign a member from a card
-export async function unassignMember(cardId: string, userId: string): Promise<Card> {
-  // First fetch current members
-  const card = await fetchCard(cardId);
-  const currentMembers = card.memberIds || [];
+// Accepts optional currentMemberIds to skip the initial fetch
+export async function unassignMember(
+  cardId: string,
+  userId: string,
+  currentMemberIds?: string[]
+): Promise<{ memberIds: string[] }> {
+  // Use provided memberIds or empty array
+  const existingMembers = currentMemberIds ?? [];
 
   // Remove user if assigned
-  if (!currentMembers.includes(userId)) {
-    return card;
+  if (!existingMembers.includes(userId)) {
+    return { memberIds: existingMembers };
   }
 
-  const newMembers = currentMembers.filter(id => id !== userId);
+  const newMembers = existingMembers.filter(id => id !== userId);
 
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
     method: 'PATCH',
@@ -882,8 +891,8 @@ export async function unassignMember(cardId: string, userId: string): Promise<Ca
     throw new Error(error.errors?.[0]?.detail || 'Failed to unassign member');
   }
 
-  // Fetch the updated card to get member details
-  return fetchCard(cardId);
+  // Return the new member IDs directly - caller can do optimistic update
+  return { memberIds: newMembers };
 }
 
 // Approve a card (sets approval status, approver, and timestamp; clears rejection)

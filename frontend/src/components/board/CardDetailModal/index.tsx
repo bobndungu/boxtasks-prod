@@ -196,7 +196,6 @@ function CardDetailModal({
 
   // Member state
   const [cardMembers, setCardMembers] = useState<CardMember[]>(card.members || []);
-  const [isTogglingMember, setIsTogglingMember] = useState(false);
 
   // Sync cardMembers when card.members changes (from Mercure real-time updates)
   useEffect(() => {
@@ -824,17 +823,32 @@ function CardDetailModal({
   const handleToggleMember = async (userId: string, userName: string) => {
     if (!currentUser) return;
 
-    setIsTogglingMember(true);
+    const isAssigned = cardMembers.some((m) => m.id === userId);
+    const previousMembers = [...cardMembers];
+    const currentMemberIds = cardMembers.map((m) => m.id);
+
+    // Optimistic update - update UI immediately
+    if (isAssigned) {
+      setCardMembers(cardMembers.filter((m) => m.id !== userId));
+      toast.success(`${userName} removed from card`);
+    } else {
+      // Find user details from workspace members or all users
+      const userDetails = allUsers.find((u) => u.id === userId) || workspaceMembers.find((u) => u.id === userId);
+      const newMember: CardMember = {
+        id: userId,
+        name: userDetails?.displayName || userName,
+        email: userDetails?.email,
+      };
+      setCardMembers([...cardMembers, newMember]);
+      toast.success(`${userName} assigned to card`);
+    }
+
+    // Make API call in background
     try {
-      const isAssigned = cardMembers.some((m) => m.id === userId);
       if (isAssigned) {
-        const updatedCard = await unassignMember(card.id, userId);
-        setCardMembers(updatedCard.members);
-        toast.success(`${userName} removed from card`);
+        await unassignMember(card.id, userId, currentMemberIds);
       } else {
-        const updatedCard = await assignMember(card.id, userId);
-        setCardMembers(updatedCard.members);
-        toast.success(`${userName} assigned to card`);
+        await assignMember(card.id, userId, currentMemberIds);
 
         // Create notification for the assigned member (if not assigning self)
         if (userId !== currentUser.id) {
@@ -853,10 +867,10 @@ function CardDetailModal({
         }
       }
     } catch (err) {
+      // Revert optimistic update on error
       console.error('Failed to toggle member:', err);
+      setCardMembers(previousMembers);
       toast.error('Failed to update member assignment');
-    } finally {
-      setIsTogglingMember(false);
     }
   };
 
@@ -3215,10 +3229,9 @@ function CardDetailModal({
                         </div>
                         <button
                           onClick={() => handleToggleMember(cardMembers[0].id, cardMembers[0].name)}
-                          disabled={isTogglingMember}
                           className="text-red-500 hover:text-red-700 text-xs font-medium"
                         >
-                          {isTogglingMember ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Remove'}
+                          Remove
                         </button>
                       </div>
                     ) : (
@@ -3228,7 +3241,6 @@ function CardDetailModal({
                         placeholder="Assign member..."
                         buttonLabel="Assign Member"
                         showSelectedInButton={false}
-                        disabled={isTogglingMember}
                         emptyMessage="No members available"
                       />
                     )}
