@@ -392,6 +392,106 @@ class MercurePublisher {
   }
 
   /**
+   * Publishes an activity event to Mercure.
+   *
+   * @param \Drupal\node\NodeInterface $activity
+   *   The activity entity.
+   */
+  public function publishActivityEvent(NodeInterface $activity): void {
+    if ($activity->bundle() !== 'activity') {
+      return;
+    }
+
+    // Get board ID from activity
+    $boardId = NULL;
+    if ($activity->hasField('field_activity_board') && !$activity->get('field_activity_board')->isEmpty()) {
+      $nodeStorage = $this->entityTypeManager->getStorage('node');
+      $boardTargetId = $activity->get('field_activity_board')->target_id;
+      $board = $nodeStorage->load($boardTargetId);
+      if ($board) {
+        $boardId = $board->uuid();
+      }
+    }
+
+    // If no board, try to get from card
+    if (!$boardId && $activity->hasField('field_activity_card') && !$activity->get('field_activity_card')->isEmpty()) {
+      $nodeStorage = $this->entityTypeManager->getStorage('node');
+      $cardTargetId = $activity->get('field_activity_card')->target_id;
+      $card = $nodeStorage->load($cardTargetId);
+      if ($card) {
+        $boardId = $this->getBoardIdFromCard($card);
+      }
+    }
+
+    if (!$boardId) {
+      return;
+    }
+
+    // Get author info
+    $authorId = NULL;
+    $authorName = 'Unknown';
+    $author = $activity->getOwner();
+    if ($author) {
+      $authorId = $author->uuid();
+      $authorName = $author->hasField('field_display_name') && !$author->get('field_display_name')->isEmpty()
+        ? $author->get('field_display_name')->value
+        : $author->getDisplayName();
+    }
+
+    // Get card ID if present
+    $cardId = NULL;
+    if ($activity->hasField('field_activity_card') && !$activity->get('field_activity_card')->isEmpty()) {
+      $nodeStorage = $this->entityTypeManager->getStorage('node');
+      $cardTargetId = $activity->get('field_activity_card')->target_id;
+      $card = $nodeStorage->load($cardTargetId);
+      if ($card) {
+        $cardId = $card->uuid();
+      }
+    }
+
+    // Get description
+    $description = '';
+    if ($activity->hasField('field_activity_description') && !$activity->get('field_activity_description')->isEmpty()) {
+      $description = $activity->get('field_activity_description')->value;
+    }
+
+    // Get activity type
+    $activityType = 'card_updated';
+    if ($activity->hasField('field_activity_type') && !$activity->get('field_activity_type')->isEmpty()) {
+      $activityType = $activity->get('field_activity_type')->value;
+    }
+
+    // Get activity data
+    $activityData = NULL;
+    if ($activity->hasField('field_activity_data') && !$activity->get('field_activity_data')->isEmpty()) {
+      $rawData = $activity->get('field_activity_data')->value;
+      if ($rawData) {
+        $activityData = json_decode($rawData, TRUE);
+      }
+    }
+
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'activity.created',
+      'data' => [
+        'id' => $activity->uuid(),
+        'type' => $activityType,
+        'description' => $description,
+        'cardId' => $cardId,
+        'boardId' => $boardId,
+        'authorId' => $authorId,
+        'authorName' => $authorName,
+        'createdAt' => gmdate('Y-m-d\TH:i:s\Z', $activity->getCreatedTime()),
+        'data' => $activityData,
+      ],
+      'timestamp' => gmdate('Y-m-d\TH:i:s\Z'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
    * Publishes a notification to a user's notification topic.
    *
    * @param int $userId

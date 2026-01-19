@@ -60,7 +60,7 @@ import { createChecklist, createChecklistItem } from '../lib/api/checklists';
 import { createNotification } from '../lib/api/notifications';
 import { type WorkspaceMember } from '../lib/api/workspaces';
 import { useKeyboardShortcuts } from '../lib/hooks/useKeyboardShortcuts';
-import { useBoardUpdates } from '../lib/hooks/useMercure';
+import { useBoardUpdates, type ActivityCreatedData } from '../lib/hooks/useMercure';
 import { usePresence } from '../lib/hooks/usePresence';
 import { useOptimistic } from '../lib/hooks/useOptimistic';
 import { usePermissions } from '../lib/hooks/usePermissions';
@@ -191,6 +191,8 @@ export default function BoardView() {
   const [newMercureComment, setNewMercureComment] = useState<CardComment | null>(null);
   // Deleted comment ID from Mercure for CardDetailModal
   const [deletedMercureCommentId, setDeletedMercureCommentId] = useState<string | null>(null);
+  // New activity from Mercure for CardDetailModal
+  const [newMercureActivity, setNewMercureActivity] = useState<ActivityCreatedData | null>(null);
 
   // Custom field filter alias for backwards compatibility
   const customFieldFilter = advancedFilters.customFields;
@@ -690,6 +692,10 @@ export default function BoardView() {
           members: data.members,
         } : null);
       }
+    },
+    onActivityCreated: (activityData) => {
+      // Pass the activity to CardDetailModal for real-time updates
+      setNewMercureActivity(activityData);
     },
   });
 
@@ -3174,6 +3180,7 @@ export default function BoardView() {
           }}
           newMercureComment={newMercureComment}
           deletedMercureCommentId={deletedMercureCommentId}
+          newMercureActivity={newMercureActivity}
           onMove={async (cardId, fromListId, toListId) => {
             // Get the destination list cards BEFORE updating state
             const destCards = cardsByList.get(toListId) || [];

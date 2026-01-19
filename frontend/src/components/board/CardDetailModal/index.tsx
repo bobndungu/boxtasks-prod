@@ -58,6 +58,7 @@ import type { WorkspaceMember } from '../../../lib/api/workspaces';
 import { setCardCustomFieldValue, enableCardScopedField, disableCardScopedField, getDisplayableFieldsForCard, getAvailableCardScopedFields, type CustomFieldDefinition, type CustomFieldValue } from '../../../lib/api/customFields';
 import type { TaxonomyTerm } from '../../../lib/api/taxonomies';
 import { useAuthStore } from '../../../lib/stores/auth';
+import type { ActivityCreatedData } from '../../../lib/hooks/useMercure';
 import { toast } from '../../../lib/stores/toast';
 import { TimeTracker } from '../../TimeTracker';
 import { formatDate, formatDateTime, formatDateTimeCompact, formatDateCompact, formatDateRange } from '../../../lib/utils/date';
@@ -99,6 +100,7 @@ function CardDetailModal({
   onGoogleDocRemove,
   newMercureComment,
   deletedMercureCommentId,
+  newMercureActivity,
 }: {
   card: Card;
   listTitle: string;
@@ -133,6 +135,8 @@ function CardDetailModal({
   newMercureComment?: CardComment | null;
   // Deleted comment ID from Mercure
   deletedMercureCommentId?: string | null;
+  // New activity from Mercure
+  newMercureActivity?: ActivityCreatedData | null;
 }) {
   const { confirm, ConfirmDialog } = useConfirmDialog();
   const [title, setTitle] = useState(card.title);
@@ -345,6 +349,37 @@ function CardDetailModal({
       fetchActivitiesByCard(card.id).then(setActivities).catch(console.error);
     }
   }, [deletedMercureCommentId, card.id]);
+
+  // Handle real-time activities from Mercure
+  useEffect(() => {
+    if (newMercureActivity && newMercureActivity.cardId === card.id) {
+      // Helper to decode HTML entities (Drupal sends HTML-encoded descriptions)
+      const decodeHtmlEntities = (text: string): string => {
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = text;
+        return textarea.value;
+      };
+
+      // Convert ActivityCreatedData to Activity format and add to list
+      const activity: Activity = {
+        id: newMercureActivity.id,
+        type: newMercureActivity.type as Activity['type'],
+        description: decodeHtmlEntities(newMercureActivity.description),
+        cardId: newMercureActivity.cardId,
+        boardId: newMercureActivity.boardId,
+        authorId: newMercureActivity.authorId || '',
+        authorName: newMercureActivity.authorName,
+        createdAt: newMercureActivity.createdAt,
+        data: newMercureActivity.data as Activity['data'],
+      };
+      setActivities((prev) => {
+        // Check if activity already exists to avoid duplicates
+        const exists = prev.some((a) => a.id === activity.id);
+        if (exists) return prev;
+        return [activity, ...prev];
+      });
+    }
+  }, [newMercureActivity, card.id]);
 
   const loadComments = async () => {
     try {

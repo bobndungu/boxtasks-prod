@@ -42,8 +42,24 @@ function _boxtasks_activity_get_user_full_name(UserInterface|int|null $user = NU
  * Implements hook_ENTITY_TYPE_insert() for node entities.
  *
  * Logs activity when cards and lists are created.
+ * Also publishes Mercure events when activity nodes are created.
  */
 function boxtasks_activity_node_insert(NodeInterface $node): void {
+  // Publish Mercure event when an activity is created.
+  if ($node->bundle() === 'activity') {
+    try {
+      $mercure_publisher = \Drupal::service('boxtasks_realtime.mercure_publisher');
+      $mercure_publisher->publishActivityEvent($node);
+    }
+    catch (\Exception $e) {
+      // Log error but don't prevent activity creation.
+      \Drupal::logger('boxtasks_activity')->error('Failed to publish activity to Mercure: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+    }
+    return;
+  }
+
   $logger = \Drupal::service('boxtasks_activity.logger');
 
   switch ($node->bundle()) {
@@ -405,6 +421,105 @@ function boxtasks_activity_node_update(NodeInterface $node): void {
       );
     }
   }
+
+  // Check for department change.
+  if ($node->hasField('field_card_department')) {
+    $current_dept_id = $node->get('field_card_department')->target_id;
+    $original_dept_id = $original->get('field_card_department')->target_id;
+
+    if ($current_dept_id !== $original_dept_id) {
+      if ($current_dept_id && !$original_dept_id) {
+        // Department was set.
+        $dept_name = _boxtasks_activity_get_taxonomy_term_name($current_dept_id);
+        $logger->logCardActivity(
+          ActivityLogger::TYPE_DEPARTMENT_SET,
+          $node,
+          NULL,
+          ['department_name' => $dept_name]
+        );
+      }
+      elseif (!$current_dept_id && $original_dept_id) {
+        // Department was removed.
+        $logger->logCardActivity(
+          ActivityLogger::TYPE_DEPARTMENT_REMOVED,
+          $node
+        );
+      }
+      else {
+        // Department was changed.
+        $dept_name = _boxtasks_activity_get_taxonomy_term_name($current_dept_id);
+        $logger->logCardActivity(
+          ActivityLogger::TYPE_DEPARTMENT_SET,
+          $node,
+          NULL,
+          ['department_name' => $dept_name]
+        );
+      }
+    }
+  }
+
+  // Check for client change.
+  if ($node->hasField('field_card_client')) {
+    $current_client_id = $node->get('field_card_client')->target_id;
+    $original_client_id = $original->get('field_card_client')->target_id;
+
+    if ($current_client_id !== $original_client_id) {
+      if ($current_client_id && !$original_client_id) {
+        // Client was set.
+        $client_name = _boxtasks_activity_get_taxonomy_term_name($current_client_id);
+        $logger->logCardActivity(
+          ActivityLogger::TYPE_CLIENT_SET,
+          $node,
+          NULL,
+          ['client_name' => $client_name]
+        );
+      }
+      elseif (!$current_client_id && $original_client_id) {
+        // Client was removed.
+        $logger->logCardActivity(
+          ActivityLogger::TYPE_CLIENT_REMOVED,
+          $node
+        );
+      }
+      else {
+        // Client was changed.
+        $client_name = _boxtasks_activity_get_taxonomy_term_name($current_client_id);
+        $logger->logCardActivity(
+          ActivityLogger::TYPE_CLIENT_SET,
+          $node,
+          NULL,
+          ['client_name' => $client_name]
+        );
+      }
+    }
+  }
+
+  // Check for watcher added/removed.
+  if ($node->hasField('field_card_watchers')) {
+    $current_watchers = _boxtasks_activity_get_watchers($node);
+    $original_watchers = _boxtasks_activity_get_watchers($original);
+
+    $added_watchers = array_diff($current_watchers, $original_watchers);
+    $removed_watchers = array_diff($original_watchers, $current_watchers);
+
+    foreach ($added_watchers as $watcher_id) {
+      $logger->logCardActivity(
+        ActivityLogger::TYPE_WATCHER_ADDED,
+        $node,
+        NULL,
+        ['watcher_name' => _boxtasks_activity_get_user_full_name((int) $watcher_id)]
+      );
+    }
+
+    foreach ($removed_watchers as $watcher_id) {
+      $logger->logCardActivity(
+        ActivityLogger::TYPE_WATCHER_REMOVED,
+        $node,
+        NULL,
+        ['watcher_name' => _boxtasks_activity_get_user_full_name((int) $watcher_id)]
+      );
+    }
+  }
 }
 
 /**
@@ -461,4 +576,41 @@ function _boxtasks_activity_get_members(NodeInterface $card): array {
     }
   }
   return $members;
+}
+
+/**
+ * Gets a taxonomy term name by ID.
+ *
+ * @param int|null $term_id
+ *   The taxonomy term ID.
+ *
+ * @return string
+ *   The term name or 'Unknown'.
+ */
+function _boxtasks_activity_get_taxonomy_term_name(?int $term_id): string {
+  if (!$term_id) {
+    return 'Unknown';
+  }
+
+  $term = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->load($term_id);
+  return $term ? $term->getName() : 'Unknown';
+}
+
+/**
+ * Gets watcher IDs from a card node.
+ *
+ * @param \Drupal\node\NodeInterface $card
+ *   The card node.
+ *
+ * @return array
+ *   Array of watcher user IDs.
+ */
+function _boxtasks_activity_get_watchers(NodeInterface $card): array {
+  $watchers = [];
+  if ($card->hasField('field_card_watchers')) {
+    foreach ($card->get('field_card_watchers') as $item) {
+      $watchers[] = $item->target_id;
+    }
+  }
+  return $watchers;
 }

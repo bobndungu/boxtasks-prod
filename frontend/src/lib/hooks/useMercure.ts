@@ -29,7 +29,8 @@ export type MercureEventType =
   | 'member.unassigned'
   | 'presence.update'
   | 'message.created'
-  | 'user.typing';
+  | 'user.typing'
+  | 'activity.created';
 
 export interface MercureMessage<T = unknown> {
   type: MercureEventType;
@@ -275,6 +276,18 @@ export interface MemberAssignmentData {
   }>;
 }
 
+export interface ActivityCreatedData {
+  id: string;
+  type: string;
+  description: string;
+  cardId: string | null;
+  boardId: string | null;
+  authorId: string | null;
+  authorName: string;
+  createdAt: string;
+  data: Record<string, unknown> | null;
+}
+
 /**
  * Hook for subscribing to board-specific updates
  */
@@ -295,6 +308,7 @@ export function useBoardUpdates(
     onPresenceUpdate?: (presenceData: PresenceUpdateData) => void;
     onMemberAssigned?: (data: MemberAssignmentData) => void;
     onMemberUnassigned?: (data: MemberAssignmentData) => void;
+    onActivityCreated?: (data: ActivityCreatedData) => void;
   }
 ) {
   const topics = boardId ? [`/boards/${boardId}`] : [];
@@ -342,6 +356,9 @@ export function useBoardUpdates(
         break;
       case 'member.unassigned':
         callbacks.onMemberUnassigned?.(message.data as MemberAssignmentData);
+        break;
+      case 'activity.created':
+        callbacks.onActivityCreated?.(message.data as ActivityCreatedData);
         break;
     }
   }, [callbacks]);
