@@ -16,6 +16,7 @@ import {
   Briefcase,
   Plus,
   Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import MainHeader from '../components/MainHeader';
 import { useAuthStore } from '../lib/stores/auth';
@@ -48,6 +49,8 @@ export default function AdminUsers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const pageSize = 20;
 
   // Edit modal state
@@ -85,6 +88,17 @@ export default function AdminUsers() {
     loadUsers();
   }, [page]);
 
+  // Auto-refresh user list every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading && !editingUser && !roleUser) {
+        loadUsers(true); // silent refresh
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [loading, editingUser, roleUser]);
+
   useEffect(() => {
     // Load Drupal roles for the role assignment modal
     fetchDrupalRoles().then(setDrupalRoles);
@@ -93,17 +107,27 @@ export default function AdminUsers() {
     fetchGlobalRoles().then(setGlobalRoles);
   }, []);
 
-  const loadUsers = async () => {
-    setLoading(true);
+  const loadUsers = async (silent = false) => {
+    if (silent) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const result = await fetchUsers(page, pageSize);
       setUsers(result.users);
       setTotal(result.total);
+      setLastRefresh(new Date());
     } catch (error) {
       console.error('Failed to load users:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleManualRefresh = () => {
+    loadUsers(true);
   };
 
   const handleSearch = async () => {
@@ -396,13 +420,26 @@ export default function AdminUsers() {
               Manage users, edit profiles, and assign roles
             </p>
           </div>
-          <Link
-            to="/manage/roles"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-          >
-            <Shield className="h-4 w-4" />
-            Manage Roles
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleManualRefresh}
+              disabled={refreshing || loading}
+              className="px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex items-center gap-2 disabled:opacity-50"
+              title="Refresh user list"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {lastRefresh.toLocaleTimeString()}
+              </span>
+            </button>
+            <Link
+              to="/manage/roles"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            >
+              <Shield className="h-4 w-4" />
+              Manage Roles
+            </Link>
+          </div>
         </div>
 
         {/* Search */}
