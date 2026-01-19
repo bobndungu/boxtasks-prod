@@ -950,24 +950,11 @@ function CardDetailModal({
   const handleDepartmentChange = async (departmentId: string | null) => {
     setIsUpdatingDepartment(true);
     try {
-      const hadDepartment = !!card.department;
       await onDepartmentChange(card.id, departmentId);
       const dept = departments.find((d) => d.id === departmentId);
       toast.success(departmentId ? `Department set to ${dept?.name}` : 'Department removed');
       setShowDepartmentPicker(false);
-      // Create activity for department change
-      const activityType = departmentId
-        ? (hadDepartment ? 'department_changed' : 'department_set')
-        : 'department_removed';
-      const description = departmentId
-        ? `set department to "${dept?.name}"`
-        : 'removed department';
-      createActivity({
-        type: activityType,
-        description: `${currentUser?.displayName || 'User'} ${description} on "${card.title}"`,
-        cardId: card.id,
-        boardId: boardId || undefined,
-      }).catch(console.error);
+      // Activity is created by the backend via hook_node_update
     } catch (err) {
       console.error('Failed to update department:', err);
       toast.error('Failed to update department');
@@ -979,24 +966,11 @@ function CardDetailModal({
   const handleClientChange = async (clientId: string | null) => {
     setIsUpdatingClient(true);
     try {
-      const hadClient = !!card.client;
       await onClientChange(card.id, clientId);
       const clnt = clients.find((c) => c.id === clientId);
       toast.success(clientId ? `Client set to ${clnt?.name}` : 'Client removed');
       setShowClientPicker(false);
-      // Create activity for client change
-      const activityType = clientId
-        ? (hadClient ? 'client_changed' : 'client_set')
-        : 'client_removed';
-      const description = clientId
-        ? `set client to "${clnt?.name}"`
-        : 'removed client';
-      createActivity({
-        type: activityType,
-        description: `${currentUser?.displayName || 'User'} ${description} on "${card.title}"`,
-        cardId: card.id,
-        boardId: boardId || undefined,
-      }).catch(console.error);
+      // Activity is created by the backend via hook_node_update
     } catch (err) {
       console.error('Failed to update client:', err);
       toast.error('Failed to update client');

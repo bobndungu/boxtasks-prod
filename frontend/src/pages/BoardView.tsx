@@ -2842,7 +2842,7 @@ export default function BoardView() {
                   const display = getActivityDisplay(activity.type);
                   const data = activity.data;
                   const hasStructuredData = data && (
-                    data.member_name || data.watcher_name || data.label || data.from_list || data.to_list
+                    data.member_name || data.watcher_name || data.label || data.from_list || data.to_list || data.department_name || data.client_name
                   );
                   return (
                     <div key={activity.id} className="flex items-start">
@@ -2887,6 +2887,30 @@ export default function BoardView() {
                                 : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through'
                             }`}>
                               {data.label}
+                            </span>
+                          </div>
+                        )}
+                        {/* Department changes */}
+                        {(activity.type === 'department_set' || activity.type === 'department_changed' || activity.type === 'department_removed') && data?.department_name && (
+                          <div className="mt-1 text-xs">
+                            <span className={`px-1.5 py-0.5 rounded ${
+                              activity.type === 'department_removed'
+                                ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                : 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                            }`}>
+                              {data.department_name}
+                            </span>
+                          </div>
+                        )}
+                        {/* Client changes */}
+                        {(activity.type === 'client_set' || activity.type === 'client_changed' || activity.type === 'client_removed') && data?.client_name && (
+                          <div className="mt-1 text-xs">
+                            <span className={`px-1.5 py-0.5 rounded ${
+                              activity.type === 'client_removed'
+                                ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                : 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300'
+                            }`}>
+                              {data.client_name}
                             </span>
                           </div>
                         )}
