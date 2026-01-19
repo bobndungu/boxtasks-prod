@@ -203,7 +203,20 @@ function CardDetailModal({
   }, [card.members]);
 
   // Watchers state
+  const [cardWatcherIds, setCardWatcherIds] = useState<string[]>(card.watcherIds || []);
   const [isAddingWatcher, setIsAddingWatcher] = useState(false);
+
+  // Sync cardWatcherIds when card.watcherIds changes (from Mercure real-time updates)
+  useEffect(() => {
+    setCardWatcherIds(card.watcherIds || []);
+  }, [card.watcherIds]);
+
+  // Sync isWatching when cardWatcherIds changes
+  useEffect(() => {
+    if (currentUser) {
+      setIsWatching(cardWatcherIds.includes(currentUser.id));
+    }
+  }, [cardWatcherIds, currentUser]);
 
   // Department and Client picker state
   const [showDepartmentPicker, setShowDepartmentPicker] = useState(false);
@@ -751,7 +764,12 @@ function CardDetailModal({
   const handleAddWatcher = async (userId: string, userName: string) => {
     if (!currentUser) return;
 
+    const previousWatcherIds = [...cardWatcherIds];
+
+    // Optimistic update - update UI immediately
+    setCardWatcherIds([...cardWatcherIds, userId]);
     setIsAddingWatcher(true);
+
     try {
       const updatedCard = await watchCard(card.id, userId);
       // Update the card's watcherIds and members in the parent state
@@ -761,6 +779,8 @@ function CardDetailModal({
         memberIds: updatedCard.memberIds,
         members: updatedCard.members,
       });
+      // Sync local state with server response
+      setCardWatcherIds(updatedCard.watcherIds || []);
       toast.success(`${userName} added as watcher`);
       // Create activity for watcher added and refresh activities
       try {
@@ -779,6 +799,8 @@ function CardDetailModal({
       }
     } catch (err) {
       console.error('Failed to add watcher:', err);
+      // Rollback optimistic update
+      setCardWatcherIds(previousWatcherIds);
       toast.error('Failed to add watcher');
     } finally {
       setIsAddingWatcher(false);
@@ -788,7 +810,12 @@ function CardDetailModal({
   const handleRemoveWatcher = async (userId: string, userName: string) => {
     if (!currentUser) return;
 
+    const previousWatcherIds = [...cardWatcherIds];
+
+    // Optimistic update - update UI immediately
+    setCardWatcherIds(cardWatcherIds.filter((id) => id !== userId));
     setIsAddingWatcher(true);
+
     try {
       const updatedCard = await unwatchCard(card.id, userId);
       // Update the card's watcherIds and members in the parent state
@@ -798,6 +825,8 @@ function CardDetailModal({
         memberIds: updatedCard.memberIds,
         members: updatedCard.members,
       });
+      // Sync local state with server response
+      setCardWatcherIds(updatedCard.watcherIds || []);
       toast.success(`${userName} removed as watcher`);
       // Create activity for watcher removed and refresh activities
       try {
@@ -816,6 +845,8 @@ function CardDetailModal({
       }
     } catch (err) {
       console.error('Failed to remove watcher:', err);
+      // Rollback optimistic update
+      setCardWatcherIds(previousWatcherIds);
       toast.error('Failed to remove watcher');
     } finally {
       setIsAddingWatcher(false);
@@ -3280,13 +3311,13 @@ function CardDetailModal({
                   {/* Watchers Dropdown */}
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                      Watchers {card.watcherIds && card.watcherIds.length > 0 && `(${card.watcherIds.length})`}
+                      Watchers {cardWatcherIds.length > 0 && `(${cardWatcherIds.length})`}
                     </p>
                     {/* Current watchers display */}
-                    {card.watcherIds && card.watcherIds.length > 0 && (
+                    {cardWatcherIds.length > 0 && (
                       <div className="mb-2 flex flex-wrap gap-1">
                         {allUsers
-                          .filter((m) => card.watcherIds.includes(m.id))
+                          .filter((m) => cardWatcherIds.includes(m.id))
                           .map((member) => (
                             <span
                               key={member.id}
@@ -3306,7 +3337,7 @@ function CardDetailModal({
                     )}
                     <MemberDropdown
                       members={allUsers}
-                      excludeIds={card.watcherIds || []}
+                      excludeIds={cardWatcherIds}
                       onSelect={(member) => handleAddWatcher(member.id, member.displayName)}
                       placeholder="Add watcher..."
                       buttonLabel="Add Watcher"
