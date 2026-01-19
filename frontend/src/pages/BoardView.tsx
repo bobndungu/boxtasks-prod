@@ -1907,11 +1907,27 @@ export default function BoardView() {
             })
           );
 
-          // Show activity notification
+          // Show activity notification and create activity record
           const fromList = lists.find(l => l.id === sourceListId);
           const toList = lists.find(l => l.id === targetListId);
           if (cardToMove && fromList && toList) {
             toast.info(`Card "${cardToMove.title}" moved from "${fromList.title}" to "${toList.title}"`, 3000);
+
+            // Create activity record for card moved
+            try {
+              await createActivity({
+                type: 'card_moved',
+                description: `${currentUser?.displayName || 'User'} moved "${cardToMove.title}" from "${fromList.title}" to "${toList.title}"`,
+                cardId: cardToMove.id,
+                boardId: id || undefined,
+                data: {
+                  from_list: fromList.title,
+                  to_list: toList.title,
+                },
+              });
+            } catch (activityErr) {
+              console.error('Failed to create card moved activity:', activityErr);
+            }
           }
         } catch {
           setError('Failed to move card');
@@ -1964,12 +1980,28 @@ export default function BoardView() {
           })
         );
 
-        // Show activity notification for card movement
+        // Show activity notification and create activity record for card movement
         const movedCard = newCardOrder.find(c => c.id === activeIdStr);
         const fromList = lists.find(l => l.id === sourceListId);
         const toList = lists.find(l => l.id === targetListId);
         if (movedCard && fromList && toList) {
           toast.info(`Card "${movedCard.title}" moved from "${fromList.title}" to "${toList.title}"`, 3000);
+
+          // Create activity record for card moved
+          try {
+            await createActivity({
+              type: 'card_moved',
+              description: `${currentUser?.displayName || 'User'} moved "${movedCard.title}" from "${fromList.title}" to "${toList.title}"`,
+              cardId: movedCard.id,
+              boardId: id || undefined,
+              data: {
+                from_list: fromList.title,
+                to_list: toList.title,
+              },
+            });
+          } catch (activityErr) {
+            console.error('Failed to create card moved activity:', activityErr);
+          }
         }
       } catch {
         setError('Failed to move card');
