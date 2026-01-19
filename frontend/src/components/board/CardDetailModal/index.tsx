@@ -866,6 +866,10 @@ function CardDetailModal({
           }
         }
       }
+
+      // Refresh activities to show the member change
+      const cardActivities = await fetchActivitiesByCard(card.id);
+      setActivities(cardActivities);
     } catch (err) {
       // Revert optimistic update on error
       console.error('Failed to toggle member:', err);
