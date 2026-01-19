@@ -28,6 +28,7 @@ import {
   X,
   Loader2,
   ArrowLeft,
+  ArrowRight,
   Archive,
   Search,
   EyeOff,
@@ -2844,6 +2845,18 @@ export default function BoardView() {
                                 : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through'
                             }`}>
                               {data.label}
+                            </span>
+                          </div>
+                        )}
+                        {/* Card moved - show from/to lists */}
+                        {activity.type === 'card_moved' && data?.from_list && data?.to_list && (
+                          <div className="mt-1 flex items-center gap-1.5 text-xs">
+                            <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+                              {data.from_list}
+                            </span>
+                            <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                            <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                              {data.to_list}
                             </span>
                           </div>
                         )}

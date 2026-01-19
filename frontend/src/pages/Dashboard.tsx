@@ -90,20 +90,40 @@ function formatDateValue(value: string | undefined): string {
 }
 
 // Activity diff display component for Dashboard
-function ActivityDiffDisplay({ type, data }: { type: ActivityType; data: ActivityData | null }) {
+function ActivityDiffDisplay({ type, data, boardId }: { type: ActivityType; data: ActivityData | null; boardId?: string | null }) {
   if (!data) return null;
 
-  // Card moved - show from/to lists
+  // Card moved - show from/to lists with clickable links to board
   if (type === 'card_moved' && data.from_list && data.to_list) {
     return (
       <div className="mt-1.5 flex items-center gap-1.5 text-xs">
-        <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
-          {data.from_list}
-        </span>
+        {boardId ? (
+          <Link
+            to={`/board/${boardId}`}
+            className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-white cursor-pointer"
+            title={`Go to board - ${data.from_list}`}
+          >
+            {data.from_list}
+          </Link>
+        ) : (
+          <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">
+            {data.from_list}
+          </span>
+        )}
         <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
-        <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
-          {data.to_list}
-        </span>
+        {boardId ? (
+          <Link
+            to={`/board/${boardId}`}
+            className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded hover:bg-blue-200 dark:hover:bg-blue-800/40 cursor-pointer"
+            title={`Go to board - ${data.to_list}`}
+          >
+            {data.to_list}
+          </Link>
+        ) : (
+          <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+            {data.to_list}
+          </span>
+        )}
       </div>
     );
   }
@@ -734,7 +754,7 @@ export default function Dashboard() {
                             </span>
                           </p>
                           {/* Show diff visualization if data is available */}
-                          <ActivityDiffDisplay type={activity.type} data={activity.data} />
+                          <ActivityDiffDisplay type={activity.type} data={activity.data} boardId={activity.boardId} />
                           {/* Show description only if no diff data */}
                           {activity.description && !activity.data && (
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
