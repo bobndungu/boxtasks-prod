@@ -36,11 +36,18 @@ export default function Register() {
   const [error, setError] = useState<string | null>(null);
   const [pendingApproval, setPendingApproval] = useState(false);
 
-  // Check for OAuth email mismatch error from URL
+  // Check for OAuth parameters from URL
   useEffect(() => {
     const errorParam = searchParams.get('error');
+    const pendingParam = searchParams.get('pending');
+
     if (errorParam === 'email_mismatch') {
       setError('The email address you signed in with is not associated with any account. Please register a new account using the form below, or sign in with a different email address.');
+    }
+
+    // Handle OAuth signup pending approval
+    if (pendingParam === 'true') {
+      setPendingApproval(true);
     }
   }, [searchParams]);
 
