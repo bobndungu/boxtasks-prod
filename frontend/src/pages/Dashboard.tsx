@@ -283,6 +283,17 @@ function ActivityDiffDisplay({ type, data, boardId }: { type: ActivityType; data
     );
   }
 
+  // Comment added/updated - show comment text
+  if ((type === 'comment_added' || type === 'comment_updated') && data.comment_text) {
+    return (
+      <div className="mt-1.5 text-xs">
+        <div className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1.5 rounded italic line-clamp-2">
+          "{data.comment_text}"
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -827,10 +838,20 @@ export default function Dashboard() {
                               </span>
                             </Link>
                           )}
-                          {/* Timestamp with full date and relative time */}
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1" title={time.full}>
-                            {time.full} · {time.relative}
-                          </p>
+                          {/* Timestamp with full date and relative time - clickable to card */}
+                          {activity.cardId && activity.boardId ? (
+                            <Link
+                              to={`/board/${activity.boardId}?card=${activity.cardId}`}
+                              className="mt-1 text-xs text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 hover:underline inline-block"
+                              title={`${time.full} - Click to view card`}
+                            >
+                              {time.full} · {time.relative}
+                            </Link>
+                          ) : (
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1" title={time.full}>
+                              {time.full} · {time.relative}
+                            </p>
+                          )}
                         </div>
                       </div>
                     );
