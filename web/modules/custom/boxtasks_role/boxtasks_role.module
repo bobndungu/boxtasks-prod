@@ -54,6 +54,15 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
   if ($type === 'board' && $op === 'view') {
     $has_permission = $permission_checker->canViewBoard($node, (int) $account->id());
 
+    // Debug logging - remove after testing.
+    \Drupal::logger('boxtasks_role')->debug('Board access check: board=%board (nid=%nid), user=%user (uid=%uid), result=%result', [
+      '%board' => $node->label(),
+      '%nid' => $node->id(),
+      '%user' => $account->getAccountName(),
+      '%uid' => $account->id(),
+      '%result' => $has_permission ? 'ALLOWED' : 'FORBIDDEN',
+    ]);
+
     if ($has_permission) {
       return AccessResult::allowed()
         ->cachePerUser()
