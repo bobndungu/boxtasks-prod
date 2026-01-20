@@ -128,20 +128,27 @@ export default function WorkspaceSettings() {
       // Find the Editor role from our roles state
       const editorRole = roles.find(r => r.id === ROLE_UUIDS.editor);
 
-      // Update members state
-      setMembers([...members, {
+      // Build the complete member role assignment with all required fields
+      // (createMemberRole doesn't return userId from relationships in POST response)
+      const completeAssignment: MemberRoleAssignment = {
+        id: assignment.id,
+        workspaceId: id,
+        userId: newMember.id,
+        roleId: ROLE_UUIDS.editor,
+        role: editorRole,
+      };
+
+      // Update members state with role info
+      const updatedMember: WorkspaceMember = {
         ...newMember,
         isAdmin: false,
         memberRoleId: assignment.id,
         roleName: editorRole?.title || 'Editor'
-      }]);
+      };
 
-      // Update memberRoles state so getMemberRole() works immediately
-      setMemberRoles([...memberRoles, {
-        ...assignment,
-        roleId: ROLE_UUIDS.editor,
-        role: editorRole,
-      }]);
+      // Update both states together
+      setMembers(prev => [...prev, updatedMember]);
+      setMemberRoles(prev => [...prev, completeAssignment]);
 
       setMessage({ type: 'success', text: `${newMember.displayName} added to workspace` });
     } catch {
