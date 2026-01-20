@@ -272,8 +272,9 @@ export async function fetchDefaultRole(): Promise<WorkspaceRole | null> {
 
 // Fetch member role assignment for a user in a workspace
 export async function fetchMemberRole(workspaceId: string, userId: string): Promise<MemberRoleAssignment | null> {
+  // First, fetch the member_role assignment (without including the role, as it may be access-restricted)
   const response = await fetch(
-    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&filter[field_member_role_user.id]=${userId}&include=field_member_role_role&${getCacheBuster()}`,
+    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&filter[field_member_role_user.id]=${userId}&${getCacheBuster()}`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -292,7 +293,24 @@ export async function fetchMemberRole(workspaceId: string, userId: string): Prom
     return null;
   }
 
-  return transformMemberRole(result.data[0], result.included);
+  // Transform the member role (without included role data initially)
+  const memberRole = transformMemberRole(result.data[0], result.included);
+
+  // If we have a roleId but no role data, fetch roles from custom endpoint
+  // (which bypasses JSON:API access control)
+  if (memberRole.roleId && !memberRole.role) {
+    try {
+      const roles = await fetchWorkspaceRoles(workspaceId);
+      const matchedRole = roles.find(r => r.id === memberRole.roleId);
+      if (matchedRole) {
+        memberRole.role = matchedRole;
+      }
+    } catch {
+      // Silently fail - we'll use default permissions if role can't be fetched
+    }
+  }
+
+  return memberRole;
 }
 
 // Fetch all member role assignments for a workspace
