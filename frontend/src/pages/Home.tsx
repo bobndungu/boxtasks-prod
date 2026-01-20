@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Layout, Users, Zap, LogOut, Settings, LayoutDashboard, User, Bell, BarChart3 } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Layout, Users, Zap, LogOut, Settings, LayoutDashboard, User, Bell, BarChart3, Clock, CheckCircle, X } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import { ThemeToggle } from '../components/ThemeToggle';
 
@@ -11,13 +11,31 @@ interface ApiStatus {
 
 export default function Home() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [apiStatus, setApiStatus] = useState<ApiStatus>({ connected: false, message: 'Checking...' });
+  const [showPendingModal, setShowPendingModal] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  // Check for pending approval parameter from OAuth signup
+  useEffect(() => {
+    const pendingParam = searchParams.get('pending');
+    const emailParam = searchParams.get('email');
+
+    if (pendingParam === 'true') {
+      setShowPendingModal(true);
+      setPendingEmail(emailParam);
+      // Clean up URL parameters
+      searchParams.delete('pending');
+      searchParams.delete('email');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     // Test connection to Drupal JSON:API
@@ -43,6 +61,53 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Pending Approval Modal */}
+      {showPendingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 relative">
+            <button
+              onClick={() => setShowPendingModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-6">
+                <Clock className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Registration Submitted
+              </h2>
+              <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-4">
+                <CheckCircle className="h-5 w-5" />
+                <span className="font-medium">Successfully received</span>
+              </div>
+              {pendingEmail && (
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Your account for <strong>{pendingEmail}</strong> has been created.
+                </p>
+              )}
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Your registration has been submitted successfully. An administrator will review your request and you will be notified when your account is approved.
+              </p>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                  <strong>What happens next?</strong><br />
+                  An administrator will review your registration. Once approved, you&apos;ll be able to log in with your account.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPendingModal(false)}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <nav className="flex items-center justify-between">

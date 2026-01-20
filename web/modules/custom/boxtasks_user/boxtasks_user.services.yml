@@ -18,7 +18,6 @@ services:
     class: Drupal\boxtasks_user\EventSubscriber\SocialAuthNewUserSubscriber
     arguments:
       - '@entity_type.manager'
-      - '@messenger'
       - '@logger.factory'
     tags:
       - { name: event_subscriber }

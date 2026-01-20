@@ -108,6 +108,26 @@ class SocialAuthTokenController extends ControllerBase {
         return new RedirectResponse($frontend_url . '/login?error=user_not_found');
       }
 
+      // Check if user is blocked (pending approval).
+      // New users created via OAuth are blocked by default.
+      if (!$user->isActive()) {
+        $email = $user->getEmail();
+        $this->getLogger('boxtasks_user')->info(
+          'Blocked user @uid (@email) attempted OAuth login. Redirecting to pending approval page.',
+          ['@uid' => $user->id(), '@email' => $email]
+        );
+
+        // Log the user out since they're blocked.
+        user_logout();
+
+        // Redirect to homepage with pending approval message.
+        $redirect_url = $frontend_url . '/?pending=true';
+        if ($email) {
+          $redirect_url .= '&email=' . urlencode($email);
+        }
+        return new RedirectResponse($redirect_url);
+      }
+
       // Find the OAuth consumer (client) to use for token generation.
       $consumer_storage = $this->entityTypeManager()->getStorage('consumer');
       $consumers = $consumer_storage->loadByProperties(['label' => 'BoxTasks Frontend']);
