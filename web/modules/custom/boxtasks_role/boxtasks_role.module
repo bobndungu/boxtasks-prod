@@ -55,17 +55,15 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
     $has_permission = $permission_checker->canViewBoard($node, (int) $account->id());
 
     // Debug logging - remove after testing.
-    $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
-    $callers = array_map(function($t) {
-      return ($t['class'] ?? '') . ($t['type'] ?? '') . ($t['function'] ?? '');
-    }, $trace);
-    \Drupal::logger('boxtasks_role')->debug('Board access check: board=%board (nid=%nid), user=%user (uid=%uid), result=%result, callers=%callers', [
+    $current_user = \Drupal::currentUser();
+    \Drupal::logger('boxtasks_role')->debug('Board access check: board=%board (nid=%nid), account=%user (uid=%uid), currentUser=%curuser (uid=%curuid), result=%result', [
       '%board' => $node->label(),
       '%nid' => $node->id(),
       '%user' => $account->getAccountName(),
       '%uid' => $account->id(),
+      '%curuser' => $current_user->getAccountName(),
+      '%curuid' => $current_user->id(),
       '%result' => $has_permission ? 'ALLOWED' : 'FORBIDDEN',
-      '%callers' => implode(' -> ', array_slice($callers, 0, 5)),
     ]);
 
     if ($has_permission) {
