@@ -135,6 +135,16 @@ class PermissionChecker {
   /**
    * Check if user can view a board.
    *
+   * Board access is determined by:
+   * 1. Super admins can always view
+   * 2. If role has 'any' board_view permission → can view all workspace boards
+   * 3. If role has 'own' board_view permission → can view if:
+   *    - User owns the board, OR
+   *    - User is explicitly in board's member list (field_board_members)
+   * 4. Board visibility setting also affects access:
+   *    - 'workspace' → all workspace members with appropriate permissions
+   *    - 'private' → only board members (field_board_members)
+   *
    * @param \Drupal\node\NodeInterface $board
    *   The board node.
    * @param int|null $user_id
@@ -163,10 +173,24 @@ class PermissionChecker {
 
     $role = $this->getUserRoleForWorkspace($workspace_ref->uuid(), $user_id);
     if (!$role) {
-      return FALSE; // No role = no access.
+      return FALSE; // No role = no access to workspace.
     }
 
-    // Check board view permission.
+    // Check board visibility setting.
+    $board_visibility = 'workspace';
+    if ($board->hasField('field_board_visibility') && !$board->get('field_board_visibility')->isEmpty()) {
+      $board_visibility = $board->get('field_board_visibility')->value;
+    }
+
+    // Check if user is explicitly a board member.
+    $is_board_member = $this->isUserBoardMember($board, $user_id);
+
+    // Private boards: only board members can view.
+    if ($board_visibility === 'private') {
+      return $is_board_member || (int) $board->getOwnerId() === $user_id;
+    }
+
+    // Check board view permission from role.
     $perm_level = $role->get('field_perm_board_view')->value ?? 'none';
 
     if ($perm_level === 'any') {
@@ -174,8 +198,33 @@ class PermissionChecker {
     }
 
     if ($perm_level === 'own') {
-      // Check if user is the board author.
-      return (int) $board->getOwnerId() === $user_id;
+      // User can view if they own the board OR are a board member.
+      return (int) $board->getOwnerId() === $user_id || $is_board_member;
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Check if user is a member of a specific board.
+   *
+   * @param \Drupal\node\NodeInterface $board
+   *   The board node.
+   * @param int $user_id
+   *   The user ID.
+   *
+   * @return bool
+   *   TRUE if user is in the board's member list.
+   */
+  protected function isUserBoardMember(NodeInterface $board, int $user_id): bool {
+    if (!$board->hasField('field_board_members')) {
+      return FALSE;
+    }
+
+    foreach ($board->get('field_board_members') as $member_ref) {
+      if ($member_ref->target_id && (int) $member_ref->target_id === $user_id) {
+        return TRUE;
+      }
     }
 
     return FALSE;
