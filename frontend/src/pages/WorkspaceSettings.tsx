@@ -37,12 +37,6 @@ import {
   type MemberRoleAssignment,
 } from '../lib/api/roles';
 
-// Role UUIDs for member_role creation
-const ROLE_UUIDS = {
-  admin: 'e22cd21b-bfe4-4058-974a-ce5f878239e0',
-  editor: '5f918311-041c-4ece-ae17-46beb23f5556',
-};
-
 const WORKSPACE_COLORS = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
   '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1',
@@ -122,35 +116,42 @@ export default function WorkspaceSettings() {
     if (!id) return;
     setIsSavingMembers(true);
     try {
-      // Create a member_role with default Editor role
-      const assignment = await createMemberRole(id, newMember.id, ROLE_UUIDS.editor);
+      // Find the default role or Editor role from the loaded roles
+      const defaultRole = roles.find(r => r.isDefault)
+        || roles.find(r => r.title.toLowerCase() === 'editor')
+        || roles[0];
 
-      // Find the Editor role from our roles state
-      const editorRole = roles.find(r => r.id === ROLE_UUIDS.editor);
+      if (!defaultRole) {
+        setMessage({ type: 'error', text: 'No roles available. Please create roles first.' });
+        setIsSavingMembers(false);
+        return;
+      }
+
+      // Create a member_role with the default role
+      const assignment = await createMemberRole(id, newMember.id, defaultRole.id);
 
       // Build the complete member role assignment with all required fields
-      // (createMemberRole doesn't return userId from relationships in POST response)
       const completeAssignment: MemberRoleAssignment = {
         id: assignment.id,
         workspaceId: id,
         userId: newMember.id,
-        roleId: ROLE_UUIDS.editor,
-        role: editorRole,
+        roleId: defaultRole.id,
+        role: defaultRole,
       };
 
       // Update members state with role info
       const updatedMember: WorkspaceMember = {
         ...newMember,
-        isAdmin: false,
+        isAdmin: defaultRole.permissions?.memberManage === 'any',
         memberRoleId: assignment.id,
-        roleName: editorRole?.title || 'Editor'
+        roleName: defaultRole.title
       };
 
       // Update both states together
       setMembers(prev => [...prev, updatedMember]);
       setMemberRoles(prev => [...prev, completeAssignment]);
 
-      setMessage({ type: 'success', text: `${newMember.displayName} added to workspace` });
+      setMessage({ type: 'success', text: `${newMember.displayName} added to workspace as ${defaultRole.title}` });
     } catch {
       setMessage({ type: 'error', text: 'Failed to add member' });
     } finally {
@@ -268,19 +269,40 @@ export default function WorkspaceSettings() {
       }
     }
 
+    // Find Admin and Editor roles dynamically
+    const adminRole = roles.find(r => r.title.toLowerCase() === 'admin');
+    const editorRole = roles.find(r => r.title.toLowerCase() === 'editor')
+      || roles.find(r => r.isDefault)
+      || roles.find(r => r.title.toLowerCase() !== 'admin');
+
+    if (!adminRole || !editorRole) {
+      setMessage({ type: 'error', text: 'Required roles not found' });
+      return;
+    }
+
     setIsSavingMembers(true);
     try {
-      const newRoleId = member.isAdmin ? ROLE_UUIDS.editor : ROLE_UUIDS.admin;
-      await updateMemberRole(member.memberRoleId, newRoleId);
+      const newRole = member.isAdmin ? editorRole : adminRole;
+      await updateMemberRole(member.memberRoleId, newRole.id);
+
+      // Update members state
       setMembers(
         members.map((m) =>
           m.id === memberId ? {
             ...m,
             isAdmin: !m.isAdmin,
-            roleName: m.isAdmin ? 'Editor' : 'Admin'
+            roleName: newRole.title
           } : m
         )
       );
+
+      // Update memberRoles state
+      setMemberRoles(
+        memberRoles.map((mr) =>
+          mr.id === member.memberRoleId ? { ...mr, roleId: newRole.id, role: newRole } : mr
+        )
+      );
+
       setMessage({
         type: 'success',
         text: member.isAdmin ? 'Admin privileges removed' : 'Admin privileges granted',

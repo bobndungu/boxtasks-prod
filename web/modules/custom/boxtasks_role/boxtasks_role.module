@@ -15,6 +15,17 @@ use Drupal\node\NodeInterface;
 function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $account) {
   $type = $node->bundle();
 
+  // workspace_role and member_role nodes are accessible to all authenticated users.
+  // These are needed for role management and member assignment functionality.
+  if (in_array($type, ['workspace_role', 'member_role'])) {
+    if ($account->isAuthenticated()) {
+      return AccessResult::allowed()
+        ->cachePerUser()
+        ->addCacheableDependency($node);
+    }
+    return AccessResult::forbidden()->cachePerUser();
+  }
+
   // Define which content types we handle.
   $handled_types = ['board', 'workspace', 'card', 'list', 'card_comment', 'checklist', 'checklist_item'];
   if (!in_array($type, $handled_types)) {
@@ -466,4 +477,46 @@ function boxtasks_role_is_super_admin(AccountInterface $account): bool {
 
   // Users with 'administer nodes' permission are also super admins.
   return $account->hasPermission('administer nodes');
+}
+
+/**
+ * Implements hook_node_access_records().
+ *
+ * Grant authenticated users access to workspace_role and member_role nodes.
+ * These nodes are needed for role management and member assignment.
+ */
+function boxtasks_role_node_access_records(NodeInterface $node) {
+  $type = $node->bundle();
+
+  // Only handle workspace_role and member_role
+  if (!in_array($type, ['workspace_role', 'member_role'])) {
+    return [];
+  }
+
+  // Grant view access to all authenticated users
+  return [
+    [
+      'realm' => 'boxtasks_role_authenticated',
+      'gid' => 1, // Group ID 1 for authenticated users
+      'grant_view' => 1,
+      'grant_update' => 0,
+      'grant_delete' => 0,
+    ],
+  ];
+}
+
+/**
+ * Implements hook_node_grants().
+ *
+ * Grant access to authenticated users for workspace_role and member_role nodes.
+ */
+function boxtasks_role_node_grants(AccountInterface $account, $op) {
+  $grants = [];
+
+  // Grant authenticated users access to workspace_role and member_role
+  if ($account->isAuthenticated() && $op === 'view') {
+    $grants['boxtasks_role_authenticated'] = [1];
+  }
+
+  return $grants;
 }

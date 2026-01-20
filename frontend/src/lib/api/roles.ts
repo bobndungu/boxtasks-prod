@@ -185,12 +185,12 @@ export async function fetchGlobalRoles(): Promise<WorkspaceRole[]> {
 
 // Fetch roles available for a workspace (global + workspace-specific)
 export async function fetchWorkspaceRoles(workspaceId: string): Promise<WorkspaceRole[]> {
-  // Fetch all roles and filter for global + workspace-specific
+  // Use custom API endpoint that bypasses JSON:API access issues
   const response = await fetch(
-    `${API_URL}/jsonapi/node/workspace_role?sort=title`,
+    `${API_URL}/api/workspace/${workspaceId}/roles`,
     {
       headers: {
-        'Accept': 'application/vnd.api+json',
+        'Accept': 'application/json',
         'Authorization': `Bearer ${getAccessToken()}`,
       },
     }
@@ -200,13 +200,11 @@ export async function fetchWorkspaceRoles(workspaceId: string): Promise<Workspac
     return [];
   }
 
-  const result = await response.json();
-  if (!Array.isArray(result.data)) return [];
+  const roles = await response.json();
+  if (!Array.isArray(roles)) return [];
 
-  const allRoles = result.data.map((item: Record<string, unknown>) => transformRole(item));
-
-  // Return global roles (no workspace) + workspace-specific roles
-  return allRoles.filter((role: WorkspaceRole) => role.workspaceId === null || role.workspaceId === workspaceId);
+  // The custom endpoint already returns data in the WorkspaceRole format
+  return roles as WorkspaceRole[];
 }
 
 // Fetch a single role by ID
