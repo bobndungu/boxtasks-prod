@@ -600,13 +600,18 @@ HTML;
     }
 
     $content = $this->buildGreeting($user);
+
+    // Handle overdue vs upcoming due dates
+    $is_overdue = ($timeframe === 'overdue');
+    $due_text = $is_overdue ? 'overdue' : "due {$timeframe}";
+
     $content .= <<<HTML
 <p style="margin: 0 0 15px 0; font-family: Arial, sans-serif; font-size: 16px; color: #4b5563; line-height: 1.6;">
-  A card you're assigned to is <strong style="color: {$urgency_color};">due {$timeframe}</strong>:
+  A card you're assigned to is <strong style="color: {$urgency_color};">{$due_text}</strong>:
 </p>
 HTML;
 
-    $badge_text = $timeframe === 'today' ? 'Due Today' : ($timeframe === 'tomorrow' ? 'Due Tomorrow' : "Due {$timeframe}");
+    $badge_text = $is_overdue ? 'Overdue' : ($timeframe === 'today' ? 'Due Today' : ($timeframe === 'tomorrow' ? 'Due Tomorrow' : "Due {$timeframe}"));
     $content .= $this->buildCardBox($card_title, null, $badge_text, $urgency_color);
 
     $content .= <<<HTML
@@ -628,7 +633,10 @@ HTML;
 
     $content .= $this->buildButton($card_url, 'View Card', $urgency_color);
 
-    return $this->buildBaseTemplate($content, "Reminder: \"{$card_title}\" is due {$timeframe}");
+    $subject = $is_overdue
+      ? "Reminder: \"{$card_title}\" is overdue"
+      : "Reminder: \"{$card_title}\" is due {$timeframe}";
+    return $this->buildBaseTemplate($content, $subject);
   }
 
   /**

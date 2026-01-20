@@ -305,7 +305,7 @@ function _boxtasks_notification_check_due_dates(): void {
 
     // Determine timeframe.
     if ($due_timestamp <= $now) {
-      $timeframe = 'now overdue';
+      $timeframe = 'overdue';
     }
     elseif ($due_timestamp <= $now + 3600) {
       $timeframe = 'in less than 1 hour';

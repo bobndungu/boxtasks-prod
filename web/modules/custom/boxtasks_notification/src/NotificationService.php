@@ -275,7 +275,13 @@ class NotificationService {
       return;
     }
 
-    $message = "Card \"{$card->getTitle()}\" is due {$timeframe}";
+    // Handle overdue case differently to avoid "is due overdue"
+    if ($timeframe === 'overdue') {
+      $message = "Card \"{$card->getTitle()}\" is overdue";
+    }
+    else {
+      $message = "Card \"{$card->getTitle()}\" is due {$timeframe}";
+    }
     $card_id = (int) $card->id();
 
     foreach ($member_ids as $member_id) {
