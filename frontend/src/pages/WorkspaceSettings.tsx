@@ -36,6 +36,7 @@ import {
   type WorkspaceRole,
   type MemberRoleAssignment,
 } from '../lib/api/roles';
+import { usePermissions } from '../lib/hooks/usePermissions';
 
 const WORKSPACE_COLORS = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -47,6 +48,7 @@ export default function WorkspaceSettings() {
   const navigate = useNavigate();
   const { currentWorkspace, setCurrentWorkspace, updateWorkspace: updateStore, removeWorkspace } = useWorkspaceStore();
   const { user } = useAuthStore();
+  const { canViewRoles } = usePermissions(id);
 
   const [formData, setFormData] = useState<CreateWorkspaceData>({
     title: '',
@@ -519,13 +521,15 @@ export default function WorkspaceSettings() {
                 <Shield className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Roles & Permissions</h2>
               </div>
-              <Link
-                to={`/workspace/${id}/roles`}
-                className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center"
-              >
-                <Shield className="h-4 w-4 mr-1" />
-                Manage Roles
-              </Link>
+              {canViewRoles() && (
+                <Link
+                  to={`/workspace/${id}/roles`}
+                  className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center"
+                >
+                  <Shield className="h-4 w-4 mr-1" />
+                  Manage Roles
+                </Link>
+              )}
             </div>
           </div>
           <div className="p-6">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Shield,
@@ -11,6 +11,7 @@ import {
   X,
   Check,
   AlertCircle,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   fetchWorkspaceRoles,
@@ -21,6 +22,7 @@ import {
   type PermissionLevel,
 } from '../lib/api/roles';
 import MainHeader from '../components/MainHeader';
+import { usePermissions } from '../lib/hooks/usePermissions';
 
 type PermissionKey = keyof WorkspaceRole['permissions'];
 
@@ -142,6 +144,11 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
 
 export default function RoleManagement() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  // Permission checks
+  const { canViewRoles, canAccessAdminPage, loading: permissionsLoading } = usePermissions(id);
+  const canManageRoles = canAccessAdminPage('roleManagement');
 
   const [roles, setRoles] = useState<WorkspaceRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -266,12 +273,37 @@ export default function RoleManagement() {
     });
   };
 
-  if (isLoading) {
+  if (isLoading || permissionsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <MainHeader />
         <div className="flex items-center justify-center pt-20">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has permission to view roles
+  if (!canViewRoles()) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <MainHeader />
+        <div className="flex flex-col items-center justify-center pt-20 px-4">
+          <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+            <ShieldAlert className="h-8 w-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-center mb-6">
+            You don't have permission to view role management for this workspace.
+          </p>
+          <button
+            onClick={() => navigate(`/workspace/${id}/settings`)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Settings
+          </button>
         </div>
       </div>
     );
@@ -310,13 +342,15 @@ export default function RoleManagement() {
               <p className="text-gray-500 dark:text-gray-400">Configure roles and permissions for this workspace</p>
             </div>
           </div>
-          <button
-            onClick={handleOpenCreate}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Create Role
-          </button>
+          {canManageRoles && (
+            <button
+              onClick={handleOpenCreate}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Role
+            </button>
+          )}
         </div>
 
         {message && (
@@ -395,24 +429,26 @@ export default function RoleManagement() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleOpenEdit(role)}
-                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                        title="Edit role"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      {role.workspaceId !== null && (
+                    {canManageRoles && (
+                      <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => setShowDeleteConfirm(role.id)}
-                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                          title="Delete role"
+                          onClick={() => handleOpenEdit(role)}
+                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                          title="Edit role"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" />
                         </button>
-                      )}
-                    </div>
+                        {role.workspaceId !== null && (
+                          <button
+                            onClick={() => setShowDeleteConfirm(role.id)}
+                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                            title="Delete role"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
