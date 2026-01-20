@@ -9,4 +9,3 @@ dependencies:
   - drupal:text
   - drupal:options
   - boxtasks_workspace:boxtasks_workspace
-  - boxtasks_role:boxtasks_role

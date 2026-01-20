@@ -49,7 +49,25 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
 
   $permission_field = $permission_map[$type][$op];
 
-  // Get workspace ID.
+  // For board view operations, use the specialized canViewBoard method
+  // which handles board membership in addition to role permissions.
+  if ($type === 'board' && $op === 'view') {
+    $has_permission = $permission_checker->canViewBoard($node, (int) $account->id());
+
+    if ($has_permission) {
+      return AccessResult::allowed()
+        ->cachePerUser()
+        ->addCacheableDependency($node)
+        ->addCacheTags(['node_list:member_role']);
+    }
+
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheTags(['node_list:member_role']);
+  }
+
+  // Get workspace ID for other operations.
   if ($type === 'board') {
     if (!$node->hasField('field_board_workspace')) {
       return AccessResult::neutral();
