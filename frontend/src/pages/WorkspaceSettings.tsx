@@ -22,7 +22,6 @@ import {
   updateWorkspace,
   deleteWorkspace,
   fetchWorkspaceMembers,
-  updateWorkspaceMembers,
   fetchAllUsers,
   type CreateWorkspaceData,
   type WorkspaceMember,
@@ -33,9 +32,16 @@ import {
   fetchWorkspaceMemberRoles,
   createMemberRole,
   updateMemberRole,
+  deleteMemberRole,
   type WorkspaceRole,
   type MemberRoleAssignment,
 } from '../lib/api/roles';
+
+// Role UUIDs for member_role creation
+const ROLE_UUIDS = {
+  admin: 'e22cd21b-bfe4-4058-974a-ce5f878239e0',
+  editor: '5f918311-041c-4ece-ae17-46beb23f5556',
+};
 
 const WORKSPACE_COLORS = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -116,10 +122,14 @@ export default function WorkspaceSettings() {
     if (!id) return;
     setIsSavingMembers(true);
     try {
-      const newMemberIds = [...members.map((m) => m.id), newMember.id];
-      const adminIds = members.filter((m) => m.isAdmin).map((m) => m.id);
-      await updateWorkspaceMembers(id, newMemberIds, adminIds);
-      setMembers([...members, { ...newMember, isAdmin: false }]);
+      // Create a member_role with default Editor role
+      const assignment = await createMemberRole(id, newMember.id, ROLE_UUIDS.editor);
+      setMembers([...members, {
+        ...newMember,
+        isAdmin: false,
+        memberRoleId: assignment.id,
+        roleName: 'Editor'
+      }]);
       setMessage({ type: 'success', text: `${newMember.displayName} added to workspace` });
     } catch {
       setMessage({ type: 'error', text: 'Failed to add member' });
@@ -131,9 +141,14 @@ export default function WorkspaceSettings() {
   // Remove a member from the workspace
   const handleRemoveMember = async (memberId: string) => {
     if (!id) return;
-    // Prevent removing the last admin
+    // Find the member and their memberRoleId
     const memberToRemove = members.find((m) => m.id === memberId);
-    if (memberToRemove?.isAdmin) {
+    if (!memberToRemove?.memberRoleId) {
+      setMessage({ type: 'error', text: 'Cannot find member role to remove' });
+      return;
+    }
+    // Prevent removing the last admin
+    if (memberToRemove.isAdmin) {
       const adminCount = members.filter((m) => m.isAdmin).length;
       if (adminCount <= 1) {
         setMessage({ type: 'error', text: 'Cannot remove the last admin' });
@@ -142,9 +157,7 @@ export default function WorkspaceSettings() {
     }
     setIsSavingMembers(true);
     try {
-      const newMemberIds = members.filter((m) => m.id !== memberId).map((m) => m.id);
-      const newAdminIds = members.filter((m) => m.isAdmin && m.id !== memberId).map((m) => m.id);
-      await updateWorkspaceMembers(id, newMemberIds, newAdminIds);
+      await deleteMemberRole(memberToRemove.memberRoleId);
       setMembers(members.filter((m) => m.id !== memberId));
       setMessage({ type: 'success', text: 'Member removed' });
     } catch {
@@ -156,8 +169,17 @@ export default function WorkspaceSettings() {
 
   // Get member's current role
   const getMemberRole = (memberId: string): WorkspaceRole | undefined => {
-    const assignment = memberRoles.find((mr) => mr.userId === memberId);
+    const member = members.find((m) => m.id === memberId);
+    // Try to find role assignment by memberRoleId or userId
+    const assignment = memberRoles.find((mr) =>
+      (member?.memberRoleId && mr.id === member.memberRoleId) || mr.userId === memberId
+    );
     if (assignment?.role) return assignment.role;
+    // If member has roleName, find matching role
+    if (member?.roleName) {
+      const matchingRole = roles.find((r) => r.title === member.roleName);
+      if (matchingRole) return matchingRole;
+    }
     // Return default role if no assignment
     return roles.find((r) => r.isDefault);
   };
@@ -165,21 +187,31 @@ export default function WorkspaceSettings() {
   // Handle role change for a member
   const handleRoleChange = async (memberId: string, roleId: string) => {
     if (!id) return;
+    const member = members.find((m) => m.id === memberId);
+    if (!member?.memberRoleId) {
+      setMessage({ type: 'error', text: 'Cannot find member role to update' });
+      return;
+    }
+
     setIsSavingRole(true);
     try {
-      const existingAssignment = memberRoles.find((mr) => mr.userId === memberId);
+      await updateMemberRole(member.memberRoleId, roleId);
+      const newRole = roles.find((r) => r.id === roleId);
+      const isAdmin = newRole?.permissions?.memberManage === 'any';
 
-      if (existingAssignment) {
-        // Update existing assignment
-        const updated = await updateMemberRole(existingAssignment.id, roleId);
-        setMemberRoles(memberRoles.map((mr) =>
-          mr.id === existingAssignment.id ? { ...updated, role: roles.find((r) => r.id === roleId) } : mr
-        ));
-      } else {
-        // Create new assignment
-        const newAssignment = await createMemberRole(id, memberId, roleId);
-        setMemberRoles([...memberRoles, { ...newAssignment, role: roles.find((r) => r.id === roleId) }]);
-      }
+      // Update members state
+      setMembers(members.map((m) =>
+        m.id === memberId ? {
+          ...m,
+          roleName: newRole?.title || 'Member',
+          isAdmin
+        } : m
+      ));
+
+      // Update memberRoles state
+      setMemberRoles(memberRoles.map((mr) =>
+        mr.userId === memberId ? { ...mr, roleId, role: newRole } : mr
+      ));
 
       setMessage({ type: 'success', text: 'Role updated successfully' });
     } catch {
@@ -194,7 +226,10 @@ export default function WorkspaceSettings() {
   const handleToggleAdmin = async (memberId: string) => {
     if (!id) return;
     const member = members.find((m) => m.id === memberId);
-    if (!member) return;
+    if (!member?.memberRoleId) {
+      setMessage({ type: 'error', text: 'Cannot find member role to update' });
+      return;
+    }
 
     // Prevent removing the last admin
     if (member.isAdmin) {
@@ -207,14 +242,15 @@ export default function WorkspaceSettings() {
 
     setIsSavingMembers(true);
     try {
-      const memberIds = members.map((m) => m.id);
-      const newAdminIds = member.isAdmin
-        ? members.filter((m) => m.isAdmin && m.id !== memberId).map((m) => m.id)
-        : [...members.filter((m) => m.isAdmin).map((m) => m.id), memberId];
-      await updateWorkspaceMembers(id, memberIds, newAdminIds);
+      const newRoleId = member.isAdmin ? ROLE_UUIDS.editor : ROLE_UUIDS.admin;
+      await updateMemberRole(member.memberRoleId, newRoleId);
       setMembers(
         members.map((m) =>
-          m.id === memberId ? { ...m, isAdmin: !m.isAdmin } : m
+          m.id === memberId ? {
+            ...m,
+            isAdmin: !m.isAdmin,
+            roleName: m.isAdmin ? 'Editor' : 'Admin'
+          } : m
         )
       );
       setMessage({

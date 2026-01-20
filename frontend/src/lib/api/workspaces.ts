@@ -153,41 +153,91 @@ export interface WorkspaceMember {
   displayName: string;
   email: string;
   isAdmin: boolean;
+  memberRoleId?: string; // The member_role node ID for updates
+  roleName?: string; // The role name (Admin, Editor, etc.)
 }
 
-// Fetch workspace members with details
+// Fetch workspace members from member_role nodes
 export async function fetchWorkspaceMembers(workspaceId: string): Promise<WorkspaceMember[]> {
-  const response = await fetch(`${API_URL}/jsonapi/node/workspace/${workspaceId}?include=field_workspace_members,field_workspace_admins`, {
-    headers: {
-      'Accept': 'application/vnd.api+json',
-      'Authorization': `Bearer ${getAccessToken()}`,
-    },
-  });
+  // First get the workspace's internal node ID from the UUID
+  const workspaceResponse = await fetch(
+    `${API_URL}/jsonapi/node/workspace/${workspaceId}`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!workspaceResponse.ok) {
+    throw new Error('Failed to fetch workspace');
+  }
+
+  const workspaceResult = await workspaceResponse.json();
+  const workspaceNodeId = workspaceResult.data.attributes.drupal_internal__nid;
+
+  // Query member_role nodes for this workspace, including user and role
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.meta.drupal_internal__target_id]=${workspaceNodeId}&include=field_member_role_user,field_member_role_role`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
 
   if (!response.ok) {
     throw new Error('Failed to fetch workspace members');
   }
 
   const result = await response.json();
+  const memberRoles = result.data || [];
   const included = result.included || [];
-  const rels = result.data.relationships || {};
-
-  const adminIds = new Set(
-    rels.field_workspace_admins?.data?.map((a: { id: string }) => a.id) || []
-  );
 
   const members: WorkspaceMember[] = [];
-  const memberIds = rels.field_workspace_members?.data?.map((m: { id: string }) => m.id) || [];
 
-  for (const memberId of memberIds) {
-    const user = included.find((u: Record<string, unknown>) => u.id === memberId);
+  for (const memberRole of memberRoles) {
+    const userRef = memberRole.relationships?.field_member_role_user?.data;
+    const roleRef = memberRole.relationships?.field_member_role_role?.data;
+
+    if (!userRef) continue;
+
+    // Find the user in included
+    const user = included.find(
+      (item: Record<string, unknown>) => item.type === 'user--user' && item.id === userRef.id
+    );
+
+    // Find the role in included
+    const role = roleRef
+      ? included.find(
+          (item: Record<string, unknown>) =>
+            item.type === 'node--workspace_role' && item.id === roleRef.id
+        )
+      : null;
+
     if (user) {
-      const attrs = user.attributes as Record<string, unknown>;
+      const userAttrs = user.attributes as Record<string, unknown>;
+      const roleAttrs = role?.attributes as Record<string, unknown> | undefined;
+      const roleName = (roleAttrs?.title as string) || 'Member';
+
+      // Check if this role has member management permission (isAdmin)
+      const permMemberManage = roleAttrs?.field_perm_member_manage as string;
+      const isAdmin = permMemberManage === 'any';
+
       members.push({
         id: user.id as string,
-        displayName: (attrs.field_display_name as string) || (attrs.field_full_name as string) || (attrs.display_name as string) || (attrs.name as string) || 'Unknown User',
-        email: (attrs.mail as string) || '',
-        isAdmin: adminIds.has(memberId),
+        displayName:
+          (userAttrs.field_display_name as string) ||
+          (userAttrs.field_full_name as string) ||
+          (userAttrs.display_name as string) ||
+          (userAttrs.name as string) ||
+          'Unknown User',
+        email: (userAttrs.mail as string) || '',
+        isAdmin,
+        memberRoleId: memberRole.id as string,
+        roleName,
       });
     }
   }
@@ -195,41 +245,19 @@ export async function fetchWorkspaceMembers(workspaceId: string): Promise<Worksp
   return members;
 }
 
-// Update workspace members
+// Re-export member role functions from roles.ts for convenience
+export { createMemberRole, updateMemberRole, deleteMemberRole } from './roles';
+
+// Legacy function - kept for backwards compatibility
+// Now uses member_role nodes via createMemberRole and deleteMemberRole from roles.ts
 export async function updateWorkspaceMembers(
   workspaceId: string,
-  memberIds: string[],
-  adminIds: string[]
+  _memberIds: string[],
+  _adminIds: string[]
 ): Promise<Workspace> {
-  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace/${workspaceId}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/vnd.api+json',
-      'Accept': 'application/vnd.api+json',
-    },
-    body: JSON.stringify({
-      data: {
-        type: 'node--workspace',
-        id: workspaceId,
-        relationships: {
-          field_workspace_members: {
-            data: memberIds.map((id) => ({ type: 'user--user', id })),
-          },
-          field_workspace_admins: {
-            data: adminIds.map((id) => ({ type: 'user--user', id })),
-          },
-        },
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.errors?.[0]?.detail || 'Failed to update members');
-  }
-
-  const result = await response.json();
-  return transformWorkspace(result.data);
+  // This function is deprecated - use createMemberRole, deleteMemberRole, updateMemberRole from roles.ts
+  console.warn('updateWorkspaceMembers is deprecated. Use createMemberRole, deleteMemberRole, or updateMemberRole from roles.ts instead.');
+  return fetchWorkspace(workspaceId);
 }
 
 // System/admin user names that should be hidden from user dropdowns
