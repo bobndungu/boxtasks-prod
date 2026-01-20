@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * @file
+ * Board module hooks for access control.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_node_access().
+ *
+ * Controls access to board nodes based on workspace membership and role permissions.
+ */
+function boxtasks_board_node_access(NodeInterface $node, $op, AccountInterface $account) {
+  // Only handle board nodes.
+  if ($node->bundle() !== 'board') {
+    return AccessResult::neutral();
+  }
+
+  // Only handle view operations (create/update/delete handled elsewhere).
+  if ($op !== 'view') {
+    return AccessResult::neutral();
+  }
+
+  // Super admin (uid = 1) can always access.
+  if ((int) $account->id() === 1) {
+    return AccessResult::allowed()->cachePerUser()->addCacheableDependency($node);
+  }
+
+  // Anonymous users cannot access boards.
+  if ($account->isAnonymous()) {
+    return AccessResult::forbidden()->cachePerUser();
+  }
+
+  // Get the permission checker service.
+  /** @var \Drupal\boxtasks_role\Service\PermissionChecker $permission_checker */
+  $permission_checker = \Drupal::service('boxtasks_role.permission_checker');
+
+  // Check if user can view this board using our custom permission logic.
+  $can_view = $permission_checker->canViewBoard($node, (int) $account->id());
+
+  if ($can_view) {
+    return AccessResult::allowed()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheTags(['node_list:board', 'node_list:member_role']);
+  }
+
+  return AccessResult::forbidden()
+    ->cachePerUser()
+    ->addCacheableDependency($node)
+    ->addCacheTags(['node_list:board', 'node_list:member_role']);
+}
