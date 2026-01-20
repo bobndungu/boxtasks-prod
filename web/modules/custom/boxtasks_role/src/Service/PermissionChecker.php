@@ -212,7 +212,7 @@ class PermissionChecker {
 
     // Private boards: only board members can view.
     if ($board_visibility === 'private') {
-      return $is_board_member || (int) $board->getOwnerId() === $user_id;
+      return $is_board_member || (int) $board->getOwnerId() === (int) $user_id;
     }
 
     // Check board view permission from role.
@@ -224,7 +224,7 @@ class PermissionChecker {
 
     if ($perm_level === 'own') {
       // User can view if they own the board OR are a board member.
-      return (int) $board->getOwnerId() === $user_id || $is_board_member;
+      return (int) $board->getOwnerId() === (int) $user_id || $is_board_member;
     }
 
     return FALSE;
@@ -288,7 +288,7 @@ class PermissionChecker {
 
     if ($perm_level === 'own') {
       // Check if user is the workspace author.
-      return (int) $workspace->getOwnerId() === $user_id;
+      return (int) $workspace->getOwnerId() === (int) $user_id;
     }
 
     return FALSE;
