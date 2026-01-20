@@ -677,33 +677,39 @@ export default function WorkspaceSettings() {
           </div>
         </div>
 
-        {/* Danger Zone */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-800">
-          <div className="p-6 border-b border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 rounded-t-xl">
-            <div className="flex items-center">
-              <AlertTriangle className="h-5 w-5 text-red-500 dark:text-red-400 mr-2" />
-              <h2 className="text-lg font-semibold text-red-900 dark:text-red-300">Danger Zone</h2>
-            </div>
-          </div>
-
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium text-gray-900 dark:text-white">Delete this workspace</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Once deleted, all boards and data will be permanently removed.
-                </p>
+        {/* Danger Zone - Only show if user has workspaceDelete permission */}
+        {(() => {
+          const currentUserRole = user?.id ? getMemberRole(user.id) : undefined;
+          const canDeleteWorkspace = currentUserRole?.permissions?.workspaceDelete === 'any';
+          return canDeleteWorkspace ? (
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-800">
+              <div className="p-6 border-b border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 rounded-t-xl">
+                <div className="flex items-center">
+                  <AlertTriangle className="h-5 w-5 text-red-500 dark:text-red-400 mr-2" />
+                  <h2 className="text-lg font-semibold text-red-900 dark:text-red-300">Danger Zone</h2>
+                </div>
               </div>
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-800 px-4 py-2 rounded-lg font-medium hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Workspace
-              </button>
+
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-white">Delete this workspace</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Once deleted, all boards and data will be permanently removed.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-800 px-4 py-2 rounded-lg font-medium hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Workspace
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          ) : null;
+        })()}
       </main>
 
       {/* Delete Confirmation Modal */}
