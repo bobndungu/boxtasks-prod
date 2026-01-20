@@ -124,12 +124,25 @@ export default function WorkspaceSettings() {
     try {
       // Create a member_role with default Editor role
       const assignment = await createMemberRole(id, newMember.id, ROLE_UUIDS.editor);
+
+      // Find the Editor role from our roles state
+      const editorRole = roles.find(r => r.id === ROLE_UUIDS.editor);
+
+      // Update members state
       setMembers([...members, {
         ...newMember,
         isAdmin: false,
         memberRoleId: assignment.id,
-        roleName: 'Editor'
+        roleName: editorRole?.title || 'Editor'
       }]);
+
+      // Update memberRoles state so getMemberRole() works immediately
+      setMemberRoles([...memberRoles, {
+        ...assignment,
+        roleId: ROLE_UUIDS.editor,
+        role: editorRole,
+      }]);
+
       setMessage({ type: 'success', text: `${newMember.displayName} added to workspace` });
     } catch {
       setMessage({ type: 'error', text: 'Failed to add member' });
