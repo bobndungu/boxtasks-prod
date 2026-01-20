@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, type FormEvent } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout, Eye, EyeOff, Loader2, Check, CheckCircle, Clock } from 'lucide-react';
 
 // Social login icons as SVG components
@@ -23,6 +23,7 @@ const MicrosoftIcon = () => (
 
 export default function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -34,6 +35,14 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingApproval, setPendingApproval] = useState(false);
+
+  // Check for OAuth email mismatch error from URL
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'email_mismatch') {
+      setError('The email address you signed in with is not associated with any account. Please register a new account using the form below, or sign in with a different email address.');
+    }
+  }, [searchParams]);
 
   const passwordRequirements = [
     { label: 'At least 8 characters', met: formData.password.length >= 8 },

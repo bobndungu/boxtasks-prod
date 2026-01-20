@@ -3,3 +3,13 @@ services:
     class: Drupal\boxtasks_user\Routing\RouteSubscriber
     tags:
       - { name: event_subscriber }
+
+  boxtasks_user.social_auth_email_verification:
+    class: Drupal\boxtasks_user\EventSubscriber\SocialAuthEmailVerificationSubscriber
+    arguments:
+      - '@entity_type.manager'
+      - '@current_user'
+      - '@messenger'
+      - '@logger.factory'
+    tags:
+      - { name: event_subscriber }
