@@ -36,7 +36,7 @@ import {
   Star,
   ArrowRight,
 } from 'lucide-react';
-import { fetchAllBoards, type Board } from '../../../lib/api/boards';
+import { fetchAllBoards, type Board, NotFoundError, ForbiddenError } from '../../../lib/api/boards';
 import { fetchListsByBoard, type BoardList } from '../../../lib/api/lists';
 import { formatDateForInput, type Card, type CardLabel, type CardMember } from '../../../lib/api/cards';
 import {
@@ -195,6 +195,25 @@ function CardDetailModal({
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
   const [showTemplateNameModal, setShowTemplateNameModal] = useState(false);
   const [templateName, setTemplateName] = useState('');
+
+  // Card deleted state - shown when card no longer exists
+  const [cardDeleted, setCardDeleted] = useState(false);
+
+  // Helper to handle card-not-found errors from API calls
+  const handleApiError = (err: unknown, fallbackMessage: string) => {
+    if (err instanceof NotFoundError) {
+      setCardDeleted(true);
+      toast.error('This card has been deleted');
+      return;
+    }
+    if (err instanceof ForbiddenError) {
+      toast.error('You no longer have permission to access this card');
+      onClose();
+      return;
+    }
+    console.error(fallbackMessage, err);
+    toast.error(fallbackMessage);
+  };
 
   // Approval state
   const [isApproving, setIsApproving] = useState(false);
@@ -732,7 +751,7 @@ function CardDetailModal({
       // Close the modal since the card is now on a different list
       onClose();
     } catch (err) {
-      console.error('Failed to move card:', err);
+      handleApiError(err, 'Failed to move card');
     } finally {
       setIsMoving(false);
     }
@@ -1416,6 +1435,29 @@ function CardDetailModal({
       }
     }, 500);
   };
+
+  // Show deleted card message
+  if (cardDeleted) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto" onClick={onClose}>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md my-8 p-6 text-center" onClick={(e) => e.stopPropagation()}>
+          <div className="text-red-500 mb-4">
+            <Trash2 className="h-12 w-12 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Card Not Found</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            This card has been deleted or you no longer have access to it.
+          </p>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 overflow-y-auto" onClick={onClose}>

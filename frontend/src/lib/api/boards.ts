@@ -1,4 +1,7 @@
-import { getAccessToken, fetchWithCsrf, customApiClient } from './client';
+import { getAccessToken, fetchWithCsrf, customApiClient, NotFoundError, ForbiddenError } from './client';
+
+// Re-export error classes for consumers
+export { NotFoundError, ForbiddenError };
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -155,6 +158,12 @@ export async function fetchBoard(id: string): Promise<Board> {
   );
 
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new NotFoundError('Board not found');
+    }
+    if (response.status === 403) {
+      throw new ForbiddenError('You do not have permission to view this board');
+    }
     throw new Error('Failed to fetch board');
   }
 

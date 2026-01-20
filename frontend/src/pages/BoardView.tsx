@@ -49,7 +49,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
-import { updateBoard, toggleBoardStar, fetchBoardData } from '../lib/api/boards';
+import { updateBoard, toggleBoardStar, fetchBoardData, NotFoundError, ForbiddenError } from '../lib/api/boards';
 import { createList, updateList, deleteList, archiveList, type BoardList } from '../lib/api/lists';
 import { createCard, updateCard, deleteCard, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, addGoogleDoc, removeGoogleDoc, normalizeDateFromDrupal, normalizeCardFromMercure, formatDateForApi, type Card, type CardLabel } from '../lib/api/cards';
 import { type CardComment } from '../lib/api/comments';
@@ -100,7 +100,7 @@ export default function BoardView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { currentBoard, setCurrentBoard, updateBoard: updateBoardInStore } = useBoardStore();
+  const { currentBoard, setCurrentBoard, updateBoard: updateBoardInStore, removeBoard } = useBoardStore();
   const { user: currentUser } = useAuthStore();
 
   // Role-based permissions
@@ -1017,6 +1017,19 @@ export default function BoardView() {
       setClients(data.clients.map(c => ({ id: c.id, name: c.name, vocabularyId: 'client' })));
 
     } catch (err) {
+      // Handle specific error types
+      if (err instanceof NotFoundError) {
+        toast.error('This board no longer exists or has been deleted');
+        // Remove from all cached lists (recent, starred, etc.)
+        if (id) removeBoard(id);
+        navigate('/dashboard');
+        return;
+      }
+      if (err instanceof ForbiddenError) {
+        toast.error('You do not have permission to view this board');
+        navigate('/dashboard');
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Failed to load board');
     } finally {
       setIsLoading(false);

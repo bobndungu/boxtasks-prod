@@ -389,10 +389,35 @@ customApiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Custom error classes for specific HTTP errors
+export class NotFoundError extends Error {
+  constructor(message: string = 'Resource not found') {
+    super(message);
+    this.name = 'NotFoundError';
+  }
+}
+
+export class ForbiddenError extends Error {
+  constructor(message: string = 'You do not have permission to access this resource') {
+    super(message);
+    this.name = 'ForbiddenError';
+  }
+}
+
 customApiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+    // Handle 404 errors - resource not found
+    if (error.response?.status === 404) {
+      return Promise.reject(new NotFoundError('The requested resource was not found'));
+    }
+
+    // Handle 403 errors - forbidden
+    if (error.response?.status === 403) {
+      return Promise.reject(new ForbiddenError('You do not have permission to access this resource'));
+    }
 
     // Handle authentication errors
     if (error.response?.status === 401 && !originalRequest._retry) {
