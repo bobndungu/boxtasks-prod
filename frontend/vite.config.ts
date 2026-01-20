@@ -26,7 +26,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt', // Changed from 'autoUpdate' - gives control to show update prompt
+      registerType: 'autoUpdate', // Auto-update ensures users always get the latest version
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       // Disable service worker in development to avoid caching issues
       selfDestroying: false,
@@ -101,14 +101,15 @@ export default defineConfig({
             },
           },
           {
-            // JS/CSS assets - use StaleWhileRevalidate for faster loads with background updates
+            // JS/CSS assets - use NetworkFirst to always get latest, with cache fallback for offline
             urlPattern: /\.(?:js|css)$/i,
-            handler: 'StaleWhileRevalidate',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'static-assets',
+              networkTimeoutSeconds: 5, // Fallback to cache after 5s if network slow
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours (reduced from 7 days)
               },
             },
           },
