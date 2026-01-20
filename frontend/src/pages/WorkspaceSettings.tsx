@@ -48,7 +48,7 @@ export default function WorkspaceSettings() {
   const navigate = useNavigate();
   const { currentWorkspace, setCurrentWorkspace, updateWorkspace: updateStore, removeWorkspace } = useWorkspaceStore();
   const { user } = useAuthStore();
-  const { canViewRoles, canAddMembers, canRemoveMembers } = usePermissions(id);
+  const { canViewRoles, canAddMembers, canRemoveMembers, canEdit } = usePermissions(id);
 
   const [formData, setFormData] = useState<CreateWorkspaceData>({
     title: '',
@@ -339,116 +339,118 @@ export default function WorkspaceSettings() {
           </div>
         )}
 
-        {/* General Settings */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <Settings className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">General</h2>
-            </div>
-          </div>
-
-          <div className="p-6 space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Workspace Name
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
-                placeholder="What is this workspace for?"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Color
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {WORKSPACE_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, color })}
-                    className={`w-8 h-8 rounded-lg transition-transform ${
-                      formData.color === color ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 dark:ring-offset-gray-800 scale-110' : ''
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
+        {/* General Settings - only visible to users with workspaceEdit permission */}
+        {canEdit('workspace', false) && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center">
+                <Settings className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">General</h2>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Visibility
-              </label>
-              <div className="space-y-2">
-                {[
-                  { value: 'private', label: 'Private', icon: Lock },
-                  { value: 'team', label: 'Team', icon: Users },
-                  { value: 'public', label: 'Public', icon: Globe },
-                ].map((option) => (
-                  <label
-                    key={option.value}
-                    className={`flex items-center p-3 rounded-lg border cursor-pointer ${
-                      formData.visibility === option.value
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-600'
-                        : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="visibility"
-                      value={option.value}
-                      checked={formData.visibility === option.value}
-                      onChange={(e) =>
-                        setFormData({ ...formData, visibility: e.target.value as 'private' | 'team' | 'public' })
-                      }
-                      className="sr-only"
+            <div className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Workspace Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  placeholder="What is this workspace for?"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Color
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {WORKSPACE_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, color })}
+                      className={`w-8 h-8 rounded-lg transition-transform ${
+                        formData.color === color ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 dark:ring-offset-gray-800 scale-110' : ''
+                      }`}
+                      style={{ backgroundColor: color }}
                     />
-                    <option.icon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3" />
-                    <span className="font-medium text-gray-900 dark:text-white">{option.label}</span>
-                  </label>
-                ))}
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Visibility
+                </label>
+                <div className="space-y-2">
+                  {[
+                    { value: 'private', label: 'Private', icon: Lock },
+                    { value: 'team', label: 'Team', icon: Users },
+                    { value: 'public', label: 'Public', icon: Globe },
+                  ].map((option) => (
+                    <label
+                      key={option.value}
+                      className={`flex items-center p-3 rounded-lg border cursor-pointer ${
+                        formData.visibility === option.value
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-600'
+                          : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value={option.value}
+                        checked={formData.visibility === option.value}
+                        onChange={(e) =>
+                          setFormData({ ...formData, visibility: e.target.value as 'private' | 'team' | 'public' })
+                        }
+                        className="sr-only"
+                      />
+                      <option.icon className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3" />
+                      <span className="font-medium text-gray-900 dark:text-white">{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
               </div>
             </div>
-
-            <div className="flex justify-end pt-4">
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </button>
-            </div>
           </div>
-        </div>
+        )}
 
         {/* Roles Section - only visible to users with roleView permission */}
         {canViewRoles() && (
