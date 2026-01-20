@@ -13,8 +13,16 @@ use Drupal\node\NodeInterface;
  * Implements hook_node_access().
  */
 function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $account) {
-  // Only handle board and workspace nodes.
+  // TEMP: Log every call to this hook
   $type = $node->bundle();
+  \Drupal::logger('boxtasks_role')->debug('hook_node_access called: type=%type, op=%op, nid=%nid, account=%account', [
+    '%type' => $type,
+    '%op' => $op,
+    '%nid' => $node->id(),
+    '%account' => $account->id(),
+  ]);
+
+  // Only handle board and workspace nodes.
   if (!in_array($type, ['board', 'workspace'])) {
     return AccessResult::neutral();
   }
