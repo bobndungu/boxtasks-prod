@@ -8,6 +8,8 @@ export { invalidatePermissionCache };
 
 export type ReportType = 'performance' | 'tasks' | 'activity' | 'workload';
 export type AdminPageType = 'emailTemplates' | 'userManagement' | 'roleManagement';
+export type CustomFieldAction = 'view' | 'create' | 'edit' | 'delete';
+export type AutomationAction = 'view' | 'create' | 'edit' | 'delete';
 
 interface UsePermissionsReturn {
   permissions: WorkspaceRole['permissions'] | null;
@@ -31,6 +33,10 @@ interface UsePermissionsReturn {
   canExportReports: () => boolean;
   canViewAnyReport: () => boolean;
   canAccessAdminPage: (pageType: AdminPageType) => boolean;
+  // Custom field permissions
+  canCustomField: (action: CustomFieldAction, isOwner?: boolean) => boolean;
+  // Automation permissions
+  canAutomation: (action: AutomationAction, isOwner?: boolean) => boolean;
   refetch: () => Promise<void>;
 }
 
@@ -79,6 +85,16 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   userManagement: 'none',
   roleManagement: 'none',
   roleView: 'none',
+  // Custom field permissions
+  customFieldView: 'any',
+  customFieldCreate: 'none',
+  customFieldEdit: 'none',
+  customFieldDelete: 'none',
+  // Automation permissions
+  automationView: 'any',
+  automationCreate: 'none',
+  automationEdit: 'none',
+  automationDelete: 'none',
 };
 
 // Check if error is an abort error (navigation/unmount)
@@ -499,6 +515,56 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     return permission === 'any';
   }, [permissions, user]);
 
+  // Custom field permission check
+  const canCustomField = useCallback((action: CustomFieldAction, isOwner: boolean = false): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return action === 'view'; // Allow view by default while loading
+
+    let permission: PermissionLevel;
+    switch (action) {
+      case 'view':
+        permission = permissions.customFieldView;
+        break;
+      case 'create':
+        permission = permissions.customFieldCreate;
+        break;
+      case 'edit':
+        permission = permissions.customFieldEdit;
+        break;
+      case 'delete':
+        permission = permissions.customFieldDelete;
+        break;
+    }
+
+    return canPerformAction(permission, isOwner);
+  }, [permissions, user]);
+
+  // Automation permission check
+  const canAutomation = useCallback((action: AutomationAction, isOwner: boolean = false): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return action === 'view'; // Allow view by default while loading
+
+    let permission: PermissionLevel;
+    switch (action) {
+      case 'view':
+        permission = permissions.automationView;
+        break;
+      case 'create':
+        permission = permissions.automationCreate;
+        break;
+      case 'edit':
+        permission = permissions.automationEdit;
+        break;
+      case 'delete':
+        permission = permissions.automationDelete;
+        break;
+    }
+
+    return canPerformAction(permission, isOwner);
+  }, [permissions, user]);
+
   return {
     permissions,
     loading,
@@ -521,6 +587,10 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canExportReports,
     canViewAnyReport,
     canAccessAdminPage,
+    // Custom field permissions
+    canCustomField,
+    // Automation permissions
+    canAutomation,
     refetch,
   };
 }

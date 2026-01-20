@@ -110,6 +110,24 @@ const PERMISSION_CATEGORIES = {
       { key: 'userManagement', label: 'Manage users' },
     ],
   },
+  customFields: {
+    label: 'Custom Fields',
+    permissions: [
+      { key: 'customFieldView', label: 'View custom fields' },
+      { key: 'customFieldCreate', label: 'Create custom fields' },
+      { key: 'customFieldEdit', label: 'Edit custom fields' },
+      { key: 'customFieldDelete', label: 'Delete custom fields' },
+    ],
+  },
+  automation: {
+    label: 'Automation',
+    permissions: [
+      { key: 'automationView', label: 'View automations' },
+      { key: 'automationCreate', label: 'Create automations' },
+      { key: 'automationEdit', label: 'Edit automations' },
+      { key: 'automationDelete', label: 'Delete automations' },
+    ],
+  },
 };
 
 const PERMISSION_LEVELS: { value: PermissionLevel; label: string; color: string }[] = [
@@ -162,6 +180,16 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   userManagement: 'none',
   roleManagement: 'none',
   roleView: 'none',
+  // Custom field permissions
+  customFieldView: 'any',
+  customFieldCreate: 'none',
+  customFieldEdit: 'none',
+  customFieldDelete: 'none',
+  // Automation permissions
+  automationView: 'any',
+  automationCreate: 'none',
+  automationEdit: 'none',
+  automationDelete: 'none',
 };
 
 export default function AdminRoles() {

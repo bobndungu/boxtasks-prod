@@ -136,6 +136,16 @@ class WorkspaceRolesController extends ControllerBase {
           'userManagement' => $this->getFieldValue($role, 'field_perm_user_management', 'none'),
           'roleManagement' => $this->getFieldValue($role, 'field_perm_role_management', 'none'),
           'roleView' => $this->getFieldValue($role, 'field_perm_role_view', 'none'),
+          // Custom field permissions
+          'customFieldView' => $this->getFieldValue($role, 'field_perm_custom_field_view', 'any'),
+          'customFieldCreate' => $this->getFieldValue($role, 'field_perm_custom_field_create', 'none'),
+          'customFieldEdit' => $this->getFieldValue($role, 'field_perm_custom_field_edit', 'none'),
+          'customFieldDelete' => $this->getFieldValue($role, 'field_perm_custom_field_delete', 'none'),
+          // Automation permissions
+          'automationView' => $this->getFieldValue($role, 'field_perm_automation_view', 'any'),
+          'automationCreate' => $this->getFieldValue($role, 'field_perm_automation_create', 'none'),
+          'automationEdit' => $this->getFieldValue($role, 'field_perm_automation_edit', 'none'),
+          'automationDelete' => $this->getFieldValue($role, 'field_perm_automation_delete', 'none'),
         ],
       ];
     }
@@ -260,6 +270,16 @@ class WorkspaceRolesController extends ControllerBase {
         'userManagement' => $this->getFieldValue($role, 'field_perm_user_management', 'none'),
         'roleManagement' => $this->getFieldValue($role, 'field_perm_role_management', 'none'),
         'roleView' => $this->getFieldValue($role, 'field_perm_role_view', 'none'),
+        // Custom field permissions
+        'customFieldView' => $this->getFieldValue($role, 'field_perm_custom_field_view', 'any'),
+        'customFieldCreate' => $this->getFieldValue($role, 'field_perm_custom_field_create', 'none'),
+        'customFieldEdit' => $this->getFieldValue($role, 'field_perm_custom_field_edit', 'none'),
+        'customFieldDelete' => $this->getFieldValue($role, 'field_perm_custom_field_delete', 'none'),
+        // Automation permissions
+        'automationView' => $this->getFieldValue($role, 'field_perm_automation_view', 'any'),
+        'automationCreate' => $this->getFieldValue($role, 'field_perm_automation_create', 'none'),
+        'automationEdit' => $this->getFieldValue($role, 'field_perm_automation_edit', 'none'),
+        'automationDelete' => $this->getFieldValue($role, 'field_perm_automation_delete', 'none'),
       ],
     ];
   }
@@ -349,6 +369,14 @@ class WorkspaceRolesController extends ControllerBase {
         'userManagement' => 'field_perm_user_management',
         'roleManagement' => 'field_perm_role_management',
         'roleView' => 'field_perm_role_view',
+        'customFieldView' => 'field_perm_custom_field_view',
+        'customFieldCreate' => 'field_perm_custom_field_create',
+        'customFieldEdit' => 'field_perm_custom_field_edit',
+        'customFieldDelete' => 'field_perm_custom_field_delete',
+        'automationView' => 'field_perm_automation_view',
+        'automationCreate' => 'field_perm_automation_create',
+        'automationEdit' => 'field_perm_automation_edit',
+        'automationDelete' => 'field_perm_automation_delete',
       ];
 
       foreach ($data['permissions'] as $key => $value) {
@@ -451,6 +479,14 @@ class WorkspaceRolesController extends ControllerBase {
         'userManagement' => 'field_perm_user_management',
         'roleManagement' => 'field_perm_role_management',
         'roleView' => 'field_perm_role_view',
+        'customFieldView' => 'field_perm_custom_field_view',
+        'customFieldCreate' => 'field_perm_custom_field_create',
+        'customFieldEdit' => 'field_perm_custom_field_edit',
+        'customFieldDelete' => 'field_perm_custom_field_delete',
+        'automationView' => 'field_perm_automation_view',
+        'automationCreate' => 'field_perm_automation_create',
+        'automationEdit' => 'field_perm_automation_edit',
+        'automationDelete' => 'field_perm_automation_delete',
       ];
 
       foreach ($data['permissions'] as $key => $value) {

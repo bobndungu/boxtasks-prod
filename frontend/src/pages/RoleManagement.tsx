@@ -30,7 +30,7 @@ interface PermissionConfig {
   key: PermissionKey;
   label: string;
   description: string;
-  category: 'card' | 'list' | 'board' | 'workspace' | 'member' | 'board_member' | 'report' | 'admin' | 'other';
+  category: 'card' | 'list' | 'board' | 'workspace' | 'member' | 'board_member' | 'report' | 'admin' | 'custom_field' | 'automation' | 'other';
   allowOwn: boolean;
 }
 
@@ -79,6 +79,16 @@ const PERMISSION_CONFIG: PermissionConfig[] = [
   { key: 'roleManagement', label: 'Manage Roles', description: 'Can create/edit/delete roles', category: 'admin', allowOwn: false },
   { key: 'emailTemplatesManage', label: 'Manage Email Templates', description: 'Can manage email templates', category: 'admin', allowOwn: false },
   { key: 'userManagement', label: 'Manage Users', description: 'Can manage users', category: 'admin', allowOwn: false },
+  // Custom Field permissions
+  { key: 'customFieldView', label: 'View Custom Fields', description: 'Can view custom field values on cards', category: 'custom_field', allowOwn: true },
+  { key: 'customFieldCreate', label: 'Create Custom Fields', description: 'Can create new custom field definitions', category: 'custom_field', allowOwn: false },
+  { key: 'customFieldEdit', label: 'Edit Custom Fields', description: 'Can edit custom field definitions and values', category: 'custom_field', allowOwn: true },
+  { key: 'customFieldDelete', label: 'Delete Custom Fields', description: 'Can delete custom field definitions', category: 'custom_field', allowOwn: true },
+  // Automation permissions
+  { key: 'automationView', label: 'View Automations', description: 'Can view automation rules', category: 'automation', allowOwn: true },
+  { key: 'automationCreate', label: 'Create Automations', description: 'Can create new automation rules', category: 'automation', allowOwn: false },
+  { key: 'automationEdit', label: 'Edit Automations', description: 'Can edit automation rules', category: 'automation', allowOwn: true },
+  { key: 'automationDelete', label: 'Delete Automations', description: 'Can delete automation rules', category: 'automation', allowOwn: true },
   // Other permissions
   { key: 'memberManage', label: 'Manage Members (Legacy)', description: 'Legacy permission - use granular member permissions above', category: 'other', allowOwn: false },
   { key: 'commentEdit', label: 'Edit Comments', description: 'Can edit comments', category: 'other', allowOwn: true },
@@ -95,6 +105,8 @@ const CATEGORIES = [
   { key: 'board_member', label: 'Board Members', color: 'indigo' },
   { key: 'report', label: 'Reports', color: 'cyan' },
   { key: 'admin', label: 'Administration', color: 'rose' },
+  { key: 'custom_field', label: 'Custom Fields', color: 'violet' },
+  { key: 'automation', label: 'Automation', color: 'orange' },
   { key: 'other', label: 'Other', color: 'gray' },
 ] as const;
 
@@ -142,6 +154,16 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
   userManagement: 'none',
   roleManagement: 'none',
   roleView: 'none',
+  // Custom field permissions
+  customFieldView: 'any',
+  customFieldCreate: 'none',
+  customFieldEdit: 'none',
+  customFieldDelete: 'none',
+  // Automation permissions
+  automationView: 'any',
+  automationCreate: 'none',
+  automationEdit: 'none',
+  automationDelete: 'none',
 });
 
 export default function RoleManagement() {

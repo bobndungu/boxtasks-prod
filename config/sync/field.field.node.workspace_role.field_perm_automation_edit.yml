@@ -1,0 +1,24 @@
+uuid: 9138ced1-5dc8-4a6e-924f-2bd9cfb052cd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_automation_edit
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_automation_edit
+field_name: field_perm_automation_edit
+entity_type: node
+bundle: workspace_role
+label: 'Edit Automations'
+description: 'Permission to edit automation rules.'
+required: false
+translatable: false
+default_value:
+  -
+    value: none
+default_value_callback: ''
+settings: {  }
+field_type: list_string

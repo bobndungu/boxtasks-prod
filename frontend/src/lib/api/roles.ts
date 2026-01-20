@@ -85,6 +85,16 @@ export interface WorkspaceRole {
     userManagement: PermissionLevel;
     roleManagement: PermissionLevel;
     roleView: PermissionLevel;
+    // Custom field permissions
+    customFieldView: PermissionLevel;
+    customFieldCreate: PermissionLevel;
+    customFieldEdit: PermissionLevel;
+    customFieldDelete: PermissionLevel;
+    // Automation permissions
+    automationView: PermissionLevel;
+    automationCreate: PermissionLevel;
+    automationEdit: PermissionLevel;
+    automationDelete: PermissionLevel;
   };
 }
 
@@ -157,6 +167,16 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       userManagement: (attrs.field_perm_user_management as PermissionLevel) || 'none',
       roleManagement: (attrs.field_perm_role_management as PermissionLevel) || 'none',
       roleView: (attrs.field_perm_role_view as PermissionLevel) || 'none',
+      // Custom field permissions
+      customFieldView: (attrs.field_perm_custom_field_view as PermissionLevel) || 'any',
+      customFieldCreate: (attrs.field_perm_custom_field_create as PermissionLevel) || 'none',
+      customFieldEdit: (attrs.field_perm_custom_field_edit as PermissionLevel) || 'none',
+      customFieldDelete: (attrs.field_perm_custom_field_delete as PermissionLevel) || 'none',
+      // Automation permissions
+      automationView: (attrs.field_perm_automation_view as PermissionLevel) || 'any',
+      automationCreate: (attrs.field_perm_automation_create as PermissionLevel) || 'none',
+      automationEdit: (attrs.field_perm_automation_edit as PermissionLevel) || 'none',
+      automationDelete: (attrs.field_perm_automation_delete as PermissionLevel) || 'none',
     },
   };
 }

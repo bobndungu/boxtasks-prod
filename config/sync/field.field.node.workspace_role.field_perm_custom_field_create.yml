@@ -1,0 +1,24 @@
+uuid: fbdefc34-9454-4e4c-b7ff-61d42a7b24c1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_custom_field_create
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_custom_field_create
+field_name: field_perm_custom_field_create
+entity_type: node
+bundle: workspace_role
+label: 'Create Custom Fields'
+description: 'Permission to create new custom field definitions.'
+required: false
+translatable: false
+default_value:
+  -
+    value: none
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -1,0 +1,24 @@
+uuid: 46609de3-cd87-4451-ad13-fe0b07eaacfc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_custom_field_view
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_custom_field_view
+field_name: field_perm_custom_field_view
+entity_type: node
+bundle: workspace_role
+label: 'View Custom Fields'
+description: 'Permission to view custom fields on cards and boards.'
+required: false
+translatable: false
+default_value:
+  -
+    value: any
+default_value_callback: ''
+settings: {  }
+field_type: list_string
