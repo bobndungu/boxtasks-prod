@@ -121,15 +121,38 @@ class PermissionChecker {
   /**
    * Check if the current user is a super admin.
    *
-   * Super admin is specifically uid = 1 only.
-   * Having administrator role does NOT make someone a super admin.
+   * Super admin is:
+   * - uid = 1, OR
+   * - user has 'administer nodes' permission
+   *
+   * @param int|null $user_id
+   *   Optional user ID to check. Defaults to current user.
    *
    * @return bool
-   *   TRUE if the current user is a super admin (uid = 1).
+   *   TRUE if the user is a super admin.
    */
-  public function isSuperAdmin(): bool {
-    // Super admin is ONLY uid = 1
-    return (int) $this->currentUser->id() === 1;
+  public function isSuperAdmin(?int $user_id = NULL): bool {
+    $user_id = $user_id ?? $this->currentUser->id();
+
+    // uid = 1 is always super admin.
+    if ($user_id === 1) {
+      return TRUE;
+    }
+
+    // Check if user has 'administer nodes' permission.
+    // If checking current user, use the proxy directly.
+    if ($user_id === (int) $this->currentUser->id()) {
+      return $this->currentUser->hasPermission('administer nodes');
+    }
+
+    // For other users, load the user entity and check.
+    $user_storage = $this->entityTypeManager->getStorage('user');
+    $user = $user_storage->load($user_id);
+    if ($user) {
+      return $user->hasPermission('administer nodes');
+    }
+
+    return FALSE;
   }
 
   /**
@@ -157,7 +180,7 @@ class PermissionChecker {
     $user_id = $user_id ?? $this->currentUser->id();
 
     // Super admins can always view.
-    if ($this->isSuperAdmin()) {
+    if ($this->isSuperAdmin($user_id)) {
       return TRUE;
     }
 
@@ -245,7 +268,7 @@ class PermissionChecker {
     $user_id = $user_id ?? $this->currentUser->id();
 
     // Super admins can always view.
-    if ($this->isSuperAdmin()) {
+    if ($this->isSuperAdmin($user_id)) {
       return TRUE;
     }
 
@@ -288,7 +311,7 @@ class PermissionChecker {
     $user_id = $user_id ?? $this->currentUser->id();
 
     // Super admins can do everything.
-    if ($this->isSuperAdmin()) {
+    if ($this->isSuperAdmin($user_id)) {
       return TRUE;
     }
 

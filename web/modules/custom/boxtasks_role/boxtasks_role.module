@@ -13,14 +13,7 @@ use Drupal\node\NodeInterface;
  * Implements hook_node_access().
  */
 function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $account) {
-  // TEMP: Log every call to this hook
   $type = $node->bundle();
-  \Drupal::logger('boxtasks_role')->debug('hook_node_access called: type=%type, op=%op, nid=%nid, account=%account', [
-    '%type' => $type,
-    '%op' => $op,
-    '%nid' => $node->id(),
-    '%account' => $account->id(),
-  ]);
 
   // Only handle board and workspace nodes.
   if (!in_array($type, ['board', 'workspace'])) {
@@ -37,6 +30,10 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
   /** @var \Drupal\boxtasks_role\Service\PermissionChecker $permission_checker */
   $permission_checker = \Drupal::service('boxtasks_role.permission_checker');
 
+  // Normalize operation - treat 'view revision' as 'view' for access purposes.
+  // JSON:API uses 'view revision' when fetching content.
+  $normalized_op = ($op === 'view revision') ? 'view' : $op;
+
   // Map operation to permission field.
   $permission_map = [
     'board' => [
@@ -51,31 +48,16 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
     ],
   ];
 
-  if (!isset($permission_map[$type][$op])) {
+  if (!isset($permission_map[$type][$normalized_op])) {
     return AccessResult::neutral();
   }
 
-  $permission_field = $permission_map[$type][$op];
+  $permission_field = $permission_map[$type][$normalized_op];
 
   // For board view operations, use the specialized canViewBoard method
   // which handles board membership in addition to role permissions.
-  if ($type === 'board' && $op === 'view') {
+  if ($type === 'board' && $normalized_op === 'view') {
     $has_permission = $permission_checker->canViewBoard($node, (int) $account->id());
-
-    // Debug logging - remove after testing.
-    $current_user = \Drupal::currentUser();
-    $request = \Drupal::request();
-    $auth_header = $request->headers->get('Authorization', 'none');
-    \Drupal::logger('boxtasks_role')->debug('Board access check: board=%board (nid=%nid), account=%user (uid=%uid), currentUser=%curuser (uid=%curuid), auth=%auth, result=%result', [
-      '%board' => $node->label(),
-      '%nid' => $node->id(),
-      '%user' => $account->getAccountName(),
-      '%uid' => $account->id(),
-      '%curuser' => $current_user->getAccountName(),
-      '%curuid' => $current_user->id(),
-      '%auth' => substr($auth_header, 0, 50),
-      '%result' => $has_permission ? 'ALLOWED' : 'FORBIDDEN',
-    ]);
 
     if ($has_permission) {
       return AccessResult::allowed()
@@ -128,16 +110,22 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
 /**
  * Check if a user is a super admin (Box Admin).
  *
- * Super admin is specifically uid = 1 only.
- * Having administrator role does NOT make someone a super admin.
+ * Super admin is:
+ * - uid = 1, OR
+ * - user has 'administer nodes' permission
  *
  * @param \Drupal\Core\Session\AccountInterface $account
  *   The user account to check.
  *
  * @return bool
- *   TRUE if the user is a super admin (uid = 1).
+ *   TRUE if the user is a super admin.
  */
 function boxtasks_role_is_super_admin(AccountInterface $account): bool {
-  // Super admin is ONLY uid = 1
-  return (int) $account->id() === 1;
+  // uid = 1 is always super admin.
+  if ((int) $account->id() === 1) {
+    return TRUE;
+  }
+
+  // Users with 'administer nodes' permission are also super admins.
+  return $account->hasPermission('administer nodes');
 }
