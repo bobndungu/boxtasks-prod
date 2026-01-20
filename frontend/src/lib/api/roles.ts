@@ -2,6 +2,21 @@ import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
+// Permission cache version - increment this to bust cache
+let permissionCacheVersion = Date.now();
+
+// Get a cache-busting parameter
+function getCacheBuster(): string {
+  return `_v=${permissionCacheVersion}`;
+}
+
+// Call this to invalidate permission cache (e.g., after role changes)
+export function invalidatePermissionCache(): void {
+  permissionCacheVersion = Date.now();
+  // Dispatch a custom event so components can react
+  window.dispatchEvent(new CustomEvent('permissions-invalidated'));
+}
+
 export type PermissionLevel = 'any' | 'own' | 'none';
 
 export interface WorkspaceRole {
@@ -189,11 +204,12 @@ export async function fetchGlobalRoles(): Promise<WorkspaceRole[]> {
 export async function fetchWorkspaceRoles(workspaceId: string): Promise<WorkspaceRole[]> {
   // Use custom API endpoint that bypasses JSON:API access issues
   const response = await fetch(
-    `${API_URL}/api/workspace/${workspaceId}/roles`,
+    `${API_URL}/api/workspace/${workspaceId}/roles?${getCacheBuster()}`,
     {
       headers: {
         'Accept': 'application/json',
         'Authorization': `Bearer ${getAccessToken()}`,
+        'Cache-Control': 'no-cache',
       },
     }
   );
@@ -232,11 +248,12 @@ export async function fetchRole(roleId: string): Promise<WorkspaceRole | null> {
 // Get the default role
 export async function fetchDefaultRole(): Promise<WorkspaceRole | null> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/workspace_role?filter[field_role_is_default]=1&page[limit]=1`,
+    `${API_URL}/jsonapi/node/workspace_role?filter[field_role_is_default]=1&page[limit]=1&${getCacheBuster()}`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
         'Authorization': `Bearer ${getAccessToken()}`,
+        'Cache-Control': 'no-cache',
       },
     }
   );
@@ -256,11 +273,12 @@ export async function fetchDefaultRole(): Promise<WorkspaceRole | null> {
 // Fetch member role assignment for a user in a workspace
 export async function fetchMemberRole(workspaceId: string, userId: string): Promise<MemberRoleAssignment | null> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&filter[field_member_role_user.id]=${userId}&include=field_member_role_role`,
+    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&filter[field_member_role_user.id]=${userId}&include=field_member_role_role&${getCacheBuster()}`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
         'Authorization': `Bearer ${getAccessToken()}`,
+        'Cache-Control': 'no-cache',
       },
     }
   );
@@ -280,11 +298,12 @@ export async function fetchMemberRole(workspaceId: string, userId: string): Prom
 // Fetch all member role assignments for a workspace
 export async function fetchWorkspaceMemberRoles(workspaceId: string): Promise<MemberRoleAssignment[]> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&include=field_member_role_role,field_member_role_user`,
+    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&include=field_member_role_role,field_member_role_user&${getCacheBuster()}`,
     {
       headers: {
         'Accept': 'application/vnd.api+json',
         'Authorization': `Bearer ${getAccessToken()}`,
+        'Cache-Control': 'no-cache',
       },
     }
   );
@@ -336,6 +355,8 @@ export async function createMemberRole(workspaceId: string, userId: string, role
   }
 
   const result = await response.json();
+  // Invalidate permission cache so UI updates immediately
+  invalidatePermissionCache();
   return transformMemberRole(result.data);
 }
 
@@ -381,6 +402,8 @@ export async function updateMemberRole(assignmentId: string, roleId: string): Pr
   }
 
   const result = await fetchResponse.json();
+  // Invalidate permission cache so UI updates immediately
+  invalidatePermissionCache();
   return transformMemberRole(result.data, result.included);
 }
 
@@ -393,6 +416,8 @@ export async function deleteMemberRole(assignmentId: string): Promise<void> {
   if (!response.ok && response.status !== 204) {
     throw new Error('Failed to delete member role');
   }
+  // Invalidate permission cache so UI updates immediately
+  invalidatePermissionCache();
 }
 
 // Create a new workspace role
@@ -422,7 +447,10 @@ export async function createWorkspaceRole(
     throw new Error(error.error || 'Failed to create role');
   }
 
-  return response.json();
+  const result = await response.json();
+  // Invalidate permission cache so UI updates immediately
+  invalidatePermissionCache();
+  return result;
 }
 
 // Update a workspace role
@@ -449,7 +477,10 @@ export async function updateWorkspaceRole(
     throw new Error(error.error || 'Failed to update role');
   }
 
-  return response.json();
+  const result = await response.json();
+  // Invalidate permission cache so UI updates immediately
+  invalidatePermissionCache();
+  return result;
 }
 
 // Delete a workspace role
@@ -466,6 +497,8 @@ export async function deleteWorkspaceRole(roleId: string): Promise<void> {
     const error = await response.json();
     throw new Error(error.error || 'Failed to delete role');
   }
+  // Invalidate permission cache so UI updates immediately
+  invalidatePermissionCache();
 }
 
 // Permission check helpers

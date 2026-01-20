@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '../stores/auth';
-import { fetchMemberRole, fetchDefaultRole, canPerformAction } from '../api/roles';
+import { fetchMemberRole, fetchDefaultRole, canPerformAction, invalidatePermissionCache } from '../api/roles';
 import type { WorkspaceRole, PermissionLevel } from '../api/roles';
+
+// Re-export for convenience
+export { invalidatePermissionCache };
 
 export type ReportType = 'performance' | 'tasks' | 'activity' | 'workload';
 export type AdminPageType = 'emailTemplates' | 'userManagement' | 'roleManagement';
@@ -157,8 +160,18 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
 
     fetchPermissions();
 
+    // Listen for permission cache invalidation events
+    const handlePermissionsInvalidated = () => {
+      if (isMountedRef.current && workspaceId && user?.id) {
+        fetchPermissions();
+      }
+    };
+
+    window.addEventListener('permissions-invalidated', handlePermissionsInvalidated);
+
     return () => {
       isMountedRef.current = false;
+      window.removeEventListener('permissions-invalidated', handlePermissionsInvalidated);
     };
   }, [workspaceId, user?.id]);
 
