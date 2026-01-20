@@ -283,6 +283,7 @@ class BoardDataController extends ControllerBase {
     }
     else {
       // Default: inherit from workspace.
+      // Get members from member_role nodes instead of field_workspace_members.
       if ($workspace_id) {
         $workspace_nodes = $node_storage->loadByProperties([
           'type' => 'workspace',
@@ -291,40 +292,56 @@ class BoardDataController extends ControllerBase {
 
         if (!empty($workspace_nodes)) {
           $workspace = reset($workspace_nodes);
+          $workspace_nid = $workspace->id();
 
-          // Get workspace admin IDs for role determination.
-          $workspace_admin_ids = [];
-          if ($workspace->hasField('field_workspace_admins')) {
-            foreach ($workspace->get('field_workspace_admins') as $admin_ref) {
-              if ($admin_ref->entity) {
-                $workspace_admin_ids[] = $admin_ref->entity->uuid();
+          // Query member_role nodes for this workspace.
+          $member_roles = $node_storage->loadByProperties([
+            'type' => 'member_role',
+            'field_member_role_workspace' => $workspace_nid,
+          ]);
+
+          // Track which users we've added to avoid duplicates.
+          $added_user_ids = [];
+
+          foreach ($member_roles as $member_role) {
+            if (!$member_role->hasField('field_member_role_user') || $member_role->get('field_member_role_user')->isEmpty()) {
+              continue;
+            }
+            $user = $member_role->get('field_member_role_user')->entity;
+            if (!$user) {
+              continue;
+            }
+
+            // Skip super admins from member list.
+            if ($this->isSuperAdmin($user)) {
+              continue;
+            }
+
+            // Skip if already added.
+            if (in_array($user->id(), $added_user_ids)) {
+              continue;
+            }
+            $added_user_ids[] = $user->id();
+
+            // Check if user has admin role by checking their role's permissions.
+            $is_admin = FALSE;
+            if ($member_role->hasField('field_member_role_role') && !$member_role->get('field_member_role_role')->isEmpty()) {
+              $role = $member_role->get('field_member_role_role')->entity;
+              if ($role && $role->hasField('field_perm_member_manage')) {
+                $perm_value = $role->get('field_perm_member_manage')->value;
+                $is_admin = ($perm_value === 'any');
               }
             }
+
+            $members[] = $this->formatUserWithRole($user, $is_admin);
           }
 
-          if ($workspace->hasField('field_workspace_members')) {
-            foreach ($workspace->get('field_workspace_members') as $member_ref) {
-              if ($member_ref->entity) {
-                $user = $member_ref->entity;
-                // Skip super admins from member list.
-                if ($this->isSuperAdmin($user)) {
-                  continue;
-                }
-                $is_admin = in_array($user->uuid(), $workspace_admin_ids);
-                $members[] = $this->formatUserWithRole($user, $is_admin);
-              }
-            }
-          }
-          // Also add owner as admin (skip if super admin).
+          // Also add workspace owner as admin (skip if super admin).
           if ($workspace->hasField('field_workspace_owner') && !$workspace->get('field_workspace_owner')->isEmpty()) {
             $owner = $workspace->get('field_workspace_owner')->entity;
-            if ($owner && !$this->isSuperAdmin($owner)) {
+            if ($owner && !$this->isSuperAdmin($owner) && !in_array($owner->id(), $added_user_ids)) {
               $owner_data = $this->formatUserWithRole($owner, TRUE);
-              // Avoid duplicates.
-              $member_ids = array_column($members, 'id');
-              if (!in_array($owner_data['id'], $member_ids)) {
-                array_unshift($members, $owner_data);
-              }
+              array_unshift($members, $owner_data);
             }
           }
         }
