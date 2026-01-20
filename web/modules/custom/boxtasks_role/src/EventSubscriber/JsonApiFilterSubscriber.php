@@ -50,7 +50,7 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
   }
 
   /**
-   * Filters JSON:API responses for boards and workspaces.
+   * Filters JSON:API responses for boards, workspaces, notifications, and activities.
    *
    * @param \Symfony\Component\HttpKernel\Event\ResponseEvent $event
    *   The response event.
@@ -75,11 +75,13 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
       return;
     }
 
-    // Check if this is a board or workspace collection/resource.
+    // Check which type of resource this is.
     $is_board_collection = strpos($path, '/jsonapi/node/board') !== FALSE;
     $is_workspace_collection = strpos($path, '/jsonapi/node/workspace') !== FALSE;
+    $is_notification_collection = strpos($path, '/jsonapi/node/notification') !== FALSE;
+    $is_activity_collection = strpos($path, '/jsonapi/node/activity') !== FALSE;
 
-    if (!$is_board_collection && !$is_workspace_collection) {
+    if (!$is_board_collection && !$is_workspace_collection && !$is_notification_collection && !$is_activity_collection) {
       return;
     }
 
@@ -92,18 +94,41 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
 
     $modified = FALSE;
 
+    // Determine the resource type for filtering.
+    $resource_type = 'workspace';
+    if ($is_board_collection) {
+      $resource_type = 'board';
+    }
+    elseif ($is_notification_collection) {
+      $resource_type = 'notification';
+    }
+    elseif ($is_activity_collection) {
+      $resource_type = 'activity';
+    }
+
     // Handle collection (array of items).
     if (isset($data['data'][0])) {
       $filtered_data = [];
+      $filtered_included = [];
+      $kept_ids = [];
+
       foreach ($data['data'] as $item) {
-        if ($this->canViewItem($item, $is_board_collection ? 'board' : 'workspace')) {
+        if ($this->canViewItem($item, $resource_type)) {
           $filtered_data[] = $item;
+          $kept_ids[] = $item['id'] ?? NULL;
         }
         else {
           $modified = TRUE;
         }
       }
       $data['data'] = $filtered_data;
+
+      // Filter included resources to only keep those related to kept items.
+      if ($modified && isset($data['included'])) {
+        // For simplicity, keep all included resources that are referenced by kept items.
+        // This avoids orphaned included resources.
+        $data['included'] = $this->filterIncludedResources($data['included'], $filtered_data);
+      }
 
       // Update meta count if present.
       if (isset($data['meta']['count'])) {
@@ -112,7 +137,7 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
     }
     // Handle single resource.
     elseif (isset($data['data']['type'])) {
-      if (!$this->canViewItem($data['data'], $is_board_collection ? 'board' : 'workspace')) {
+      if (!$this->canViewItem($data['data'], $resource_type)) {
         // Return 403 for single resource.
         $response->setStatusCode(403);
         $data = [
@@ -134,12 +159,51 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
   }
 
   /**
+   * Filter included resources to only keep those referenced by kept data items.
+   *
+   * @param array $included
+   *   The included resources.
+   * @param array $kept_data
+   *   The kept data items.
+   *
+   * @return array
+   *   Filtered included resources.
+   */
+  protected function filterIncludedResources(array $included, array $kept_data): array {
+    // Collect all referenced IDs from kept data items.
+    $referenced_ids = [];
+    foreach ($kept_data as $item) {
+      if (isset($item['relationships'])) {
+        foreach ($item['relationships'] as $rel) {
+          if (isset($rel['data'])) {
+            if (isset($rel['data']['id'])) {
+              $referenced_ids[$rel['data']['id']] = TRUE;
+            }
+            elseif (is_array($rel['data'])) {
+              foreach ($rel['data'] as $rel_item) {
+                if (isset($rel_item['id'])) {
+                  $referenced_ids[$rel_item['id']] = TRUE;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Filter included to only keep referenced items.
+    return array_values(array_filter($included, function ($item) use ($referenced_ids) {
+      return isset($item['id']) && isset($referenced_ids[$item['id']]);
+    }));
+  }
+
+  /**
    * Check if the current user can view a JSON:API item.
    *
    * @param array $item
    *   The JSON:API resource item.
    * @param string $type
-   *   Either 'board' or 'workspace'.
+   *   One of: 'board', 'workspace', 'notification', 'activity'.
    *
    * @return bool
    *   TRUE if user can view the item.
@@ -152,27 +216,204 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
 
     try {
       $storage = $this->entityTypeManager->getStorage('node');
-      $nodes = $storage->loadByProperties([
-        'type' => $type,
-        'uuid' => $uuid,
-      ]);
-      $node = reset($nodes);
-
-      if (!$node) {
-        return TRUE;
-      }
 
       if ($type === 'board') {
+        $nodes = $storage->loadByProperties([
+          'type' => 'board',
+          'uuid' => $uuid,
+        ]);
+        $node = reset($nodes);
+        if (!$node) {
+          return TRUE;
+        }
         return $this->permissionChecker->canViewBoard($node);
       }
-      else {
+      elseif ($type === 'workspace') {
+        $nodes = $storage->loadByProperties([
+          'type' => 'workspace',
+          'uuid' => $uuid,
+        ]);
+        $node = reset($nodes);
+        if (!$node) {
+          return TRUE;
+        }
         return $this->permissionChecker->canViewWorkspace($node);
       }
+      elseif ($type === 'notification') {
+        return $this->canViewNotification($item);
+      }
+      elseif ($type === 'activity') {
+        return $this->canViewActivity($item);
+      }
+
+      return TRUE;
     }
     catch (\Exception $e) {
       // On error, allow access to prevent blocking.
       return TRUE;
     }
+  }
+
+  /**
+   * Check if the current user can view a notification.
+   *
+   * A notification is viewable if the user can view the related card/board.
+   *
+   * @param array $item
+   *   The JSON:API notification item.
+   *
+   * @return bool
+   *   TRUE if user can view the notification.
+   */
+  protected function canViewNotification(array $item): bool {
+    $storage = $this->entityTypeManager->getStorage('node');
+
+    // Check if notification has a card reference.
+    $card_rel = $item['relationships']['field_notification_card']['data'] ?? NULL;
+    if ($card_rel && isset($card_rel['id'])) {
+      $card_uuid = $card_rel['id'];
+      $cards = $storage->loadByProperties([
+        'type' => 'card',
+        'uuid' => $card_uuid,
+      ]);
+      $card = reset($cards);
+
+      if ($card) {
+        // Get the board from the card's list.
+        $board = $this->getBoardFromCard($card);
+        if ($board) {
+          return $this->permissionChecker->canViewBoard($board);
+        }
+      }
+    }
+
+    // Check if notification has a board reference.
+    $board_rel = $item['relationships']['field_notification_board']['data'] ?? NULL;
+    if ($board_rel && isset($board_rel['id'])) {
+      $board_uuid = $board_rel['id'];
+      $boards = $storage->loadByProperties([
+        'type' => 'board',
+        'uuid' => $board_uuid,
+      ]);
+      $board = reset($boards);
+      if ($board) {
+        return $this->permissionChecker->canViewBoard($board);
+      }
+    }
+
+    // Check if notification has a workspace reference.
+    $workspace_rel = $item['relationships']['field_notification_workspace']['data'] ?? NULL;
+    if ($workspace_rel && isset($workspace_rel['id'])) {
+      $workspace_uuid = $workspace_rel['id'];
+      $workspaces = $storage->loadByProperties([
+        'type' => 'workspace',
+        'uuid' => $workspace_uuid,
+      ]);
+      $workspace = reset($workspaces);
+      if ($workspace) {
+        return $this->permissionChecker->canViewWorkspace($workspace);
+      }
+    }
+
+    // If no card, board, or workspace reference, allow the notification.
+    // This handles system-level notifications.
+    return TRUE;
+  }
+
+  /**
+   * Check if the current user can view an activity.
+   *
+   * An activity is viewable if the user can view the related card/board.
+   *
+   * @param array $item
+   *   The JSON:API activity item.
+   *
+   * @return bool
+   *   TRUE if user can view the activity.
+   */
+  protected function canViewActivity(array $item): bool {
+    $storage = $this->entityTypeManager->getStorage('node');
+
+    // Check if activity has a card reference.
+    $card_rel = $item['relationships']['field_activity_card']['data'] ?? NULL;
+    if ($card_rel && isset($card_rel['id'])) {
+      $card_uuid = $card_rel['id'];
+      $cards = $storage->loadByProperties([
+        'type' => 'card',
+        'uuid' => $card_uuid,
+      ]);
+      $card = reset($cards);
+
+      if ($card) {
+        // Get the board from the card's list.
+        $board = $this->getBoardFromCard($card);
+        if ($board) {
+          return $this->permissionChecker->canViewBoard($board);
+        }
+      }
+    }
+
+    // Check if activity has a board reference.
+    $board_rel = $item['relationships']['field_activity_board']['data'] ?? NULL;
+    if ($board_rel && isset($board_rel['id'])) {
+      $board_uuid = $board_rel['id'];
+      $boards = $storage->loadByProperties([
+        'type' => 'board',
+        'uuid' => $board_uuid,
+      ]);
+      $board = reset($boards);
+      if ($board) {
+        return $this->permissionChecker->canViewBoard($board);
+      }
+    }
+
+    // Check if activity has a workspace reference.
+    $workspace_rel = $item['relationships']['field_activity_workspace']['data'] ?? NULL;
+    if ($workspace_rel && isset($workspace_rel['id'])) {
+      $workspace_uuid = $workspace_rel['id'];
+      $workspaces = $storage->loadByProperties([
+        'type' => 'workspace',
+        'uuid' => $workspace_uuid,
+      ]);
+      $workspace = reset($workspaces);
+      if ($workspace) {
+        return $this->permissionChecker->canViewWorkspace($workspace);
+      }
+    }
+
+    // If no references found, deny access to be safe.
+    // Activities should always have at least a board reference.
+    return FALSE;
+  }
+
+  /**
+   * Get the board from a card via its list.
+   *
+   * @param \Drupal\node\NodeInterface $card
+   *   The card node.
+   *
+   * @return \Drupal\node\NodeInterface|null
+   *   The board node or NULL.
+   */
+  protected function getBoardFromCard($card) {
+    $storage = $this->entityTypeManager->getStorage('node');
+
+    // Get the list from the card.
+    if (!$card->hasField('field_card_list') || $card->get('field_card_list')->isEmpty()) {
+      return NULL;
+    }
+
+    $list = $card->get('field_card_list')->entity;
+    if (!$list) {
+      return NULL;
+    }
+
+    // Get the board from the list.
+    if (!$list->hasField('field_list_board') || $list->get('field_list_board')->isEmpty()) {
+      return NULL;
+    }
+
+    return $list->get('field_list_board')->entity;
   }
 
 }

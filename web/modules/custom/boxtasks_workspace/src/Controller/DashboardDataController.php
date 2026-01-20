@@ -2,6 +2,7 @@
 
 namespace Drupal\boxtasks_workspace\Controller;
 
+use Drupal\boxtasks_role\Service\PermissionChecker;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -39,11 +40,19 @@ class DashboardDataController extends ControllerBase {
   protected $authenticatedUser;
 
   /**
+   * The permission checker service.
+   *
+   * @var \Drupal\boxtasks_role\Service\PermissionChecker
+   */
+  protected $permissionChecker;
+
+  /**
    * Constructs a DashboardDataController object.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, AccountInterface $current_user) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, AccountInterface $current_user, PermissionChecker $permission_checker) {
     $this->entityTypeManager = $entity_type_manager;
     $this->currentUser = $current_user;
+    $this->permissionChecker = $permission_checker;
   }
 
   /**
@@ -52,7 +61,8 @@ class DashboardDataController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity_type.manager'),
-      $container->get('current_user')
+      $container->get('current_user'),
+      $container->get('boxtasks_role.permission_checker')
     );
   }
 
@@ -171,11 +181,17 @@ class DashboardDataController extends ControllerBase {
     $seven_days_from_now = $now + (7 * 24 * 60 * 60);
 
     // Get all boards for this workspace.
-    $boards = $node_storage->loadByProperties([
+    $all_boards = $node_storage->loadByProperties([
       'type' => 'board',
       'field_board_workspace' => $workspace->id(),
       'field_board_archived' => FALSE,
     ]);
+
+    // Filter boards based on user access.
+    $user_id = $this->authenticatedUser ? (int) $this->authenticatedUser->id() : NULL;
+    $boards = array_filter($all_boards, function ($board) use ($user_id) {
+      return $this->permissionChecker->canViewBoard($board, $user_id);
+    });
 
     $board_ids = array_map(function ($board) {
       return $board->id();
@@ -407,17 +423,22 @@ class DashboardDataController extends ControllerBase {
       }
     }
 
-    // Get recent activity (limit 20).
-    $activity_query = $node_storage->getQuery()
-      ->condition('type', 'activity')
-      ->condition('field_activity_workspace', $workspace->id())
-      ->sort('created', 'DESC')
-      ->range(0, 20)
-      ->accessCheck(FALSE)
-      ->execute();
-
-    $activities = $node_storage->loadMultiple($activity_query);
+    // Get recent activity (limit 20), filtered by accessible boards.
     $recent_activity = [];
+    $activities = [];
+
+    if (!empty($board_ids)) {
+      // Query activities for accessible boards only.
+      $activity_query = $node_storage->getQuery()
+        ->condition('type', 'activity')
+        ->condition('field_activity_board', $board_ids, 'IN')
+        ->sort('created', 'DESC')
+        ->range(0, 20)
+        ->accessCheck(FALSE)
+        ->execute();
+
+      $activities = $node_storage->loadMultiple($activity_query);
+    }
 
     foreach ($activities as $activity) {
       $activity_data = [
