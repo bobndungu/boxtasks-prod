@@ -1,6 +1,32 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Check, CheckCheck, X, Clock, ExternalLink, ArrowLeft, Settings } from 'lucide-react';
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  X,
+  Clock,
+  ExternalLink,
+  ArrowLeft,
+  Settings,
+  User,
+  AlarmClock,
+  MessageSquare,
+  AtSign,
+  ArrowRight,
+  CheckCircle,
+  CheckSquare,
+  Calendar,
+  Tag,
+  Target,
+  Trophy,
+  AlertTriangle,
+  Flag,
+  PartyPopper,
+  XCircle,
+  Archive,
+  RefreshCw,
+} from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
 import {
   fetchNotifications,
@@ -9,9 +35,62 @@ import {
   deleteNotification,
   getNotificationDisplay,
   type Notification,
+  type NotificationIconName,
 } from '../lib/api/notifications';
 import { formatDateShort } from '../lib/utils/date';
 import MainHeader from '../components/MainHeader';
+
+// Decode HTML entities (for quotation marks and other special characters)
+function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
+// Map icon names to Lucide icon components
+function getNotificationIcon(iconName: NotificationIconName, colorClass: string) {
+  const iconProps = { className: `h-5 w-5 ${colorClass}` };
+
+  switch (iconName) {
+    case 'user':
+      return <User {...iconProps} />;
+    case 'alarm-clock':
+      return <AlarmClock {...iconProps} />;
+    case 'message-square':
+      return <MessageSquare {...iconProps} />;
+    case 'at-sign':
+      return <AtSign {...iconProps} />;
+    case 'arrow-right':
+      return <ArrowRight {...iconProps} />;
+    case 'check-circle':
+      return <CheckCircle {...iconProps} />;
+    case 'check-square':
+      return <CheckSquare {...iconProps} />;
+    case 'calendar':
+      return <Calendar {...iconProps} />;
+    case 'tag':
+      return <Tag {...iconProps} />;
+    case 'target':
+      return <Target {...iconProps} />;
+    case 'trophy':
+      return <Trophy {...iconProps} />;
+    case 'alert-triangle':
+      return <AlertTriangle {...iconProps} />;
+    case 'flag':
+      return <Flag {...iconProps} />;
+    case 'party-popper':
+      return <PartyPopper {...iconProps} />;
+    case 'x-circle':
+      return <XCircle {...iconProps} />;
+    case 'archive':
+      return <Archive {...iconProps} />;
+    case 'refresh-cw':
+      return <RefreshCw {...iconProps} />;
+    case 'bell':
+    default:
+      return <Bell {...iconProps} />;
+  }
+}
 
 export default function Notifications() {
   const { user } = useAuthStore();
@@ -161,14 +240,16 @@ export default function Notifications() {
                       !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                     }`}
                   >
-                    <div className="flex items-start">
-                      {/* Icon */}
-                      <span className={`text-xl mr-4 ${display.color}`}>{display.icon}</span>
+                    <div className="flex items-start gap-4">
+                      {/* Icon - styled like ActivityFeed */}
+                      <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                        {getNotificationIcon(display.iconName, display.color)}
+                      </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm ${!notification.read ? 'font-medium' : ''} text-gray-900 dark:text-white`}>
-                          {notification.message}
+                          {decodeHtmlEntities(notification.message)}
                         </p>
 
                         {notification.cardTitle && (

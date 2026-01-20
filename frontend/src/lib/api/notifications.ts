@@ -224,29 +224,36 @@ export async function deleteNotification(id: string): Promise<void> {
   }
 }
 
-// Get icon and label for notification type
-export function getNotificationDisplay(type: NotificationType): { icon: string; label: string; color: string } {
-  const displays: Record<NotificationType, { icon: string; label: string; color: string }> = {
-    member_assigned: { icon: '👤', label: 'Assigned to you', color: 'text-blue-600' },
-    member_removed: { icon: '👤', label: 'Removed from card', color: 'text-gray-600' },
-    card_due: { icon: '⏰', label: 'Card is due', color: 'text-red-600' },
-    comment_added: { icon: '💬', label: 'New comment', color: 'text-green-600' },
-    mentioned: { icon: '@', label: 'Mentioned you', color: 'text-purple-600' },
-    card_moved: { icon: '↔️', label: 'Card moved', color: 'text-gray-600' },
-    card_completed: { icon: '✅', label: 'Card completed', color: 'text-green-600' },
-    checklist_completed: { icon: '☑️', label: 'Checklist item completed', color: 'text-green-500' },
-    due_date_approaching: { icon: '📅', label: 'Due date approaching', color: 'text-orange-600' },
-    label_added: { icon: '🏷️', label: 'Label added', color: 'text-blue-500' },
-    goal_progress: { icon: '🎯', label: 'Goal progress updated', color: 'text-purple-600' },
-    goal_completed: { icon: '🏆', label: 'Goal completed', color: 'text-green-600' },
-    goal_at_risk: { icon: '⚠️', label: 'Goal at risk', color: 'text-orange-600' },
-    milestone_due: { icon: '🚩', label: 'Milestone due', color: 'text-amber-600' },
-    milestone_completed: { icon: '🎉', label: 'Milestone reached', color: 'text-green-600' },
-    milestone_missed: { icon: '❌', label: 'Milestone missed', color: 'text-red-600' },
-    card_archived: { icon: '📦', label: 'Card archived', color: 'text-orange-600' },
-    card_restored: { icon: '♻️', label: 'Card restored', color: 'text-green-600' },
+// Get icon name and label for notification type
+// Icons are rendered in NotificationDropdown using Lucide components
+export type NotificationIconName =
+  | 'user' | 'alarm-clock' | 'message-square' | 'at-sign' | 'arrow-right'
+  | 'check-circle' | 'check-square' | 'calendar' | 'tag' | 'target'
+  | 'trophy' | 'alert-triangle' | 'flag' | 'party-popper' | 'x-circle'
+  | 'archive' | 'refresh-cw' | 'bell';
+
+export function getNotificationDisplay(type: NotificationType): { iconName: NotificationIconName; label: string; color: string } {
+  const displays: Record<NotificationType, { iconName: NotificationIconName; label: string; color: string }> = {
+    member_assigned: { iconName: 'user', label: 'Assigned to you', color: 'text-blue-600' },
+    member_removed: { iconName: 'user', label: 'Removed from card', color: 'text-gray-600' },
+    card_due: { iconName: 'alarm-clock', label: 'Card is due', color: 'text-red-600' },
+    comment_added: { iconName: 'message-square', label: 'New comment', color: 'text-green-600' },
+    mentioned: { iconName: 'at-sign', label: 'Mentioned you', color: 'text-purple-600' },
+    card_moved: { iconName: 'arrow-right', label: 'Card moved', color: 'text-gray-600' },
+    card_completed: { iconName: 'check-circle', label: 'Card completed', color: 'text-green-600' },
+    checklist_completed: { iconName: 'check-square', label: 'Checklist item completed', color: 'text-green-500' },
+    due_date_approaching: { iconName: 'calendar', label: 'Due date approaching', color: 'text-orange-600' },
+    label_added: { iconName: 'tag', label: 'Label added', color: 'text-blue-500' },
+    goal_progress: { iconName: 'target', label: 'Goal progress updated', color: 'text-purple-600' },
+    goal_completed: { iconName: 'trophy', label: 'Goal completed', color: 'text-green-600' },
+    goal_at_risk: { iconName: 'alert-triangle', label: 'Goal at risk', color: 'text-orange-600' },
+    milestone_due: { iconName: 'flag', label: 'Milestone due', color: 'text-amber-600' },
+    milestone_completed: { iconName: 'party-popper', label: 'Milestone reached', color: 'text-green-600' },
+    milestone_missed: { iconName: 'x-circle', label: 'Milestone missed', color: 'text-red-600' },
+    card_archived: { iconName: 'archive', label: 'Card archived', color: 'text-orange-600' },
+    card_restored: { iconName: 'refresh-cw', label: 'Card restored', color: 'text-green-600' },
   };
-  return displays[type] || { icon: '🔔', label: 'Notification', color: 'text-gray-600' };
+  return displays[type] || { iconName: 'bell', label: 'Notification', color: 'text-gray-600' };
 }
 
 // Email delivery timing options
