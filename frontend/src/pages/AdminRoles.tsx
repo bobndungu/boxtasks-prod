@@ -80,6 +80,7 @@ const PERMISSION_CATEGORIES = {
       { key: 'boardMemberView', label: 'View board members' },
       { key: 'boardMemberAdd', label: 'Add board members' },
       { key: 'boardMemberRemove', label: 'Remove board members' },
+      { key: 'boardRoleView', label: 'View board member roles' },
     ],
   },
   comments: {
@@ -146,6 +147,7 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   boardMemberView: 'none',
   boardMemberAdd: 'none',
   boardMemberRemove: 'none',
+  boardRoleView: 'none',
   // Legacy member management (deprecated)
   memberManage: 'none',
   commentEdit: 'own',

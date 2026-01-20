@@ -117,6 +117,7 @@ class WorkspaceRolesController extends ControllerBase {
           'boardMemberView' => $this->getFieldValue($role, 'field_perm_board_member_view', 'none'),
           'boardMemberAdd' => $this->getFieldValue($role, 'field_perm_board_member_add', 'none'),
           'boardMemberRemove' => $this->getFieldValue($role, 'field_perm_board_member_remove', 'none'),
+          'boardRoleView' => $this->getFieldValue($role, 'field_perm_board_role_view', 'none'),
           // Member management (deprecated)
           'memberManage' => $this->getFieldValue($role, 'field_perm_member_manage', 'none'),
           // Comment permissions

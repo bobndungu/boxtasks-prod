@@ -67,6 +67,7 @@ const PERMISSION_CONFIG: PermissionConfig[] = [
   { key: 'boardMemberView', label: 'View Board Members', description: 'Can view board members list', category: 'board_member', allowOwn: false },
   { key: 'boardMemberAdd', label: 'Add Board Members', description: 'Can add members to boards', category: 'board_member', allowOwn: false },
   { key: 'boardMemberRemove', label: 'Remove Board Members', description: 'Can remove members from boards', category: 'board_member', allowOwn: false },
+  { key: 'boardRoleView', label: 'View Board Member Roles', description: 'Can view the roles assigned to board members', category: 'board_member', allowOwn: false },
   // Report permissions
   { key: 'reportPerformance', label: 'Performance Reports', description: 'Can view user performance reports', category: 'report', allowOwn: true },
   { key: 'reportTasks', label: 'Task Reports', description: 'Can view task duration and completion reports', category: 'report', allowOwn: true },
@@ -126,6 +127,7 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
   boardMemberView: 'none',
   boardMemberAdd: 'none',
   boardMemberRemove: 'none',
+  boardRoleView: 'none',
   // Legacy member management
   memberManage: 'none',
   commentEdit: 'own',

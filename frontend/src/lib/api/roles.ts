@@ -42,6 +42,7 @@ export interface WorkspaceRole {
     boardMemberView: PermissionLevel;
     boardMemberAdd: PermissionLevel;
     boardMemberRemove: PermissionLevel;
+    boardRoleView: PermissionLevel;
     // Member management (deprecated, kept for backward compatibility)
     memberManage: PermissionLevel;
     // Comment permissions
@@ -113,6 +114,7 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       boardMemberView: (attrs.field_perm_board_member_view as PermissionLevel) || 'none',
       boardMemberAdd: (attrs.field_perm_board_member_add as PermissionLevel) || 'none',
       boardMemberRemove: (attrs.field_perm_board_member_remove as PermissionLevel) || 'none',
+      boardRoleView: (attrs.field_perm_board_role_view as PermissionLevel) || 'none',
       // Member management (deprecated, kept for backward compatibility)
       memberManage: (attrs.field_perm_member_manage as PermissionLevel) || 'none',
       // Comment permissions

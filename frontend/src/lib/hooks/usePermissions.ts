@@ -23,6 +23,7 @@ interface UsePermissionsReturn {
   canRemoveMembers: (scope: 'workspace' | 'board') => boolean;
   // Role permissions
   canViewRoles: () => boolean;
+  canViewBoardRoles: () => boolean;
   canViewReport: (reportType: ReportType, isOwner?: boolean) => boolean;
   canExportReports: () => boolean;
   canViewAnyReport: () => boolean;
@@ -60,6 +61,7 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   boardMemberView: 'none',
   boardMemberAdd: 'none',
   boardMemberRemove: 'none',
+  boardRoleView: 'none',
   // Legacy member management (deprecated)
   memberManage: 'none',
   commentEdit: 'own',
@@ -400,6 +402,19 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     return permissions.roleView === 'any' || permissions.roleManagement === 'any';
   }, [permissions, user]);
 
+  // Board role view permission (view member roles within a board)
+  const canViewBoardRoles = useCallback((): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    // Check if user has Drupal administrator role - they can access everything
+    if (user?.roles?.includes('administrator') || user?.roles?.includes('box_admin')) {
+      return true;
+    }
+    if (!permissions) return false;
+
+    return permissions.boardRoleView === 'any';
+  }, [permissions, user]);
+
   const canViewReport = useCallback((reportType: ReportType, isOwner: boolean = false): boolean => {
     // Super admin (uid=1) bypasses all permission checks
     if (isSuperAdmin(user)) return true;
@@ -488,6 +503,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canRemoveMembers,
     // Role permissions
     canViewRoles,
+    canViewBoardRoles,
     canViewReport,
     canExportReports,
     canViewAnyReport,

@@ -1,0 +1,27 @@
+uuid: ca516740-74ea-4b74-951c-b45390231cdf
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_perm_board_role_view
+field_name: field_perm_board_role_view
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: any
+      label: Any
+    -
+      value: none
+      label: None
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
