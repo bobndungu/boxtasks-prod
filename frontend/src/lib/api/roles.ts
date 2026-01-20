@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 // Permission cache version - increment this to bust cache
 let permissionCacheVersion = Date.now();
 
-// Get a cache-busting parameter
+// Get a cache-busting parameter (only for custom API, not JSON:API)
 function getCacheBuster(): string {
   return `_v=${permissionCacheVersion}`;
 }
@@ -15,6 +15,16 @@ export function invalidatePermissionCache(): void {
   permissionCacheVersion = Date.now();
   // Dispatch a custom event so components can react
   window.dispatchEvent(new CustomEvent('permissions-invalidated'));
+}
+
+// Get headers for JSON:API requests with cache control
+function getJsonApiHeaders(): HeadersInit {
+  return {
+    'Accept': 'application/vnd.api+json',
+    'Authorization': `Bearer ${getAccessToken()}`,
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+  };
 }
 
 export type PermissionLevel = 'any' | 'own' | 'none';
@@ -248,13 +258,9 @@ export async function fetchRole(roleId: string): Promise<WorkspaceRole | null> {
 // Get the default role
 export async function fetchDefaultRole(): Promise<WorkspaceRole | null> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/workspace_role?filter[field_role_is_default]=1&page[limit]=1&${getCacheBuster()}`,
+    `${API_URL}/jsonapi/node/workspace_role?filter[field_role_is_default]=1&page[limit]=1`,
     {
-      headers: {
-        'Accept': 'application/vnd.api+json',
-        'Authorization': `Bearer ${getAccessToken()}`,
-        'Cache-Control': 'no-cache',
-      },
+      headers: getJsonApiHeaders(),
     }
   );
 
@@ -274,13 +280,9 @@ export async function fetchDefaultRole(): Promise<WorkspaceRole | null> {
 export async function fetchMemberRole(workspaceId: string, userId: string): Promise<MemberRoleAssignment | null> {
   // First, fetch the member_role assignment (without including the role, as it may be access-restricted)
   const response = await fetch(
-    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&filter[field_member_role_user.id]=${userId}&${getCacheBuster()}`,
+    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&filter[field_member_role_user.id]=${userId}`,
     {
-      headers: {
-        'Accept': 'application/vnd.api+json',
-        'Authorization': `Bearer ${getAccessToken()}`,
-        'Cache-Control': 'no-cache',
-      },
+      headers: getJsonApiHeaders(),
     }
   );
 
@@ -316,13 +318,9 @@ export async function fetchMemberRole(workspaceId: string, userId: string): Prom
 // Fetch all member role assignments for a workspace
 export async function fetchWorkspaceMemberRoles(workspaceId: string): Promise<MemberRoleAssignment[]> {
   const response = await fetch(
-    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&include=field_member_role_role,field_member_role_user&${getCacheBuster()}`,
+    `${API_URL}/jsonapi/node/member_role?filter[field_member_role_workspace.id]=${workspaceId}&include=field_member_role_role,field_member_role_user`,
     {
-      headers: {
-        'Accept': 'application/vnd.api+json',
-        'Authorization': `Bearer ${getAccessToken()}`,
-        'Cache-Control': 'no-cache',
-      },
+      headers: getJsonApiHeaders(),
     }
   );
 
