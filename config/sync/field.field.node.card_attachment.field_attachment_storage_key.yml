@@ -1,0 +1,21 @@
+uuid: 0673a5fb-d08a-4502-b4e9-1e3b02dc7584
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attachment_storage_key
+    - node.type.card_attachment
+_core:
+  default_config_hash: RfWPVHOOUIFAWqVUjmYimvlj9Adnw-4gjK2BKcvPAfU
+id: node.card_attachment.field_attachment_storage_key
+field_name: field_attachment_storage_key
+entity_type: node
+bundle: card_attachment
+label: 'Storage Key'
+description: 'Original storage key for file retrieval'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

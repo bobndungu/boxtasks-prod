@@ -1,0 +1,21 @@
+uuid: d65ee36f-5dec-44f2-945d-39f2dac6f43f
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: aakKjYZ_dR4zIdERVKhHqzBUjT2nnBE239RrO8hqwgY
+id: node.field_card_board
+field_name: field_card_board
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

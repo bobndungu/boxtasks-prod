@@ -1,0 +1,30 @@
+uuid: 9f52c98d-73e7-4326-b8f2-732532e9c275
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_board
+    - node.type.board
+    - node.type.card
+_core:
+  default_config_hash: uaZViFZ55lMMXUXeJwJgyvu92JxHTwwlnrULRGNXrpU
+id: node.card.field_card_board
+field_name: field_card_board
+entity_type: node
+bundle: card
+label: Board
+description: 'The board this card belongs to (denormalized for filtering).'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      board: board
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+field_type: entity_reference

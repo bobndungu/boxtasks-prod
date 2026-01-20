@@ -1,0 +1,20 @@
+uuid: acb91505-28c2-4c2f-b770-a7f41d47bc55
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: HHXUioupo4Er7RIAjHSvf0hwUe8ZuiOb0PWz5nqe3lo
+id: node.field_is_collapsed
+field_name: field_is_collapsed
+entity_type: node
+type: boolean
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

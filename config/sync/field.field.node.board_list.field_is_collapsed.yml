@@ -1,0 +1,25 @@
+uuid: 206517ed-9140-4f4c-90fb-dc27cd2770a2
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_is_collapsed
+    - node.type.board_list
+_core:
+  default_config_hash: ScZn5jp-mI1zL24HK_xHyQyWsXF72AxrwNBS1eatVdc
+id: node.board_list.field_is_collapsed
+field_name: field_is_collapsed
+entity_type: node
+bundle: board_list
+label: Collapsed
+description: 'Whether this list is collapsed in the UI.'
+required: false
+translatable: false
+default_value:
+  -
+    value: false
+default_value_callback: ''
+settings:
+  on_label: Collapsed
+  off_label: Expanded
+field_type: boolean
