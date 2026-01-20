@@ -186,12 +186,14 @@ class PermissionChecker {
 
     // Get workspace ID from board.
     if (!$board->hasField('field_board_workspace')) {
-      return TRUE; // No workspace restriction.
+      // No workspace field - only super admins can view.
+      return $this->isSuperAdmin($user_id);
     }
 
     $workspace_ref = $board->get('field_board_workspace')->entity;
     if (!$workspace_ref) {
-      return TRUE; // No workspace assigned.
+      // No workspace assigned - only super admins can view.
+      return $this->isSuperAdmin($user_id);
     }
 
     $role = $this->getUserRoleForWorkspace($workspace_ref->uuid(), $user_id);
@@ -331,7 +333,7 @@ class PermissionChecker {
     }
 
     if ($perm_level === 'own' && $owner_id !== NULL) {
-      return $owner_id === $user_id;
+      return (int) $owner_id === (int) $user_id;
     }
 
     return FALSE;

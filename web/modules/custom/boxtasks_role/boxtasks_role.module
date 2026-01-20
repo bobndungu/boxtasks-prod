@@ -15,8 +15,9 @@ use Drupal\node\NodeInterface;
 function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $account) {
   $type = $node->bundle();
 
-  // Only handle board and workspace nodes.
-  if (!in_array($type, ['board', 'workspace'])) {
+  // Define which content types we handle.
+  $handled_types = ['board', 'workspace', 'card', 'list', 'card_comment', 'checklist', 'checklist_item'];
+  if (!in_array($type, $handled_types)) {
     return AccessResult::neutral();
   }
 
@@ -34,7 +35,12 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
   // JSON:API uses 'view revision' when fetching content.
   $normalized_op = ($op === 'view revision') ? 'view' : $op;
 
-  // Map operation to permission field.
+  // Handle card, list, and related types - access is based on board access.
+  if (in_array($type, ['card', 'list', 'card_comment', 'checklist', 'checklist_item'])) {
+    return boxtasks_role_check_board_based_access($node, $type, $normalized_op, $account, $permission_checker);
+  }
+
+  // Map operation to permission field for board and workspace.
   $permission_map = [
     'board' => [
       'view' => 'field_perm_board_view',
@@ -105,6 +111,193 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
   return AccessResult::forbidden()
     ->cachePerUser()
     ->addCacheableDependency($node);
+}
+
+/**
+ * Check access for card, list, and related types based on board access.
+ *
+ * @param \Drupal\node\NodeInterface $node
+ *   The node being accessed.
+ * @param string $type
+ *   The node type (card, list, card_comment, checklist, checklist_item).
+ * @param string $op
+ *   The operation (view, update, delete).
+ * @param \Drupal\Core\Session\AccountInterface $account
+ *   The user account.
+ * @param \Drupal\boxtasks_role\Service\PermissionChecker $permission_checker
+ *   The permission checker service.
+ *
+ * @return \Drupal\Core\Access\AccessResultInterface
+ *   The access result.
+ */
+function boxtasks_role_check_board_based_access(NodeInterface $node, string $type, string $op, AccountInterface $account, $permission_checker) {
+  // Get the board for this entity.
+  $board = boxtasks_role_get_board_for_entity($node, $type);
+
+  if (!$board) {
+    // No board found - deny access for security.
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node);
+  }
+
+  // For view operations, check if user can view the board.
+  if ($op === 'view') {
+    $can_view = $permission_checker->canViewBoard($board, (int) $account->id());
+    if ($can_view) {
+      return AccessResult::allowed()
+        ->cachePerUser()
+        ->addCacheableDependency($node)
+        ->addCacheableDependency($board)
+        ->addCacheTags(['node_list:member_role']);
+    }
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheableDependency($board)
+      ->addCacheTags(['node_list:member_role']);
+  }
+
+  // For update/delete, first check board access, then check specific permissions.
+  $can_view_board = $permission_checker->canViewBoard($board, (int) $account->id());
+  if (!$can_view_board) {
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheableDependency($board)
+      ->addCacheTags(['node_list:member_role']);
+  }
+
+  // Get workspace from board.
+  if (!$board->hasField('field_board_workspace') || $board->get('field_board_workspace')->isEmpty()) {
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheableDependency($board);
+  }
+  $workspace = $board->get('field_board_workspace')->entity;
+  if (!$workspace) {
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheableDependency($board);
+  }
+
+  // Map type and operation to permission field.
+  $permission_map = [
+    'card' => [
+      'update' => 'field_perm_card_edit',
+      'delete' => 'field_perm_card_delete',
+    ],
+    'list' => [
+      'update' => 'field_perm_list_edit',
+      'delete' => 'field_perm_list_delete',
+    ],
+    'card_comment' => [
+      'update' => 'field_perm_comment_edit',
+      'delete' => 'field_perm_comment_delete',
+    ],
+    'checklist' => [
+      'update' => 'field_perm_card_edit',
+      'delete' => 'field_perm_card_delete',
+    ],
+    'checklist_item' => [
+      'update' => 'field_perm_card_edit',
+      'delete' => 'field_perm_card_delete',
+    ],
+  ];
+
+  if (!isset($permission_map[$type][$op])) {
+    return AccessResult::neutral();
+  }
+
+  $permission_field = $permission_map[$type][$op];
+  $owner_id = (int) $node->getOwnerId();
+
+  $has_permission = $permission_checker->checkPermission(
+    $permission_field,
+    $workspace->uuid(),
+    $owner_id,
+    $account->id()
+  );
+
+  if ($has_permission) {
+    return AccessResult::allowed()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheableDependency($board)
+      ->addCacheableDependency($workspace);
+  }
+
+  return AccessResult::forbidden()
+    ->cachePerUser()
+    ->addCacheableDependency($node)
+    ->addCacheableDependency($board)
+    ->addCacheableDependency($workspace);
+}
+
+/**
+ * Get the board associated with a card, list, or related entity.
+ *
+ * @param \Drupal\node\NodeInterface $node
+ *   The node.
+ * @param string $type
+ *   The node type.
+ *
+ * @return \Drupal\node\NodeInterface|null
+ *   The board node or NULL.
+ */
+function boxtasks_role_get_board_for_entity(NodeInterface $node, string $type): ?NodeInterface {
+  switch ($type) {
+    case 'list':
+      // List -> Board.
+      if ($node->hasField('field_list_board') && !$node->get('field_list_board')->isEmpty()) {
+        return $node->get('field_list_board')->entity;
+      }
+      return NULL;
+
+    case 'card':
+      // Card -> List -> Board.
+      if ($node->hasField('field_card_list') && !$node->get('field_card_list')->isEmpty()) {
+        $list = $node->get('field_card_list')->entity;
+        if ($list && $list->hasField('field_list_board') && !$list->get('field_list_board')->isEmpty()) {
+          return $list->get('field_list_board')->entity;
+        }
+      }
+      return NULL;
+
+    case 'card_comment':
+      // Card comment -> Card -> List -> Board.
+      if ($node->hasField('field_comment_card') && !$node->get('field_comment_card')->isEmpty()) {
+        $card = $node->get('field_comment_card')->entity;
+        if ($card) {
+          return boxtasks_role_get_board_for_entity($card, 'card');
+        }
+      }
+      return NULL;
+
+    case 'checklist':
+      // Checklist -> Card -> List -> Board.
+      if ($node->hasField('field_checklist_card') && !$node->get('field_checklist_card')->isEmpty()) {
+        $card = $node->get('field_checklist_card')->entity;
+        if ($card) {
+          return boxtasks_role_get_board_for_entity($card, 'card');
+        }
+      }
+      return NULL;
+
+    case 'checklist_item':
+      // Checklist item -> Checklist -> Card -> List -> Board.
+      if ($node->hasField('field_checklist_item_checklist') && !$node->get('field_checklist_item_checklist')->isEmpty()) {
+        $checklist = $node->get('field_checklist_item_checklist')->entity;
+        if ($checklist) {
+          return boxtasks_role_get_board_for_entity($checklist, 'checklist');
+        }
+      }
+      return NULL;
+  }
+
+  return NULL;
 }
 
 /**

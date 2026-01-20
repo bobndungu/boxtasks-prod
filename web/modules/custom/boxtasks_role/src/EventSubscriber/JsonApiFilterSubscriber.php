@@ -80,8 +80,17 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
     $is_workspace_collection = strpos($path, '/jsonapi/node/workspace') !== FALSE;
     $is_notification_collection = strpos($path, '/jsonapi/node/notification') !== FALSE;
     $is_activity_collection = strpos($path, '/jsonapi/node/activity') !== FALSE;
+    $is_card_collection = strpos($path, '/jsonapi/node/card') !== FALSE && strpos($path, '/jsonapi/node/card_') === FALSE;
+    $is_list_collection = strpos($path, '/jsonapi/node/list') !== FALSE;
+    $is_card_comment_collection = strpos($path, '/jsonapi/node/card_comment') !== FALSE;
+    $is_checklist_collection = strpos($path, '/jsonapi/node/checklist') !== FALSE && strpos($path, '/jsonapi/node/checklist_item') === FALSE;
+    $is_checklist_item_collection = strpos($path, '/jsonapi/node/checklist_item') !== FALSE;
 
-    if (!$is_board_collection && !$is_workspace_collection && !$is_notification_collection && !$is_activity_collection) {
+    $handled_types = $is_board_collection || $is_workspace_collection || $is_notification_collection ||
+                     $is_activity_collection || $is_card_collection || $is_list_collection ||
+                     $is_card_comment_collection || $is_checklist_collection || $is_checklist_item_collection;
+
+    if (!$handled_types) {
       return;
     }
 
@@ -104,6 +113,21 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
     }
     elseif ($is_activity_collection) {
       $resource_type = 'activity';
+    }
+    elseif ($is_card_collection) {
+      $resource_type = 'card';
+    }
+    elseif ($is_list_collection) {
+      $resource_type = 'list';
+    }
+    elseif ($is_card_comment_collection) {
+      $resource_type = 'card_comment';
+    }
+    elseif ($is_checklist_collection) {
+      $resource_type = 'checklist';
+    }
+    elseif ($is_checklist_item_collection) {
+      $resource_type = 'checklist_item';
     }
 
     // Handle collection (array of items).
@@ -203,7 +227,8 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
    * @param array $item
    *   The JSON:API resource item.
    * @param string $type
-   *   One of: 'board', 'workspace', 'notification', 'activity'.
+   *   One of: 'board', 'workspace', 'notification', 'activity', 'card', 'list',
+   *   'card_comment', 'checklist', 'checklist_item'.
    *
    * @return bool
    *   TRUE if user can view the item.
@@ -211,7 +236,7 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
   protected function canViewItem(array $item, string $type): bool {
     $uuid = $item['id'] ?? NULL;
     if (!$uuid) {
-      return TRUE;
+      return FALSE;
     }
 
     try {
@@ -224,7 +249,7 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
         ]);
         $node = reset($nodes);
         if (!$node) {
-          return TRUE;
+          return FALSE;
         }
         return $this->permissionChecker->canViewBoard($node);
       }
@@ -235,7 +260,7 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
         ]);
         $node = reset($nodes);
         if (!$node) {
-          return TRUE;
+          return FALSE;
         }
         return $this->permissionChecker->canViewWorkspace($node);
       }
@@ -245,12 +270,15 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
       elseif ($type === 'activity') {
         return $this->canViewActivity($item);
       }
+      elseif (in_array($type, ['card', 'list', 'card_comment', 'checklist', 'checklist_item'])) {
+        return $this->canViewBoardBasedEntity($item, $type);
+      }
 
-      return TRUE;
+      return FALSE;
     }
     catch (\Exception $e) {
-      // On error, allow access to prevent blocking.
-      return TRUE;
+      // On error, deny access for security.
+      return FALSE;
     }
   }
 
@@ -315,9 +343,9 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
       }
     }
 
-    // If no card, board, or workspace reference, allow the notification.
-    // This handles system-level notifications.
-    return TRUE;
+    // If no card, board, or workspace reference, deny for security.
+    // All notifications should have at least one reference.
+    return FALSE;
   }
 
   /**
@@ -396,8 +424,6 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
    *   The board node or NULL.
    */
   protected function getBoardFromCard($card) {
-    $storage = $this->entityTypeManager->getStorage('node');
-
     // Get the list from the card.
     if (!$card->hasField('field_card_list') || $card->get('field_card_list')->isEmpty()) {
       return NULL;
@@ -414,6 +440,95 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
     }
 
     return $list->get('field_list_board')->entity;
+  }
+
+  /**
+   * Check if user can view a board-based entity (card, list, etc.).
+   *
+   * @param array $item
+   *   The JSON:API item.
+   * @param string $type
+   *   The entity type (card, list, card_comment, checklist, checklist_item).
+   *
+   * @return bool
+   *   TRUE if user can view the entity.
+   */
+  protected function canViewBoardBasedEntity(array $item, string $type): bool {
+    $uuid = $item['id'] ?? NULL;
+    if (!$uuid) {
+      return FALSE;
+    }
+
+    $storage = $this->entityTypeManager->getStorage('node');
+    $nodes = $storage->loadByProperties([
+      'type' => $type,
+      'uuid' => $uuid,
+    ]);
+    $node = reset($nodes);
+    if (!$node) {
+      return FALSE;
+    }
+
+    // Get the board for this entity.
+    $board = $this->getBoardForEntity($node, $type);
+    if (!$board) {
+      return FALSE;
+    }
+
+    return $this->permissionChecker->canViewBoard($board);
+  }
+
+  /**
+   * Get the board for a board-based entity.
+   *
+   * @param \Drupal\node\NodeInterface $node
+   *   The node.
+   * @param string $type
+   *   The entity type.
+   *
+   * @return \Drupal\node\NodeInterface|null
+   *   The board node or NULL.
+   */
+  protected function getBoardForEntity($node, string $type) {
+    switch ($type) {
+      case 'list':
+        if ($node->hasField('field_list_board') && !$node->get('field_list_board')->isEmpty()) {
+          return $node->get('field_list_board')->entity;
+        }
+        return NULL;
+
+      case 'card':
+        return $this->getBoardFromCard($node);
+
+      case 'card_comment':
+        if ($node->hasField('field_comment_card') && !$node->get('field_comment_card')->isEmpty()) {
+          $card = $node->get('field_comment_card')->entity;
+          if ($card) {
+            return $this->getBoardFromCard($card);
+          }
+        }
+        return NULL;
+
+      case 'checklist':
+        if ($node->hasField('field_checklist_card') && !$node->get('field_checklist_card')->isEmpty()) {
+          $card = $node->get('field_checklist_card')->entity;
+          if ($card) {
+            return $this->getBoardFromCard($card);
+          }
+        }
+        return NULL;
+
+      case 'checklist_item':
+        if ($node->hasField('field_checklist_item_checklist') && !$node->get('field_checklist_item_checklist')->isEmpty()) {
+          $checklist = $node->get('field_checklist_item_checklist')->entity;
+          if ($checklist) {
+            return $this->getBoardForEntity($checklist, 'checklist');
+          }
+        }
+        return NULL;
+    }
+
+    return NULL;
   }
 
 }
