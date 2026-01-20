@@ -56,13 +56,16 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
 
     // Debug logging - remove after testing.
     $current_user = \Drupal::currentUser();
-    \Drupal::logger('boxtasks_role')->debug('Board access check: board=%board (nid=%nid), account=%user (uid=%uid), currentUser=%curuser (uid=%curuid), result=%result', [
+    $request = \Drupal::request();
+    $auth_header = $request->headers->get('Authorization', 'none');
+    \Drupal::logger('boxtasks_role')->debug('Board access check: board=%board (nid=%nid), account=%user (uid=%uid), currentUser=%curuser (uid=%curuid), auth=%auth, result=%result', [
       '%board' => $node->label(),
       '%nid' => $node->id(),
       '%user' => $account->getAccountName(),
       '%uid' => $account->id(),
       '%curuser' => $current_user->getAccountName(),
       '%curuid' => $current_user->id(),
+      '%auth' => substr($auth_header, 0, 50),
       '%result' => $has_permission ? 'ALLOWED' : 'FORBIDDEN',
     ]);
 
