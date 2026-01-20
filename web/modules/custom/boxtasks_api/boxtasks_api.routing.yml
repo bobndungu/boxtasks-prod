@@ -25,3 +25,45 @@ boxtasks_api.workspace_roles:
     parameters:
       workspace_id:
         type: string
+
+# Update a workspace role.
+boxtasks_api.update_role:
+  path: '/api/roles/{role_id}'
+  defaults:
+    _controller: '\Drupal\boxtasks_api\Controller\WorkspaceRolesController::updateRole'
+  methods: [PATCH]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2', 'cookie']
+    no_cache: TRUE
+    parameters:
+      role_id:
+        type: string
+
+# Create a workspace role.
+boxtasks_api.create_role:
+  path: '/api/roles'
+  defaults:
+    _controller: '\Drupal\boxtasks_api\Controller\WorkspaceRolesController::createRole'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2', 'cookie']
+    no_cache: TRUE
+
+# Delete a workspace role.
+boxtasks_api.delete_role:
+  path: '/api/roles/{role_id}'
+  defaults:
+    _controller: '\Drupal\boxtasks_api\Controller\WorkspaceRolesController::deleteRole'
+  methods: [DELETE]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2', 'cookie']
+    no_cache: TRUE
+    parameters:
+      role_id:
+        type: string

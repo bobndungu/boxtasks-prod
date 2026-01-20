@@ -402,88 +402,27 @@ export async function createWorkspaceRole(
   permissions: WorkspaceRole['permissions'],
   isDefault: boolean = false
 ): Promise<WorkspaceRole> {
-  const relationships: Record<string, unknown> = {};
-
-  if (workspaceId) {
-    relationships.field_role_workspace = {
-      data: { type: 'node--workspace', id: workspaceId },
-    };
-  }
-
-  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace_role`, {
+  const response = await fetch(`${API_URL}/api/roles`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/vnd.api+json',
-      'Accept': 'application/vnd.api+json',
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${getAccessToken()}`,
     },
     body: JSON.stringify({
-      data: {
-        type: 'node--workspace_role',
-        attributes: {
-          title,
-          field_role_is_default: isDefault,
-          // Card permissions
-          field_perm_card_view: permissions.cardView,
-          field_perm_card_create: permissions.cardCreate,
-          field_perm_card_edit: permissions.cardEdit,
-          field_perm_card_delete: permissions.cardDelete,
-          field_perm_card_archive: permissions.cardArchive,
-          field_perm_card_move: permissions.cardMove,
-          // List permissions
-          field_perm_list_view: permissions.listView,
-          field_perm_list_create: permissions.listCreate,
-          field_perm_list_edit: permissions.listEdit,
-          field_perm_list_delete: permissions.listDelete,
-          field_perm_list_archive: permissions.listArchive,
-          // Board permissions
-          field_perm_board_view: permissions.boardView,
-          field_perm_board_create: permissions.boardCreate,
-          field_perm_board_edit: permissions.boardEdit,
-          field_perm_board_delete: permissions.boardDelete,
-          field_perm_board_archive: permissions.boardArchive,
-          // Workspace permissions
-          field_perm_workspace_view: permissions.workspaceView,
-          field_perm_workspace_edit: permissions.workspaceEdit,
-          field_perm_workspace_delete: permissions.workspaceDelete,
-          field_perm_workspace_archive: permissions.workspaceArchive,
-          // Workspace member permissions (granular)
-          field_perm_member_view: permissions.memberView,
-          field_perm_member_add: permissions.memberAdd,
-          field_perm_member_remove: permissions.memberRemove,
-          // Board member permissions
-          field_perm_board_member_view: permissions.boardMemberView,
-          field_perm_board_member_add: permissions.boardMemberAdd,
-          field_perm_board_member_remove: permissions.boardMemberRemove,
-          // Member management (deprecated)
-          field_perm_member_manage: permissions.memberManage,
-          // Comment permissions
-          field_perm_comment_edit: permissions.commentEdit,
-          field_perm_comment_delete: permissions.commentDelete,
-          field_perm_comment_archive: permissions.commentArchive,
-          // Report permissions
-          field_perm_report_performance: permissions.reportPerformance,
-          field_perm_report_tasks: permissions.reportTasks,
-          field_perm_report_activity: permissions.reportActivity,
-          field_perm_report_workload: permissions.reportWorkload,
-          field_perm_report_export: permissions.reportExport,
-          // Admin page permissions
-          field_perm_email_templates: permissions.emailTemplatesManage,
-          field_perm_user_management: permissions.userManagement,
-          field_perm_role_management: permissions.roleManagement,
-          field_perm_role_view: permissions.roleView,
-        },
-        ...(Object.keys(relationships).length > 0 && { relationships }),
-      },
+      title,
+      workspaceId,
+      isDefault,
+      permissions,
     }),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.errors?.[0]?.detail || 'Failed to create role');
+    throw new Error(error.error || 'Failed to create role');
   }
 
-  const result = await response.json();
-  return transformRole(result.data);
+  return response.json();
 }
 
 // Update a workspace role
@@ -495,176 +434,37 @@ export async function updateWorkspaceRole(
     isDefault: boolean;
   }>
 ): Promise<WorkspaceRole> {
-  const attributes: Record<string, unknown> = {};
-
-  if (updates.title !== undefined) {
-    attributes.title = updates.title;
-  }
-  if (updates.isDefault !== undefined) {
-    attributes.field_role_is_default = updates.isDefault;
-  }
-  if (updates.permissions) {
-    // Card permissions
-    if (updates.permissions.cardView !== undefined) {
-      attributes.field_perm_card_view = updates.permissions.cardView;
-    }
-    if (updates.permissions.cardCreate !== undefined) {
-      attributes.field_perm_card_create = updates.permissions.cardCreate;
-    }
-    if (updates.permissions.cardEdit !== undefined) {
-      attributes.field_perm_card_edit = updates.permissions.cardEdit;
-    }
-    if (updates.permissions.cardDelete !== undefined) {
-      attributes.field_perm_card_delete = updates.permissions.cardDelete;
-    }
-    if (updates.permissions.cardArchive !== undefined) {
-      attributes.field_perm_card_archive = updates.permissions.cardArchive;
-    }
-    if (updates.permissions.cardMove !== undefined) {
-      attributes.field_perm_card_move = updates.permissions.cardMove;
-    }
-    // List permissions
-    if (updates.permissions.listView !== undefined) {
-      attributes.field_perm_list_view = updates.permissions.listView;
-    }
-    if (updates.permissions.listCreate !== undefined) {
-      attributes.field_perm_list_create = updates.permissions.listCreate;
-    }
-    if (updates.permissions.listEdit !== undefined) {
-      attributes.field_perm_list_edit = updates.permissions.listEdit;
-    }
-    if (updates.permissions.listDelete !== undefined) {
-      attributes.field_perm_list_delete = updates.permissions.listDelete;
-    }
-    if (updates.permissions.listArchive !== undefined) {
-      attributes.field_perm_list_archive = updates.permissions.listArchive;
-    }
-    // Board permissions
-    if (updates.permissions.boardView !== undefined) {
-      attributes.field_perm_board_view = updates.permissions.boardView;
-    }
-    if (updates.permissions.boardCreate !== undefined) {
-      attributes.field_perm_board_create = updates.permissions.boardCreate;
-    }
-    if (updates.permissions.boardEdit !== undefined) {
-      attributes.field_perm_board_edit = updates.permissions.boardEdit;
-    }
-    if (updates.permissions.boardDelete !== undefined) {
-      attributes.field_perm_board_delete = updates.permissions.boardDelete;
-    }
-    if (updates.permissions.boardArchive !== undefined) {
-      attributes.field_perm_board_archive = updates.permissions.boardArchive;
-    }
-    // Workspace permissions
-    if (updates.permissions.workspaceView !== undefined) {
-      attributes.field_perm_workspace_view = updates.permissions.workspaceView;
-    }
-    if (updates.permissions.workspaceEdit !== undefined) {
-      attributes.field_perm_workspace_edit = updates.permissions.workspaceEdit;
-    }
-    if (updates.permissions.workspaceDelete !== undefined) {
-      attributes.field_perm_workspace_delete = updates.permissions.workspaceDelete;
-    }
-    if (updates.permissions.workspaceArchive !== undefined) {
-      attributes.field_perm_workspace_archive = updates.permissions.workspaceArchive;
-    }
-    // Workspace member permissions (granular)
-    if (updates.permissions.memberView !== undefined) {
-      attributes.field_perm_member_view = updates.permissions.memberView;
-    }
-    if (updates.permissions.memberAdd !== undefined) {
-      attributes.field_perm_member_add = updates.permissions.memberAdd;
-    }
-    if (updates.permissions.memberRemove !== undefined) {
-      attributes.field_perm_member_remove = updates.permissions.memberRemove;
-    }
-    // Board member permissions
-    if (updates.permissions.boardMemberView !== undefined) {
-      attributes.field_perm_board_member_view = updates.permissions.boardMemberView;
-    }
-    if (updates.permissions.boardMemberAdd !== undefined) {
-      attributes.field_perm_board_member_add = updates.permissions.boardMemberAdd;
-    }
-    if (updates.permissions.boardMemberRemove !== undefined) {
-      attributes.field_perm_board_member_remove = updates.permissions.boardMemberRemove;
-    }
-    // Member management (deprecated)
-    if (updates.permissions.memberManage !== undefined) {
-      attributes.field_perm_member_manage = updates.permissions.memberManage;
-    }
-    // Comment permissions
-    if (updates.permissions.commentEdit !== undefined) {
-      attributes.field_perm_comment_edit = updates.permissions.commentEdit;
-    }
-    if (updates.permissions.commentDelete !== undefined) {
-      attributes.field_perm_comment_delete = updates.permissions.commentDelete;
-    }
-    if (updates.permissions.commentArchive !== undefined) {
-      attributes.field_perm_comment_archive = updates.permissions.commentArchive;
-    }
-    // Report permissions
-    if (updates.permissions.reportPerformance !== undefined) {
-      attributes.field_perm_report_performance = updates.permissions.reportPerformance;
-    }
-    if (updates.permissions.reportTasks !== undefined) {
-      attributes.field_perm_report_tasks = updates.permissions.reportTasks;
-    }
-    if (updates.permissions.reportActivity !== undefined) {
-      attributes.field_perm_report_activity = updates.permissions.reportActivity;
-    }
-    if (updates.permissions.reportWorkload !== undefined) {
-      attributes.field_perm_report_workload = updates.permissions.reportWorkload;
-    }
-    if (updates.permissions.reportExport !== undefined) {
-      attributes.field_perm_report_export = updates.permissions.reportExport;
-    }
-    // Admin page permissions
-    if (updates.permissions.emailTemplatesManage !== undefined) {
-      attributes.field_perm_email_templates = updates.permissions.emailTemplatesManage;
-    }
-    if (updates.permissions.userManagement !== undefined) {
-      attributes.field_perm_user_management = updates.permissions.userManagement;
-    }
-    if (updates.permissions.roleManagement !== undefined) {
-      attributes.field_perm_role_management = updates.permissions.roleManagement;
-    }
-    if (updates.permissions.roleView !== undefined) {
-      attributes.field_perm_role_view = updates.permissions.roleView;
-    }
-  }
-
-  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace_role/${roleId}`, {
+  const response = await fetch(`${API_URL}/api/roles/${roleId}`, {
     method: 'PATCH',
     headers: {
-      'Content-Type': 'application/vnd.api+json',
-      'Accept': 'application/vnd.api+json',
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${getAccessToken()}`,
     },
-    body: JSON.stringify({
-      data: {
-        type: 'node--workspace_role',
-        id: roleId,
-        attributes,
-      },
-    }),
+    body: JSON.stringify(updates),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.errors?.[0]?.detail || 'Failed to update role');
+    throw new Error(error.error || 'Failed to update role');
   }
 
-  const result = await response.json();
-  return transformRole(result.data);
+  return response.json();
 }
 
 // Delete a workspace role
 export async function deleteWorkspaceRole(roleId: string): Promise<void> {
-  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/workspace_role/${roleId}`, {
+  const response = await fetch(`${API_URL}/api/roles/${roleId}`, {
     method: 'DELETE',
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${getAccessToken()}`,
+    },
   });
 
-  if (!response.ok && response.status !== 204) {
-    throw new Error('Failed to delete role');
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to delete role');
   }
 }
 
