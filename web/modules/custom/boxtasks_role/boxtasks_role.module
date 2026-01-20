@@ -35,6 +35,12 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
   // JSON:API uses 'view revision' when fetching content.
   $normalized_op = ($op === 'view revision') ? 'view' : $op;
 
+  // Handle 'create' operation specially for ALL types.
+  // Create operations need special handling because parent references may be partial.
+  if ($normalized_op === 'create') {
+    return boxtasks_role_check_create_access($node, $type, $account, $permission_checker);
+  }
+
   // Handle card, list, and related types - access is based on board access.
   if (in_array($type, ['card', 'list', 'card_comment', 'checklist', 'checklist_item'])) {
     return boxtasks_role_check_board_based_access($node, $type, $normalized_op, $account, $permission_checker);
@@ -81,11 +87,17 @@ function boxtasks_role_node_access(NodeInterface $node, $op, AccountInterface $a
   // Get workspace ID for other operations.
   if ($type === 'board') {
     if (!$node->hasField('field_board_workspace')) {
-      return AccessResult::neutral();
+      // No workspace field - deny access for security.
+      return AccessResult::forbidden()
+        ->cachePerUser()
+        ->addCacheableDependency($node);
     }
     $workspace_ref = $node->get('field_board_workspace')->entity;
     if (!$workspace_ref) {
-      return AccessResult::neutral();
+      // No workspace assigned - deny access for security.
+      return AccessResult::forbidden()
+        ->cachePerUser()
+        ->addCacheableDependency($node);
     }
     $workspace_id = $workspace_ref->uuid();
   }
@@ -298,6 +310,139 @@ function boxtasks_role_get_board_for_entity(NodeInterface $node, string $type): 
   }
 
   return NULL;
+}
+
+/**
+ * Check create access for all handled content types.
+ *
+ * @param \Drupal\node\NodeInterface $node
+ *   The node being created (may have partial data).
+ * @param string $type
+ *   The node type.
+ * @param \Drupal\Core\Session\AccountInterface $account
+ *   The user account.
+ * @param \Drupal\boxtasks_role\Service\PermissionChecker $permission_checker
+ *   The permission checker service.
+ *
+ * @return \Drupal\Core\Access\AccessResultInterface
+ *   The access result.
+ */
+function boxtasks_role_check_create_access(NodeInterface $node, string $type, AccountInterface $account, $permission_checker) {
+  // Map type to create permission field.
+  $create_permission_map = [
+    'board' => 'field_perm_board_create',
+    'card' => 'field_perm_card_create',
+    'list' => 'field_perm_list_create',
+    'card_comment' => 'field_perm_card_create',
+    'checklist' => 'field_perm_card_create',
+    'checklist_item' => 'field_perm_card_create',
+  ];
+
+  // Workspace creation - allow for authenticated users by default.
+  // Workspace creation doesn't belong to an existing workspace.
+  if ($type === 'workspace') {
+    if ($account->isAuthenticated()) {
+      return AccessResult::allowed()->cachePerUser();
+    }
+    return AccessResult::forbidden()->cachePerUser();
+  }
+
+  // For board creation, get workspace from the node being created.
+  if ($type === 'board') {
+    if (!$node->hasField('field_board_workspace') || $node->get('field_board_workspace')->isEmpty()) {
+      // No workspace specified - deny for security.
+      return AccessResult::forbidden()
+        ->cachePerUser()
+        ->addCacheableDependency($node);
+    }
+    $workspace = $node->get('field_board_workspace')->entity;
+    if (!$workspace) {
+      return AccessResult::forbidden()
+        ->cachePerUser()
+        ->addCacheableDependency($node);
+    }
+
+    $permission_field = $create_permission_map[$type];
+    $has_permission = $permission_checker->checkPermission(
+      $permission_field,
+      $workspace->uuid(),
+      NULL,
+      $account->id()
+    );
+
+    if ($has_permission) {
+      return AccessResult::allowed()
+        ->cachePerUser()
+        ->addCacheableDependency($workspace)
+        ->addCacheTags(['node_list:member_role']);
+    }
+
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($workspace)
+      ->addCacheTags(['node_list:member_role']);
+  }
+
+  // For card, list, and related types, get board first then workspace.
+  $board = boxtasks_role_get_board_for_entity($node, $type);
+  if (!$board) {
+    // No board found - deny access for security.
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node);
+  }
+
+  // Check if user can view the board first.
+  $can_view_board = $permission_checker->canViewBoard($board, (int) $account->id());
+  if (!$can_view_board) {
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheableDependency($board)
+      ->addCacheTags(['node_list:member_role']);
+  }
+
+  // Get workspace from board.
+  if (!$board->hasField('field_board_workspace') || $board->get('field_board_workspace')->isEmpty()) {
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheableDependency($board);
+  }
+  $workspace = $board->get('field_board_workspace')->entity;
+  if (!$workspace) {
+    return AccessResult::forbidden()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheableDependency($board);
+  }
+
+  // Check create permission.
+  $permission_field = $create_permission_map[$type] ?? NULL;
+  if (!$permission_field) {
+    return AccessResult::neutral();
+  }
+
+  $has_permission = $permission_checker->checkPermission(
+    $permission_field,
+    $workspace->uuid(),
+    NULL,
+    $account->id()
+  );
+
+  if ($has_permission) {
+    return AccessResult::allowed()
+      ->cachePerUser()
+      ->addCacheableDependency($board)
+      ->addCacheableDependency($workspace)
+      ->addCacheTags(['node_list:member_role']);
+  }
+
+  return AccessResult::forbidden()
+    ->cachePerUser()
+    ->addCacheableDependency($board)
+    ->addCacheableDependency($workspace)
+    ->addCacheTags(['node_list:member_role']);
 }
 
 /**

@@ -135,7 +135,7 @@ class PermissionChecker {
     $user_id = $user_id ?? $this->currentUser->id();
 
     // uid = 1 is always super admin.
-    if ($user_id === 1) {
+    if ((int) $user_id === 1) {
       return TRUE;
     }
 
@@ -323,7 +323,8 @@ class PermissionChecker {
     }
 
     if (!$role->hasField($permission)) {
-      return TRUE; // Permission field doesn't exist, allow by default.
+      // Permission field doesn't exist - deny for security.
+      return FALSE;
     }
 
     $perm_level = $role->get($permission)->value ?? 'none';
