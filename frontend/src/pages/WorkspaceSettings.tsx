@@ -48,7 +48,7 @@ export default function WorkspaceSettings() {
   const navigate = useNavigate();
   const { currentWorkspace, setCurrentWorkspace, updateWorkspace: updateStore, removeWorkspace } = useWorkspaceStore();
   const { user } = useAuthStore();
-  const { canViewRoles } = usePermissions(id);
+  const { canViewRoles, canAddMembers, canRemoveMembers } = usePermissions(id);
 
   const [formData, setFormData] = useState<CreateWorkspaceData>({
     title: '',
@@ -567,19 +567,22 @@ export default function WorkspaceSettings() {
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Members</h2>
                 <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">({members.length})</span>
               </div>
-              <div className="w-64">
-                <MemberDropdown
-                  members={allUsers}
-                  excludeIds={members.map(m => m.id)}
-                  onSelect={handleAddMember}
-                  placeholder="Add member..."
-                  buttonLabel="Add Member"
-                  showSelectedInButton={false}
-                  loading={isLoadingUsers}
-                  disabled={isSavingMembers}
-                  emptyMessage="No more users to add"
-                />
-              </div>
+              {/* Add member dropdown - only show if user has permission */}
+              {canAddMembers('workspace') && (
+                <div className="w-64">
+                  <MemberDropdown
+                    members={allUsers}
+                    excludeIds={members.map(m => m.id)}
+                    onSelect={handleAddMember}
+                    placeholder="Add member..."
+                    buttonLabel="Add Member"
+                    showSelectedInButton={false}
+                    loading={isLoadingUsers}
+                    disabled={isSavingMembers}
+                    emptyMessage="No more users to add"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -665,7 +668,7 @@ export default function WorkspaceSettings() {
                       >
                         <Crown className="h-4 w-4" />
                       </button>
-                      {member.id !== user?.id && (
+                      {member.id !== user?.id && canRemoveMembers('workspace') && (
                         <button
                           onClick={() => handleRemoveMember(member.id)}
                           disabled={isSavingMembers}
