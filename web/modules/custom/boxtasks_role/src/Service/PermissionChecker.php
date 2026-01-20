@@ -95,19 +95,21 @@ class PermissionChecker {
     }
 
     // Check workspace visibility before falling back to default role.
-    // For private workspaces, only explicit members should have access.
     $visibility = 'private';
     if ($workspace->hasField('field_workspace_visibility') && !$workspace->get('field_workspace_visibility')->isEmpty()) {
       $visibility = $workspace->get('field_workspace_visibility')->value;
     }
 
-    // Private workspaces require explicit membership - no default role fallback.
-    if ($visibility === 'private') {
+    // Private and team workspaces require explicit membership.
+    // - "private" = only members with member_role can access
+    // - "team" = only members with member_role can access (same as private)
+    // - "public" = all authenticated users can access via default role
+    if ($visibility === 'private' || $visibility === 'team') {
       $this->roleCache[$cache_key] = NULL;
       return NULL;
     }
 
-    // For public/team workspaces, fall back to default role.
+    // For public workspaces only, fall back to default role.
     $default_roles = $storage->loadByProperties([
       'type' => 'workspace_role',
       'field_role_is_default' => TRUE,
