@@ -194,7 +194,15 @@ export default function WorkspaceSettings() {
     const assignment = memberRoles.find((mr) =>
       (member?.memberRoleId && mr.id === member.memberRoleId) || mr.userId === memberId
     );
-    if (assignment?.role) return assignment.role;
+    if (assignment) {
+      // First try the populated role object
+      if (assignment.role) return assignment.role;
+      // Fall back to looking up by roleId from local roles state
+      if (assignment.roleId) {
+        const roleFromState = roles.find((r) => r.id === assignment.roleId);
+        if (roleFromState) return roleFromState;
+      }
+    }
     // If member has roleName, find matching role
     if (member?.roleName) {
       const matchingRole = roles.find((r) => r.title === member.roleName);
@@ -205,7 +213,7 @@ export default function WorkspaceSettings() {
   };
 
   // Handle role change for a member
-  const handleRoleChange = async (memberId: string, roleId: string) => {
+  const handleRoleChange = async (memberId: string, newRoleId: string) => {
     if (!id) return;
     const member = members.find((m) => m.id === memberId);
     if (!member?.memberRoleId) {
@@ -215,8 +223,8 @@ export default function WorkspaceSettings() {
 
     setIsSavingRole(true);
     try {
-      await updateMemberRole(member.memberRoleId, roleId);
-      const newRole = roles.find((r) => r.id === roleId);
+      await updateMemberRole(member.memberRoleId, newRoleId);
+      const newRole = roles.find((r) => r.id === newRoleId);
       const isAdmin = newRole?.permissions?.memberManage === 'any';
 
       // Update members state
@@ -228,9 +236,9 @@ export default function WorkspaceSettings() {
         } : m
       ));
 
-      // Update memberRoles state
+      // Update memberRoles state - match by assignment id (memberRoleId) for consistency
       setMemberRoles(memberRoles.map((mr) =>
-        mr.userId === memberId ? { ...mr, roleId, role: newRole } : mr
+        mr.id === member.memberRoleId ? { ...mr, roleId: newRoleId, role: newRole } : mr
       ));
 
       setMessage({ type: 'success', text: 'Role updated successfully' });
