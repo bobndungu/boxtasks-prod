@@ -4,6 +4,7 @@ import { createBoard, type Board, type CreateBoardData } from '../lib/api/boards
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { fetchWorkspaceMembers, type WorkspaceMember } from '../lib/api/workspaces';
 import { fetchWorkspaceRoles, fetchWorkspaceMemberRoles, type WorkspaceRole } from '../lib/api/roles';
+import { usePermissions } from '../lib/hooks/usePermissions';
 
 const BOARD_BACKGROUNDS = [
   '#0079BF', '#D29034', '#519839', '#B04632', '#89609E',
@@ -51,6 +52,10 @@ export default function CreateBoardModal({
   const [roles, setRoles] = useState<WorkspaceRole[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [showMemberList, setShowMemberList] = useState(false);
+
+  // Get permissions for role visibility
+  const { canViewBoardRoles } = usePermissions(selectedWorkspaceId);
+  const canViewRoles = canViewBoardRoles();
 
   // Load workspace members and roles when workspace changes
   useEffect(() => {
@@ -307,7 +312,9 @@ export default function CreateBoardModal({
                     {
                       value: 'inherit',
                       label: 'Inherit from workspace',
-                      desc: `All ${workspaceMembers.length} workspace members with their roles`,
+                      desc: canViewRoles
+                        ? `All ${workspaceMembers.length} workspace members with their roles`
+                        : `All ${workspaceMembers.length} workspace members`,
                     },
                     {
                       value: 'just_me',
@@ -317,7 +324,9 @@ export default function CreateBoardModal({
                     {
                       value: 'custom',
                       label: 'Choose members',
-                      desc: 'Select specific members and assign roles',
+                      desc: canViewRoles
+                        ? 'Select specific members and assign roles'
+                        : 'Select specific members',
                     },
                   ].map((option) => (
                     <label
@@ -448,23 +457,26 @@ export default function CreateBoardModal({
                                   </div>
                                 </div>
 
-                                <select
-                                  value={item.roleId}
-                                  onChange={(e) => updateMemberRole(item.member.id, e.target.value)}
-                                  onClick={(e) => e.stopPropagation()}
-                                  disabled={!item.selected}
-                                  className={`text-xs px-2 py-1 rounded border bg-white dark:bg-gray-700 ${
-                                    item.selected
-                                      ? 'border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-300'
-                                      : 'border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500'
-                                  }`}
-                                >
-                                  {roles.map((role) => (
-                                    <option key={role.id} value={role.id}>
-                                      {role.title}
-                                    </option>
-                                  ))}
-                                </select>
+                                {/* Role selector - only show if user can view roles */}
+                                {canViewRoles && (
+                                  <select
+                                    value={item.roleId}
+                                    onChange={(e) => updateMemberRole(item.member.id, e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    disabled={!item.selected}
+                                    className={`text-xs px-2 py-1 rounded border bg-white dark:bg-gray-700 ${
+                                      item.selected
+                                        ? 'border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-300'
+                                        : 'border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500'
+                                    }`}
+                                  >
+                                    {roles.map((role) => (
+                                      <option key={role.id} value={role.id}>
+                                        {role.title}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
                               </div>
                             ))}
                           </div>
