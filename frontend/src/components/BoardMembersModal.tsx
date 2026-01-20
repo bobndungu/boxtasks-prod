@@ -193,7 +193,8 @@ export default function BoardMembersModal({
         if (roleId) {
           try {
             const newAssignment = await createMemberRole(workspaceId, user.id, roleId);
-            setMemberRoles(prev => [...prev, newAssignment]);
+            // Ensure roleId and userId are set correctly (API response may not include them in relationships)
+            setMemberRoles(prev => [...prev, { ...newAssignment, roleId, userId: user.id }]);
           } catch {
             // Role assignment might already exist, that's OK
           }
@@ -225,7 +226,8 @@ export default function BoardMembersModal({
         if (roleId) {
           try {
             const newAssignment = await createMemberRole(workspaceId, user.id, roleId);
-            setMemberRoles(prev => [...prev, newAssignment]);
+            // Ensure roleId and userId are set correctly (API response may not include them in relationships)
+            setMemberRoles(prev => [...prev, { ...newAssignment, roleId, userId: user.id }]);
           } catch {
             // Role assignment might already exist, that's OK
           }
@@ -323,13 +325,15 @@ export default function BoardMembersModal({
       if (currentAssignment) {
         // Update existing assignment
         const updatedAssignment = await updateMemberRoleAPI(currentAssignment.id, newRoleId);
+        // Ensure roleId is set correctly in case API response doesn't include it
         setMemberRoles(prev =>
-          prev.map(mr => mr.id === currentAssignment.id ? updatedAssignment : mr)
+          prev.map(mr => mr.id === currentAssignment.id ? { ...updatedAssignment, roleId: newRoleId } : mr)
         );
       } else {
         // Create new assignment
         const newAssignment = await createMemberRole(workspaceId, userId, newRoleId);
-        setMemberRoles(prev => [...prev, newAssignment]);
+        // Ensure roleId and userId are set correctly
+        setMemberRoles(prev => [...prev, { ...newAssignment, roleId: newRoleId, userId }]);
       }
 
       // Update local member state

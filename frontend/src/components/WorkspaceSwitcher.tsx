@@ -1,15 +1,56 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, Check, Plus, Settings, Loader2 } from 'lucide-react';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { fetchWorkspaces, type Workspace } from '../lib/api/workspaces';
+import { useAuthStore } from '../lib/stores/auth';
+import { useUserWorkspaceUpdates } from '../lib/hooks/useMercure';
 
 export default function WorkspaceSwitcher() {
   const navigate = useNavigate();
   const { workspaces, currentWorkspace, setWorkspaces, setCurrentWorkspace } = useWorkspaceStore();
+  const { user } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Callback to refresh workspaces from server
+  const refreshWorkspaces = useCallback(async () => {
+    try {
+      const data = await fetchWorkspaces();
+      setWorkspaces(data);
+
+      // Handle workspace changes
+      if (currentWorkspace && data.length > 0) {
+        const stillExists = data.some(w => w.id === currentWorkspace.id);
+        if (!stillExists) {
+          setCurrentWorkspace(data[0]);
+        }
+      } else if (!currentWorkspace && data.length > 0) {
+        setCurrentWorkspace(data[0]);
+      } else if (data.length === 0) {
+        setCurrentWorkspace(null);
+      }
+    } catch {
+      // Silent fail
+    }
+  }, [currentWorkspace, setWorkspaces, setCurrentWorkspace]);
+
+  // Subscribe to real-time workspace assignment updates
+  useUserWorkspaceUpdates(user?.id, {
+    onWorkspaceAssigned: () => {
+      // User was added to a new workspace - refresh the list
+      refreshWorkspaces();
+    },
+    onWorkspaceUnassigned: (data) => {
+      // User was removed from a workspace - refresh the list
+      refreshWorkspaces();
+      // If the removed workspace is the current one, this will be handled by refreshWorkspaces
+      if (currentWorkspace?.id === data.workspaceId) {
+        // The refresh will auto-select another workspace
+      }
+    },
+  });
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -33,25 +74,7 @@ export default function WorkspaceSwitcher() {
   const loadWorkspaces = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchWorkspaces();
-      setWorkspaces(data);
-
-      // If current workspace no longer exists in the list, clear it and select first available
-      if (currentWorkspace && data.length > 0) {
-        const stillExists = data.some(w => w.id === currentWorkspace.id);
-        if (!stillExists) {
-          // Current workspace was deleted, select first available
-          setCurrentWorkspace(data[0]);
-        }
-      } else if (!currentWorkspace && data.length > 0) {
-        // No current workspace set, select first available
-        setCurrentWorkspace(data[0]);
-      } else if (data.length === 0) {
-        // No workspaces available, clear current
-        setCurrentWorkspace(null);
-      }
-    } catch {
-      // Silent fail
+      await refreshWorkspaces();
     } finally {
       setIsLoading(false);
     }

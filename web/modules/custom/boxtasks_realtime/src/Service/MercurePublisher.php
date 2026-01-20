@@ -796,6 +796,213 @@ class MercurePublisher {
   }
 
   /**
+   * Publishes a workspace member added event.
+   *
+   * @param string $workspaceId
+   *   The workspace UUID.
+   * @param int $userId
+   *   The user ID that was added.
+   * @param string|null $roleId
+   *   Optional role UUID assigned.
+   * @param string|null $roleName
+   *   Optional role name.
+   */
+  public function publishWorkspaceMemberAdded(string $workspaceId, int $userId, ?string $roleId = NULL, ?string $roleName = NULL): void {
+    $userStorage = $this->entityTypeManager->getStorage('user');
+    $user = $userStorage->load($userId);
+    if (!$user) {
+      return;
+    }
+
+    $displayName = $user->hasField('field_display_name') && !$user->get('field_display_name')->isEmpty()
+      ? $user->get('field_display_name')->value
+      : $user->getDisplayName();
+
+    // Publish to workspace topic for all members to see
+    $topic = "/workspaces/{$workspaceId}";
+    $data = [
+      'type' => 'workspace.member_added',
+      'data' => [
+        'workspaceId' => $workspaceId,
+        'userId' => $user->uuid(),
+        'displayName' => $displayName,
+        'email' => $user->getEmail(),
+        'roleId' => $roleId,
+        'roleName' => $roleName,
+      ],
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+    $this->publish($topic, $data);
+
+    // Also publish to user's personal topic so they can refresh their workspace list
+    $userTopic = "/users/{$user->uuid()}/workspaces";
+    $userData = [
+      'type' => 'workspace.assigned',
+      'data' => [
+        'workspaceId' => $workspaceId,
+        'roleId' => $roleId,
+        'roleName' => $roleName,
+      ],
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+    $this->publish($userTopic, $userData);
+  }
+
+  /**
+   * Publishes a workspace member removed event.
+   *
+   * @param string $workspaceId
+   *   The workspace UUID.
+   * @param int $userId
+   *   The user ID that was removed.
+   */
+  public function publishWorkspaceMemberRemoved(string $workspaceId, int $userId): void {
+    $userStorage = $this->entityTypeManager->getStorage('user');
+    $user = $userStorage->load($userId);
+    if (!$user) {
+      return;
+    }
+
+    // Publish to workspace topic
+    $topic = "/workspaces/{$workspaceId}";
+    $data = [
+      'type' => 'workspace.member_removed',
+      'data' => [
+        'workspaceId' => $workspaceId,
+        'userId' => $user->uuid(),
+      ],
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+    $this->publish($topic, $data);
+
+    // Also publish to user's personal topic
+    $userTopic = "/users/{$user->uuid()}/workspaces";
+    $userData = [
+      'type' => 'workspace.unassigned',
+      'data' => [
+        'workspaceId' => $workspaceId,
+      ],
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+    $this->publish($userTopic, $userData);
+  }
+
+  /**
+   * Publishes a workspace member role changed event.
+   *
+   * @param string $workspaceId
+   *   The workspace UUID.
+   * @param int $userId
+   *   The user ID whose role changed.
+   * @param string $roleId
+   *   The new role UUID.
+   * @param string $roleName
+   *   The new role name.
+   */
+  public function publishWorkspaceMemberRoleChanged(string $workspaceId, int $userId, string $roleId, string $roleName): void {
+    $userStorage = $this->entityTypeManager->getStorage('user');
+    $user = $userStorage->load($userId);
+    if (!$user) {
+      return;
+    }
+
+    $displayName = $user->hasField('field_display_name') && !$user->get('field_display_name')->isEmpty()
+      ? $user->get('field_display_name')->value
+      : $user->getDisplayName();
+
+    // Publish to workspace topic
+    $topic = "/workspaces/{$workspaceId}";
+    $data = [
+      'type' => 'workspace.member_role_changed',
+      'data' => [
+        'workspaceId' => $workspaceId,
+        'userId' => $user->uuid(),
+        'displayName' => $displayName,
+        'roleId' => $roleId,
+        'roleName' => $roleName,
+      ],
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+    $this->publish($topic, $data);
+  }
+
+  /**
+   * Publishes a board member added event.
+   *
+   * @param string $boardId
+   *   The board UUID.
+   * @param int $userId
+   *   The user ID that was added.
+   * @param string|null $roleId
+   *   Optional role UUID assigned.
+   * @param string|null $roleName
+   *   Optional role name.
+   * @param bool $isAdmin
+   *   Whether the user is a board admin.
+   */
+  public function publishBoardMemberAdded(string $boardId, int $userId, ?string $roleId = NULL, ?string $roleName = NULL, bool $isAdmin = FALSE): void {
+    $userStorage = $this->entityTypeManager->getStorage('user');
+    $user = $userStorage->load($userId);
+    if (!$user) {
+      return;
+    }
+
+    $displayName = $user->hasField('field_display_name') && !$user->get('field_display_name')->isEmpty()
+      ? $user->get('field_display_name')->value
+      : $user->getDisplayName();
+
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'board.member_added',
+      'data' => [
+        'boardId' => $boardId,
+        'userId' => $user->uuid(),
+        'displayName' => $displayName,
+        'email' => $user->getEmail(),
+        'roleId' => $roleId,
+        'roleName' => $roleName,
+        'isAdmin' => $isAdmin,
+      ],
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+    $this->publish($topic, $data);
+  }
+
+  /**
+   * Publishes a board member removed event.
+   *
+   * @param string $boardId
+   *   The board UUID.
+   * @param int $userId
+   *   The user ID that was removed.
+   */
+  public function publishBoardMemberRemoved(string $boardId, int $userId): void {
+    $userStorage = $this->entityTypeManager->getStorage('user');
+    $user = $userStorage->load($userId);
+    if (!$user) {
+      return;
+    }
+
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'board.member_removed',
+      'data' => [
+        'boardId' => $boardId,
+        'userId' => $user->uuid(),
+      ],
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+    $this->publish($topic, $data);
+  }
+
+  /**
    * Serializes a list to an array for JSON.
    */
   protected function serializeList(NodeInterface $list): array {

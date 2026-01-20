@@ -30,7 +30,16 @@ export type MercureEventType =
   | 'presence.update'
   | 'message.created'
   | 'user.typing'
-  | 'activity.created';
+  | 'activity.created'
+  // Workspace membership events
+  | 'workspace.member_added'
+  | 'workspace.member_removed'
+  | 'workspace.member_role_changed'
+  | 'workspace.assigned'
+  | 'workspace.unassigned'
+  // Board membership events
+  | 'board.member_added'
+  | 'board.member_removed';
 
 export interface MercureMessage<T = unknown> {
   type: MercureEventType;
@@ -309,6 +318,9 @@ export function useBoardUpdates(
     onMemberAssigned?: (data: MemberAssignmentData) => void;
     onMemberUnassigned?: (data: MemberAssignmentData) => void;
     onActivityCreated?: (data: ActivityCreatedData) => void;
+    // Board member events
+    onBoardMemberAdded?: (data: BoardMemberAddedData) => void;
+    onBoardMemberRemoved?: (data: BoardMemberRemovedData) => void;
   }
 ) {
   const topics = boardId ? [`/boards/${boardId}`] : [];
@@ -359,6 +371,12 @@ export function useBoardUpdates(
         break;
       case 'activity.created':
         callbacks.onActivityCreated?.(message.data as ActivityCreatedData);
+        break;
+      case 'board.member_added':
+        callbacks.onBoardMemberAdded?.(message.data as BoardMemberAddedData);
+        break;
+      case 'board.member_removed':
+        callbacks.onBoardMemberRemoved?.(message.data as BoardMemberRemovedData);
         break;
     }
   }, [callbacks]);
@@ -440,6 +458,125 @@ export function useChatSubscription(
     topics,
     onMessage: handleMessage,
     enabled: !!channelId,
+  });
+}
+
+/**
+ * Data types for workspace membership events
+ */
+export interface WorkspaceMemberAddedData {
+  workspaceId: string;
+  userId: string;
+  displayName: string;
+  email: string;
+  roleId: string | null;
+  roleName: string | null;
+}
+
+export interface WorkspaceMemberRemovedData {
+  workspaceId: string;
+  userId: string;
+}
+
+export interface WorkspaceMemberRoleChangedData {
+  workspaceId: string;
+  userId: string;
+  displayName: string;
+  roleId: string;
+  roleName: string;
+}
+
+export interface WorkspaceAssignedData {
+  workspaceId: string;
+  roleId: string | null;
+  roleName: string | null;
+}
+
+export interface WorkspaceUnassignedData {
+  workspaceId: string;
+}
+
+/**
+ * Data types for board membership events
+ */
+export interface BoardMemberAddedData {
+  boardId: string;
+  userId: string;
+  displayName: string;
+  email: string;
+  roleId: string | null;
+  roleName: string | null;
+  isAdmin: boolean;
+}
+
+export interface BoardMemberRemovedData {
+  boardId: string;
+  userId: string;
+}
+
+/**
+ * Hook for subscribing to workspace-specific updates
+ * This is used for real-time workspace member changes
+ */
+export function useWorkspaceUpdates(
+  workspaceId: string | undefined,
+  callbacks: {
+    onMemberAdded?: (data: WorkspaceMemberAddedData) => void;
+    onMemberRemoved?: (data: WorkspaceMemberRemovedData) => void;
+    onMemberRoleChanged?: (data: WorkspaceMemberRoleChangedData) => void;
+  }
+) {
+  const topics = workspaceId ? [`/workspaces/${workspaceId}`] : [];
+
+  const handleMessage = useCallback((message: MercureMessage) => {
+    switch (message.type) {
+      case 'workspace.member_added':
+        callbacks.onMemberAdded?.(message.data as WorkspaceMemberAddedData);
+        break;
+      case 'workspace.member_removed':
+        callbacks.onMemberRemoved?.(message.data as WorkspaceMemberRemovedData);
+        break;
+      case 'workspace.member_role_changed':
+        callbacks.onMemberRoleChanged?.(message.data as WorkspaceMemberRoleChangedData);
+        break;
+    }
+  }, [callbacks]);
+
+  return useMercure({
+    topics,
+    onMessage: handleMessage,
+    enabled: !!workspaceId,
+  });
+}
+
+/**
+ * Hook for subscribing to user's workspace assignments
+ * This allows the user to see new workspace invitations in real-time
+ */
+export function useUserWorkspaceUpdates(
+  userId: string | undefined,
+  callbacks: {
+    onWorkspaceAssigned?: (data: WorkspaceAssignedData) => void;
+    onWorkspaceUnassigned?: (data: WorkspaceUnassignedData) => void;
+  }
+) {
+  const topics = userId ? [`/users/${userId}/workspaces`] : [];
+
+  const handleMessage = useCallback((message: MercureMessage) => {
+    switch (message.type) {
+      case 'workspace.assigned':
+        callbacks.onWorkspaceAssigned?.(message.data as WorkspaceAssignedData);
+        break;
+      case 'workspace.unassigned':
+        callbacks.onWorkspaceUnassigned?.(message.data as WorkspaceUnassignedData);
+        break;
+    }
+  }, [callbacks]);
+
+  return useMercure({
+    topics,
+    onMessage: handleMessage,
+    enabled: !!userId,
   });
 }
 

@@ -30,6 +30,11 @@ function boxtasks_realtime_entity_insert(EntityInterface $entity) {
     case 'card_comment':
       $publisher->publishCommentEvent($entity, 'comment.created');
       break;
+
+    case 'member_role':
+      // A new member was added to a workspace
+      _boxtasks_realtime_publish_member_role_created($entity, $publisher);
+      break;
   }
 }
 
@@ -125,6 +130,11 @@ function boxtasks_realtime_entity_update(EntityInterface $entity) {
     case 'card_comment':
       $publisher->publishCommentEvent($entity, 'comment.updated');
       break;
+
+    case 'member_role':
+      // Member's role was updated
+      _boxtasks_realtime_publish_member_role_updated($entity, $publisher);
+      break;
   }
 }
 
@@ -186,5 +196,119 @@ function boxtasks_realtime_entity_predelete(EntityInterface $entity) {
         $publisher->publishCommentDeleted($commentId, $cardId, $boardId);
       }
       break;
+
+    case 'member_role':
+      // Member was removed from a workspace
+      _boxtasks_realtime_publish_member_role_deleted($entity, $publisher);
+      break;
+  }
+}
+
+/**
+ * Publishes a member role created event.
+ *
+ * @param \Drupal\node\NodeInterface $memberRole
+ *   The member_role entity.
+ * @param \Drupal\boxtasks_realtime\Service\MercurePublisher $publisher
+ *   The Mercure publisher service.
+ */
+function _boxtasks_realtime_publish_member_role_created(NodeInterface $memberRole, $publisher): void {
+  // Get workspace ID
+  $workspaceId = NULL;
+  if ($memberRole->hasField('field_member_role_workspace') && !$memberRole->get('field_member_role_workspace')->isEmpty()) {
+    $workspace = $memberRole->get('field_member_role_workspace')->entity;
+    if ($workspace) {
+      $workspaceId = $workspace->uuid();
+    }
+  }
+
+  // Get user ID
+  $userId = NULL;
+  if ($memberRole->hasField('field_member_role_user') && !$memberRole->get('field_member_role_user')->isEmpty()) {
+    $userId = $memberRole->get('field_member_role_user')->target_id;
+  }
+
+  // Get role info
+  $roleId = NULL;
+  $roleName = NULL;
+  if ($memberRole->hasField('field_member_role_role') && !$memberRole->get('field_member_role_role')->isEmpty()) {
+    $role = $memberRole->get('field_member_role_role')->entity;
+    if ($role) {
+      $roleId = $role->uuid();
+      $roleName = $role->label();
+    }
+  }
+
+  if ($workspaceId && $userId) {
+    $publisher->publishWorkspaceMemberAdded($workspaceId, $userId, $roleId, $roleName);
+  }
+}
+
+/**
+ * Publishes a member role updated event.
+ *
+ * @param \Drupal\node\NodeInterface $memberRole
+ *   The member_role entity.
+ * @param \Drupal\boxtasks_realtime\Service\MercurePublisher $publisher
+ *   The Mercure publisher service.
+ */
+function _boxtasks_realtime_publish_member_role_updated(NodeInterface $memberRole, $publisher): void {
+  // Get workspace ID
+  $workspaceId = NULL;
+  if ($memberRole->hasField('field_member_role_workspace') && !$memberRole->get('field_member_role_workspace')->isEmpty()) {
+    $workspace = $memberRole->get('field_member_role_workspace')->entity;
+    if ($workspace) {
+      $workspaceId = $workspace->uuid();
+    }
+  }
+
+  // Get user ID
+  $userId = NULL;
+  if ($memberRole->hasField('field_member_role_user') && !$memberRole->get('field_member_role_user')->isEmpty()) {
+    $userId = $memberRole->get('field_member_role_user')->target_id;
+  }
+
+  // Get role info
+  $roleId = NULL;
+  $roleName = NULL;
+  if ($memberRole->hasField('field_member_role_role') && !$memberRole->get('field_member_role_role')->isEmpty()) {
+    $role = $memberRole->get('field_member_role_role')->entity;
+    if ($role) {
+      $roleId = $role->uuid();
+      $roleName = $role->label();
+    }
+  }
+
+  if ($workspaceId && $userId && $roleId) {
+    $publisher->publishWorkspaceMemberRoleChanged($workspaceId, $userId, $roleId, $roleName);
+  }
+}
+
+/**
+ * Publishes a member role deleted event.
+ *
+ * @param \Drupal\node\NodeInterface $memberRole
+ *   The member_role entity.
+ * @param \Drupal\boxtasks_realtime\Service\MercurePublisher $publisher
+ *   The Mercure publisher service.
+ */
+function _boxtasks_realtime_publish_member_role_deleted(NodeInterface $memberRole, $publisher): void {
+  // Get workspace ID before deletion
+  $workspaceId = NULL;
+  if ($memberRole->hasField('field_member_role_workspace') && !$memberRole->get('field_member_role_workspace')->isEmpty()) {
+    $workspace = $memberRole->get('field_member_role_workspace')->entity;
+    if ($workspace) {
+      $workspaceId = $workspace->uuid();
+    }
+  }
+
+  // Get user ID before deletion
+  $userId = NULL;
+  if ($memberRole->hasField('field_member_role_user') && !$memberRole->get('field_member_role_user')->isEmpty()) {
+    $userId = $memberRole->get('field_member_role_user')->target_id;
+  }
+
+  if ($workspaceId && $userId) {
+    $publisher->publishWorkspaceMemberRemoved($workspaceId, $userId);
   }
 }
