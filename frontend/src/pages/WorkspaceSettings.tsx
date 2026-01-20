@@ -253,69 +253,6 @@ export default function WorkspaceSettings() {
     }
   };
 
-  // Toggle admin status
-  const handleToggleAdmin = async (memberId: string) => {
-    if (!id) return;
-    const member = members.find((m) => m.id === memberId);
-    if (!member?.memberRoleId) {
-      setMessage({ type: 'error', text: 'Cannot find member role to update' });
-      return;
-    }
-
-    // Prevent removing the last admin
-    if (member.isAdmin) {
-      const adminCount = members.filter((m) => m.isAdmin).length;
-      if (adminCount <= 1) {
-        setMessage({ type: 'error', text: 'Cannot remove the last admin' });
-        return;
-      }
-    }
-
-    // Find Admin and Editor roles dynamically
-    const adminRole = roles.find(r => r.title.toLowerCase() === 'admin');
-    const editorRole = roles.find(r => r.title.toLowerCase() === 'editor')
-      || roles.find(r => r.isDefault)
-      || roles.find(r => r.title.toLowerCase() !== 'admin');
-
-    if (!adminRole || !editorRole) {
-      setMessage({ type: 'error', text: 'Required roles not found' });
-      return;
-    }
-
-    setIsSavingMembers(true);
-    try {
-      const newRole = member.isAdmin ? editorRole : adminRole;
-      await updateMemberRole(member.memberRoleId, newRole.id);
-
-      // Update members state
-      setMembers(
-        members.map((m) =>
-          m.id === memberId ? {
-            ...m,
-            isAdmin: !m.isAdmin,
-            roleName: newRole.title
-          } : m
-        )
-      );
-
-      // Update memberRoles state
-      setMemberRoles(
-        memberRoles.map((mr) =>
-          mr.id === member.memberRoleId ? { ...mr, roleId: newRole.id, role: newRole } : mr
-        )
-      );
-
-      setMessage({
-        type: 'success',
-        text: member.isAdmin ? 'Admin privileges removed' : 'Admin privileges granted',
-      });
-    } catch {
-      setMessage({ type: 'error', text: 'Failed to update member role' });
-    } finally {
-      setIsSavingMembers(false);
-    }
-  };
-
   const handleSave = async () => {
     if (!id || !formData.title.trim()) {
       setMessage({ type: 'error', text: 'Workspace name is required' });
@@ -656,18 +593,6 @@ export default function WorkspaceSettings() {
                           )}
                         </div>
                       )}
-                      <button
-                        onClick={() => handleToggleAdmin(member.id)}
-                        disabled={isSavingMembers}
-                        className={`p-2 rounded-lg transition-colors ${
-                          member.isAdmin
-                            ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30'
-                            : 'text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300'
-                        }`}
-                        title={member.isAdmin ? 'Remove admin' : 'Make admin'}
-                      >
-                        <Crown className="h-4 w-4" />
-                      </button>
                       {member.id !== user?.id && canRemoveMembers('workspace') && (
                         <button
                           onClick={() => handleRemoveMember(member.id)}
