@@ -488,16 +488,16 @@ class EmailNotificationService {
    *   The card URL.
    */
   protected function getCardUrl(NodeInterface $card): string {
-    // Get the board ID from the card's list.
+    // Get the board from the card's list.
     $list_id = $card->get('field_card_list')->target_id;
     if ($list_id) {
       $list = $this->entityTypeManager->getStorage('node')->load($list_id);
       if ($list && $list->hasField('field_list_board')) {
-        $board_id = $list->get('field_list_board')->target_id;
-        if ($board_id) {
-          // Return frontend URL with card ID.
+        $board_ref = $list->get('field_list_board')->entity;
+        if ($board_ref) {
+          // Return frontend URL with UUIDs (frontend expects UUIDs, not node IDs).
           $frontend_url = $this->getFrontendUrl();
-          return $frontend_url . '/board/' . $board_id . '?card=' . $card->id();
+          return $frontend_url . '/board/' . $board_ref->uuid() . '?card=' . $card->uuid();
         }
       }
     }
