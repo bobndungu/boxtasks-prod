@@ -94,30 +94,10 @@ class PermissionChecker {
       }
     }
 
-    // Check workspace visibility before falling back to default role.
-    $visibility = 'private';
-    if ($workspace->hasField('field_workspace_visibility') && !$workspace->get('field_workspace_visibility')->isEmpty()) {
-      $visibility = $workspace->get('field_workspace_visibility')->value;
-    }
-
-    // Private and team workspaces require explicit membership.
-    // - "private" = only members with member_role can access
-    // - "team" = only members with member_role can access (same as private)
-    // - "public" = all authenticated users can access via default role
-    if ($visibility === 'private' || $visibility === 'team') {
-      $this->roleCache[$cache_key] = NULL;
-      return NULL;
-    }
-
-    // For public workspaces only, fall back to default role.
-    $default_roles = $storage->loadByProperties([
-      'type' => 'workspace_role',
-      'field_role_is_default' => TRUE,
-    ]);
-    $default_role = reset($default_roles);
-    $this->roleCache[$cache_key] = $default_role ?: NULL;
-
-    return $this->roleCache[$cache_key];
+    // All workspaces require explicit membership via member_role.
+    // No fallback to default role - users must be explicitly added as members.
+    $this->roleCache[$cache_key] = NULL;
+    return NULL;
   }
 
   /**
@@ -160,15 +140,10 @@ class PermissionChecker {
   /**
    * Check if user can view a board.
    *
-   * Board access is determined by:
+   * Board access requires:
    * 1. Super admins can always view
-   * 2. If role has 'any' board_view permission → can view all workspace boards
-   * 3. If role has 'own' board_view permission → can view if:
-   *    - User owns the board, OR
-   *    - User is explicitly in board's member list (field_board_members)
-   * 4. Board visibility setting also affects access:
-   *    - 'workspace' → all workspace members with appropriate permissions
-   *    - 'private' → only board members (field_board_members)
+   * 2. User must be a workspace member (have member_role for the workspace)
+   * 3. For private boards, user must also be in board's member list
    *
    * @param \Drupal\node\NodeInterface $board
    *   The board node.
@@ -186,21 +161,20 @@ class PermissionChecker {
       return TRUE;
     }
 
-    // Get workspace ID from board.
+    // Get workspace from board.
     if (!$board->hasField('field_board_workspace')) {
-      // No workspace field - only super admins can view.
-      return $this->isSuperAdmin($user_id);
+      return FALSE;
     }
 
     $workspace_ref = $board->get('field_board_workspace')->entity;
     if (!$workspace_ref) {
-      // No workspace assigned - only super admins can view.
-      return $this->isSuperAdmin($user_id);
+      return FALSE;
     }
 
+    // User must be a workspace member (have member_role).
     $role = $this->getUserRoleForWorkspace($workspace_ref->uuid(), $user_id);
     if (!$role) {
-      return FALSE; // No role = no access to workspace.
+      return FALSE; // Not a workspace member = no access.
     }
 
     // Check board visibility setting.
@@ -209,27 +183,15 @@ class PermissionChecker {
       $board_visibility = $board->get('field_board_visibility')->value;
     }
 
-    // Check if user is explicitly a board member.
-    $is_board_member = $this->isUserBoardMember($board, $user_id);
-
-    // Private boards: only board members can view.
+    // Private boards: only board members or owner can view.
     if ($board_visibility === 'private') {
+      $is_board_member = $this->isUserBoardMember($board, $user_id);
       return $is_board_member || (int) $board->getOwnerId() === (int) $user_id;
     }
 
-    // Check board view permission from role.
-    $perm_level = $role->get('field_perm_board_view')->value ?? 'none';
-
-    if ($perm_level === 'any') {
-      return TRUE;
-    }
-
-    if ($perm_level === 'own') {
-      // User can view if they own the board OR are a board member.
-      return (int) $board->getOwnerId() === (int) $user_id || $is_board_member;
-    }
-
-    return FALSE;
+    // Workspace-visible boards: all workspace members can view.
+    // User already has a role (checked above), so they can view.
+    return TRUE;
   }
 
   /**
