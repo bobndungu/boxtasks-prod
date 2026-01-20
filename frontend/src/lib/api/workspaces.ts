@@ -22,9 +22,27 @@ export interface CreateWorkspaceData {
 }
 
 // Transform JSON:API response to Workspace
-function transformWorkspace(data: Record<string, unknown>): Workspace {
+// includedUsers is used to filter out uid=1 from member counts
+function transformWorkspace(data: Record<string, unknown>, includedUsers?: Record<string, unknown>[]): Workspace {
   const attrs = data.attributes as Record<string, unknown>;
   const rels = data.relationships as Record<string, { data: Array<{ id: string }> | null }> | undefined;
+
+  // Get member and admin IDs, filtering out uid=1 (super admin)
+  let memberIds = rels?.field_workspace_members?.data?.map((m) => m.id) || [];
+  let adminIds = rels?.field_workspace_admins?.data?.map((a) => a.id) || [];
+
+  // If we have included user data, filter out uid=1
+  if (includedUsers && includedUsers.length > 0) {
+    const superAdminUuid = includedUsers.find((user) => {
+      const userAttrs = user.attributes as Record<string, unknown>;
+      return userAttrs.drupal_internal__uid === SUPER_ADMIN_UID;
+    })?.id as string | undefined;
+
+    if (superAdminUuid) {
+      memberIds = memberIds.filter((id) => id !== superAdminUuid);
+      adminIds = adminIds.filter((id) => id !== superAdminUuid);
+    }
+  }
 
   return {
     id: data.id as string,
@@ -32,8 +50,8 @@ function transformWorkspace(data: Record<string, unknown>): Workspace {
     description: (attrs.field_workspace_description as { value?: string })?.value || '',
     visibility: (attrs.field_workspace_visibility as 'private' | 'team' | 'public') || 'private',
     color: (attrs.field_workspace_color as string) || '#3B82F6',
-    memberIds: rels?.field_workspace_members?.data?.map((m) => m.id) || [],
-    adminIds: rels?.field_workspace_admins?.data?.map((a) => a.id) || [],
+    memberIds,
+    adminIds,
     createdAt: attrs.created as string,
     updatedAt: attrs.changed as string,
   };
@@ -50,7 +68,11 @@ export async function fetchWorkspaces(): Promise<Workspace[]> {
   const data = response.data.data;
   if (!Array.isArray(data)) return [];
 
-  return data.map(transformWorkspace);
+  // Get included users to filter out uid=1
+  const included = response.data.included || [];
+  const includedUsers = included.filter((item: Record<string, unknown>) => item.type === 'user--user');
+
+  return data.map((workspace: Record<string, unknown>) => transformWorkspace(workspace, includedUsers));
 }
 
 // Fetch a single workspace by ID
@@ -61,7 +83,11 @@ export async function fetchWorkspace(id: string): Promise<Workspace> {
     },
   });
 
-  return transformWorkspace(response.data.data);
+  // Get included users to filter out uid=1
+  const included = response.data.included || [];
+  const includedUsers = included.filter((item: Record<string, unknown>) => item.type === 'user--user');
+
+  return transformWorkspace(response.data.data, includedUsers);
 }
 
 // Create a new workspace
@@ -219,6 +245,30 @@ export async function fetchWorkspaceMembers(workspaceId: string): Promise<Worksp
 
     if (user) {
       const userAttrs = user.attributes as Record<string, unknown>;
+      const uid = userAttrs.drupal_internal__uid as number;
+
+      // Skip super admin (uid = 1) - they should not appear as workspace members
+      if (uid === SUPER_ADMIN_UID) {
+        continue;
+      }
+
+      // Skip anonymous user (uid = 0)
+      if (uid === 0) {
+        continue;
+      }
+
+      const displayName =
+        (userAttrs.field_display_name as string) ||
+        (userAttrs.field_full_name as string) ||
+        (userAttrs.display_name as string) ||
+        (userAttrs.name as string) ||
+        'Unknown User';
+
+      // Skip system users by name
+      if (SYSTEM_USER_NAMES.includes(displayName.toLowerCase())) {
+        continue;
+      }
+
       const roleAttrs = role?.attributes as Record<string, unknown> | undefined;
       const roleName = (roleAttrs?.title as string) || 'Member';
 
@@ -228,12 +278,7 @@ export async function fetchWorkspaceMembers(workspaceId: string): Promise<Worksp
 
       members.push({
         id: user.id as string,
-        displayName:
-          (userAttrs.field_display_name as string) ||
-          (userAttrs.field_full_name as string) ||
-          (userAttrs.display_name as string) ||
-          (userAttrs.name as string) ||
-          'Unknown User',
+        displayName,
         email: (userAttrs.mail as string) || '',
         isAdmin,
         memberRoleId: memberRole.id as string,
