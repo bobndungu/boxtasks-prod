@@ -54,10 +54,11 @@ export default function BoardMembersModal({
   const isJustMe = memberSetup === 'just_me';
 
   // Get granular permissions for member management
-  const { canAddMembers, canRemoveMembers } = usePermissions(workspaceId);
+  const { canAddMembers, canRemoveMembers, canViewBoardRoles } = usePermissions(workspaceId);
   const permissionScope = isBoardSpecific ? 'board' : 'workspace';
   const canAdd = canAddMembers(permissionScope);
   const canRemove = canRemoveMembers(permissionScope);
+  const canViewRoles = canViewBoardRoles();
 
   // Load members only once on mount, not on every prop change
   useEffect(() => {
@@ -118,8 +119,8 @@ export default function BoardMembersModal({
 
   // Called when user selects a member from dropdown
   const handleMemberSelected = (user: WorkspaceMember) => {
-    // For board-specific members, show role selection
-    if (isBoardSpecific) {
+    // For board-specific members, show role selection (only if user can view roles)
+    if (isBoardSpecific && canViewRoles) {
       setPendingMember(user);
       // Set default role (find 'member' role or use first available)
       const defaultRole = roles.find(r => r.isDefault) || roles.find(r => r.title.toLowerCase() === 'member') || roles[0];
@@ -127,8 +128,9 @@ export default function BoardMembersModal({
         setSelectedRoleId(defaultRole.id);
       }
     } else {
-      // For workspace members, just add directly
-      handleAddMember(user, false);
+      // For workspace members or if user can't view roles, just add directly with default role
+      const defaultRole = roles.find(r => r.isDefault) || roles[0];
+      handleAddMember(user, false, defaultRole?.id);
     }
   };
 
@@ -455,8 +457,8 @@ export default function BoardMembersModal({
           </div>
         )}
 
-        {/* Role Selection UI - Shows when a member is selected (for board-specific members only) */}
-        {pendingMember && (
+        {/* Role Selection UI - Shows when a member is selected (for board-specific members only, if user can view roles) */}
+        {pendingMember && canViewRoles && (
           <div className="px-6 pt-4 pb-4 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
@@ -552,8 +554,8 @@ export default function BoardMembersModal({
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* Role dropdown - show for workspace members and board-specific custom members */}
-                    {!isJustMe && roles.length > 0 && (
+                    {/* Role dropdown - show only if user can view roles */}
+                    {!isJustMe && roles.length > 0 && canViewRoles && (
                       <Select
                         value={getMemberRole(member.id)?.id || ''}
                         onChange={(e) => handleChangeRole(member.id, e.target.value)}

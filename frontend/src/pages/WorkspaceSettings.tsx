@@ -513,15 +513,15 @@ export default function WorkspaceSettings() {
           </div>
         </div>
 
-        {/* Roles Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Shield className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Roles & Permissions</h2>
-              </div>
-              {canViewRoles() && (
+        {/* Roles Section - only visible to users with roleView permission */}
+        {canViewRoles() && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Shield className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Roles & Permissions</h2>
+                </div>
                 <Link
                   to={`/workspace/${id}/roles`}
                   className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center"
@@ -529,34 +529,34 @@ export default function WorkspaceSettings() {
                   <Shield className="h-4 w-4 mr-1" />
                   Manage Roles
                 </Link>
-              )}
+              </div>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                Configure what members can do in this workspace by managing roles and permissions.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {roles.slice(0, 3).map((role) => (
+                  <span
+                    key={role.id}
+                    className="inline-flex items-center px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm"
+                  >
+                    <Shield className="h-3 w-3 mr-1.5 text-gray-500 dark:text-gray-400" />
+                    {role.title}
+                    {role.isDefault && (
+                      <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">(Default)</span>
+                    )}
+                  </span>
+                ))}
+                {roles.length > 3 && (
+                  <span className="inline-flex items-center px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full text-sm">
+                    +{roles.length - 3} more
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-          <div className="p-6">
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              Configure what members can do in this workspace by managing roles and permissions.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {roles.slice(0, 3).map((role) => (
-                <span
-                  key={role.id}
-                  className="inline-flex items-center px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm"
-                >
-                  <Shield className="h-3 w-3 mr-1.5 text-gray-500 dark:text-gray-400" />
-                  {role.title}
-                  {role.isDefault && (
-                    <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">(Default)</span>
-                  )}
-                </span>
-              ))}
-              {roles.length > 3 && (
-                <span className="inline-flex items-center px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full text-sm">
-                  +{roles.length - 3} more
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Members Section */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
@@ -621,36 +621,38 @@ export default function WorkspaceSettings() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {/* Role selector */}
-                      <div className="relative">
-                        <button
-                          onClick={() => setEditingMemberRole(editingMemberRole === member.id ? null : member.id)}
-                          disabled={isSavingRole}
-                          className="flex items-center px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                        >
-                          <Shield className="h-3.5 w-3.5 mr-1.5 text-gray-500 dark:text-gray-400" />
-                          <span>{memberRole?.title || 'No Role'}</span>
-                          <ChevronDown className="h-3.5 w-3.5 ml-1.5 text-gray-400 dark:text-gray-500" />
-                        </button>
-                        {editingMemberRole === member.id && (
-                          <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
-                            {roles.map((role) => (
-                              <button
-                                key={role.id}
-                                onClick={() => handleRoleChange(member.id, role.id)}
-                                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between ${
-                                  memberRole?.id === role.id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
-                                }`}
-                              >
-                                <span>{role.title}</span>
-                                {role.isDefault && (
-                                  <span className="text-xs text-gray-400 dark:text-gray-500">(Default)</span>
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      {/* Role selector - only show if user can view roles */}
+                      {canViewRoles() && (
+                        <div className="relative">
+                          <button
+                            onClick={() => setEditingMemberRole(editingMemberRole === member.id ? null : member.id)}
+                            disabled={isSavingRole}
+                            className="flex items-center px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                          >
+                            <Shield className="h-3.5 w-3.5 mr-1.5 text-gray-500 dark:text-gray-400" />
+                            <span>{memberRole?.title || 'No Role'}</span>
+                            <ChevronDown className="h-3.5 w-3.5 ml-1.5 text-gray-400 dark:text-gray-500" />
+                          </button>
+                          {editingMemberRole === member.id && (
+                            <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
+                              {roles.map((role) => (
+                                <button
+                                  key={role.id}
+                                  onClick={() => handleRoleChange(member.id, role.id)}
+                                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between ${
+                                    memberRole?.id === role.id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                                  }`}
+                                >
+                                  <span>{role.title}</span>
+                                  {role.isDefault && (
+                                    <span className="text-xs text-gray-400 dark:text-gray-500">(Default)</span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <button
                         onClick={() => handleToggleAdmin(member.id)}
                         disabled={isSavingMembers}
