@@ -35,6 +35,21 @@ export default function WorkspaceSwitcher() {
     try {
       const data = await fetchWorkspaces();
       setWorkspaces(data);
+
+      // If current workspace no longer exists in the list, clear it and select first available
+      if (currentWorkspace && data.length > 0) {
+        const stillExists = data.some(w => w.id === currentWorkspace.id);
+        if (!stillExists) {
+          // Current workspace was deleted, select first available
+          setCurrentWorkspace(data[0]);
+        }
+      } else if (!currentWorkspace && data.length > 0) {
+        // No current workspace set, select first available
+        setCurrentWorkspace(data[0]);
+      } else if (data.length === 0) {
+        // No workspaces available, clear current
+        setCurrentWorkspace(null);
+      }
     } catch {
       // Silent fail
     } finally {
