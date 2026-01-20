@@ -2,6 +2,7 @@
 
 namespace Drupal\boxtasks_global_views\Controller;
 
+use Drupal\boxtasks_role\Service\PermissionChecker;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -29,16 +30,26 @@ class GlobalViewsController extends ControllerBase {
   protected $currentUser;
 
   /**
+   * The permission checker service.
+   *
+   * @var \Drupal\boxtasks_role\Service\PermissionChecker
+   */
+  protected $permissionChecker;
+
+  /**
    * Constructs a GlobalViewsController object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    * @param \Drupal\Core\Session\AccountProxyInterface $current_user
    *   The current user.
+   * @param \Drupal\boxtasks_role\Service\PermissionChecker $permission_checker
+   *   The permission checker service.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, AccountProxyInterface $current_user) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, AccountProxyInterface $current_user, PermissionChecker $permission_checker) {
     $this->entityTypeManager = $entity_type_manager;
     $this->currentUser = $current_user;
+    $this->permissionChecker = $permission_checker;
   }
 
   /**
@@ -47,7 +58,8 @@ class GlobalViewsController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity_type.manager'),
-      $container->get('current_user')
+      $container->get('current_user'),
+      $container->get('boxtasks_role.permission_checker')
     );
   }
 
@@ -464,28 +476,31 @@ class GlobalViewsController extends ControllerBase {
     $storage = $this->entityTypeManager->getStorage('node');
     $boards = [];
 
-    // Query boards - we'll check workspace membership
+    // Query boards - we'll check access using permission checker.
     $query = $storage->getQuery()
       ->accessCheck(FALSE)
       ->condition('type', 'board');
 
-    // Check if board has archived field
+    // Check if board has archived field.
     try {
       $query->condition('field_board_archived', 0);
     } catch (\Exception $e) {
-      // Field doesn't exist, continue without filter
+      // Field doesn't exist, continue without filter.
     }
 
     $boardNids = $query->execute();
     $boardEntities = $storage->loadMultiple($boardNids);
 
-    foreach ($boardEntities as $board) {
+    // Filter boards using permission checker to enforce access control.
+    $viewableBoards = $this->permissionChecker->filterViewableBoards($boardEntities, $userId);
+
+    foreach ($viewableBoards as $board) {
       $workspaceRef = $board->get('field_board_workspace')->target_id;
-      $workspace = $workspaceRef ? $storage->load($workspaceRef) : null;
+      $workspace = $workspaceRef ? $storage->load($workspaceRef) : NULL;
 
-      $wsUuid = $workspace ? $workspace->uuid() : null;
+      $wsUuid = $workspace ? $workspace->uuid() : NULL;
 
-      // Filter by workspace if specified
+      // Filter by workspace if specified.
       if ($workspaceId && $wsUuid !== $workspaceId) {
         continue;
       }

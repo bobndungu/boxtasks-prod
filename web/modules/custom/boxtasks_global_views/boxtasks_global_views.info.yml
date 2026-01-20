@@ -9,3 +9,4 @@ dependencies:
   - boxtasks_card:boxtasks_card
   - boxtasks_board:boxtasks_board
   - boxtasks_list:boxtasks_list
+  - boxtasks_role:boxtasks_role
