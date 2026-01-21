@@ -467,7 +467,7 @@ export interface CustomFieldDef {
 export interface CustomFieldValue {
   id: string;
   cardId: string;
-  fieldId: string;
+  definitionId: string;
   value: string;
   drupal_id: number;
 }
