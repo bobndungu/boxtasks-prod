@@ -721,6 +721,129 @@ export default function BoardView() {
         return [newActivity, ...prev];
       });
     },
+    // Custom field real-time updates
+    onCustomFieldValueCreated: (data) => {
+      if (!data.cardId || !data.definitionId) return;
+      setCustomFieldValues((prev) => {
+        const newMap = new Map(prev);
+        const cardValues = newMap.get(data.cardId) || [];
+        // Check if already exists
+        if (cardValues.some((v) => v.id === data.id)) {
+          return prev;
+        }
+        const newValue: CustomFieldValue = {
+          id: data.id,
+          cardId: data.cardId,
+          definitionId: data.definitionId,
+          value: data.value ?? '',
+        };
+        newMap.set(data.cardId, [...cardValues, newValue]);
+        return newMap;
+      });
+    },
+    onCustomFieldValueUpdated: (data) => {
+      if (!data.cardId || !data.definitionId) return;
+      setCustomFieldValues((prev) => {
+        const newMap = new Map(prev);
+        const cardValues = newMap.get(data.cardId) || [];
+        const index = cardValues.findIndex((v) => v.id === data.id);
+        if (index !== -1) {
+          const updated = [...cardValues];
+          updated[index] = {
+            ...updated[index],
+            value: data.value ?? '',
+          };
+          newMap.set(data.cardId, updated);
+        } else {
+          // Value doesn't exist yet, add it
+          const newValue: CustomFieldValue = {
+            id: data.id,
+            cardId: data.cardId,
+            definitionId: data.definitionId,
+            value: data.value ?? '',
+          };
+          newMap.set(data.cardId, [...cardValues, newValue]);
+        }
+        return newMap;
+      });
+    },
+    onCustomFieldValueDeleted: (data) => {
+      if (!data.cardId) return;
+      setCustomFieldValues((prev) => {
+        const newMap = new Map(prev);
+        const cardValues = newMap.get(data.cardId) || [];
+        const filtered = cardValues.filter((v) => v.id !== data.id);
+        if (filtered.length !== cardValues.length) {
+          newMap.set(data.cardId, filtered);
+        }
+        return newMap;
+      });
+    },
+    onCustomFieldDefinitionCreated: (data) => {
+      setCustomFieldDefs((prev) => {
+        // Check if already exists
+        if (prev.some((d) => d.id === data.id)) {
+          return prev;
+        }
+        // Convert options from object format to string array if needed
+        const options = Array.isArray(data.options)
+          ? data.options.map((opt: unknown) =>
+              typeof opt === 'string' ? opt : (opt as { label?: string })?.label || String(opt)
+            )
+          : [];
+        const newDef: CustomFieldDefinition = {
+          id: data.id,
+          title: data.title,
+          boardId: data.boardId,
+          workspaceId: data.workspaceId ?? undefined,
+          type: data.type as CustomFieldType,
+          options,
+          required: data.required,
+          position: data.position,
+          displayLocation: data.displayLocation as 'main' | 'sidebar',
+          scope: data.scope as 'board' | 'workspace' | 'card',
+        };
+        return [...prev, newDef].sort((a, b) => a.position - b.position);
+      });
+    },
+    onCustomFieldDefinitionUpdated: (data) => {
+      setCustomFieldDefs((prev) => {
+        const index = prev.findIndex((d) => d.id === data.id);
+        if (index === -1) return prev;
+        // Convert options from object format to string array if needed
+        const options = Array.isArray(data.options)
+          ? data.options.map((opt: unknown) =>
+              typeof opt === 'string' ? opt : (opt as { label?: string })?.label || String(opt)
+            )
+          : [];
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          title: data.title,
+          type: data.type as CustomFieldType,
+          options,
+          required: data.required,
+          position: data.position,
+          displayLocation: data.displayLocation as 'main' | 'sidebar',
+          scope: data.scope as 'board' | 'workspace' | 'card',
+        };
+        return updated.sort((a, b) => a.position - b.position);
+      });
+    },
+    onCustomFieldDefinitionDeleted: (definitionId) => {
+      setCustomFieldDefs((prev) => prev.filter((d) => d.id !== definitionId));
+      // Also remove all values for this definition
+      setCustomFieldValues((prev) => {
+        const newMap = new Map(prev);
+        for (const [cardId, values] of newMap.entries()) {
+          const filtered = values.filter((v) => v.definitionId !== definitionId);
+          if (filtered.length !== values.length) {
+            newMap.set(cardId, filtered);
+          }
+        }
+        return newMap;
+      });
+    },
   });
 
   // User presence tracking

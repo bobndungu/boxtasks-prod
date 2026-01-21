@@ -35,6 +35,16 @@ function boxtasks_realtime_entity_insert(EntityInterface $entity) {
       // A new member was added to a workspace
       _boxtasks_realtime_publish_member_role_created($entity, $publisher);
       break;
+
+    case 'card_custom_field_value':
+      // A new custom field value was created
+      $publisher->publishCustomFieldValueCreated($entity);
+      break;
+
+    case 'custom_field_definition':
+      // A new custom field definition was created
+      $publisher->publishCustomFieldDefinitionCreated($entity);
+      break;
   }
 }
 
@@ -140,6 +150,16 @@ function boxtasks_realtime_entity_update(EntityInterface $entity) {
       // Workspace role permissions were updated - notify all affected users
       $publisher->publishWorkspaceRolePermissionsUpdated($entity);
       break;
+
+    case 'card_custom_field_value':
+      // A custom field value was updated
+      $publisher->publishCustomFieldValueUpdated($entity);
+      break;
+
+    case 'custom_field_definition':
+      // A custom field definition was updated
+      $publisher->publishCustomFieldDefinitionUpdated($entity);
+      break;
   }
 }
 
@@ -205,6 +225,16 @@ function boxtasks_realtime_entity_predelete(EntityInterface $entity) {
     case 'member_role':
       // Member was removed from a workspace
       _boxtasks_realtime_publish_member_role_deleted($entity, $publisher);
+      break;
+
+    case 'card_custom_field_value':
+      // A custom field value was deleted
+      _boxtasks_realtime_publish_custom_field_value_deleted($entity, $publisher);
+      break;
+
+    case 'custom_field_definition':
+      // A custom field definition was deleted
+      _boxtasks_realtime_publish_custom_field_definition_deleted($entity, $publisher);
       break;
   }
 }
@@ -315,5 +345,86 @@ function _boxtasks_realtime_publish_member_role_deleted(NodeInterface $memberRol
 
   if ($workspaceId && $userId) {
     $publisher->publishWorkspaceMemberRemoved($workspaceId, $userId);
+  }
+}
+
+/**
+ * Publishes a custom field value deleted event.
+ *
+ * @param \Drupal\node\NodeInterface $fieldValue
+ *   The card_custom_field_value entity.
+ * @param \Drupal\boxtasks_realtime\Service\MercurePublisher $publisher
+ *   The Mercure publisher service.
+ */
+function _boxtasks_realtime_publish_custom_field_value_deleted(NodeInterface $fieldValue, $publisher): void {
+  $nodeStorage = \Drupal::entityTypeManager()->getStorage('node');
+
+  // Get value ID
+  $valueId = $fieldValue->uuid();
+
+  // Get card ID and board ID before deletion
+  $cardId = NULL;
+  $boardId = NULL;
+  if ($fieldValue->hasField('field_cfv_card') && !$fieldValue->get('field_cfv_card')->isEmpty()) {
+    $cardTargetId = $fieldValue->get('field_cfv_card')->target_id;
+    $card = $nodeStorage->load($cardTargetId);
+    if ($card) {
+      $cardId = $card->uuid();
+      // Get board from card's list
+      if ($card->hasField('field_card_list') && !$card->get('field_card_list')->isEmpty()) {
+        $listTargetId = $card->get('field_card_list')->target_id;
+        $list = $nodeStorage->load($listTargetId);
+        if ($list && $list->hasField('field_list_board') && !$list->get('field_list_board')->isEmpty()) {
+          $boardTargetId = $list->get('field_list_board')->target_id;
+          $board = $nodeStorage->load($boardTargetId);
+          if ($board) {
+            $boardId = $board->uuid();
+          }
+        }
+      }
+    }
+  }
+
+  // Get definition ID before deletion
+  $definitionId = NULL;
+  if ($fieldValue->hasField('field_cfv_definition') && !$fieldValue->get('field_cfv_definition')->isEmpty()) {
+    $defTargetId = $fieldValue->get('field_cfv_definition')->target_id;
+    $definition = $nodeStorage->load($defTargetId);
+    if ($definition) {
+      $definitionId = $definition->uuid();
+    }
+  }
+
+  if ($boardId && $valueId) {
+    $publisher->publishCustomFieldValueDeleted($valueId, $cardId, $definitionId, $boardId);
+  }
+}
+
+/**
+ * Publishes a custom field definition deleted event.
+ *
+ * @param \Drupal\node\NodeInterface $definition
+ *   The custom_field_definition entity.
+ * @param \Drupal\boxtasks_realtime\Service\MercurePublisher $publisher
+ *   The Mercure publisher service.
+ */
+function _boxtasks_realtime_publish_custom_field_definition_deleted(NodeInterface $definition, $publisher): void {
+  $nodeStorage = \Drupal::entityTypeManager()->getStorage('node');
+
+  // Get definition ID
+  $definitionId = $definition->uuid();
+
+  // Get board ID before deletion
+  $boardId = NULL;
+  if ($definition->hasField('field_customfield_board') && !$definition->get('field_customfield_board')->isEmpty()) {
+    $boardTargetId = $definition->get('field_customfield_board')->target_id;
+    $board = $nodeStorage->load($boardTargetId);
+    if ($board) {
+      $boardId = $board->uuid();
+    }
+  }
+
+  if ($boardId && $definitionId) {
+    $publisher->publishCustomFieldDefinitionDeleted($definitionId, $boardId);
   }
 }

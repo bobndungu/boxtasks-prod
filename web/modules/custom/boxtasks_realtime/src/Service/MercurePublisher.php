@@ -1092,6 +1092,291 @@ class MercurePublisher {
   }
 
   /**
+   * Publishes a custom field value created event.
+   */
+  public function publishCustomFieldValueCreated(NodeInterface $fieldValue): void {
+    if ($fieldValue->bundle() !== 'card_custom_field_value') {
+      return;
+    }
+
+    $boardId = $this->getBoardIdFromCustomFieldValue($fieldValue);
+    if (!$boardId) {
+      return;
+    }
+
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'customfield.value_created',
+      'data' => $this->serializeCustomFieldValue($fieldValue),
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
+   * Publishes a custom field value updated event.
+   */
+  public function publishCustomFieldValueUpdated(NodeInterface $fieldValue): void {
+    if ($fieldValue->bundle() !== 'card_custom_field_value') {
+      return;
+    }
+
+    $boardId = $this->getBoardIdFromCustomFieldValue($fieldValue);
+    if (!$boardId) {
+      return;
+    }
+
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'customfield.value_updated',
+      'data' => $this->serializeCustomFieldValue($fieldValue),
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
+   * Publishes a custom field value deleted event.
+   */
+  public function publishCustomFieldValueDeleted(string $valueId, string $cardId, string $definitionId, string $boardId): void {
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'customfield.value_deleted',
+      'data' => [
+        'id' => $valueId,
+        'cardId' => $cardId,
+        'definitionId' => $definitionId,
+      ],
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
+   * Publishes a custom field definition created event.
+   */
+  public function publishCustomFieldDefinitionCreated(NodeInterface $definition): void {
+    if ($definition->bundle() !== 'custom_field_definition') {
+      return;
+    }
+
+    $boardId = $this->getBoardIdFromCustomFieldDefinition($definition);
+    if (!$boardId) {
+      return;
+    }
+
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'customfield.definition_created',
+      'data' => $this->serializeCustomFieldDefinition($definition),
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
+   * Publishes a custom field definition updated event.
+   */
+  public function publishCustomFieldDefinitionUpdated(NodeInterface $definition): void {
+    if ($definition->bundle() !== 'custom_field_definition') {
+      return;
+    }
+
+    $boardId = $this->getBoardIdFromCustomFieldDefinition($definition);
+    if (!$boardId) {
+      return;
+    }
+
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'customfield.definition_updated',
+      'data' => $this->serializeCustomFieldDefinition($definition),
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
+   * Publishes a custom field definition deleted event.
+   */
+  public function publishCustomFieldDefinitionDeleted(string $definitionId, string $boardId): void {
+    $topic = "/boards/{$boardId}";
+    $data = [
+      'type' => 'customfield.definition_deleted',
+      'data' => $definitionId,
+      'timestamp' => date('c'),
+      'actorId' => $this->currentUser->id(),
+    ];
+
+    $this->publish($topic, $data);
+  }
+
+  /**
+   * Gets the board ID from a custom field value.
+   */
+  protected function getBoardIdFromCustomFieldValue(NodeInterface $fieldValue): ?string {
+    if (!$fieldValue->hasField('field_cfv_card') || $fieldValue->get('field_cfv_card')->isEmpty()) {
+      return NULL;
+    }
+
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+    $cardTargetId = $fieldValue->get('field_cfv_card')->target_id;
+    $card = $nodeStorage->load($cardTargetId);
+    if (!$card) {
+      return NULL;
+    }
+
+    return $this->getBoardIdFromCard($card);
+  }
+
+  /**
+   * Gets the board ID from a custom field definition.
+   */
+  protected function getBoardIdFromCustomFieldDefinition(NodeInterface $definition): ?string {
+    if (!$definition->hasField('field_customfield_board') || $definition->get('field_customfield_board')->isEmpty()) {
+      return NULL;
+    }
+
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+    $boardTargetId = $definition->get('field_customfield_board')->target_id;
+    $board = $nodeStorage->load($boardTargetId);
+    if (!$board) {
+      return NULL;
+    }
+
+    return $board->uuid();
+  }
+
+  /**
+   * Serializes a custom field value for Mercure.
+   */
+  protected function serializeCustomFieldValue(NodeInterface $fieldValue): array {
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+
+    $cardId = NULL;
+    if ($fieldValue->hasField('field_cfv_card') && !$fieldValue->get('field_cfv_card')->isEmpty()) {
+      $cardTargetId = $fieldValue->get('field_cfv_card')->target_id;
+      $card = $nodeStorage->load($cardTargetId);
+      if ($card) {
+        $cardId = $card->uuid();
+      }
+    }
+
+    $definitionId = NULL;
+    $definitionTitle = NULL;
+    $fieldType = NULL;
+    if ($fieldValue->hasField('field_cfv_definition') && !$fieldValue->get('field_cfv_definition')->isEmpty()) {
+      $defTargetId = $fieldValue->get('field_cfv_definition')->target_id;
+      $definition = $nodeStorage->load($defTargetId);
+      if ($definition) {
+        $definitionId = $definition->uuid();
+        $definitionTitle = $definition->label();
+        if ($definition->hasField('field_customfield_type') && !$definition->get('field_customfield_type')->isEmpty()) {
+          $fieldType = $definition->get('field_customfield_type')->value;
+        }
+      }
+    }
+
+    $value = NULL;
+    if ($fieldValue->hasField('field_cfv_value') && !$fieldValue->get('field_cfv_value')->isEmpty()) {
+      $value = $fieldValue->get('field_cfv_value')->value;
+    }
+
+    return [
+      'id' => $fieldValue->uuid(),
+      'cardId' => $cardId,
+      'definitionId' => $definitionId,
+      'definitionTitle' => $definitionTitle,
+      'value' => $value,
+      'type' => $fieldType,
+    ];
+  }
+
+  /**
+   * Serializes a custom field definition for Mercure.
+   */
+  protected function serializeCustomFieldDefinition(NodeInterface $definition): array {
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+
+    $boardId = NULL;
+    if ($definition->hasField('field_customfield_board') && !$definition->get('field_customfield_board')->isEmpty()) {
+      $boardTargetId = $definition->get('field_customfield_board')->target_id;
+      $board = $nodeStorage->load($boardTargetId);
+      if ($board) {
+        $boardId = $board->uuid();
+      }
+    }
+
+    $workspaceId = NULL;
+    if ($definition->hasField('field_customfield_workspace') && !$definition->get('field_customfield_workspace')->isEmpty()) {
+      $workspaceTargetId = $definition->get('field_customfield_workspace')->target_id;
+      $workspace = $nodeStorage->load($workspaceTargetId);
+      if ($workspace) {
+        $workspaceId = $workspace->uuid();
+      }
+    }
+
+    $type = 'text';
+    if ($definition->hasField('field_customfield_type') && !$definition->get('field_customfield_type')->isEmpty()) {
+      $type = $definition->get('field_customfield_type')->value;
+    }
+
+    $options = [];
+    if ($definition->hasField('field_customfield_options') && !$definition->get('field_customfield_options')->isEmpty()) {
+      $optionsRaw = $definition->get('field_customfield_options')->value;
+      if ($optionsRaw) {
+        $decoded = json_decode($optionsRaw, TRUE);
+        if (is_array($decoded)) {
+          $options = $decoded;
+        }
+      }
+    }
+
+    $required = FALSE;
+    if ($definition->hasField('field_customfield_required') && !$definition->get('field_customfield_required')->isEmpty()) {
+      $required = (bool) $definition->get('field_customfield_required')->value;
+    }
+
+    $position = 0;
+    if ($definition->hasField('field_customfield_position') && !$definition->get('field_customfield_position')->isEmpty()) {
+      $position = (int) $definition->get('field_customfield_position')->value;
+    }
+
+    $displayLocation = 'sidebar';
+    if ($definition->hasField('field_cf_display_loc') && !$definition->get('field_cf_display_loc')->isEmpty()) {
+      $displayLocation = $definition->get('field_cf_display_loc')->value;
+    }
+
+    $scope = 'board';
+    if ($definition->hasField('field_cf_scope') && !$definition->get('field_cf_scope')->isEmpty()) {
+      $scope = $definition->get('field_cf_scope')->value;
+    }
+
+    return [
+      'id' => $definition->uuid(),
+      'title' => $definition->label(),
+      'boardId' => $boardId,
+      'workspaceId' => $workspaceId,
+      'type' => $type,
+      'options' => $options,
+      'required' => $required,
+      'position' => $position,
+      'displayLocation' => $displayLocation,
+      'scope' => $scope,
+    ];
+  }
+
+  /**
    * Serializes a list to an array for JSON.
    */
   protected function serializeList(NodeInterface $list): array {

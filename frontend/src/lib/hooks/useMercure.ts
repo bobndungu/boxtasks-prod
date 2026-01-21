@@ -42,7 +42,14 @@ export type MercureEventType =
   | 'board.member_added'
   | 'board.member_removed'
   // Permission events
-  | 'permissions.updated';
+  | 'permissions.updated'
+  // Custom field events
+  | 'customfield.value_created'
+  | 'customfield.value_updated'
+  | 'customfield.value_deleted'
+  | 'customfield.definition_created'
+  | 'customfield.definition_updated'
+  | 'customfield.definition_deleted';
 
 export interface MercureMessage<T = unknown> {
   type: MercureEventType;
@@ -301,6 +308,37 @@ export interface ActivityCreatedData {
 }
 
 /**
+ * Data types for custom field events
+ */
+export interface CustomFieldValueData {
+  id: string;
+  cardId: string;
+  definitionId: string;
+  definitionTitle: string | null;
+  value: string | null;
+  type: string | null;
+}
+
+export interface CustomFieldValueDeletedData {
+  id: string;
+  cardId: string;
+  definitionId: string;
+}
+
+export interface CustomFieldDefinitionData {
+  id: string;
+  title: string;
+  boardId: string;
+  workspaceId: string | null;
+  type: string;
+  options: unknown[]; // Can be strings or objects depending on source
+  required: boolean;
+  position: number;
+  displayLocation: string;
+  scope: string;
+}
+
+/**
  * Hook for subscribing to board-specific updates
  */
 export function useBoardUpdates(
@@ -324,6 +362,13 @@ export function useBoardUpdates(
     // Board member events
     onBoardMemberAdded?: (data: BoardMemberAddedData) => void;
     onBoardMemberRemoved?: (data: BoardMemberRemovedData) => void;
+    // Custom field events
+    onCustomFieldValueCreated?: (data: CustomFieldValueData) => void;
+    onCustomFieldValueUpdated?: (data: CustomFieldValueData) => void;
+    onCustomFieldValueDeleted?: (data: CustomFieldValueDeletedData) => void;
+    onCustomFieldDefinitionCreated?: (data: CustomFieldDefinitionData) => void;
+    onCustomFieldDefinitionUpdated?: (data: CustomFieldDefinitionData) => void;
+    onCustomFieldDefinitionDeleted?: (definitionId: string) => void;
   }
 ) {
   const topics = boardId ? [`/boards/${boardId}`] : [];
@@ -380,6 +425,25 @@ export function useBoardUpdates(
         break;
       case 'board.member_removed':
         callbacks.onBoardMemberRemoved?.(message.data as BoardMemberRemovedData);
+        break;
+      // Custom field events
+      case 'customfield.value_created':
+        callbacks.onCustomFieldValueCreated?.(message.data as CustomFieldValueData);
+        break;
+      case 'customfield.value_updated':
+        callbacks.onCustomFieldValueUpdated?.(message.data as CustomFieldValueData);
+        break;
+      case 'customfield.value_deleted':
+        callbacks.onCustomFieldValueDeleted?.(message.data as CustomFieldValueDeletedData);
+        break;
+      case 'customfield.definition_created':
+        callbacks.onCustomFieldDefinitionCreated?.(message.data as CustomFieldDefinitionData);
+        break;
+      case 'customfield.definition_updated':
+        callbacks.onCustomFieldDefinitionUpdated?.(message.data as CustomFieldDefinitionData);
+        break;
+      case 'customfield.definition_deleted':
+        callbacks.onCustomFieldDefinitionDeleted?.(message.data as string);
         break;
     }
   }, [callbacks]);
