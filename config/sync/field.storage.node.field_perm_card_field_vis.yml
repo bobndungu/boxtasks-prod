@@ -4,8 +4,8 @@ dependencies:
   module:
     - node
     - options
-id: node.field_perm_card_fields_visibility
-field_name: field_perm_card_fields_visibility
+id: node.field_perm_card_field_vis
+field_name: field_perm_card_field_vis
 entity_type: node
 type: list_string
 settings:

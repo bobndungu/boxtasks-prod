@@ -187,7 +187,7 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       automationEdit: (attrs.field_perm_automation_edit as PermissionLevel) || 'none',
       automationDelete: (attrs.field_perm_automation_delete as PermissionLevel) || 'none',
       // Card fields visibility permission
-      cardFieldsVisibility: (attrs.field_perm_card_fields_visibility as PermissionLevel) || 'none',
+      cardFieldsVisibility: (attrs.field_perm_card_field_vis as PermissionLevel) || 'none',
       // Saved views permission
       savedViews: (attrs.field_perm_saved_views as PermissionLevel) || 'any',
       // Mind map permissions

@@ -147,7 +147,7 @@ class WorkspaceRolesController extends ControllerBase {
           'automationEdit' => $this->getFieldValue($role, 'field_perm_automation_edit', 'none'),
           'automationDelete' => $this->getFieldValue($role, 'field_perm_automation_delete', 'none'),
           // Card fields visibility permission
-          'cardFieldsVisibility' => $this->getFieldValue($role, 'field_perm_card_fields_visibility', 'none'),
+          'cardFieldsVisibility' => $this->getFieldValue($role, 'field_perm_card_field_vis', 'none'),
           // Saved views permission
           'savedViews' => $this->getFieldValue($role, 'field_perm_saved_views', 'any'),
           // Mind map permissions
@@ -290,7 +290,7 @@ class WorkspaceRolesController extends ControllerBase {
         'automationEdit' => $this->getFieldValue($role, 'field_perm_automation_edit', 'none'),
         'automationDelete' => $this->getFieldValue($role, 'field_perm_automation_delete', 'none'),
         // Card fields visibility permission
-        'cardFieldsVisibility' => $this->getFieldValue($role, 'field_perm_card_fields_visibility', 'none'),
+        'cardFieldsVisibility' => $this->getFieldValue($role, 'field_perm_card_field_vis', 'none'),
         // Saved views permission
         'savedViews' => $this->getFieldValue($role, 'field_perm_saved_views', 'any'),
         // Mind map permissions
@@ -395,7 +395,7 @@ class WorkspaceRolesController extends ControllerBase {
         'automationCreate' => 'field_perm_automation_create',
         'automationEdit' => 'field_perm_automation_edit',
         'automationDelete' => 'field_perm_automation_delete',
-        'cardFieldsVisibility' => 'field_perm_card_fields_visibility',
+        'cardFieldsVisibility' => 'field_perm_card_field_vis',
         'savedViews' => 'field_perm_saved_views',
         'mindMapView' => 'field_perm_mind_map_view',
         'mindMapCreate' => 'field_perm_mind_map_create',
@@ -511,7 +511,7 @@ class WorkspaceRolesController extends ControllerBase {
         'automationCreate' => 'field_perm_automation_create',
         'automationEdit' => 'field_perm_automation_edit',
         'automationDelete' => 'field_perm_automation_delete',
-        'cardFieldsVisibility' => 'field_perm_card_fields_visibility',
+        'cardFieldsVisibility' => 'field_perm_card_field_vis',
         'savedViews' => 'field_perm_saved_views',
         'mindMapView' => 'field_perm_mind_map_view',
         'mindMapCreate' => 'field_perm_mind_map_create',
