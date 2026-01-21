@@ -3801,6 +3801,7 @@ export default function BoardView() {
       {showTemplatesManager && currentBoard?.workspaceId && (
         <TemplatesManager
           workspaceId={currentBoard.workspaceId}
+          boardId={currentBoard.id}
           onClose={() => setShowTemplatesManager(false)}
         />
       )}

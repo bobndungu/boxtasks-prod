@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, Globe, Building2, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Loader2, Globe, Building2, LayoutGrid, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   updateTemplate,
   type CardTemplate,
@@ -7,6 +7,7 @@ import {
   type ChecklistTemplate,
 } from '../lib/api/templates';
 import { fetchWorkspaces } from '../lib/api/workspaces';
+import { fetchBoardsByWorkspace } from '../lib/api/boards';
 import { toast } from '../lib/stores/toast';
 
 const AVAILABLE_LABELS: { value: CardLabel; color: string; name: string }[] = [
@@ -21,6 +22,7 @@ const AVAILABLE_LABELS: { value: CardLabel; color: string; name: string }[] = [
 interface EditTemplateModalProps {
   template: CardTemplate;
   workspaceId: string;
+  boardId?: string;
   onClose: () => void;
   onUpdate: () => void;
 }
@@ -30,9 +32,15 @@ interface Workspace {
   title: string;
 }
 
+interface Board {
+  id: string;
+  title: string;
+}
+
 export default function EditTemplateModal({
   template,
   workspaceId,
+  boardId,
   onClose,
   onUpdate,
 }: EditTemplateModalProps) {
@@ -40,13 +48,17 @@ export default function EditTemplateModal({
   const [description, setDescription] = useState(template.description || '');
   const [labels, setLabels] = useState<CardLabel[]>(template.labels);
   const [checklists, setChecklists] = useState<ChecklistTemplate[]>(template.checklists);
-  const [scope, setScope] = useState<'global' | 'workspace'>(
-    template.workspaceId ? 'workspace' : 'global'
+  const [scope, setScope] = useState<'global' | 'workspace' | 'board'>(
+    template.boardId ? 'board' : template.workspaceId ? 'workspace' : 'global'
   );
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(
     template.workspaceId || workspaceId
   );
+  const [selectedBoardId, setSelectedBoardId] = useState<string | null>(
+    template.boardId || boardId || null
+  );
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [boards, setBoards] = useState<Board[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [expandedChecklists, setExpandedChecklists] = useState<Set<number>>(new Set([0]));
 
@@ -61,6 +73,23 @@ export default function EditTemplateModal({
     };
     loadWorkspaces();
   }, []);
+
+  // Load boards when workspace changes
+  useEffect(() => {
+    const loadBoards = async () => {
+      if (!selectedWorkspaceId) {
+        setBoards([]);
+        return;
+      }
+      try {
+        const boardList = await fetchBoardsByWorkspace(selectedWorkspaceId);
+        setBoards(boardList);
+      } catch {
+        setBoards([]);
+      }
+    };
+    loadBoards();
+  }, [selectedWorkspaceId]);
 
   const handleLabelToggle = (label: CardLabel) => {
     setLabels((prev) =>
@@ -142,6 +171,7 @@ export default function EditTemplateModal({
         labels,
         checklists: cleanedChecklists,
         workspaceId: scope === 'workspace' ? selectedWorkspaceId || undefined : undefined,
+        boardId: scope === 'board' ? selectedBoardId || undefined : undefined,
       });
       toast.success('Template updated');
       onUpdate();
@@ -245,7 +275,7 @@ export default function EditTemplateModal({
                 <div className="flex-1">
                   <span className="font-medium text-gray-900 dark:text-white">Workspace</span>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Only available in specific workspace
+                    Available in all boards within a workspace
                   </p>
                 </div>
               </label>
@@ -262,6 +292,71 @@ export default function EditTemplateModal({
                     </option>
                   ))}
                 </select>
+              )}
+
+              <label
+                className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
+                  scope === 'board'
+                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                    : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="scope"
+                  value="board"
+                  checked={scope === 'board'}
+                  onChange={() => setScope('board')}
+                  className="sr-only"
+                />
+                <LayoutGrid className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3" />
+                <div className="flex-1">
+                  <span className="font-medium text-gray-900 dark:text-white">Board</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Only available in a specific board
+                  </p>
+                </div>
+              </label>
+
+              {scope === 'board' && (
+                <div className="space-y-2">
+                  {workspaces.length > 0 && (
+                    <select
+                      value={selectedWorkspaceId || ''}
+                      onChange={(e) => {
+                        setSelectedWorkspaceId(e.target.value || null);
+                        setSelectedBoardId(null);
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="">Select workspace...</option>
+                      {workspaces.map((ws) => (
+                        <option key={ws.id} value={ws.id}>
+                          {ws.title}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {boards.length > 0 && (
+                    <select
+                      value={selectedBoardId || ''}
+                      onChange={(e) => setSelectedBoardId(e.target.value || null)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="">Select board...</option>
+                      {boards.map((board) => (
+                        <option key={board.id} value={board.id}>
+                          {board.title}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {selectedWorkspaceId && boards.length === 0 && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      No boards found in this workspace
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </div>

@@ -9,6 +9,7 @@ import {
   Edit3,
   Globe,
   Building2,
+  LayoutGrid,
   FileText,
   Eye,
   EyeOff,
@@ -28,10 +29,11 @@ import EditTemplateModal from './EditTemplateModal';
 
 interface TemplatesManagerProps {
   workspaceId: string;
+  boardId?: string;
   onClose: () => void;
 }
 
-export default function TemplatesManager({ workspaceId, onClose }: TemplatesManagerProps) {
+export default function TemplatesManager({ workspaceId, boardId, onClose }: TemplatesManagerProps) {
   const { user } = useAuthStore();
   const { canTemplate } = usePermissions(workspaceId);
   const [templates, setTemplates] = useState<CardTemplate[]>([]);
@@ -186,7 +188,12 @@ export default function TemplatesManager({ workspaceId, onClose }: TemplatesMana
                         <h3 className="font-medium text-gray-900 dark:text-white truncate">
                           {template.title}
                         </h3>
-                        {template.workspaceId ? (
+                        {template.boardId ? (
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs rounded-full">
+                            <LayoutGrid className="h-3 w-3" />
+                            Board
+                          </span>
+                        ) : template.workspaceId ? (
                           <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-full">
                             <Building2 className="h-3 w-3" />
                             Workspace
@@ -307,6 +314,7 @@ export default function TemplatesManager({ workspaceId, onClose }: TemplatesMana
         <EditTemplateModal
           template={editingTemplate}
           workspaceId={workspaceId}
+          boardId={boardId}
           onClose={() => setEditingTemplate(null)}
           onUpdate={() => {
             setEditingTemplate(null);
