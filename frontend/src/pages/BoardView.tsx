@@ -1116,7 +1116,7 @@ export default function BoardView() {
         cardValues.push({
           id: cfv.id,
           cardId: cfv.cardId,
-          definitionId: cfv.fieldId,
+          definitionId: cfv.definitionId,
           value: cfv.value,
         });
         valuesMap.set(cfv.cardId, cardValues);

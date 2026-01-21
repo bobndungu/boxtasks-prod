@@ -224,7 +224,7 @@ class BoardDataController extends ControllerBase {
       if (!empty($card_nids)) {
         $cfv_query = $node_storage->getQuery()
           ->accessCheck(TRUE)
-          ->condition('type', 'custom_field_value')
+          ->condition('type', 'card_custom_field_value')
           ->condition('field_cfv_card', $card_nids, 'IN')
           ->execute();
 
@@ -637,18 +637,18 @@ class BoardDataController extends ControllerBase {
       }
     }
 
-    $field_id = NULL;
-    if ($cfv->hasField('field_cfv_field') && !$cfv->get('field_cfv_field')->isEmpty()) {
-      $field_ref = $cfv->get('field_cfv_field')->first();
-      if ($field_ref && $field_ref->entity) {
-        $field_id = $field_ref->entity->uuid();
+    $definition_id = NULL;
+    if ($cfv->hasField('field_cfv_definition') && !$cfv->get('field_cfv_definition')->isEmpty()) {
+      $definition_ref = $cfv->get('field_cfv_definition')->first();
+      if ($definition_ref && $definition_ref->entity) {
+        $definition_id = $definition_ref->entity->uuid();
       }
     }
 
     return [
       'id' => $cfv->uuid(),
       'cardId' => $card_id,
-      'fieldId' => $field_id,
+      'definitionId' => $definition_id,
       'value' => $cfv->hasField('field_cfv_value') ? $cfv->get('field_cfv_value')->value : '',
       'drupal_id' => (int) $cfv->id(),
     ];
