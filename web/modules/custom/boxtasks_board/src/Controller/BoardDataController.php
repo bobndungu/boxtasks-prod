@@ -518,6 +518,40 @@ class BoardDataController extends ControllerBase {
       $due_date = $card->get($due_date_field)->value;
     }
 
+    // Get approval status.
+    $is_approved = FALSE;
+    $approved_by = NULL;
+    $approved_at = NULL;
+    if ($card->hasField('field_card_approved') && !$card->get('field_card_approved')->isEmpty()) {
+      $is_approved = (bool) $card->get('field_card_approved')->value;
+    }
+    if ($card->hasField('field_card_approved_by') && !$card->get('field_card_approved_by')->isEmpty()) {
+      $approver = $card->get('field_card_approved_by')->entity;
+      if ($approver) {
+        $approved_by = $this->formatUser($approver);
+      }
+    }
+    if ($card->hasField('field_card_approved_at') && !$card->get('field_card_approved_at')->isEmpty()) {
+      $approved_at = $card->get('field_card_approved_at')->value . 'Z';
+    }
+
+    // Get rejection status.
+    $is_rejected = FALSE;
+    $rejected_by = NULL;
+    $rejected_at = NULL;
+    if ($card->hasField('field_card_rejected') && !$card->get('field_card_rejected')->isEmpty()) {
+      $is_rejected = (bool) $card->get('field_card_rejected')->value;
+    }
+    if ($card->hasField('field_card_rejected_by') && !$card->get('field_card_rejected_by')->isEmpty()) {
+      $rejecter = $card->get('field_card_rejected_by')->entity;
+      if ($rejecter) {
+        $rejected_by = $this->formatUser($rejecter);
+      }
+    }
+    if ($card->hasField('field_card_rejected_at') && !$card->get('field_card_rejected_at')->isEmpty()) {
+      $rejected_at = $card->get('field_card_rejected_at')->value . 'Z';
+    }
+
     return [
       'id' => $card->uuid(),
       'title' => $card->label(),
@@ -535,6 +569,12 @@ class BoardDataController extends ControllerBase {
       'clientId' => $client_id,
       'estimatedHours' => $card->hasField('field_card_estimated_hours') ? (float) $card->get('field_card_estimated_hours')->value : NULL,
       'authorId' => $author_id,
+      'isApproved' => $is_approved,
+      'approvedBy' => $approved_by,
+      'approvedAt' => $approved_at,
+      'isRejected' => $is_rejected,
+      'rejectedBy' => $rejected_by,
+      'rejectedAt' => $rejected_at,
       'drupal_id' => (int) $card->id(),
     ];
   }
