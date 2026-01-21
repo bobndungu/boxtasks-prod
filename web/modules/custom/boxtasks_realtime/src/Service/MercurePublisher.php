@@ -792,6 +792,54 @@ class MercurePublisher {
       }
     }
 
+    // Get approval status.
+    $data['isApproved'] = FALSE;
+    $data['approvedBy'] = NULL;
+    $data['approvedAt'] = NULL;
+    if ($card->hasField('field_card_approved') && !$card->get('field_card_approved')->isEmpty()) {
+      $data['isApproved'] = (bool) $card->get('field_card_approved')->value;
+    }
+    if ($card->hasField('field_card_approved_by') && !$card->get('field_card_approved_by')->isEmpty()) {
+      $approver = $userStorage->load($card->get('field_card_approved_by')->target_id);
+      if ($approver) {
+        $displayName = $approver->hasField('field_display_name') && !$approver->get('field_display_name')->isEmpty()
+          ? $approver->get('field_display_name')->value
+          : $approver->getDisplayName();
+        $data['approvedBy'] = [
+          'id' => $approver->uuid(),
+          'name' => $displayName,
+          'email' => $approver->getEmail(),
+        ];
+      }
+    }
+    if ($card->hasField('field_card_approved_at') && !$card->get('field_card_approved_at')->isEmpty()) {
+      $data['approvedAt'] = $card->get('field_card_approved_at')->value . 'Z';
+    }
+
+    // Get rejection status.
+    $data['isRejected'] = FALSE;
+    $data['rejectedBy'] = NULL;
+    $data['rejectedAt'] = NULL;
+    if ($card->hasField('field_card_rejected') && !$card->get('field_card_rejected')->isEmpty()) {
+      $data['isRejected'] = (bool) $card->get('field_card_rejected')->value;
+    }
+    if ($card->hasField('field_card_rejected_by') && !$card->get('field_card_rejected_by')->isEmpty()) {
+      $rejecter = $userStorage->load($card->get('field_card_rejected_by')->target_id);
+      if ($rejecter) {
+        $displayName = $rejecter->hasField('field_display_name') && !$rejecter->get('field_display_name')->isEmpty()
+          ? $rejecter->get('field_display_name')->value
+          : $rejecter->getDisplayName();
+        $data['rejectedBy'] = [
+          'id' => $rejecter->uuid(),
+          'name' => $displayName,
+          'email' => $rejecter->getEmail(),
+        ];
+      }
+    }
+    if ($card->hasField('field_card_rejected_at') && !$card->get('field_card_rejected_at')->isEmpty()) {
+      $data['rejectedAt'] = $card->get('field_card_rejected_at')->value . 'Z';
+    }
+
     return $data;
   }
 
