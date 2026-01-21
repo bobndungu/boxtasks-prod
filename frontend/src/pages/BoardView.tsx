@@ -402,25 +402,56 @@ export default function BoardView() {
   const mercureConnection = useBoardUpdates(id, {
     onCardCreated: (cardData) => {
       // Normalize dates from Mercure to ensure correct timezone handling
-      const card = normalizeCardFromMercure(cardData as Record<string, unknown>) as unknown as Card;
-      if (card.listId) {
+      const incomingCard = normalizeCardFromMercure(cardData as Record<string, unknown>) as unknown as Card;
+      // Check if incoming data has complete member/watcher info (not just IDs with "Unknown User")
+      const hasCompleteMemberData = incomingCard.members?.length &&
+        incomingCard.members.every(m => m.name && m.name !== 'Unknown User');
+      const hasCompleteWatcherData = incomingCard.watchers?.length &&
+        incomingCard.watchers.every(w => w.name && w.name !== 'Unknown User');
+
+      if (incomingCard.listId) {
         setCardsByList((prev) => {
           const newMap = new Map(prev);
-          const listCards = newMap.get(card.listId) || [];
-          // Only add if not already present (check by ID and also by temp ID pattern for optimistic cards)
-          const existingByRealId = listCards.some((c) => c.id === card.id);
-          const existingTempCard = listCards.some((c) =>
-            c.id.startsWith('temp_') && c.title === card.title && c.listId === card.listId
+          const listCards = newMap.get(incomingCard.listId) || [];
+          // Check if card already exists by real ID
+          const existingCardIndex = listCards.findIndex((c) => c.id === incomingCard.id);
+          // Check for temp card that matches (optimistic update)
+          const tempCardIndex = listCards.findIndex((c) =>
+            c.id.startsWith('temp_') && c.title === incomingCard.title && c.listId === incomingCard.listId
           );
-          if (!existingByRealId) {
-            if (existingTempCard) {
-              // Replace temp card with real card
-              newMap.set(card.listId, listCards.map((c) =>
-                (c.id.startsWith('temp_') && c.title === card.title) ? card : c
-              ));
-            } else {
-              newMap.set(card.listId, [...listCards, card]);
-            }
+
+          if (existingCardIndex !== -1) {
+            // Card already exists - merge data, preserving member info if Mercure has incomplete data
+            const existingCard = listCards[existingCardIndex];
+            const mergedCard = {
+              ...existingCard,
+              ...incomingCard,
+              // Preserve member/watcher data if incoming has incomplete data
+              members: hasCompleteMemberData ? incomingCard.members : existingCard.members,
+              memberIds: incomingCard.memberIds?.length ? incomingCard.memberIds : existingCard.memberIds,
+              watchers: hasCompleteWatcherData ? incomingCard.watchers : existingCard.watchers,
+              watcherIds: incomingCard.watcherIds?.length ? incomingCard.watcherIds : existingCard.watcherIds,
+            };
+            const newCards = [...listCards];
+            newCards[existingCardIndex] = mergedCard;
+            newMap.set(incomingCard.listId, newCards);
+          } else if (tempCardIndex !== -1) {
+            // Replace temp card with real card, preserving member info if needed
+            const tempCard = listCards[tempCardIndex];
+            const mergedCard = {
+              ...incomingCard,
+              // Preserve member/watcher data from temp card if Mercure has incomplete data
+              members: hasCompleteMemberData ? incomingCard.members : tempCard.members,
+              memberIds: incomingCard.memberIds?.length ? incomingCard.memberIds : tempCard.memberIds,
+              watchers: hasCompleteWatcherData ? incomingCard.watchers : tempCard.watchers,
+              watcherIds: incomingCard.watcherIds?.length ? incomingCard.watcherIds : tempCard.watcherIds,
+            };
+            newMap.set(incomingCard.listId, listCards.map((c) =>
+              c.id === tempCard.id ? mergedCard : c
+            ));
+          } else {
+            // Brand new card from another user - add it
+            newMap.set(incomingCard.listId, [...listCards, incomingCard]);
           }
           return newMap;
         });
