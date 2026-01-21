@@ -81,62 +81,40 @@ export async function fetchAttachmentsByCard(cardId: string): Promise<CardAttach
   return data.map((item: Record<string, unknown>) => transformAttachment(item, included));
 }
 
-// Upload a file and create an attachment
+// Upload a file and create an attachment using custom API endpoint
 export async function createAttachment(cardId: string, file: File): Promise<CardAttachment> {
-  // Step 1: Upload the file
-  const uploadResponse = await fetchWithCsrf(
-    `${API_URL}/jsonapi/node/card_attachment/field_attachment_file`,
+  // Use custom endpoint that handles both file upload and attachment creation
+  const response = await fetchWithCsrf(
+    `${API_URL}/api/cards/${cardId}/attachments`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/octet-stream',
-        'Accept': 'application/vnd.api+json',
+        'Accept': 'application/json',
         'Content-Disposition': `file; filename="${encodeURIComponent(file.name)}"`,
       },
       body: file,
     }
   );
 
-  if (!uploadResponse.ok) {
-    const error = await uploadResponse.json();
-    throw new Error(error.errors?.[0]?.detail || 'Failed to upload file');
-  }
-
-  const uploadResult = await uploadResponse.json();
-  const fileId = uploadResult.data.id;
-
-  // Step 2: Create the attachment node referencing the file
-  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_attachment`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/vnd.api+json',
-      'Accept': 'application/vnd.api+json',
-    },
-    body: JSON.stringify({
-      data: {
-        type: 'node--card_attachment',
-        attributes: {
-          title: file.name,
-        },
-        relationships: {
-          field_attachment_card: {
-            data: { type: 'node--card', id: cardId },
-          },
-          field_attachment_file: {
-            data: { type: 'file--file', id: fileId },
-          },
-        },
-      },
-    }),
-  });
-
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.errors?.[0]?.detail || 'Failed to create attachment');
+    throw new Error(error.error || 'Failed to create attachment');
   }
 
   const result = await response.json();
-  return transformAttachment(result.data, result.included);
+  const data = result.data;
+
+  // Transform the response to CardAttachment format
+  return {
+    id: data.id,
+    name: data.attributes.title,
+    cardId: cardId,
+    fileUrl: data.file?.url ? (data.file.url.startsWith('http') ? data.file.url : `${API_URL}${data.file.url}`) : '',
+    fileSize: data.file?.filesize || 0,
+    mimeType: data.file?.filemime || '',
+    createdAt: new Date(data.attributes.created * 1000).toISOString(),
+  };
 }
 
 // Delete an attachment

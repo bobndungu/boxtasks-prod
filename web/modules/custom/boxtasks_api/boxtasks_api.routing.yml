@@ -121,3 +121,30 @@ boxtasks_api.delete_field_group:
     parameters:
       group_id:
         type: string
+
+# File upload endpoint.
+boxtasks_api.file_upload:
+  path: '/api/files/upload'
+  defaults:
+    _controller: '\Drupal\boxtasks_api\Controller\FileUploadController::uploadFile'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2', 'cookie']
+    no_cache: TRUE
+
+# Create attachment with file upload.
+boxtasks_api.create_attachment:
+  path: '/api/cards/{card_id}/attachments'
+  defaults:
+    _controller: '\Drupal\boxtasks_api\Controller\FileUploadController::createAttachment'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2', 'cookie']
+    no_cache: TRUE
+    parameters:
+      card_id:
+        type: string
