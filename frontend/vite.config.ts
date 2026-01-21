@@ -5,6 +5,15 @@ import compression from 'vite-plugin-compression'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Development server configuration - prevent caching issues
+  server: {
+    headers: {
+      // Prevent browser from caching any responses in development
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
+  },
   build: {
     rollupOptions: {
       output: {
@@ -130,7 +139,9 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: true,
+        // IMPORTANT: Disable service worker in development to prevent caching issues
+        // This was causing features to not appear after code changes
+        enabled: false,
       },
     }),
     // Gzip compression for production
