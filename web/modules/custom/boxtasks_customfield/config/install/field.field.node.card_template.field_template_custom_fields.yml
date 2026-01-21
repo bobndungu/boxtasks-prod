@@ -1,0 +1,28 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_template_custom_fields
+    - node.type.card_template
+    - node.type.custom_field_definition
+id: node.card_template.field_template_custom_fields
+field_name: field_template_custom_fields
+entity_type: node
+bundle: card_template
+label: 'Custom Fields'
+description: 'Custom fields that will be enabled on cards created from this template'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      custom_field_definition: custom_field_definition
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

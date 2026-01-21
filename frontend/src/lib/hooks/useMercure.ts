@@ -336,6 +336,9 @@ export interface CustomFieldDefinitionData {
   position: number;
   displayLocation: string;
   scope: string;
+  visibilityMode?: 'all_cards' | 'template_only' | 'manual';
+  roleIds?: string[];
+  groupId?: string;
 }
 
 /**

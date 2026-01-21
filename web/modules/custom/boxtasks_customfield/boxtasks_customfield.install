@@ -1,0 +1,272 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the boxtasks_customfield module.
+ */
+
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\node\Entity\NodeType;
+
+/**
+ * Add custom field visibility fields.
+ */
+function boxtasks_customfield_update_9001(&$sandbox) {
+  // Create custom_field_group content type if it doesn't exist.
+  if (!NodeType::load('custom_field_group')) {
+    NodeType::create([
+      'type' => 'custom_field_group',
+      'name' => 'Custom Field Group',
+      'description' => 'Groups custom fields together for organization and role-based access control',
+      'new_revision' => TRUE,
+      'preview_mode' => 1,
+      'display_submitted' => FALSE,
+    ])->save();
+  }
+
+  // Create field_cfg_board storage and instance.
+  _boxtasks_customfield_create_entity_reference_field(
+    'field_cfg_board',
+    'custom_field_group',
+    'Board',
+    'The board this field group belongs to (optional if workspace-level)',
+    ['board'],
+    FALSE
+  );
+
+  // Create field_cfg_workspace storage and instance.
+  _boxtasks_customfield_create_entity_reference_field(
+    'field_cfg_workspace',
+    'custom_field_group',
+    'Workspace',
+    'The workspace this field group belongs to',
+    ['workspace'],
+    TRUE
+  );
+
+  // Create field_cfg_roles storage and instance.
+  _boxtasks_customfield_create_entity_reference_field(
+    'field_cfg_roles',
+    'custom_field_group',
+    'Visible to Roles',
+    'Roles that can see fields in this group. Leave empty for all roles.',
+    ['workspace_role'],
+    FALSE,
+    -1
+  );
+
+  // Create field_cfg_position storage and instance.
+  _boxtasks_customfield_create_integer_field(
+    'field_cfg_position',
+    'custom_field_group',
+    'Position',
+    'Display order for this field group',
+    0
+  );
+
+  return t('Created custom_field_group content type and fields.');
+}
+
+/**
+ * Add visibility mode, roles, and group fields to custom_field_definition.
+ */
+function boxtasks_customfield_update_9002(&$sandbox) {
+  // Create field_cf_visibility_mode storage and instance.
+  _boxtasks_customfield_create_list_field(
+    'field_cf_visibility_mode',
+    'custom_field_definition',
+    'Visibility Mode',
+    'Controls which cards this field appears on.',
+    [
+      'all_cards' => 'All Cards',
+      'template_only' => 'Template Only',
+      'manual' => 'Manual',
+    ],
+    'all_cards'
+  );
+
+  // Create field_cf_roles storage and instance.
+  _boxtasks_customfield_create_entity_reference_field(
+    'field_cf_roles',
+    'custom_field_definition',
+    'Visible to Roles',
+    'Roles that can see this field. Leave empty for all roles to see.',
+    ['workspace_role'],
+    FALSE,
+    -1
+  );
+
+  // Create field_cf_group storage and instance.
+  _boxtasks_customfield_create_entity_reference_field(
+    'field_cf_group',
+    'custom_field_definition',
+    'Field Group',
+    'Optional group to organize this field with others',
+    ['custom_field_group'],
+    FALSE
+  );
+
+  return t('Added visibility fields to custom_field_definition.');
+}
+
+/**
+ * Add custom fields reference to card_template.
+ */
+function boxtasks_customfield_update_9003(&$sandbox) {
+  _boxtasks_customfield_create_entity_reference_field(
+    'field_template_custom_fields',
+    'card_template',
+    'Custom Fields',
+    'Custom fields that will be enabled on cards created from this template',
+    ['custom_field_definition'],
+    FALSE,
+    -1
+  );
+
+  return t('Added custom fields reference to card_template.');
+}
+
+/**
+ * Add enabled custom fields reference to card.
+ */
+function boxtasks_customfield_update_9004(&$sandbox) {
+  _boxtasks_customfield_create_entity_reference_field(
+    'field_card_custom_fields',
+    'card',
+    'Enabled Custom Fields',
+    'Custom fields enabled on this card (for template-only and manual visibility modes)',
+    ['custom_field_definition'],
+    FALSE,
+    -1
+  );
+
+  return t('Added enabled custom fields reference to card.');
+}
+
+/**
+ * Helper function to create an entity reference field.
+ */
+function _boxtasks_customfield_create_entity_reference_field(
+  string $field_name,
+  string $bundle,
+  string $label,
+  string $description,
+  array $target_bundles,
+  bool $required = FALSE,
+  int $cardinality = 1
+) {
+  // Create field storage if it doesn't exist.
+  if (!FieldStorageConfig::loadByName('node', $field_name)) {
+    FieldStorageConfig::create([
+      'field_name' => $field_name,
+      'entity_type' => 'node',
+      'type' => 'entity_reference',
+      'cardinality' => $cardinality,
+      'settings' => [
+        'target_type' => 'node',
+      ],
+    ])->save();
+  }
+
+  // Create field instance if it doesn't exist.
+  if (!FieldConfig::loadByName('node', $bundle, $field_name)) {
+    $handler_settings = [
+      'target_bundles' => array_combine($target_bundles, $target_bundles),
+      'sort' => ['field' => '_none', 'direction' => 'ASC'],
+      'auto_create' => FALSE,
+      'auto_create_bundle' => '',
+    ];
+
+    FieldConfig::create([
+      'field_name' => $field_name,
+      'entity_type' => 'node',
+      'bundle' => $bundle,
+      'label' => $label,
+      'description' => $description,
+      'required' => $required,
+      'settings' => [
+        'handler' => 'default:node',
+        'handler_settings' => $handler_settings,
+      ],
+    ])->save();
+  }
+}
+
+/**
+ * Helper function to create an integer field.
+ */
+function _boxtasks_customfield_create_integer_field(
+  string $field_name,
+  string $bundle,
+  string $label,
+  string $description,
+  int $default_value = 0
+) {
+  // Create field storage if it doesn't exist.
+  if (!FieldStorageConfig::loadByName('node', $field_name)) {
+    FieldStorageConfig::create([
+      'field_name' => $field_name,
+      'entity_type' => 'node',
+      'type' => 'integer',
+      'cardinality' => 1,
+      'settings' => [
+        'unsigned' => FALSE,
+        'size' => 'normal',
+      ],
+    ])->save();
+  }
+
+  // Create field instance if it doesn't exist.
+  if (!FieldConfig::loadByName('node', $bundle, $field_name)) {
+    FieldConfig::create([
+      'field_name' => $field_name,
+      'entity_type' => 'node',
+      'bundle' => $bundle,
+      'label' => $label,
+      'description' => $description,
+      'required' => FALSE,
+      'default_value' => [['value' => $default_value]],
+    ])->save();
+  }
+}
+
+/**
+ * Helper function to create a list_string field.
+ */
+function _boxtasks_customfield_create_list_field(
+  string $field_name,
+  string $bundle,
+  string $label,
+  string $description,
+  array $allowed_values,
+  string $default_value = ''
+) {
+  // Create field storage if it doesn't exist.
+  if (!FieldStorageConfig::loadByName('node', $field_name)) {
+    FieldStorageConfig::create([
+      'field_name' => $field_name,
+      'entity_type' => 'node',
+      'type' => 'list_string',
+      'cardinality' => 1,
+      'settings' => [
+        'allowed_values' => $allowed_values,
+        'allowed_values_function' => '',
+      ],
+    ])->save();
+  }
+
+  // Create field instance if it doesn't exist.
+  if (!FieldConfig::loadByName('node', $bundle, $field_name)) {
+    $default = $default_value ? [['value' => $default_value]] : [];
+    FieldConfig::create([
+      'field_name' => $field_name,
+      'entity_type' => 'node',
+      'bundle' => $bundle,
+      'label' => $label,
+      'description' => $description,
+      'required' => FALSE,
+      'default_value' => $default,
+    ])->save();
+  }
+}

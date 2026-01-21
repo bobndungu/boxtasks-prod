@@ -158,6 +158,8 @@ export interface Card {
   complexity?: 'trivial' | 'low' | 'medium' | 'high' | 'very_high';
   // Google Docs
   googleDocs: { url: string; title: string }[];
+  // Enabled custom fields for visibility modes
+  enabledCustomFieldIds: string[];
 }
 
 export interface CreateCardData {
@@ -391,6 +393,14 @@ function transformCard(
           title: doc.title || 'Google Document',
         }))
       : [],
+    // Enabled custom fields for visibility modes
+    enabledCustomFieldIds: (() => {
+      const customFieldsData = rels?.field_card_custom_fields?.data;
+      if (Array.isArray(customFieldsData)) {
+        return customFieldsData.map(cf => cf.id);
+      }
+      return [];
+    })(),
   };
 }
 
@@ -1154,4 +1164,117 @@ export async function removeGoogleDoc(cardId: string, url: string): Promise<Card
   }
 
   return fetchCard(cardId);
+}
+
+// Update enabled custom fields on a card
+export async function updateCardCustomFields(cardId: string, customFieldIds: string[]): Promise<Card> {
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        relationships: {
+          field_card_custom_fields: {
+            data: customFieldIds.map(id => ({ type: 'node--custom_field_definition', id })),
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to update card custom fields');
+  }
+
+  return fetchCard(cardId);
+}
+
+// Enable a custom field on a card (adds to enabled list)
+export async function enableCustomFieldOnCard(
+  cardId: string,
+  customFieldId: string,
+  currentCustomFieldIds?: string[]
+): Promise<string[]> {
+  const existingIds = currentCustomFieldIds ?? [];
+
+  // Already enabled
+  if (existingIds.includes(customFieldId)) {
+    return existingIds;
+  }
+
+  const newIds = [...existingIds, customFieldId];
+
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        relationships: {
+          field_card_custom_fields: {
+            data: newIds.map(id => ({ type: 'node--custom_field_definition', id })),
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to enable custom field on card');
+  }
+
+  return newIds;
+}
+
+// Disable a custom field on a card (removes from enabled list)
+export async function disableCustomFieldOnCard(
+  cardId: string,
+  customFieldId: string,
+  currentCustomFieldIds?: string[]
+): Promise<string[]> {
+  const existingIds = currentCustomFieldIds ?? [];
+
+  // Not enabled
+  if (!existingIds.includes(customFieldId)) {
+    return existingIds;
+  }
+
+  const newIds = existingIds.filter(id => id !== customFieldId);
+
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        relationships: {
+          field_card_custom_fields: {
+            data: newIds.map(id => ({ type: 'node--custom_field_definition', id })),
+          },
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to disable custom field on card');
+  }
+
+  return newIds;
 }

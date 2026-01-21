@@ -1,0 +1,29 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_cf_visibility_mode
+field_name: field_cf_visibility_mode
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: all_cards
+      label: 'All Cards'
+    -
+      value: template_only
+      label: 'Template Only'
+    -
+      value: manual
+      label: Manual
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

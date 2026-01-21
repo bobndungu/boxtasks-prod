@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cf_visibility_mode
+    - node.type.custom_field_definition
+  module:
+    - options
+id: node.custom_field_definition.field_cf_visibility_mode
+field_name: field_cf_visibility_mode
+entity_type: node
+bundle: custom_field_definition
+label: 'Visibility Mode'
+description: 'Controls which cards this field appears on. All Cards: shows on every card. Template Only: only on cards created from templates that include it. Manual: only on cards where explicitly added.'
+required: false
+translatable: false
+default_value:
+  - value: all_cards
+default_value_callback: ''
+settings: {  }
+field_type: list_string

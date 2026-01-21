@@ -56,6 +56,7 @@ import {
   type CustomFieldType,
   type CustomFieldDisplayLocation,
   type CustomFieldScope,
+  type VisibilityMode,
   type CreateCustomFieldData,
 } from '../lib/api/customFields';
 import { toast } from '../lib/stores/toast';
@@ -84,6 +85,18 @@ const SCOPE_ICONS: Record<CustomFieldScope, React.ReactNode> = {
   workspace: <Globe className="h-4 w-4" />,
   board: <LayoutGrid className="h-4 w-4" />,
   card: <FileBox className="h-4 w-4" />,
+};
+
+const VISIBILITY_LABELS: Record<VisibilityMode, string> = {
+  all_cards: 'All Cards',
+  template_only: 'Template Only',
+  manual: 'Manual',
+};
+
+const VISIBILITY_DESCRIPTIONS: Record<VisibilityMode, string> = {
+  all_cards: 'Shows on all cards in the board',
+  template_only: 'Only on cards created from templates with this field',
+  manual: 'Only on cards where explicitly added',
 };
 
 const FIELD_TYPE_ICONS: Record<CustomFieldType, React.ReactNode> = {
@@ -273,6 +286,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose, onF
   const [newOptionInput, setNewOptionInput] = useState('');
   const [newFieldDisplayLocation, setNewFieldDisplayLocation] = useState<CustomFieldDisplayLocation>('main');
   const [newFieldScope, setNewFieldScope] = useState<CustomFieldScope>('board');
+  const [newFieldVisibility, setNewFieldVisibility] = useState<VisibilityMode>('all_cards');
 
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -282,6 +296,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose, onF
   const [editOptionInput, setEditOptionInput] = useState('');
   const [editDisplayLocation, setEditDisplayLocation] = useState<CustomFieldDisplayLocation>('main');
   const [editScope, setEditScope] = useState<CustomFieldScope>('board');
+  const [editVisibility, setEditVisibility] = useState<VisibilityMode>('all_cards');
 
   // Drag and drop state
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -355,6 +370,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose, onF
         position: fields.length,
         displayLocation: newFieldDisplayLocation,
         scope: newFieldScope,
+        visibilityMode: newFieldVisibility,
       };
 
       const newField = await createCustomField(data);
@@ -371,6 +387,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose, onF
       setNewFieldRequired(false);
       setNewFieldDisplayLocation('main');
       setNewFieldScope('board');
+      setNewFieldVisibility('all_cards');
     } catch (error) {
       console.error('Failed to create custom field:', error);
       toast.error('Failed to create custom field');
@@ -387,6 +404,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose, onF
     setEditRequired(field.required);
     setEditDisplayLocation(field.displayLocation || 'main');
     setEditScope(field.scope || 'board');
+    setEditVisibility(field.visibilityMode || 'all_cards');
   };
 
   const handleSaveEdit = async () => {
@@ -409,6 +427,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose, onF
         required: editRequired,
         displayLocation: editDisplayLocation,
         scope: editScope,
+        visibilityMode: editVisibility,
       });
 
       const updatedFields = fields.map((f) => (f.id === editingField.id ? updated : f));
@@ -776,6 +795,37 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose, onF
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{SCOPE_DESCRIPTIONS[editScope]}</p>
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-medium mb-2 dark:text-gray-200">Card Visibility</label>
+                      <div className="space-y-2">
+                        {(['all_cards', 'template_only', 'manual'] as VisibilityMode[]).map((mode) => (
+                          <label
+                            key={mode}
+                            className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
+                              editVisibility === mode
+                                ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500'
+                                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="editVisibility"
+                              value={mode}
+                              checked={editVisibility === mode}
+                              onChange={() => setEditVisibility(mode)}
+                              className="mt-0.5 text-blue-500 focus:ring-blue-500 dark:bg-gray-700"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <span className={`font-medium ${editVisibility === mode ? 'text-blue-700 dark:text-blue-300' : 'text-gray-900 dark:text-gray-100'}`}>
+                                {VISIBILITY_LABELS[mode]}
+                              </span>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{VISIBILITY_DESCRIPTIONS[mode]}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -928,6 +978,37 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose, onF
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{SCOPE_DESCRIPTIONS[newFieldScope]}</p>
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-medium mb-2 dark:text-gray-200">Card Visibility</label>
+                      <div className="space-y-2">
+                        {(['all_cards', 'template_only', 'manual'] as VisibilityMode[]).map((mode) => (
+                          <label
+                            key={mode}
+                            className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${
+                              newFieldVisibility === mode
+                                ? 'bg-green-50 dark:bg-green-900/30 border-green-500'
+                                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="newVisibility"
+                              value={mode}
+                              checked={newFieldVisibility === mode}
+                              onChange={() => setNewFieldVisibility(mode)}
+                              className="mt-0.5 text-green-500 focus:ring-green-500 dark:bg-gray-700"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <span className={`font-medium ${newFieldVisibility === mode ? 'text-green-700 dark:text-green-300' : 'text-gray-900 dark:text-gray-100'}`}>
+                                {VISIBILITY_LABELS[mode]}
+                              </span>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{VISIBILITY_DESCRIPTIONS[mode]}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -948,6 +1029,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose, onF
                           setNewFieldRequired(false);
                           setNewFieldDisplayLocation('main');
                           setNewFieldScope('board');
+                          setNewFieldVisibility('all_cards');
                         }}
                         className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
                       >

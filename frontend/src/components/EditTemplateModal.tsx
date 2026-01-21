@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, Globe, Building2, LayoutGrid, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Loader2, Globe, Building2, LayoutGrid, Plus, Trash2, ChevronDown, ChevronUp, Settings2 } from 'lucide-react';
 import {
   updateTemplate,
   type CardTemplate,
@@ -8,6 +8,7 @@ import {
 } from '../lib/api/templates';
 import { fetchWorkspaces } from '../lib/api/workspaces';
 import { fetchBoardsByWorkspace } from '../lib/api/boards';
+import { fetchCustomFieldsByBoard, type CustomFieldDefinition, getFieldsAvailableForTemplates } from '../lib/api/customFields';
 import { toast } from '../lib/stores/toast';
 
 const AVAILABLE_LABELS: { value: CardLabel; color: string; name: string }[] = [
@@ -23,6 +24,7 @@ interface EditTemplateModalProps {
   template: CardTemplate;
   workspaceId: string;
   boardId?: string;
+  userRoleId?: string | null; // For visibility filtering
   onClose: () => void;
   onUpdate: () => void;
 }
@@ -41,6 +43,7 @@ export default function EditTemplateModal({
   template,
   workspaceId,
   boardId,
+  userRoleId,
   onClose,
   onUpdate,
 }: EditTemplateModalProps) {
@@ -61,6 +64,10 @@ export default function EditTemplateModal({
   const [boards, setBoards] = useState<Board[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [expandedChecklists, setExpandedChecklists] = useState<Set<number>>(new Set([0]));
+
+  // Custom fields state
+  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
+  const [selectedCustomFieldIds, setSelectedCustomFieldIds] = useState<string[]>(template.customFieldIds || []);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -90,6 +97,35 @@ export default function EditTemplateModal({
     };
     loadBoards();
   }, [selectedWorkspaceId]);
+
+  // Load custom fields when board is selected
+  useEffect(() => {
+    const loadCustomFields = async () => {
+      const effectiveBoardId = selectedBoardId || boardId;
+      if (!effectiveBoardId) {
+        setCustomFieldDefs([]);
+        return;
+      }
+      try {
+        const fields = await fetchCustomFieldsByBoard(effectiveBoardId);
+        setCustomFieldDefs(fields);
+      } catch {
+        setCustomFieldDefs([]);
+      }
+    };
+    loadCustomFields();
+  }, [selectedBoardId, boardId]);
+
+  // Get fields available for template assignment (template_only and manual modes only)
+  const availableCustomFields = getFieldsAvailableForTemplates(customFieldDefs, userRoleId ?? null, []);
+
+  const handleCustomFieldToggle = (fieldId: string) => {
+    setSelectedCustomFieldIds(prev =>
+      prev.includes(fieldId)
+        ? prev.filter(id => id !== fieldId)
+        : [...prev, fieldId]
+    );
+  };
 
   const handleLabelToggle = (label: CardLabel) => {
     setLabels((prev) =>
@@ -172,6 +208,7 @@ export default function EditTemplateModal({
         checklists: cleanedChecklists,
         workspaceId: scope === 'workspace' ? selectedWorkspaceId || undefined : undefined,
         boardId: scope === 'board' ? selectedBoardId || undefined : undefined,
+        customFieldIds: selectedCustomFieldIds,
       });
       toast.success('Template updated');
       onUpdate();
@@ -490,6 +527,64 @@ export default function EditTemplateModal({
               )}
             </div>
           </div>
+
+          {/* Custom Fields */}
+          {availableCustomFields.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Settings2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Custom Fields
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                Select custom fields to include when cards are created from this template.
+              </p>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {availableCustomFields.map((field) => (
+                  <label
+                    key={field.id}
+                    className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
+                      selectedCustomFieldIds.includes(field.id)
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedCustomFieldIds.includes(field.id)}
+                      onChange={() => handleCustomFieldToggle(field.id)}
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <div className="ml-3 flex-1">
+                      <span className="font-medium text-gray-900 dark:text-white text-sm">
+                        {field.title}
+                      </span>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {field.type} • {field.visibilityMode === 'template_only' ? 'Template Only' : 'Manual'}
+                      </p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Show message if no custom fields available */}
+          {(selectedBoardId || boardId) && availableCustomFields.length === 0 && customFieldDefs.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Settings2 className="h-4 w-4 text-gray-400" />
+                <label className="text-sm font-medium text-gray-400">
+                  Custom Fields
+                </label>
+              </div>
+              <p className="text-xs text-gray-400">
+                No custom fields with "Template Only" or "Manual" visibility mode are available for this board.
+                Fields with "All Cards" visibility are automatically shown on all cards.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

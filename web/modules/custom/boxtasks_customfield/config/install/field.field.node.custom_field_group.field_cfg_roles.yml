@@ -1,0 +1,28 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cfg_roles
+    - node.type.custom_field_group
+    - node.type.workspace_role
+id: node.custom_field_group.field_cfg_roles
+field_name: field_cfg_roles
+entity_type: node
+bundle: custom_field_group
+label: 'Visible to Roles'
+description: 'Roles that can see fields in this group. Leave empty for all roles.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      workspace_role: workspace_role
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

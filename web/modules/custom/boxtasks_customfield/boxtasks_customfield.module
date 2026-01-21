@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * Contains boxtasks_customfield.module.
+ *
+ * This module handles custom fields visibility and field groups functionality.
+ *
+ * Note: Custom field copying from templates to cards is handled in the frontend
+ * during card creation. When a card is created from a template, the frontend
+ * copies the template's field_template_custom_fields to the new card's
+ * field_card_custom_fields.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function boxtasks_customfield_help($route_name, $route_match) {
+  switch ($route_name) {
+    case 'help.page.boxtasks_customfield':
+      return '<p>' . t('Provides custom field visibility management for BoxTasks cards.') . '</p>';
+  }
+}

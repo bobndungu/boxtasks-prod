@@ -15,6 +15,7 @@ export type TemplateAction = 'view' | 'create' | 'edit' | 'delete';
 
 interface UsePermissionsReturn {
   permissions: WorkspaceRole['permissions'] | null;
+  roleId: string | null; // The workspace role ID for role-based field visibility
   loading: boolean;
   error: string | null;
   canView: (type: 'card' | 'list' | 'board' | 'workspace', isOwner?: boolean) => boolean;
@@ -139,6 +140,7 @@ function isSuperAdmin(user: { uid?: number; isAdmin?: boolean } | null): boolean
 export function usePermissions(workspaceId: string | undefined): UsePermissionsReturn {
   const { user } = useAuthStore();
   const [permissions, setPermissions] = useState<WorkspaceRole['permissions'] | null>(null);
+  const [roleId, setRoleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
@@ -150,6 +152,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
       if (!workspaceId || !user?.id) {
         if (isMountedRef.current) {
           setPermissions(null);
+          setRoleId(null);
           setLoading(false);
         }
         return;
@@ -168,6 +171,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
 
         if (memberRole?.role) {
           setPermissions(memberRole.role.permissions);
+          setRoleId(memberRole.roleId);
         } else {
           // If no role assigned, use default role
           const defaultRole = await fetchDefaultRole();
@@ -176,9 +180,11 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
 
           if (defaultRole) {
             setPermissions(defaultRole.permissions);
+            setRoleId(defaultRole.id);
           } else {
             // Fallback to editor-like permissions if no roles exist
             setPermissions(DEFAULT_PERMISSIONS);
+            setRoleId(null);
           }
         }
       } catch (err) {
@@ -218,6 +224,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
   const refetch = useCallback(async () => {
     if (!workspaceId || !user?.id) {
       setPermissions(null);
+      setRoleId(null);
       setLoading(false);
       return;
     }
@@ -229,15 +236,18 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
       const memberRole = await fetchMemberRole(workspaceId, user.id);
       if (memberRole?.role) {
         setPermissions(memberRole.role.permissions);
+        setRoleId(memberRole.roleId);
       } else {
         const defaultRole = await fetchDefaultRole();
         setPermissions(defaultRole?.permissions || DEFAULT_PERMISSIONS);
+        setRoleId(defaultRole?.id || null);
       }
     } catch (err) {
       if (!isAbortError(err)) {
         console.error('Failed to fetch permissions:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch permissions');
         setPermissions(DEFAULT_PERMISSIONS);
+        setRoleId(null);
       }
     } finally {
       setLoading(false);
@@ -659,6 +669,7 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
 
   return {
     permissions,
+    roleId,
     loading,
     error,
     canView,

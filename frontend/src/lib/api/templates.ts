@@ -23,6 +23,7 @@ export interface CardTemplate {
   workspaceId?: string;
   authorId?: string;
   archived: boolean;
+  customFieldIds: string[]; // IDs of custom fields enabled by this template
   createdAt: string;
   updatedAt: string;
 }
@@ -34,12 +35,13 @@ export interface CreateTemplateData {
   checklists?: ChecklistTemplate[];
   boardId?: string;
   workspaceId?: string;
+  customFieldIds?: string[];
 }
 
 // Transform JSON:API response to CardTemplate
 function transformTemplate(data: Record<string, unknown>): CardTemplate {
   const attrs = data.attributes as Record<string, unknown>;
-  const rels = data.relationships as Record<string, { data: { id: string } | null }> | undefined;
+  const rels = data.relationships as Record<string, { data: { id: string } | { id: string }[] | null }> | undefined;
 
   // Parse checklists JSON
   let checklists: ChecklistTemplate[] = [];
@@ -52,16 +54,24 @@ function transformTemplate(data: Record<string, unknown>): CardTemplate {
     }
   }
 
+  // Extract custom field IDs from relationship
+  let customFieldIds: string[] = [];
+  const customFieldsData = rels?.field_template_custom_fields?.data;
+  if (Array.isArray(customFieldsData)) {
+    customFieldIds = customFieldsData.map(f => f.id);
+  }
+
   return {
     id: data.id as string,
     title: attrs.title as string,
     description: (attrs.field_template_description as { value?: string })?.value || '',
     labels: (attrs.field_template_labels as CardLabel[]) || [],
     checklists,
-    boardId: rels?.field_template_board?.data?.id || undefined,
-    workspaceId: rels?.field_template_workspace?.data?.id || undefined,
-    authorId: rels?.uid?.data?.id || undefined,
+    boardId: (rels?.field_template_board?.data as { id: string } | null)?.id || undefined,
+    workspaceId: (rels?.field_template_workspace?.data as { id: string } | null)?.id || undefined,
+    authorId: (rels?.uid?.data as { id: string } | null)?.id || undefined,
     archived: (attrs.field_template_archived as boolean) || false,
+    customFieldIds,
     createdAt: attrs.created as string,
     updatedAt: attrs.changed as string,
   };
@@ -188,6 +198,11 @@ export async function createTemplate(data: CreateTemplateData): Promise<CardTemp
       data: { type: 'node--workspace', id: data.workspaceId },
     };
   }
+  if (data.customFieldIds && data.customFieldIds.length > 0) {
+    relationships.field_template_custom_fields = {
+      data: data.customFieldIds.map(id => ({ type: 'node--custom_field_definition', id })),
+    };
+  }
 
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_template`, {
     method: 'POST',
@@ -240,6 +255,11 @@ export async function updateTemplate(id: string, data: Partial<CreateTemplateDat
     relationships.field_template_workspace = data.workspaceId
       ? { data: { type: 'node--workspace', id: data.workspaceId } }
       : { data: null };
+  }
+  if (data.customFieldIds !== undefined) {
+    relationships.field_template_custom_fields = {
+      data: data.customFieldIds.map(cfId => ({ type: 'node--custom_field_definition', id: cfId })),
+    };
   }
 
   const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card_template/${id}`, {

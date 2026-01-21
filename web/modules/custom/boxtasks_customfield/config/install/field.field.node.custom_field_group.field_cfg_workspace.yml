@@ -1,0 +1,28 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cfg_workspace
+    - node.type.custom_field_group
+    - node.type.workspace
+id: node.custom_field_group.field_cfg_workspace
+field_name: field_cfg_workspace
+entity_type: node
+bundle: custom_field_group
+label: Workspace
+description: 'The workspace this field group belongs to'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      workspace: workspace
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

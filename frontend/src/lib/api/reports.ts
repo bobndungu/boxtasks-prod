@@ -324,6 +324,7 @@ async function fetchCardsForReports(filters: ReportFilters): Promise<Card[]> {
       rejectedBy,
       rejectedAt: attrs.field_card_rejected_at as string | undefined,
       googleDocs: [],
+      enabledCustomFieldIds: [],
     };
 
     // Filter by member if specified

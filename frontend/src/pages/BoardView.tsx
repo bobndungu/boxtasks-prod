@@ -73,7 +73,8 @@ import { ActiveUsers } from '../components/ActiveUsers';
 import { useAuthStore } from '../lib/stores/auth';
 import { toast } from '../lib/stores/toast';
 import { CustomFieldsManager } from '../components/CustomFieldsManager';
-import { type CustomFieldDefinition, type CustomFieldValue, type CustomFieldType } from '../lib/api/customFields';
+import { type CustomFieldDefinition, type CustomFieldValue, type CustomFieldType, type CustomFieldGroup } from '../lib/api/customFields';
+import { fetchFieldGroups } from '../lib/api/fieldGroups';
 import { ViewSelector, type ViewType } from '../components/ViewSelector';
 import { ViewSettings, DEFAULT_VIEW_SETTINGS, type ViewSettingsData } from '../components/ViewSettings';
 import { SavedViews, type SavedView } from '../components/SavedViews';
@@ -109,7 +110,7 @@ export default function BoardView() {
   const { user: currentUser } = useAuthStore();
 
   // Role-based permissions
-  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, canCustomField, canAutomation, canViewAnyReport, canSavedViews, canMindMap, canCardFieldsVisibility, canTemplate, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
+  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, canCustomField, canAutomation, canViewAnyReport, canSavedViews, canMindMap, canCardFieldsVisibility, canTemplate, roleId: userRoleId, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
 
   // Check if user can view this board (after permissions are loaded)
   // Note: Board ownership is not tracked individually - workspace membership determines access
@@ -193,6 +194,7 @@ export default function BoardView() {
   // Custom field data for cards display
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
   const [customFieldValues, setCustomFieldValues] = useState<Map<string, CustomFieldValue[]>>(new Map());
+  const [fieldGroups, setFieldGroups] = useState<CustomFieldGroup[]>([]);
 
   // Real-time comment from Mercure for CardDetailModal
   const [newMercureComment, setNewMercureComment] = useState<CardComment | null>(null);
@@ -840,6 +842,9 @@ export default function BoardView() {
           position: data.position,
           displayLocation: data.displayLocation as 'main' | 'sidebar',
           scope: data.scope as 'board' | 'workspace' | 'card',
+          visibilityMode: (data.visibilityMode as 'all_cards' | 'template_only' | 'manual') || 'all_cards',
+          roleIds: (data.roleIds as string[]) || [],
+          groupId: data.groupId as string | undefined,
         };
         return [...prev, newDef].sort((a, b) => a.position - b.position);
       });
@@ -1119,6 +1124,7 @@ export default function BoardView() {
           estimate: cardData.estimatedHours || undefined,
           googleDocs: [],
           authorId: cardData.authorId || undefined,
+          enabledCustomFieldIds: (cardData as { enabledCustomFieldIds?: string[] }).enabledCustomFieldIds || [],
         };
 
         const listCards = cardsMap.get(cardData.listId) || [];
@@ -1144,6 +1150,9 @@ export default function BoardView() {
         position: 0,
         displayLocation: 'main' as const,
         scope: 'board' as const,
+        visibilityMode: (cf as { visibilityMode?: 'all_cards' | 'template_only' | 'manual' }).visibilityMode || 'all_cards',
+        roleIds: (cf as { roleIds?: string[] }).roleIds || [],
+        groupId: (cf as { groupId?: string }).groupId,
       }));
       setCustomFieldDefs(fieldDefs);
 
@@ -1160,6 +1169,15 @@ export default function BoardView() {
         valuesMap.set(cfv.cardId, cardValues);
       });
       setCustomFieldValues(valuesMap);
+
+      // Fetch field groups for role-based visibility filtering
+      try {
+        const groups = await fetchFieldGroups(id);
+        setFieldGroups(groups);
+      } catch {
+        // Field groups are optional, don't fail if not available
+        setFieldGroups([]);
+      }
 
       // Transform members and filter out system users
       const systemUserNames = ['n8n_api', 'n8n api', 'boxraft admin'];
@@ -1327,6 +1345,7 @@ export default function BoardView() {
       isApproved: false,
       isRejected: false,
       googleDocs: [],
+      enabledCustomFieldIds: [],
     };
 
     // Clear form immediately for better UX
@@ -3440,6 +3459,8 @@ export default function BoardView() {
               return newMap;
             });
           }}
+          userRoleId={userRoleId}
+          fieldGroups={fieldGroups}
           departments={departments}
           clients={clients}
           onDepartmentChange={async (cardId, departmentId) => {

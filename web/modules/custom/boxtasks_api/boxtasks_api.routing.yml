@@ -67,3 +67,57 @@ boxtasks_api.delete_role:
     parameters:
       role_id:
         type: string
+
+# Field Groups endpoints.
+boxtasks_api.field_groups:
+  path: '/api/boards/{board_id}/field-groups'
+  defaults:
+    _controller: '\Drupal\boxtasks_api\Controller\FieldGroupsController::getGroups'
+  methods: [GET]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2', 'cookie']
+    no_cache: TRUE
+    parameters:
+      board_id:
+        type: string
+
+boxtasks_api.create_field_group:
+  path: '/api/field-groups'
+  defaults:
+    _controller: '\Drupal\boxtasks_api\Controller\FieldGroupsController::createGroup'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2', 'cookie']
+    no_cache: TRUE
+
+boxtasks_api.update_field_group:
+  path: '/api/field-groups/{group_id}'
+  defaults:
+    _controller: '\Drupal\boxtasks_api\Controller\FieldGroupsController::updateGroup'
+  methods: [PATCH]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2', 'cookie']
+    no_cache: TRUE
+    parameters:
+      group_id:
+        type: string
+
+boxtasks_api.delete_field_group:
+  path: '/api/field-groups/{group_id}'
+  defaults:
+    _controller: '\Drupal\boxtasks_api\Controller\FieldGroupsController::deleteGroup'
+  methods: [DELETE]
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    _auth: ['oauth2', 'cookie']
+    no_cache: TRUE
+    parameters:
+      group_id:
+        type: string

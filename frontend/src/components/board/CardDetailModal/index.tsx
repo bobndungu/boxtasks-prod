@@ -55,7 +55,8 @@ import { fetchActivitiesByCard, getActivityDisplay, createActivity, type Activit
 import { createTemplate, type ChecklistTemplate } from '../../../lib/api/templates';
 import { createNotification } from '../../../lib/api/notifications';
 import type { WorkspaceMember } from '../../../lib/api/workspaces';
-import { setCardCustomFieldValue, enableCardScopedField, disableCardScopedField, getDisplayableFieldsForCard, getAvailableCardScopedFields, type CustomFieldDefinition, type CustomFieldValue } from '../../../lib/api/customFields';
+import { setCardCustomFieldValue, enableCardScopedField, disableCardScopedField, getVisibleFieldsForCard, getAddableFieldsForCard, type CustomFieldDefinition, type CustomFieldValue, type CustomFieldGroup } from '../../../lib/api/customFields';
+import { enableCustomFieldOnCard, disableCustomFieldOnCard } from '../../../lib/api/cards';
 import type { TaxonomyTerm } from '../../../lib/api/taxonomies';
 import { useAuthStore } from '../../../lib/stores/auth';
 import type { ActivityCreatedData } from '../../../lib/hooks/useMercure';
@@ -84,6 +85,8 @@ function CardDetailModal({
   customFieldDefs,
   initialCustomFieldValues,
   onCustomFieldChange,
+  userRoleId,
+  fieldGroups,
   departments,
   clients,
   onDepartmentChange,
@@ -115,6 +118,8 @@ function CardDetailModal({
   customFieldDefs: CustomFieldDefinition[];
   initialCustomFieldValues: CustomFieldValue[];
   onCustomFieldChange: (cardId: string, values: CustomFieldValue[]) => void;
+  userRoleId: string | null; // For visibility filtering
+  fieldGroups: CustomFieldGroup[]; // For group-based role restrictions
   departments: TaxonomyTerm[];
   clients: TaxonomyTerm[];
   onDepartmentChange: (cardId: string, departmentId: string | null) => Promise<void>;
@@ -260,12 +265,6 @@ function CardDetailModal({
   // Card-scoped fields state
   const [showCardFieldsPicker, setShowCardFieldsPicker] = useState(false);
   const [isAddingCardField, setIsAddingCardField] = useState(false);
-  const [cardFieldValues, setCardFieldValues] = useState<CustomFieldValue[]>(initialCustomFieldValues);
-
-  // Sync cardFieldValues when card changes or when real-time updates arrive
-  useEffect(() => {
-    setCardFieldValues(initialCustomFieldValues);
-  }, [card.id, initialCustomFieldValues]);
 
   // Sync customFieldValueMap when initialCustomFieldValues changes (real-time updates)
   // Only update fields that are NOT currently being edited
@@ -282,39 +281,44 @@ function CardDetailModal({
     });
   }, [initialCustomFieldValues, editingCustomFieldId]);
 
-  // Get displayable fields (workspace + board + enabled card-scoped), sorted by position
+  // Get displayable fields based on visibility mode and role restrictions
   const displayableFieldDefs = useMemo(() => {
-    const fields = getDisplayableFieldsForCard(cardFieldValues, customFieldDefs);
+    // Use card.enabledCustomFieldIds for visibility mode filtering
+    const enabledFieldIds = card.enabledCustomFieldIds || [];
+    const fields = getVisibleFieldsForCard(customFieldDefs, enabledFieldIds, userRoleId, fieldGroups);
     return fields.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-  }, [cardFieldValues, customFieldDefs]);
+  }, [customFieldDefs, card.enabledCustomFieldIds, userRoleId, fieldGroups]);
 
-  // Get available card-scoped fields that haven't been added yet
+  // Get available fields that can be manually added to this card
   const availableCardFields = useMemo(() => {
-    return getAvailableCardScopedFields(cardFieldValues, customFieldDefs);
-  }, [cardFieldValues, customFieldDefs]);
+    const enabledFieldIds = card.enabledCustomFieldIds || [];
+    return getAddableFieldsForCard(customFieldDefs, enabledFieldIds, userRoleId, fieldGroups);
+  }, [customFieldDefs, card.enabledCustomFieldIds, userRoleId, fieldGroups]);
 
-  // Handle adding a card-scoped field
+  // Handle adding a manual field to the card
   const handleAddCardField = async (fieldDefId: string) => {
     setIsAddingCardField(true);
     try {
+      // Update the card's enabledCustomFieldIds to add this field
+      const currentEnabledIds = card.enabledCustomFieldIds || [];
+      const newEnabledIds = await enableCustomFieldOnCard(card.id, fieldDefId, currentEnabledIds);
+
+      // Also create a CustomFieldValue for storing the actual value
       const newValue = await enableCardScopedField(card.id, fieldDefId);
-      // Use functional update and compute the new values
-      let updatedValues: CustomFieldValue[] = [];
-      setCardFieldValues(prev => {
-        updatedValues = [...prev, newValue];
-        return updatedValues;
-      });
-      // Also update the value map
+
+      // Update the value map
       setCustomFieldValueMap(prev => {
         const newMap = new Map(prev);
         newMap.set(fieldDefId, '');
         return newMap;
       });
-      // Notify parent with the computed updated values
-      // Use setTimeout to ensure state update has been processed
-      setTimeout(() => {
-        onCustomFieldChange(card.id, updatedValues);
-      }, 0);
+
+      // Compute the updated values for the parent
+      const updatedValues = [...initialCustomFieldValues, newValue];
+
+      // Update parent with the new enabled field IDs and values
+      onUpdate(card.id, { enabledCustomFieldIds: newEnabledIds });
+      onCustomFieldChange(card.id, updatedValues);
       toast.success('Field added to card');
     } catch (err) {
       console.error('Failed to add card field:', err);
@@ -324,28 +328,30 @@ function CardDetailModal({
     }
   };
 
-  // Handle removing a card-scoped field
+  // Handle removing a manual field from the card
   const handleRemoveCardField = async (fieldDefId: string) => {
     setIsAddingCardField(true);
     try {
+      // Update the card's enabledCustomFieldIds to remove this field
+      const currentEnabledIds = card.enabledCustomFieldIds || [];
+      const newEnabledIds = await disableCustomFieldOnCard(card.id, fieldDefId, currentEnabledIds);
+
+      // Also remove the CustomFieldValue
       await disableCardScopedField(card.id, fieldDefId);
-      // Use functional update to ensure we have the latest values
-      let updatedValues: CustomFieldValue[] = [];
-      setCardFieldValues(prev => {
-        updatedValues = prev.filter(v => v.definitionId !== fieldDefId);
-        return updatedValues;
-      });
-      // Also update the value map
+
+      // Update the value map
       setCustomFieldValueMap(prev => {
         const newMap = new Map(prev);
         newMap.delete(fieldDefId);
         return newMap;
       });
-      // Notify parent with the computed updated values
-      // Use setTimeout to ensure state update has been processed
-      setTimeout(() => {
-        onCustomFieldChange(card.id, updatedValues);
-      }, 0);
+
+      // Compute the updated values for the parent
+      const updatedValues = initialCustomFieldValues.filter(v => v.definitionId !== fieldDefId);
+
+      // Update parent with the new enabled field IDs and values
+      onUpdate(card.id, { enabledCustomFieldIds: newEnabledIds });
+      onCustomFieldChange(card.id, updatedValues);
       toast.success('Field removed from card');
     } catch (err) {
       console.error('Failed to remove card field:', err);
