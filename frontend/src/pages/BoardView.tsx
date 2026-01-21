@@ -104,7 +104,7 @@ export default function BoardView() {
   const { user: currentUser } = useAuthStore();
 
   // Role-based permissions
-  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
+  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, canCustomField, canAutomation, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
 
   // Check if user can view this board (after permissions are loaded)
   // Note: Board ownership is not tracked individually - workspace membership determines access
@@ -2472,26 +2472,32 @@ export default function BoardView() {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowBoardOptionsMenu(false)} />
                     <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 w-56">
-                      <button
-                        onClick={() => {
-                          setShowCustomFields(true);
-                          setShowBoardOptionsMenu(false);
-                        }}
-                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <Settings className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
-                        Custom Fields
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowAutomationRules(true);
-                          setShowBoardOptionsMenu(false);
-                        }}
-                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <Zap className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
-                        Automation Rules
-                      </button>
+                      {/* Custom Fields - only show if user can create or edit */}
+                      {(canCustomField('create') || canCustomField('edit')) && (
+                        <button
+                          onClick={() => {
+                            setShowCustomFields(true);
+                            setShowBoardOptionsMenu(false);
+                          }}
+                          className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <Settings className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                          Custom Fields
+                        </button>
+                      )}
+                      {/* Automation Rules - only show if user can create or edit */}
+                      {(canAutomation('create') || canAutomation('edit')) && (
+                        <button
+                          onClick={() => {
+                            setShowAutomationRules(true);
+                            setShowBoardOptionsMenu(false);
+                          }}
+                          className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <Zap className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                          Automation Rules
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           setShowMindMaps(true);
