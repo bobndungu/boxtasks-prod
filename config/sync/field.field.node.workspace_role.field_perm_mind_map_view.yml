@@ -1,4 +1,4 @@
-uuid: 761e266d-124c-4abf-bc19-a7e9819609d5
+uuid: dce8a84d-d246-4a1e-b5de-20a15c4f8245
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_mind_map_view
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_mind_map_view
 field_name: field_perm_mind_map_view
 entity_type: node
 bundle: workspace_role
 label: 'View Mind Maps'
-description: 'Permission to view mind maps.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: any

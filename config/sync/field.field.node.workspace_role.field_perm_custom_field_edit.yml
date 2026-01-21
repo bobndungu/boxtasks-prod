@@ -1,4 +1,4 @@
-uuid: 74408f9c-3dd0-4526-8d06-a930a7c5299d
+uuid: 5a692484-7dee-415a-95de-9f5ea21b1fa8
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_custom_field_edit
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_custom_field_edit
 field_name: field_perm_custom_field_edit
 entity_type: node
 bundle: workspace_role
 label: 'Edit Custom Fields'
-description: 'Permission to edit custom field definitions and set values on cards.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

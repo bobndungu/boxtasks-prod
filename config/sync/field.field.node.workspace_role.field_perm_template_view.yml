@@ -1,17 +1,17 @@
-uuid: 9a8e87f5-12dd-4cee-81b9-54b4c9536c4a
+uuid: bd4c06ce-3dda-4ed0-ad38-239c2ea2d02a
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_perm_mind_map_create
+    - field.storage.node.field_perm_template_view
     - node.type.workspace_role
   module:
     - options
-id: node.workspace_role.field_perm_mind_map_create
-field_name: field_perm_mind_map_create
+id: node.workspace_role.field_perm_template_view
+field_name: field_perm_template_view
 entity_type: node
 bundle: workspace_role
-label: 'Create Mind Maps'
+label: 'Permission: Template View'
 description: ''
 required: false
 translatable: true

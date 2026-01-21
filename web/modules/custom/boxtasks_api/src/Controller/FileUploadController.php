@@ -89,9 +89,25 @@ class FileUploadController extends ControllerBase {
         ], 400);
       }
 
-      // Create directory if it doesn't exist
-      $directory = 'public://card-attachments/' . date('Y-m');
-      $this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY);
+      // Create base directory first if it doesn't exist
+      $base_directory = 'public://card-attachments';
+      if (!$this->fileSystem->prepareDirectory($base_directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
+        // Try to create the directory manually
+        $real_base_path = $this->fileSystem->realpath('public://') . '/card-attachments';
+        if (!is_dir($real_base_path)) {
+          @mkdir($real_base_path, 0775, TRUE);
+        }
+      }
+
+      // Create monthly subdirectory
+      $directory = $base_directory . '/' . date('Y-m');
+      if (!$this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
+        // Try to create the directory manually
+        $real_path = $this->fileSystem->realpath('public://') . '/card-attachments/' . date('Y-m');
+        if (!is_dir($real_path)) {
+          @mkdir($real_path, 0775, TRUE);
+        }
+      }
 
       // Generate unique filename
       $safe_filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);

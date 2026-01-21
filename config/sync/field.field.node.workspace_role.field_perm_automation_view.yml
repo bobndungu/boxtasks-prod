@@ -1,4 +1,4 @@
-uuid: 19f0b59a-7a3a-4674-88d5-7f9b0254ab47
+uuid: c7992744-18a0-4fdd-8194-6a6703cfc41d
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_automation_view
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_automation_view
 field_name: field_perm_automation_view
 entity_type: node
 bundle: workspace_role
 label: 'View Automations'
-description: 'Permission to view automation rules.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: any

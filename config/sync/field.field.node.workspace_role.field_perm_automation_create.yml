@@ -1,4 +1,4 @@
-uuid: 06770faa-f253-40a7-85af-457f71efb087
+uuid: 092ce25d-5da7-4f9f-8789-781a937fb4d5
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_automation_create
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_automation_create
 field_name: field_perm_automation_create
 entity_type: node
 bundle: workspace_role
 label: 'Create Automations'
-description: 'Permission to create new automation rules.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

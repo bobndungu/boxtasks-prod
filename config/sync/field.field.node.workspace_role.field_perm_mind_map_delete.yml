@@ -1,4 +1,4 @@
-uuid: 8edad788-11dd-48e9-8d8c-b5d8425103e2
+uuid: 5f8da0d5-9604-4429-ae13-5858afad1b85
 langcode: en
 status: true
 dependencies:
@@ -6,19 +6,18 @@ dependencies:
     - field.storage.node.field_perm_mind_map_delete
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_mind_map_delete
 field_name: field_perm_mind_map_delete
 entity_type: node
 bundle: workspace_role
 label: 'Delete Mind Maps'
-description: 'Permission to delete mind maps.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
-    value: none
+    value: any
 default_value_callback: ''
 settings: {  }
 field_type: list_string

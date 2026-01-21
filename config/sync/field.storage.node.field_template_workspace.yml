@@ -1,13 +1,11 @@
-uuid: 42628d78-e0a1-4d09-8147-c045301ca48e
+uuid: b1344ed9-6714-4f75-b550-fe3ec754cc8a
 langcode: en
 status: true
 dependencies:
   module:
     - node
-_core:
-  default_config_hash: '-4iRZU25UT6TqnIx2LPvgrnP19Z2EaaZR5v2Gj28mOE'
-id: node.field_activity_workspace
-field_name: field_activity_workspace
+id: node.field_template_workspace
+field_name: field_template_workspace
 entity_type: node
 type: entity_reference
 settings:
@@ -15,7 +13,7 @@ settings:
 module: core
 locked: false
 cardinality: 1
-translatable: false
+translatable: true
 indexes: {  }
 persist_with_no_fields: false
 custom_storage: false

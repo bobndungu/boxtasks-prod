@@ -1,4 +1,4 @@
-uuid: 2156f1ed-ba35-4867-a5ba-ad494b66f8bd
+uuid: bd5923cd-fb38-4d4b-b27e-76d606f5d6d2
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_custom_field_delete
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_custom_field_delete
 field_name: field_perm_custom_field_delete
 entity_type: node
 bundle: workspace_role
 label: 'Delete Custom Fields'
-description: 'Permission to delete custom field definitions.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

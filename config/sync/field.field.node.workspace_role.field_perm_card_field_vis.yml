@@ -1,4 +1,4 @@
-uuid: ab4c72c8-13a8-47b3-aa88-cb5a43b2fc81
+uuid: d3ea0bef-9f1e-431d-8161-da494a287141
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_card_field_vis
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_card_field_vis
 field_name: field_perm_card_field_vis
 entity_type: node
 bundle: workspace_role
 label: 'Manage Card Fields Visibility'
-description: 'Permission to manage which fields are visible on cards.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: any

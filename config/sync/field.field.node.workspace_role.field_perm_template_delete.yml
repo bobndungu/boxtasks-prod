@@ -1,23 +1,23 @@
-uuid: 9a8e87f5-12dd-4cee-81b9-54b4c9536c4a
+uuid: 379bc05e-8e78-47e2-ab4f-790e485dc0f7
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_perm_mind_map_create
+    - field.storage.node.field_perm_template_delete
     - node.type.workspace_role
   module:
     - options
-id: node.workspace_role.field_perm_mind_map_create
-field_name: field_perm_mind_map_create
+id: node.workspace_role.field_perm_template_delete
+field_name: field_perm_template_delete
 entity_type: node
 bundle: workspace_role
-label: 'Create Mind Maps'
+label: 'Permission: Template Delete'
 description: ''
 required: false
 translatable: true
 default_value:
   -
-    value: any
+    value: none
 default_value_callback: ''
 settings: {  }
 field_type: list_string

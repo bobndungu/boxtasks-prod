@@ -1,4 +1,4 @@
-uuid: dfcc30c0-0395-43fa-893a-5922f7979d24
+uuid: 1b519b3e-b834-4aa2-ab1d-2fae1f1ad718
 langcode: en
 status: true
 dependencies:
@@ -6,19 +6,18 @@ dependencies:
     - field.storage.node.field_perm_mind_map_edit
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_mind_map_edit
 field_name: field_perm_mind_map_edit
 entity_type: node
 bundle: workspace_role
 label: 'Edit Mind Maps'
-description: 'Permission to edit mind maps.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
-    value: none
+    value: any
 default_value_callback: ''
 settings: {  }
 field_type: list_string

@@ -1,25 +1,25 @@
-uuid: 30befcd5-70e8-4684-9ec4-33bd6a30e2c8
+uuid: 6deea5d6-ddf0-4ef3-af01-0e3dcbfb78f7
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-id: node.field_perm_automation_delete
-field_name: field_perm_automation_delete
+id: node.field_perm_template_edit
+field_name: field_perm_template_edit
 entity_type: node
 type: list_string
 settings:
   allowed_values:
     -
       value: any
-      label: Any
+      label: any
     -
       value: own
-      label: Own
+      label: own
     -
       value: none
-      label: None
+      label: none
   allowed_values_function: ''
 module: options
 locked: false

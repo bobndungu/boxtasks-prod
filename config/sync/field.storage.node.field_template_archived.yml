@@ -1,20 +1,18 @@
-uuid: a098ccca-d584-4dfe-bc5f-8b7817ae97cb
+uuid: 6d8b773d-1482-495b-af41-34377c5a4b56
 langcode: en
 status: true
 dependencies:
   module:
     - node
-_core:
-  default_config_hash: LOIZkJeElABJVRZPg__6w8QVpPCjclK7J74ELGmthrI
-id: node.field_is_premium
-field_name: field_is_premium
+id: node.field_template_archived
+field_name: field_template_archived
 entity_type: node
 type: boolean
 settings: {  }
 module: core
 locked: false
 cardinality: 1
-translatable: false
+translatable: true
 indexes: {  }
 persist_with_no_fields: false
 custom_storage: false
