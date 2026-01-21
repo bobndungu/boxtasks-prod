@@ -1320,6 +1320,16 @@ export default function BoardView() {
           creatorId: currentUser?.id, // Auto-assign creator
         });
 
+        // Fix member info - JSON:API POST doesn't include user data, so members show as "Unknown User"
+        // Replace with actual current user info since we just assigned the creator
+        if (currentUser && newCard.members.length > 0) {
+          newCard.members = newCard.members.map(member =>
+            member.id === currentUser.id
+              ? { ...member, name: currentUser.displayName, email: currentUser.email }
+              : member
+          );
+        }
+
         // Update positions of other cards (shift them down)
         const existingNonPinnedCards = listCards.filter(c => !c.pinned);
         await Promise.all(
@@ -1394,6 +1404,16 @@ export default function BoardView() {
         dueDate: formatDateForApi(autoDueDate),
         creatorId: currentUser?.id, // Auto-assign creator
       });
+
+      // Fix member info - JSON:API POST doesn't include user data, so members show as "Unknown User"
+      // Replace with actual current user info since we just assigned the creator
+      if (currentUser && newCard.members.length > 0) {
+        newCard.members = newCard.members.map(member =>
+          member.id === currentUser.id
+            ? { ...member, name: currentUser.displayName, email: currentUser.email }
+            : member
+        );
+      }
 
       // Update positions of other cards (shift them down)
       const existingNonPinnedCards = listCards.filter(c => !c.pinned);
@@ -1815,6 +1835,16 @@ export default function BoardView() {
         dueDate: formatDateForApi(autoDueDate),
         creatorId: currentUser?.id, // Auto-assign creator
       });
+
+      // Fix member info - JSON:API POST doesn't include user data, so members show as "Unknown User"
+      // Replace with actual current user info since we just assigned the creator
+      if (currentUser && newCard.members.length > 0) {
+        newCard.members = newCard.members.map(member =>
+          member.id === currentUser.id
+            ? { ...member, name: currentUser.displayName, email: currentUser.email }
+            : member
+        );
+      }
 
       // Update positions of other cards (shift them down)
       const existingNonPinnedCards = listCards.filter(c => !c.pinned);
