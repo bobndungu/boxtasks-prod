@@ -451,6 +451,14 @@ export interface BoardCardData {
   clientId: string | null;
   estimatedHours: number | null;
   authorId: string | null;
+  // Approval fields
+  isApproved: boolean;
+  approvedBy: { id: string; name: string; email: string } | null;
+  approvedAt: string | null;
+  // Rejection fields
+  isRejected: boolean;
+  rejectedBy: { id: string; name: string; email: string } | null;
+  rejectedAt: string | null;
   drupal_id: number;
 }
 
