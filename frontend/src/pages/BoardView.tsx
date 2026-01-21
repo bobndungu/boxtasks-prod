@@ -2476,8 +2476,8 @@ export default function BoardView() {
                           Saved Views
                         </button>
                       )}
-                      {/* Custom Fields - only show if user can create or edit */}
-                      {(canCustomField('create') || canCustomField('edit')) && (
+                      {/* Custom Fields - only show if user can create custom fields */}
+                      {canCustomField('create') && (
                         <button
                           onClick={() => {
                             setShowCustomFields(true);
@@ -2489,8 +2489,8 @@ export default function BoardView() {
                           Custom Fields
                         </button>
                       )}
-                      {/* Automation Rules - only show if user can create or edit */}
-                      {(canAutomation('create') || canAutomation('edit')) && (
+                      {/* Automation Rules - only show if user can create automations */}
+                      {canAutomation('create') && (
                         <button
                           onClick={() => {
                             setShowAutomationRules(true);
