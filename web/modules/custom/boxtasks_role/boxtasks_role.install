@@ -50,6 +50,11 @@ function _boxtasks_role_create_default_roles() {
     // Comment permissions
     'field_perm_comment_edit' => 'any',
     'field_perm_comment_delete' => 'any',
+    // Template permissions
+    'field_perm_template_view' => 'any',
+    'field_perm_template_create' => 'any',
+    'field_perm_template_edit' => 'any',
+    'field_perm_template_delete' => 'any',
   ]);
   $admin_role->save();
 
@@ -84,6 +89,11 @@ function _boxtasks_role_create_default_roles() {
     // Comment permissions
     'field_perm_comment_edit' => 'own',
     'field_perm_comment_delete' => 'own',
+    // Template permissions
+    'field_perm_template_view' => 'any',
+    'field_perm_template_create' => 'any',
+    'field_perm_template_edit' => 'own',
+    'field_perm_template_delete' => 'own',
   ]);
   $editor_role->save();
 
@@ -118,6 +128,11 @@ function _boxtasks_role_create_default_roles() {
     // Comment permissions - can edit/delete own
     'field_perm_comment_edit' => 'own',
     'field_perm_comment_delete' => 'own',
+    // Template permissions - view only
+    'field_perm_template_view' => 'any',
+    'field_perm_template_create' => 'none',
+    'field_perm_template_edit' => 'none',
+    'field_perm_template_delete' => 'none',
   ]);
   $viewer_role->save();
 
@@ -185,4 +200,50 @@ function boxtasks_role_update_10001() {
   }
 
   return t('Updated @count default workspace roles with new permission values.', ['@count' => count($roles)]);
+}
+
+/**
+ * Add template permission fields to workspace roles.
+ */
+function boxtasks_role_update_10002() {
+  // Update existing default roles with template permissions.
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $query = $storage->getQuery()
+    ->condition('type', 'workspace_role')
+    ->notExists('field_role_workspace')
+    ->accessCheck(FALSE);
+  $nids = $query->execute();
+
+  if (empty($nids)) {
+    return t('No global workspace roles found to update.');
+  }
+
+  $roles = $storage->loadMultiple($nids);
+
+  foreach ($roles as $role) {
+    $title = $role->getTitle();
+
+    if ($title === 'Admin') {
+      $role->set('field_perm_template_view', 'any');
+      $role->set('field_perm_template_create', 'any');
+      $role->set('field_perm_template_edit', 'any');
+      $role->set('field_perm_template_delete', 'any');
+    }
+    elseif ($title === 'Editor') {
+      $role->set('field_perm_template_view', 'any');
+      $role->set('field_perm_template_create', 'any');
+      $role->set('field_perm_template_edit', 'own');
+      $role->set('field_perm_template_delete', 'own');
+    }
+    elseif ($title === 'Viewer') {
+      $role->set('field_perm_template_view', 'any');
+      $role->set('field_perm_template_create', 'none');
+      $role->set('field_perm_template_edit', 'none');
+      $role->set('field_perm_template_delete', 'none');
+    }
+
+    $role->save();
+  }
+
+  return t('Updated @count default workspace roles with template permissions.', ['@count' => count($roles)]);
 }

@@ -155,6 +155,11 @@ class WorkspaceRolesController extends ControllerBase {
           'mindMapCreate' => $this->getFieldValue($role, 'field_perm_mind_map_create', 'none'),
           'mindMapEdit' => $this->getFieldValue($role, 'field_perm_mind_map_edit', 'none'),
           'mindMapDelete' => $this->getFieldValue($role, 'field_perm_mind_map_delete', 'none'),
+          // Template permissions
+          'templateView' => $this->getFieldValue($role, 'field_perm_template_view', 'any'),
+          'templateCreate' => $this->getFieldValue($role, 'field_perm_template_create', 'none'),
+          'templateEdit' => $this->getFieldValue($role, 'field_perm_template_edit', 'none'),
+          'templateDelete' => $this->getFieldValue($role, 'field_perm_template_delete', 'none'),
         ],
       ];
     }
@@ -298,6 +303,11 @@ class WorkspaceRolesController extends ControllerBase {
         'mindMapCreate' => $this->getFieldValue($role, 'field_perm_mind_map_create', 'none'),
         'mindMapEdit' => $this->getFieldValue($role, 'field_perm_mind_map_edit', 'none'),
         'mindMapDelete' => $this->getFieldValue($role, 'field_perm_mind_map_delete', 'none'),
+        // Template permissions
+        'templateView' => $this->getFieldValue($role, 'field_perm_template_view', 'any'),
+        'templateCreate' => $this->getFieldValue($role, 'field_perm_template_create', 'none'),
+        'templateEdit' => $this->getFieldValue($role, 'field_perm_template_edit', 'none'),
+        'templateDelete' => $this->getFieldValue($role, 'field_perm_template_delete', 'none'),
       ],
     ];
   }
@@ -401,6 +411,10 @@ class WorkspaceRolesController extends ControllerBase {
         'mindMapCreate' => 'field_perm_mind_map_create',
         'mindMapEdit' => 'field_perm_mind_map_edit',
         'mindMapDelete' => 'field_perm_mind_map_delete',
+        'templateView' => 'field_perm_template_view',
+        'templateCreate' => 'field_perm_template_create',
+        'templateEdit' => 'field_perm_template_edit',
+        'templateDelete' => 'field_perm_template_delete',
       ];
 
       foreach ($data['permissions'] as $key => $value) {
@@ -517,6 +531,10 @@ class WorkspaceRolesController extends ControllerBase {
         'mindMapCreate' => 'field_perm_mind_map_create',
         'mindMapEdit' => 'field_perm_mind_map_edit',
         'mindMapDelete' => 'field_perm_mind_map_delete',
+        'templateView' => 'field_perm_template_view',
+        'templateCreate' => 'field_perm_template_create',
+        'templateEdit' => 'field_perm_template_edit',
+        'templateDelete' => 'field_perm_template_delete',
       ];
 
       foreach ($data['permissions'] as $key => $value) {

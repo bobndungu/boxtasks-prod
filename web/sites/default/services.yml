@@ -15,6 +15,8 @@ parameters:
       - authorization
       - x-csrf-token
       - x-requested-with
+      - cache-control
+      - pragma
     # Allow all REST methods
     allowedMethods:
       - GET

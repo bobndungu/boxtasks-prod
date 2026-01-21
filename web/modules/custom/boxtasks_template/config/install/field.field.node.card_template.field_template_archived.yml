@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_template_archived
+    - node.type.card_template
+id: node.card_template.field_template_archived
+field_name: field_template_archived
+entity_type: node
+bundle: card_template
+label: Archived
+description: 'Whether the template is archived'
+required: false
+translatable: true
+default_value:
+  - value: 0
+default_value_callback: ''
+settings:
+  on_label: Archived
+  off_label: Active
+field_type: boolean

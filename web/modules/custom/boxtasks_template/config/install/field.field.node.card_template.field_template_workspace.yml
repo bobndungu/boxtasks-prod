@@ -1,0 +1,26 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_template_workspace
+    - node.type.card_template
+    - node.type.workspace
+id: node.card_template.field_template_workspace
+field_name: field_template_workspace
+entity_type: node
+bundle: card_template
+label: 'Template Workspace'
+description: 'The workspace this template belongs to (null for global templates)'
+required: false
+translatable: false
+default_value: []
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      workspace: workspace
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

@@ -104,6 +104,11 @@ export interface WorkspaceRole {
     mindMapCreate: PermissionLevel;
     mindMapEdit: PermissionLevel;
     mindMapDelete: PermissionLevel;
+    // Template permissions
+    templateView: PermissionLevel;
+    templateCreate: PermissionLevel;
+    templateEdit: PermissionLevel;
+    templateDelete: PermissionLevel;
   };
 }
 
@@ -195,6 +200,11 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       mindMapCreate: (attrs.field_perm_mind_map_create as PermissionLevel) || 'none',
       mindMapEdit: (attrs.field_perm_mind_map_edit as PermissionLevel) || 'none',
       mindMapDelete: (attrs.field_perm_mind_map_delete as PermissionLevel) || 'none',
+      // Template permissions
+      templateView: (attrs.field_perm_template_view as PermissionLevel) || 'any',
+      templateCreate: (attrs.field_perm_template_create as PermissionLevel) || 'none',
+      templateEdit: (attrs.field_perm_template_edit as PermissionLevel) || 'none',
+      templateDelete: (attrs.field_perm_template_delete as PermissionLevel) || 'none',
     },
   };
 }

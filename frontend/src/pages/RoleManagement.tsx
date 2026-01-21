@@ -30,7 +30,7 @@ interface PermissionConfig {
   key: PermissionKey;
   label: string;
   description: string;
-  category: 'card' | 'list' | 'board' | 'workspace' | 'member' | 'board_member' | 'report' | 'admin' | 'custom_field' | 'automation' | 'card_fields_visibility' | 'saved_views' | 'mind_map' | 'other';
+  category: 'card' | 'list' | 'board' | 'workspace' | 'member' | 'board_member' | 'report' | 'admin' | 'custom_field' | 'automation' | 'card_fields_visibility' | 'saved_views' | 'mind_map' | 'template' | 'other';
   allowOwn: boolean;
 }
 
@@ -98,6 +98,11 @@ const PERMISSION_CONFIG: PermissionConfig[] = [
   { key: 'mindMapCreate', label: 'Create Mind Maps', description: 'Can create new mind maps', category: 'mind_map', allowOwn: false },
   { key: 'mindMapEdit', label: 'Edit Mind Maps', description: 'Can edit mind maps', category: 'mind_map', allowOwn: true },
   { key: 'mindMapDelete', label: 'Delete Mind Maps', description: 'Can delete mind maps', category: 'mind_map', allowOwn: true },
+  // Template permissions
+  { key: 'templateView', label: 'View Templates', description: 'Can view card templates', category: 'template', allowOwn: true },
+  { key: 'templateCreate', label: 'Create Templates', description: 'Can create new card templates', category: 'template', allowOwn: false },
+  { key: 'templateEdit', label: 'Edit Templates', description: 'Can edit card templates', category: 'template', allowOwn: true },
+  { key: 'templateDelete', label: 'Delete Templates', description: 'Can delete card templates', category: 'template', allowOwn: true },
   // Other permissions
   { key: 'memberManage', label: 'Manage Members (Legacy)', description: 'Legacy permission - use granular member permissions above', category: 'other', allowOwn: false },
   { key: 'commentEdit', label: 'Edit Comments', description: 'Can edit comments', category: 'other', allowOwn: true },
@@ -119,6 +124,7 @@ const CATEGORIES = [
   { key: 'card_fields_visibility', label: 'Card Fields Visibility', color: 'emerald' },
   { key: 'saved_views', label: 'Saved Views', color: 'sky' },
   { key: 'mind_map', label: 'Mind Maps', color: 'fuchsia' },
+  { key: 'template', label: 'Templates', color: 'lime' },
   { key: 'other', label: 'Other', color: 'gray' },
 ] as const;
 
@@ -185,6 +191,11 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
   mindMapCreate: 'none',
   mindMapEdit: 'none',
   mindMapDelete: 'none',
+  // Template permissions
+  templateView: 'any',
+  templateCreate: 'any',
+  templateEdit: 'own',
+  templateDelete: 'own',
 });
 
 export default function RoleManagement() {

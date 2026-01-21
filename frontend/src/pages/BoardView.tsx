@@ -50,6 +50,7 @@ import {
   Bookmark,
   ChevronLeft,
   ChevronRight,
+  FileText,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { updateBoard, toggleBoardStar, fetchBoardData, NotFoundError, ForbiddenError } from '../lib/api/boards';
@@ -88,6 +89,7 @@ import { BoardSkeleton } from '../components/BoardSkeleton';
 import BoardSettingsModal from '../components/BoardSettingsModal';
 import BoardMembersModal from '../components/BoardMembersModal';
 import ChatPanel from '../components/ChatPanel';
+import TemplatesManager from '../components/TemplatesManager';
 import {
   LABEL_COLORS,
   SortableList,
@@ -107,7 +109,7 @@ export default function BoardView() {
   const { user: currentUser } = useAuthStore();
 
   // Role-based permissions
-  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, canCustomField, canAutomation, canViewAnyReport, canSavedViews, canMindMap, canCardFieldsVisibility, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
+  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, canCustomField, canAutomation, canViewAnyReport, canSavedViews, canMindMap, canCardFieldsVisibility, canTemplate, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
 
   // Check if user can view this board (after permissions are loaded)
   // Note: Board ownership is not tracked individually - workspace membership determines access
@@ -226,6 +228,7 @@ export default function BoardView() {
   const [showFieldVisibilityMenu, setShowFieldVisibilityMenu] = useState(false);
   const [showBoardOptionsMenu, setShowBoardOptionsMenu] = useState(false);
   const [showSavedViewsPanel, setShowSavedViewsPanel] = useState(false);
+  const [showTemplatesManager, setShowTemplatesManager] = useState(false);
 
   // Save field visibility to localStorage
   useEffect(() => {
@@ -2740,6 +2743,19 @@ export default function BoardView() {
                           Reports
                         </Link>
                       )}
+                      {/* Manage Templates - only show if user can view templates */}
+                      {canTemplate('view') && (
+                        <button
+                          onClick={() => {
+                            setShowTemplatesManager(true);
+                            setShowBoardOptionsMenu(false);
+                          }}
+                          className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <FileText className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                          Manage Templates
+                        </button>
+                      )}
                       <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
                       {/* Show/Hide Fields - only show if user has permission */}
                       {canCardFieldsVisibility() && (
@@ -3778,6 +3794,14 @@ export default function BoardView() {
         <MindMapsPanel
           boardId={id}
           onClose={() => setShowMindMaps(false)}
+        />
+      )}
+
+      {/* Templates Manager Modal */}
+      {showTemplatesManager && currentBoard?.workspaceId && (
+        <TemplatesManager
+          workspaceId={currentBoard.workspaceId}
+          onClose={() => setShowTemplatesManager(false)}
         />
       )}
 

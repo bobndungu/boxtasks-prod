@@ -20,6 +20,9 @@ export interface CardTemplate {
   labels: CardLabel[];
   checklists: ChecklistTemplate[];
   boardId?: string;
+  workspaceId?: string;
+  authorId?: string;
+  archived: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +33,7 @@ export interface CreateTemplateData {
   labels?: CardLabel[];
   checklists?: ChecklistTemplate[];
   boardId?: string;
+  workspaceId?: string;
 }
 
 // Transform JSON:API response to CardTemplate
@@ -55,17 +59,26 @@ function transformTemplate(data: Record<string, unknown>): CardTemplate {
     labels: (attrs.field_template_labels as CardLabel[]) || [],
     checklists,
     boardId: rels?.field_template_board?.data?.id || undefined,
+    workspaceId: rels?.field_template_workspace?.data?.id || undefined,
+    authorId: rels?.uid?.data?.id || undefined,
+    archived: (attrs.field_template_archived as boolean) || false,
     createdAt: attrs.created as string,
     updatedAt: attrs.changed as string,
   };
 }
 
-// Fetch all templates (optionally filtered by board)
-export async function fetchTemplates(boardId?: string): Promise<CardTemplate[]> {
-  let url = `${API_URL}/jsonapi/node/card_template?sort=-created`;
-  if (boardId) {
-    url += `&filter[field_template_board.id]=${boardId}`;
-  }
+// Fetch all templates (optionally filtered by board or workspace)
+// By default excludes archived templates unless includeArchived is true
+export async function fetchTemplates(options?: {
+  boardId?: string;
+  workspaceId?: string;
+  includeArchived?: boolean;
+}): Promise<CardTemplate[]> {
+  const { boardId, workspaceId, includeArchived = false } = options || {};
+
+  // Fetch all templates and filter in JavaScript
+  // (Complex JSON:API OR filters can be unreliable)
+  const url = `${API_URL}/jsonapi/node/card_template?sort=-created&include=uid`;
 
   const response = await fetch(url, {
     headers: {
@@ -82,7 +95,57 @@ export async function fetchTemplates(boardId?: string): Promise<CardTemplate[]> 
   const data = result.data;
   if (!Array.isArray(data)) return [];
 
-  return data.map(transformTemplate);
+  let templates = data.map(transformTemplate);
+
+  // Filter by archived status (default: exclude archived)
+  if (!includeArchived) {
+    templates = templates.filter(t => !t.archived);
+  }
+
+  // Filter by boardId if provided
+  if (boardId) {
+    templates = templates.filter(t => t.boardId === boardId);
+  }
+
+  // Filter by workspaceId if provided (include workspace-specific OR global templates)
+  if (workspaceId) {
+    templates = templates.filter(t => t.workspaceId === workspaceId || !t.workspaceId);
+  }
+
+  return templates;
+}
+
+// Fetch archived templates only
+export async function fetchArchivedTemplates(workspaceId?: string): Promise<CardTemplate[]> {
+  // Fetch all templates and filter for archived in JavaScript
+  const url = `${API_URL}/jsonapi/node/card_template?sort=-created&include=uid`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Accept': 'application/vnd.api+json',
+      'Authorization': `Bearer ${getAccessToken()}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch archived templates');
+  }
+
+  const result = await response.json();
+  const data = result.data;
+  if (!Array.isArray(data)) return [];
+
+  let templates = data.map(transformTemplate);
+
+  // Filter for archived templates only
+  templates = templates.filter(t => t.archived === true);
+
+  // Filter by workspaceId if provided (include workspace-specific OR global templates)
+  if (workspaceId) {
+    templates = templates.filter(t => t.workspaceId === workspaceId || !t.workspaceId);
+  }
+
+  return templates;
 }
 
 // Fetch a single template by ID
@@ -111,12 +174,18 @@ export async function createTemplate(data: CreateTemplateData): Promise<CardTemp
     field_template_checklists: data.checklists
       ? { value: JSON.stringify(data.checklists) }
       : null,
+    field_template_archived: false,
   };
 
   const relationships: Record<string, unknown> = {};
   if (data.boardId) {
     relationships.field_template_board = {
       data: { type: 'node--board', id: data.boardId },
+    };
+  }
+  if (data.workspaceId) {
+    relationships.field_template_workspace = {
+      data: { type: 'node--workspace', id: data.workspaceId },
     };
   }
 
@@ -145,7 +214,7 @@ export async function createTemplate(data: CreateTemplateData): Promise<CardTemp
 }
 
 // Update a template
-export async function updateTemplate(id: string, data: Partial<CreateTemplateData>): Promise<CardTemplate> {
+export async function updateTemplate(id: string, data: Partial<CreateTemplateData> & { archived?: boolean }): Promise<CardTemplate> {
   const attributes: Record<string, unknown> = {};
   const relationships: Record<string, unknown> = {};
 
@@ -159,9 +228,17 @@ export async function updateTemplate(id: string, data: Partial<CreateTemplateDat
       ? { value: JSON.stringify(data.checklists) }
       : null;
   }
+  if (data.archived !== undefined) {
+    attributes.field_template_archived = data.archived;
+  }
   if (data.boardId !== undefined) {
     relationships.field_template_board = data.boardId
       ? { data: { type: 'node--board', id: data.boardId } }
+      : { data: null };
+  }
+  if (data.workspaceId !== undefined) {
+    relationships.field_template_workspace = data.workspaceId
+      ? { data: { type: 'node--workspace', id: data.workspaceId } }
       : { data: null };
   }
 
@@ -199,4 +276,19 @@ export async function deleteTemplate(id: string): Promise<void> {
   if (!response.ok && response.status !== 204) {
     throw new Error('Failed to delete template');
   }
+}
+
+// Archive a template
+export async function archiveTemplate(id: string): Promise<CardTemplate> {
+  return updateTemplate(id, { archived: true });
+}
+
+// Restore a template from archive
+export async function restoreTemplate(id: string): Promise<CardTemplate> {
+  return updateTemplate(id, { archived: false });
+}
+
+// Update template scope (workspaceId null = global, otherwise workspace-specific)
+export async function updateTemplateScope(id: string, workspaceId: string | null): Promise<CardTemplate> {
+  return updateTemplate(id, { workspaceId: workspaceId || undefined });
 }

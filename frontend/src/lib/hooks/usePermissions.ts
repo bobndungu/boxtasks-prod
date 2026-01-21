@@ -11,6 +11,7 @@ export type AdminPageType = 'emailTemplates' | 'userManagement' | 'roleManagemen
 export type CustomFieldAction = 'view' | 'create' | 'edit' | 'delete';
 export type AutomationAction = 'view' | 'create' | 'edit' | 'delete';
 export type MindMapAction = 'view' | 'create' | 'edit' | 'delete';
+export type TemplateAction = 'view' | 'create' | 'edit' | 'delete';
 
 interface UsePermissionsReturn {
   permissions: WorkspaceRole['permissions'] | null;
@@ -44,6 +45,8 @@ interface UsePermissionsReturn {
   canSavedViews: (isOwner?: boolean) => boolean;
   // Mind map permissions
   canMindMap: (action: MindMapAction, isOwner?: boolean) => boolean;
+  // Template permissions
+  canTemplate: (action: TemplateAction, isOwner?: boolean) => boolean;
   refetch: () => Promise<void>;
 }
 
@@ -111,6 +114,11 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   mindMapCreate: 'none',
   mindMapEdit: 'none',
   mindMapDelete: 'none',
+  // Template permissions
+  templateView: 'any',
+  templateCreate: 'any',
+  templateEdit: 'own',
+  templateDelete: 'own',
 };
 
 // Check if error is an abort error (navigation/unmount)
@@ -624,6 +632,31 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     return canPerformAction(permission, isOwner);
   }, [permissions, user]);
 
+  // Template permission check
+  const canTemplate = useCallback((action: TemplateAction, isOwner: boolean = false): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return action === 'view'; // Allow view by default while loading
+
+    let permission: PermissionLevel;
+    switch (action) {
+      case 'view':
+        permission = permissions.templateView;
+        break;
+      case 'create':
+        permission = permissions.templateCreate;
+        break;
+      case 'edit':
+        permission = permissions.templateEdit;
+        break;
+      case 'delete':
+        permission = permissions.templateDelete;
+        break;
+    }
+
+    return canPerformAction(permission, isOwner);
+  }, [permissions, user]);
+
   return {
     permissions,
     loading,
@@ -656,6 +689,8 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canSavedViews,
     // Mind map permissions
     canMindMap,
+    // Template permissions
+    canTemplate,
     refetch,
   };
 }
