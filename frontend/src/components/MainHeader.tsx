@@ -25,6 +25,7 @@ import MobileNav, { MobileBottomNav } from './MobileNav';
 import { useIsMobile } from '../lib/hooks/useMediaQuery';
 import { ThemeToggle } from './ThemeToggle';
 import CreateBoardModal from './CreateBoardModal';
+import { usePermissions } from '../lib/hooks/usePermissions';
 
 interface MainHeaderProps {
   onCreateBoard?: () => void;
@@ -33,13 +34,18 @@ interface MainHeaderProps {
 
 export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
   const { user, logout } = useAuthStore();
-  const { addBoard, starredBoards, recentBoards, setStarredBoards, setRecentBoards } = useBoardStore();
+  const { addBoard, starredBoards, recentBoards, setStarredBoards, setRecentBoards, currentBoard } = useBoardStore();
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
   const [showCreateBoardModal, setShowCreateBoardModal] = useState(false);
   const [showRecentDropdown, setShowRecentDropdown] = useState(false);
   const [showStarredDropdown, setShowStarredDropdown] = useState(false);
   const isMobile = useIsMobile();
+
+  // Get report permissions - use current board's workspace if available
+  const { canViewAnyReport } = usePermissions(currentBoard?.workspaceId);
+  // Show reports if no workspace context (we're on a page without a board) or if user has permission
+  const showReports = !currentBoard?.workspaceId || canViewAnyReport();
 
   // Load starred and recent boards on mount
   useEffect(() => {
@@ -210,13 +216,15 @@ export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
                   <User className="h-4 w-4 mr-1" aria-hidden="true" />
                   My Cards
                 </Link>
-                <Link
-                  to="/reports"
-                  className="hidden xl:flex items-center px-2 lg:px-3 py-2 text-sm lg:text-base text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                >
-                  <BarChart3 className="h-4 w-4 mr-1" aria-hidden="true" />
-                  Reports
-                </Link>
+                {showReports && (
+                  <Link
+                    to="/reports"
+                    className="hidden xl:flex items-center px-2 lg:px-3 py-2 text-sm lg:text-base text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                  >
+                    <BarChart3 className="h-4 w-4 mr-1" aria-hidden="true" />
+                    Reports
+                  </Link>
+                )}
                 <button
                   onClick={handleCreateBoard}
                   className="bg-blue-600 text-white px-2 lg:px-3 py-1.5 rounded-lg hover:bg-blue-700 flex items-center text-sm lg:text-base"
@@ -256,10 +264,12 @@ export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
                       <User className="h-4 w-4 mr-3" />
                       Profile
                     </Link>
-                    <Link to="/reports" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <BarChart3 className="h-4 w-4 mr-3" />
-                      Reports
-                    </Link>
+                    {showReports && (
+                      <Link to="/reports" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <BarChart3 className="h-4 w-4 mr-3" />
+                        Reports
+                      </Link>
+                    )}
                     <Link to="/notifications" className="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                       <Bell className="h-4 w-4 mr-3" />
                       Notifications

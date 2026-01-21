@@ -128,6 +128,27 @@ const PERMISSION_CATEGORIES = {
       { key: 'automationDelete', label: 'Delete automations' },
     ],
   },
+  cardFieldsVisibility: {
+    label: 'Card Fields Visibility',
+    permissions: [
+      { key: 'cardFieldsVisibility', label: 'Manage card fields visibility' },
+    ],
+  },
+  savedViews: {
+    label: 'Saved Views',
+    permissions: [
+      { key: 'savedViews', label: 'Manage saved views' },
+    ],
+  },
+  mindMaps: {
+    label: 'Mind Maps',
+    permissions: [
+      { key: 'mindMapView', label: 'View mind maps' },
+      { key: 'mindMapCreate', label: 'Create mind maps' },
+      { key: 'mindMapEdit', label: 'Edit mind maps' },
+      { key: 'mindMapDelete', label: 'Delete mind maps' },
+    ],
+  },
 };
 
 const PERMISSION_LEVELS: { value: PermissionLevel; label: string; color: string }[] = [
@@ -190,6 +211,15 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   automationCreate: 'none',
   automationEdit: 'none',
   automationDelete: 'none',
+  // Card fields visibility permission
+  cardFieldsVisibility: 'none',
+  // Saved views permission
+  savedViews: 'any',
+  // Mind map permissions
+  mindMapView: 'any',
+  mindMapCreate: 'none',
+  mindMapEdit: 'none',
+  mindMapDelete: 'none',
 };
 
 export default function AdminRoles() {

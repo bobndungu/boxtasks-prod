@@ -47,6 +47,7 @@ import {
   MoreHorizontal,
   GitBranch,
   Trash2,
+  Bookmark,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { updateBoard, toggleBoardStar, fetchBoardData, NotFoundError, ForbiddenError } from '../lib/api/boards';
@@ -104,7 +105,7 @@ export default function BoardView() {
   const { user: currentUser } = useAuthStore();
 
   // Role-based permissions
-  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, canCustomField, canAutomation, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
+  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, canCustomField, canAutomation, canViewAnyReport, canSavedViews, canMindMap, canCardFieldsVisibility, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
 
   // Check if user can view this board (after permissions are loaded)
   // Note: Board ownership is not tracked individually - workspace membership determines access
@@ -220,6 +221,7 @@ export default function BoardView() {
 
   const [showFieldVisibilityMenu, setShowFieldVisibilityMenu] = useState(false);
   const [showBoardOptionsMenu, setShowBoardOptionsMenu] = useState(false);
+  const [showSavedViewsPanel, setShowSavedViewsPanel] = useState(false);
 
   // Save field visibility to localStorage
   useEffect(() => {
@@ -2441,17 +2443,6 @@ export default function BoardView() {
                 settings={viewSettings}
                 onSettingsChange={setViewSettings}
               />
-              <SavedViews
-                boardId={id || ''}
-                currentView={currentView}
-                currentSettings={viewSettings}
-                currentFilters={advancedFilters}
-                savedViews={savedViews}
-                onSaveView={handleSaveView}
-                onLoadView={handleLoadView}
-                onDeleteView={handleDeleteView}
-                onSetDefault={handleSetDefaultView}
-              />
 
               {/* Divider */}
               <div className="h-6 w-px bg-white/20 flex-shrink-0" />
@@ -2472,6 +2463,19 @@ export default function BoardView() {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowBoardOptionsMenu(false)} />
                     <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 w-56">
+                      {/* Saved Views - only show if user has permission */}
+                      {canSavedViews() && (
+                        <button
+                          onClick={() => {
+                            setShowSavedViewsPanel(true);
+                            setShowBoardOptionsMenu(false);
+                          }}
+                          className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <Bookmark className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                          Saved Views
+                        </button>
+                      )}
                       {/* Custom Fields - only show if user can create or edit */}
                       {(canCustomField('create') || canCustomField('edit')) && (
                         <button
@@ -2498,35 +2502,44 @@ export default function BoardView() {
                           Automation Rules
                         </button>
                       )}
-                      <button
-                        onClick={() => {
-                          setShowMindMaps(true);
-                          setShowBoardOptionsMenu(false);
-                        }}
-                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <GitBranch className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
-                        Mind Maps
-                      </button>
-                      <Link
-                        to={`/board/${id}/reports`}
-                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        onClick={() => setShowBoardOptionsMenu(false)}
-                      >
-                        <BarChart3 className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
-                        Reports
-                      </Link>
+                      {/* Mind Maps - only show if user can view, create, or edit */}
+                      {(canMindMap('view') || canMindMap('create') || canMindMap('edit')) && (
+                        <button
+                          onClick={() => {
+                            setShowMindMaps(true);
+                            setShowBoardOptionsMenu(false);
+                          }}
+                          className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <GitBranch className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                          Mind Maps
+                        </button>
+                      )}
+                      {/* Reports - only show if user can view any report */}
+                      {canViewAnyReport() && (
+                        <Link
+                          to={`/board/${id}/reports`}
+                          className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => setShowBoardOptionsMenu(false)}
+                        >
+                          <BarChart3 className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                          Reports
+                        </Link>
+                      )}
                       <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
-                      <button
-                        onClick={() => {
-                          setShowFieldVisibilityMenu(true);
-                          setShowBoardOptionsMenu(false);
-                        }}
-                        className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <EyeOff className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
-                        Show/Hide Fields
-                      </button>
+                      {/* Show/Hide Fields - only show if user has permission */}
+                      {canCardFieldsVisibility() && (
+                        <button
+                          onClick={() => {
+                            setShowFieldVisibilityMenu(true);
+                            setShowBoardOptionsMenu(false);
+                          }}
+                          className="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <EyeOff className="h-4 w-4 mr-3 text-gray-500 dark:text-gray-400" />
+                          Show/Hide Fields
+                        </button>
+                      )}
                     </div>
                   </>
                 )}
@@ -2626,6 +2639,35 @@ export default function BoardView() {
               >
                 Close
               </button>
+            </div>
+          </>
+        )}
+
+        {/* Saved Views Panel */}
+        {showSavedViewsPanel && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setShowSavedViewsPanel(false)} />
+            <div className="fixed right-4 top-28 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-50 w-72">
+              <div className="flex items-center justify-between mb-3 pb-2 border-b dark:border-gray-700">
+                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-200">Saved Views</h5>
+                <button
+                  onClick={() => setShowSavedViewsPanel(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <SavedViews
+                boardId={id || ''}
+                currentView={currentView}
+                currentSettings={viewSettings}
+                currentFilters={advancedFilters}
+                savedViews={savedViews}
+                onSaveView={handleSaveView}
+                onLoadView={handleLoadView}
+                onDeleteView={handleDeleteView}
+                onSetDefault={handleSetDefaultView}
+              />
             </div>
           </>
         )}

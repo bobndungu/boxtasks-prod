@@ -1,0 +1,24 @@
+uuid: ce0db5e9-048c-4dd4-85c0-7d50907e6ebc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_saved_views
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_saved_views
+field_name: field_perm_saved_views
+entity_type: node
+bundle: workspace_role
+label: 'Manage Saved Views'
+description: 'Permission to create, edit, and delete saved board views.'
+required: false
+translatable: false
+default_value:
+  -
+    value: any
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -95,6 +95,15 @@ export interface WorkspaceRole {
     automationCreate: PermissionLevel;
     automationEdit: PermissionLevel;
     automationDelete: PermissionLevel;
+    // Card fields visibility permission
+    cardFieldsVisibility: PermissionLevel;
+    // Saved views permission
+    savedViews: PermissionLevel;
+    // Mind map permissions
+    mindMapView: PermissionLevel;
+    mindMapCreate: PermissionLevel;
+    mindMapEdit: PermissionLevel;
+    mindMapDelete: PermissionLevel;
   };
 }
 
@@ -177,6 +186,15 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       automationCreate: (attrs.field_perm_automation_create as PermissionLevel) || 'none',
       automationEdit: (attrs.field_perm_automation_edit as PermissionLevel) || 'none',
       automationDelete: (attrs.field_perm_automation_delete as PermissionLevel) || 'none',
+      // Card fields visibility permission
+      cardFieldsVisibility: (attrs.field_perm_card_fields_visibility as PermissionLevel) || 'none',
+      // Saved views permission
+      savedViews: (attrs.field_perm_saved_views as PermissionLevel) || 'any',
+      // Mind map permissions
+      mindMapView: (attrs.field_perm_mind_map_view as PermissionLevel) || 'any',
+      mindMapCreate: (attrs.field_perm_mind_map_create as PermissionLevel) || 'none',
+      mindMapEdit: (attrs.field_perm_mind_map_edit as PermissionLevel) || 'none',
+      mindMapDelete: (attrs.field_perm_mind_map_delete as PermissionLevel) || 'none',
     },
   };
 }

@@ -30,7 +30,7 @@ interface PermissionConfig {
   key: PermissionKey;
   label: string;
   description: string;
-  category: 'card' | 'list' | 'board' | 'workspace' | 'member' | 'board_member' | 'report' | 'admin' | 'custom_field' | 'automation' | 'other';
+  category: 'card' | 'list' | 'board' | 'workspace' | 'member' | 'board_member' | 'report' | 'admin' | 'custom_field' | 'automation' | 'card_fields_visibility' | 'saved_views' | 'mind_map' | 'other';
   allowOwn: boolean;
 }
 
@@ -89,6 +89,15 @@ const PERMISSION_CONFIG: PermissionConfig[] = [
   { key: 'automationCreate', label: 'Create Automations', description: 'Can create new automation rules', category: 'automation', allowOwn: false },
   { key: 'automationEdit', label: 'Edit Automations', description: 'Can edit automation rules', category: 'automation', allowOwn: true },
   { key: 'automationDelete', label: 'Delete Automations', description: 'Can delete automation rules', category: 'automation', allowOwn: true },
+  // Card fields visibility permission
+  { key: 'cardFieldsVisibility', label: 'Manage Card Fields Visibility', description: 'Can manage which card fields are visible', category: 'card_fields_visibility', allowOwn: false },
+  // Saved views permission
+  { key: 'savedViews', label: 'Manage Saved Views', description: 'Can create, edit, and delete saved board views', category: 'saved_views', allowOwn: true },
+  // Mind map permissions
+  { key: 'mindMapView', label: 'View Mind Maps', description: 'Can view mind maps', category: 'mind_map', allowOwn: true },
+  { key: 'mindMapCreate', label: 'Create Mind Maps', description: 'Can create new mind maps', category: 'mind_map', allowOwn: false },
+  { key: 'mindMapEdit', label: 'Edit Mind Maps', description: 'Can edit mind maps', category: 'mind_map', allowOwn: true },
+  { key: 'mindMapDelete', label: 'Delete Mind Maps', description: 'Can delete mind maps', category: 'mind_map', allowOwn: true },
   // Other permissions
   { key: 'memberManage', label: 'Manage Members (Legacy)', description: 'Legacy permission - use granular member permissions above', category: 'other', allowOwn: false },
   { key: 'commentEdit', label: 'Edit Comments', description: 'Can edit comments', category: 'other', allowOwn: true },
@@ -107,6 +116,9 @@ const CATEGORIES = [
   { key: 'admin', label: 'Administration', color: 'rose' },
   { key: 'custom_field', label: 'Custom Fields', color: 'violet' },
   { key: 'automation', label: 'Automation', color: 'orange' },
+  { key: 'card_fields_visibility', label: 'Card Fields Visibility', color: 'emerald' },
+  { key: 'saved_views', label: 'Saved Views', color: 'sky' },
+  { key: 'mind_map', label: 'Mind Maps', color: 'fuchsia' },
   { key: 'other', label: 'Other', color: 'gray' },
 ] as const;
 
@@ -164,6 +176,15 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
   automationCreate: 'none',
   automationEdit: 'none',
   automationDelete: 'none',
+  // Card fields visibility permission
+  cardFieldsVisibility: 'none',
+  // Saved views permission
+  savedViews: 'any',
+  // Mind map permissions
+  mindMapView: 'any',
+  mindMapCreate: 'none',
+  mindMapEdit: 'none',
+  mindMapDelete: 'none',
 });
 
 export default function RoleManagement() {

@@ -10,6 +10,7 @@ export type ReportType = 'performance' | 'tasks' | 'activity' | 'workload';
 export type AdminPageType = 'emailTemplates' | 'userManagement' | 'roleManagement';
 export type CustomFieldAction = 'view' | 'create' | 'edit' | 'delete';
 export type AutomationAction = 'view' | 'create' | 'edit' | 'delete';
+export type MindMapAction = 'view' | 'create' | 'edit' | 'delete';
 
 interface UsePermissionsReturn {
   permissions: WorkspaceRole['permissions'] | null;
@@ -37,6 +38,12 @@ interface UsePermissionsReturn {
   canCustomField: (action: CustomFieldAction, isOwner?: boolean) => boolean;
   // Automation permissions
   canAutomation: (action: AutomationAction, isOwner?: boolean) => boolean;
+  // Card fields visibility permission
+  canCardFieldsVisibility: (isOwner?: boolean) => boolean;
+  // Saved views permission
+  canSavedViews: (isOwner?: boolean) => boolean;
+  // Mind map permissions
+  canMindMap: (action: MindMapAction, isOwner?: boolean) => boolean;
   refetch: () => Promise<void>;
 }
 
@@ -95,6 +102,15 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   automationCreate: 'none',
   automationEdit: 'none',
   automationDelete: 'none',
+  // Card fields visibility permission
+  cardFieldsVisibility: 'none',
+  // Saved views permission
+  savedViews: 'any',
+  // Mind map permissions
+  mindMapView: 'any',
+  mindMapCreate: 'none',
+  mindMapEdit: 'none',
+  mindMapDelete: 'none',
 };
 
 // Check if error is an abort error (navigation/unmount)
@@ -565,6 +581,49 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     return canPerformAction(permission, isOwner);
   }, [permissions, user]);
 
+  // Card fields visibility permission check
+  const canCardFieldsVisibility = useCallback((isOwner: boolean = false): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return false;
+
+    return canPerformAction(permissions.cardFieldsVisibility, isOwner);
+  }, [permissions, user]);
+
+  // Saved views permission check
+  const canSavedViews = useCallback((isOwner: boolean = false): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return true; // Allow by default while loading
+
+    return canPerformAction(permissions.savedViews, isOwner);
+  }, [permissions, user]);
+
+  // Mind map permission check
+  const canMindMap = useCallback((action: MindMapAction, isOwner: boolean = false): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return action === 'view'; // Allow view by default while loading
+
+    let permission: PermissionLevel;
+    switch (action) {
+      case 'view':
+        permission = permissions.mindMapView;
+        break;
+      case 'create':
+        permission = permissions.mindMapCreate;
+        break;
+      case 'edit':
+        permission = permissions.mindMapEdit;
+        break;
+      case 'delete':
+        permission = permissions.mindMapDelete;
+        break;
+    }
+
+    return canPerformAction(permission, isOwner);
+  }, [permissions, user]);
+
   return {
     permissions,
     loading,
@@ -591,6 +650,12 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canCustomField,
     // Automation permissions
     canAutomation,
+    // Card fields visibility permission
+    canCardFieldsVisibility,
+    // Saved views permission
+    canSavedViews,
+    // Mind map permissions
+    canMindMap,
     refetch,
   };
 }

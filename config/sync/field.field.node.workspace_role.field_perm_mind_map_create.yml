@@ -1,0 +1,24 @@
+uuid: a15a17ee-6ed5-4577-82f3-d2a813339f0c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_mind_map_create
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_mind_map_create
+field_name: field_perm_mind_map_create
+entity_type: node
+bundle: workspace_role
+label: 'Create Mind Maps'
+description: 'Permission to create new mind maps.'
+required: false
+translatable: false
+default_value:
+  -
+    value: none
+default_value_callback: ''
+settings: {  }
+field_type: list_string
