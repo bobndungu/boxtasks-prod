@@ -262,10 +262,25 @@ function CardDetailModal({
   const [isAddingCardField, setIsAddingCardField] = useState(false);
   const [cardFieldValues, setCardFieldValues] = useState<CustomFieldValue[]>(initialCustomFieldValues);
 
-  // Sync cardFieldValues when card changes (component reuse with different card)
+  // Sync cardFieldValues when card changes or when real-time updates arrive
   useEffect(() => {
     setCardFieldValues(initialCustomFieldValues);
-  }, [card.id]);
+  }, [card.id, initialCustomFieldValues]);
+
+  // Sync customFieldValueMap when initialCustomFieldValues changes (real-time updates)
+  // Only update fields that are NOT currently being edited
+  useEffect(() => {
+    setCustomFieldValueMap((prev) => {
+      const newMap = new Map(prev);
+      initialCustomFieldValues.forEach((v) => {
+        // Only update if this field is not being edited
+        if (editingCustomFieldId !== v.definitionId) {
+          newMap.set(v.definitionId, v.value);
+        }
+      });
+      return newMap;
+    });
+  }, [initialCustomFieldValues, editingCustomFieldId]);
 
   // Get displayable fields (workspace + board + enabled card-scoped)
   const displayableFieldDefs = useMemo(() => {
