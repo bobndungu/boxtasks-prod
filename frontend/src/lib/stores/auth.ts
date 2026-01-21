@@ -13,6 +13,7 @@ import {
   stopSessionMonitoring,
   onSessionEvent
 } from '../api/client';
+import { useWorkspaceStore } from './workspace';
 
 export interface User {
   id: string;
@@ -140,6 +141,8 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         stopSessionMonitoring();
         apiLogout();
+        // Clear workspace store to prevent stale data on next login
+        useWorkspaceStore.getState().clearWorkspaces();
         set({
           user: null,
           isAuthenticated: false,

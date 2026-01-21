@@ -9,6 +9,7 @@ import { SkipLinks } from './components/SkipLinks';
 import { PWAUpdatePrompt, OfflineIndicator, PWAInstallPrompt } from './components/PWAPrompt';
 import { SessionExpiryWarning } from './components/SessionExpiryWarning';
 import MentionToastContainer from './components/MentionToastContainer';
+import GlobalWorkspaceSubscription from './components/GlobalWorkspaceSubscription';
 
 // Lazy loaded pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
@@ -122,7 +123,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {/* Global workspace subscription for real-time updates */}
+      <GlobalWorkspaceSubscription />
+      {children}
+    </>
+  );
 }
 
 function AuthRedirect({ children }: { children: React.ReactNode }) {

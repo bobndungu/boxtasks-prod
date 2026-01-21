@@ -14,6 +14,7 @@ interface WorkspaceState {
   setCurrentWorkspace: (workspace: Workspace | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  clearWorkspaces: () => void;
 }
 
 export const useWorkspaceStore = create<WorkspaceState>()(
@@ -45,6 +46,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       setCurrentWorkspace: (currentWorkspace) => set({ currentWorkspace }),
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
+      // Clear all workspaces (used on logout)
+      clearWorkspaces: () => set({ workspaces: [], currentWorkspace: null }),
     }),
     {
       name: 'workspace-storage',
