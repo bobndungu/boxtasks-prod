@@ -2,15 +2,17 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { fetchWorkspaces } from '../lib/api/workspaces';
-import { useUserWorkspaceUpdates } from '../lib/hooks/useMercure';
+import { invalidatePermissionCache } from '../lib/api/roles';
+import { useUserWorkspaceUpdates, useUserPermissionUpdates } from '../lib/hooks/useMercure';
 
 /**
- * Global component that handles workspace subscription and automatic refresh.
+ * Global component that handles workspace and permission subscriptions.
  *
  * This component should be rendered in ProtectedRoute to ensure:
  * 1. Workspaces are always fresh when the user is authenticated
  * 2. Real-time updates are received when the user is added/removed from workspaces
  * 3. The workspace list updates automatically without requiring logout/login
+ * 4. Permissions are refreshed in real-time when workspace roles are modified
  */
 export default function GlobalWorkspaceSubscription() {
   const { user } = useAuthStore();
@@ -61,6 +63,16 @@ export default function GlobalWorkspaceSubscription() {
       // User was removed from a workspace - refresh the list
       console.log('[GlobalWorkspaceSubscription] Workspace unassigned event received');
       refreshWorkspaces();
+    },
+  });
+
+  // Subscribe to real-time permission updates
+  // This is triggered when a workspace role's permissions are modified
+  useUserPermissionUpdates(user?.id, {
+    onPermissionsUpdated: (data) => {
+      console.log('[GlobalWorkspaceSubscription] Permissions updated event received:', data);
+      // Invalidate permission cache to force re-fetch on next access
+      invalidatePermissionCache();
     },
   });
 

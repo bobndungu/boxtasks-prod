@@ -37,9 +37,12 @@ export type MercureEventType =
   | 'workspace.member_role_changed'
   | 'workspace.assigned'
   | 'workspace.unassigned'
+  | 'workspace.role_permissions_updated'
   // Board membership events
   | 'board.member_added'
-  | 'board.member_removed';
+  | 'board.member_removed'
+  // Permission events
+  | 'permissions.updated';
 
 export interface MercureMessage<T = unknown> {
   type: MercureEventType;
@@ -516,7 +519,7 @@ export interface BoardMemberRemovedData {
 
 /**
  * Hook for subscribing to workspace-specific updates
- * This is used for real-time workspace member changes
+ * This is used for real-time workspace member changes and permission updates
  */
 export function useWorkspaceUpdates(
   workspaceId: string | undefined,
@@ -524,6 +527,7 @@ export function useWorkspaceUpdates(
     onMemberAdded?: (data: WorkspaceMemberAddedData) => void;
     onMemberRemoved?: (data: WorkspaceMemberRemovedData) => void;
     onMemberRoleChanged?: (data: WorkspaceMemberRoleChangedData) => void;
+    onRolePermissionsUpdated?: (data: WorkspaceRolePermissionsUpdatedData) => void;
   }
 ) {
   const topics = workspaceId ? [`/workspaces/${workspaceId}`] : [];
@@ -538,6 +542,9 @@ export function useWorkspaceUpdates(
         break;
       case 'workspace.member_role_changed':
         callbacks.onMemberRoleChanged?.(message.data as WorkspaceMemberRoleChangedData);
+        break;
+      case 'workspace.role_permissions_updated':
+        callbacks.onRolePermissionsUpdated?.(message.data as WorkspaceRolePermissionsUpdatedData);
         break;
     }
   }, [callbacks]);
@@ -578,6 +585,50 @@ export function useUserWorkspaceUpdates(
     onMessage: handleMessage,
     enabled: !!userId,
   });
+}
+
+/**
+ * Data type for permission update events
+ */
+export interface PermissionsUpdatedData {
+  roleId: string;
+  roleName: string;
+}
+
+/**
+ * Hook for subscribing to user's permission updates
+ * This allows real-time permission refresh when roles are modified
+ */
+export function useUserPermissionUpdates(
+  userId: string | undefined,
+  callbacks: {
+    onPermissionsUpdated?: (data: PermissionsUpdatedData) => void;
+  }
+) {
+  const topics = userId ? [`/users/${userId}/permissions`] : [];
+
+  const handleMessage = useCallback((message: MercureMessage) => {
+    switch (message.type) {
+      case 'permissions.updated':
+        callbacks.onPermissionsUpdated?.(message.data as PermissionsUpdatedData);
+        break;
+    }
+  }, [callbacks]);
+
+  return useMercure({
+    topics,
+    onMessage: handleMessage,
+    enabled: !!userId,
+  });
+}
+
+/**
+ * Data type for workspace role permissions update events
+ */
+export interface WorkspaceRolePermissionsUpdatedData {
+  workspaceId: string;
+  roleId: string;
+  roleName: string;
 }
 
 export default useMercure;

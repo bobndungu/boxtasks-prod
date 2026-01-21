@@ -932,6 +932,95 @@ class MercurePublisher {
   }
 
   /**
+   * Publishes a workspace role permissions updated event.
+   *
+   * This notifies all users who have this role that their permissions have changed.
+   *
+   * @param \Drupal\node\NodeInterface $workspaceRole
+   *   The workspace_role entity that was updated.
+   */
+  public function publishWorkspaceRolePermissionsUpdated(NodeInterface $workspaceRole): void {
+    if ($workspaceRole->bundle() !== 'workspace_role') {
+      return;
+    }
+
+    $roleId = $workspaceRole->uuid();
+    $roleName = $workspaceRole->label();
+    $nodeStorage = $this->entityTypeManager->getStorage('node');
+    $userStorage = $this->entityTypeManager->getStorage('user');
+
+    // Find all member_role nodes that reference this workspace_role
+    $memberRoleIds = $nodeStorage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'member_role')
+      ->condition('field_member_role_role', $workspaceRole->id())
+      ->execute();
+
+    if (empty($memberRoleIds)) {
+      return;
+    }
+
+    $memberRoles = $nodeStorage->loadMultiple($memberRoleIds);
+    $notifiedWorkspaces = [];
+    $notifiedUsers = [];
+
+    foreach ($memberRoles as $memberRole) {
+      // Get workspace ID
+      $workspaceId = NULL;
+      if ($memberRole->hasField('field_member_role_workspace') && !$memberRole->get('field_member_role_workspace')->isEmpty()) {
+        $workspace = $memberRole->get('field_member_role_workspace')->entity;
+        if ($workspace) {
+          $workspaceId = $workspace->uuid();
+        }
+      }
+
+      // Get user
+      $userId = NULL;
+      $userUuid = NULL;
+      if ($memberRole->hasField('field_member_role_user') && !$memberRole->get('field_member_role_user')->isEmpty()) {
+        $userId = $memberRole->get('field_member_role_user')->target_id;
+        $user = $userStorage->load($userId);
+        if ($user) {
+          $userUuid = $user->uuid();
+        }
+      }
+
+      // Publish to workspace topic (once per workspace)
+      if ($workspaceId && !isset($notifiedWorkspaces[$workspaceId])) {
+        $topic = "/workspaces/{$workspaceId}";
+        $data = [
+          'type' => 'workspace.role_permissions_updated',
+          'data' => [
+            'workspaceId' => $workspaceId,
+            'roleId' => $roleId,
+            'roleName' => $roleName,
+          ],
+          'timestamp' => date('c'),
+          'actorId' => $this->currentUser->id(),
+        ];
+        $this->publish($topic, $data);
+        $notifiedWorkspaces[$workspaceId] = TRUE;
+      }
+
+      // Publish to user's personal topic (once per user)
+      if ($userUuid && !isset($notifiedUsers[$userUuid])) {
+        $userTopic = "/users/{$userUuid}/permissions";
+        $userData = [
+          'type' => 'permissions.updated',
+          'data' => [
+            'roleId' => $roleId,
+            'roleName' => $roleName,
+          ],
+          'timestamp' => date('c'),
+          'actorId' => $this->currentUser->id(),
+        ];
+        $this->publish($userTopic, $userData);
+        $notifiedUsers[$userUuid] = TRUE;
+      }
+    }
+  }
+
+  /**
    * Publishes a board member added event.
    *
    * @param string $boardId

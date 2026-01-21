@@ -135,6 +135,11 @@ function boxtasks_realtime_entity_update(EntityInterface $entity) {
       // Member's role was updated
       _boxtasks_realtime_publish_member_role_updated($entity, $publisher);
       break;
+
+    case 'workspace_role':
+      // Workspace role permissions were updated - notify all affected users
+      $publisher->publishWorkspaceRolePermissionsUpdated($entity);
+      break;
   }
 }
 
