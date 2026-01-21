@@ -528,7 +528,15 @@ class BoardDataController extends ControllerBase {
     if ($card->hasField('field_card_approved_by') && !$card->get('field_card_approved_by')->isEmpty()) {
       $approver = $card->get('field_card_approved_by')->entity;
       if ($approver) {
-        $approved_by = $this->formatUser($approver);
+        $display_name = $approver->getDisplayName();
+        if ($approver->hasField('field_display_name') && !$approver->get('field_display_name')->isEmpty()) {
+          $display_name = $approver->get('field_display_name')->value;
+        }
+        $approved_by = [
+          'id' => $approver->uuid(),
+          'name' => $display_name,
+          'email' => $approver->getEmail(),
+        ];
       }
     }
     if ($card->hasField('field_card_approved_at') && !$card->get('field_card_approved_at')->isEmpty()) {
@@ -545,7 +553,15 @@ class BoardDataController extends ControllerBase {
     if ($card->hasField('field_card_rejected_by') && !$card->get('field_card_rejected_by')->isEmpty()) {
       $rejecter = $card->get('field_card_rejected_by')->entity;
       if ($rejecter) {
-        $rejected_by = $this->formatUser($rejecter);
+        $display_name = $rejecter->getDisplayName();
+        if ($rejecter->hasField('field_display_name') && !$rejecter->get('field_display_name')->isEmpty()) {
+          $display_name = $rejecter->get('field_display_name')->value;
+        }
+        $rejected_by = [
+          'id' => $rejecter->uuid(),
+          'name' => $display_name,
+          'email' => $rejecter->getEmail(),
+        ];
       }
     }
     if ($card->hasField('field_card_rejected_at') && !$card->get('field_card_rejected_at')->isEmpty()) {
