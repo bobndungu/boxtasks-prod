@@ -48,6 +48,8 @@ import {
   GitBranch,
   Trash2,
   Bookmark,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useBoardStore } from '../lib/stores/board';
 import { updateBoard, toggleBoardStar, fetchBoardData, NotFoundError, ForbiddenError } from '../lib/api/boards';
@@ -167,6 +169,8 @@ export default function BoardView() {
   const [templates, setTemplates] = useState<CardTemplate[]>([]);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const [isCreatingFromTemplate, setIsCreatingFromTemplate] = useState(false);
+  const [selectedTemplateForCreation, setSelectedTemplateForCreation] = useState<CardTemplate | null>(null);
+  const [templateCardTitle, setTemplateCardTitle] = useState('');
 
   // Workspace members for @mentions
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
@@ -1380,8 +1384,32 @@ export default function BoardView() {
     }
   };
 
-  const handleCreateFromTemplate = async (template: CardTemplate) => {
+  // Handle template selection - show title input step
+  const handleSelectTemplate = (template: CardTemplate) => {
+    setSelectedTemplateForCreation(template);
+    setTemplateCardTitle(''); // Clear any previous title
+  };
+
+  // Handle going back to template list
+  const handleBackToTemplateList = () => {
+    setSelectedTemplateForCreation(null);
+    setTemplateCardTitle('');
+  };
+
+  // Create card from template with custom title
+  const handleCreateFromTemplate = async (template: CardTemplate, customTitle: string) => {
     if (!templatePickerListId) return;
+
+    // Validate title
+    const trimmedTitle = customTitle.trim();
+    if (!trimmedTitle) {
+      toast.error('Please enter a title for the card');
+      return;
+    }
+    if (trimmedTitle.toLowerCase() === template.title.toLowerCase()) {
+      toast.error('Please enter a different title than the template name');
+      return;
+    }
 
     setIsCreatingFromTemplate(true);
     try {
@@ -1394,9 +1422,9 @@ export default function BoardView() {
       const autoDueDate = new Date();
       autoDueDate.setMinutes(autoDueDate.getMinutes() + 5);
 
-      // Create the card with template data
+      // Create the card with custom title and template data
       const newCard = await createCard({
-        title: template.title,
+        title: trimmedTitle,
         listId: templatePickerListId,
         description: template.description,
         labels: template.labels.length > 0 ? template.labels : undefined,
@@ -1441,7 +1469,9 @@ export default function BoardView() {
 
       setShowTemplatePicker(false);
       setTemplatePickerListId(null);
-      toast.success(`Card created from template "${template.title}"`);
+      setSelectedTemplateForCreation(null);
+      setTemplateCardTitle('');
+      toast.success(`Card "${trimmedTitle}" created from template "${template.title}"`);
     } catch (err) {
       console.error('Failed to create card from template:', err);
       toast.error('Failed to create card from template');
@@ -3518,6 +3548,8 @@ export default function BoardView() {
           onClick={() => {
             setShowTemplatePicker(false);
             setTemplatePickerListId(null);
+            setSelectedTemplateForCreation(null);
+            setTemplateCardTitle('');
           }}
         >
           <div
@@ -3525,11 +3557,25 @@ export default function BoardView() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Create from Template</h2>
+              {selectedTemplateForCreation ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleBackToTemplateList}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <ChevronLeft className="h-5 w-5 text-gray-500" />
+                  </button>
+                  <h2 className="text-lg font-semibold text-gray-900">Enter Card Title</h2>
+                </div>
+              ) : (
+                <h2 className="text-lg font-semibold text-gray-900">Create from Template</h2>
+              )}
               <button
                 onClick={() => {
                   setShowTemplatePicker(false);
                   setTemplatePickerListId(null);
+                  setSelectedTemplateForCreation(null);
+                  setTemplateCardTitle('');
                 }}
                 className="p-1 hover:bg-gray-100 rounded"
               >
@@ -3538,7 +3584,66 @@ export default function BoardView() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-              {isLoadingTemplates ? (
+              {selectedTemplateForCreation ? (
+                // Title input step
+                <div className="space-y-4">
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Template</p>
+                    <p className="font-medium text-gray-900">{selectedTemplateForCreation.title}</p>
+                    {selectedTemplateForCreation.description && (
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                        {selectedTemplateForCreation.description}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label htmlFor="template-card-title" className="block text-sm font-medium text-gray-700 mb-1">
+                      Card Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="template-card-title"
+                      type="text"
+                      value={templateCardTitle}
+                      onChange={(e) => setTemplateCardTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && templateCardTitle.trim()) {
+                          handleCreateFromTemplate(selectedTemplateForCreation, templateCardTitle);
+                        }
+                      }}
+                      placeholder="Enter a unique title for this card"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      autoFocus
+                      disabled={isCreatingFromTemplate}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      The title must be different from the template name
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleBackToTemplateList}
+                      disabled={isCreatingFromTemplate}
+                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={() => handleCreateFromTemplate(selectedTemplateForCreation, templateCardTitle)}
+                      disabled={isCreatingFromTemplate || !templateCardTitle.trim()}
+                      className="flex-1 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isCreatingFromTemplate ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        'Create Card'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ) : isLoadingTemplates ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
                 </div>
@@ -3555,7 +3660,7 @@ export default function BoardView() {
                   {templates.map((template) => (
                     <button
                       key={template.id}
-                      onClick={() => handleCreateFromTemplate(template)}
+                      onClick={() => handleSelectTemplate(template)}
                       disabled={isCreatingFromTemplate}
                       className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -3594,9 +3699,7 @@ export default function BoardView() {
                             )}
                           </div>
                         </div>
-                        {isCreatingFromTemplate && (
-                          <Loader2 className="h-4 w-4 animate-spin text-blue-500 ml-2 flex-shrink-0" />
-                        )}
+                        <ChevronRight className="h-5 w-5 text-gray-400 ml-2 flex-shrink-0" />
                       </div>
                     </button>
                   ))}
