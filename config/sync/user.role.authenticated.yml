@@ -4,10 +4,13 @@ status: true
 dependencies:
   config:
     - filter.format.basic_html
+    - node.type.card_custom_field_value
+    - node.type.custom_field_definition
   module:
     - comment
     - file
     - filter
+    - node
     - search
     - shortcut
     - system
@@ -22,7 +25,13 @@ permissions:
   - 'access content'
   - 'access shortcuts'
   - 'access user profiles'
+  - 'create card_custom_field_value content'
+  - 'create custom_field_definition content'
+  - 'delete any card_custom_field_value content'
+  - 'delete any custom_field_definition content'
   - 'delete own files'
+  - 'edit any card_custom_field_value content'
+  - 'edit any custom_field_definition content'
   - 'post comments'
   - 'search content'
   - 'skip comment approval'
