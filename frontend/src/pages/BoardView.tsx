@@ -3583,6 +3583,7 @@ export default function BoardView() {
           boardId={id}
           isOpen={showCustomFields}
           onClose={() => setShowCustomFields(false)}
+          onFieldsChange={(fields) => setCustomFieldDefs(fields)}
         />
       )}
 

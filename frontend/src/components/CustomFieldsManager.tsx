@@ -65,6 +65,7 @@ interface CustomFieldsManagerProps {
   workspaceId?: string; // For workspace-scoped fields
   isOpen: boolean;
   onClose: () => void;
+  onFieldsChange?: (fields: CustomFieldDefinition[]) => void;
 }
 
 const SCOPE_LABELS: Record<CustomFieldScope, string> = {
@@ -256,7 +257,7 @@ function DroppableSection({ id, title, icon, fields, onEdit, onDelete, isOver }:
   );
 }
 
-export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: CustomFieldsManagerProps) {
+export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose, onFieldsChange }: CustomFieldsManagerProps) {
   const { confirm, ConfirmDialog } = useConfirmDialog();
   const [fields, setFields] = useState<CustomFieldDefinition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -357,7 +358,9 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
       };
 
       const newField = await createCustomField(data);
-      setFields([...fields, newField]);
+      const updatedFields = [...fields, newField];
+      setFields(updatedFields);
+      onFieldsChange?.(updatedFields);
       toast.success(`Custom field "${newFieldName}" created`);
 
       // Reset form
@@ -408,7 +411,9 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
         scope: editScope,
       });
 
-      setFields(fields.map((f) => (f.id === editingField.id ? updated : f)));
+      const updatedFields = fields.map((f) => (f.id === editingField.id ? updated : f));
+      setFields(updatedFields);
+      onFieldsChange?.(updatedFields);
       toast.success(`Custom field "${editName}" updated`);
       setEditingField(null);
     } catch (error) {
@@ -428,7 +433,9 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
 
     try {
       await deleteCustomField(field.id);
-      setFields(fields.filter((f) => f.id !== field.id));
+      const updatedFields = fields.filter((f) => f.id !== field.id);
+      setFields(updatedFields);
+      onFieldsChange?.(updatedFields);
       toast.success(`Custom field "${field.title}" deleted`);
     } catch (error) {
       console.error('Failed to delete custom field:', error);
@@ -531,6 +538,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
           return f;
         });
         setFields(updatedFields);
+        onFieldsChange?.(updatedFields);
 
         // Persist to backend
         try {
@@ -553,6 +561,7 @@ export function CustomFieldsManager({ boardId, workspaceId, isOpen, onClose }: C
         return f;
       });
       setFields(updatedFields);
+      onFieldsChange?.(updatedFields);
 
       // Persist to backend
       try {

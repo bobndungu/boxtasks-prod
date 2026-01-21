@@ -282,9 +282,10 @@ function CardDetailModal({
     });
   }, [initialCustomFieldValues, editingCustomFieldId]);
 
-  // Get displayable fields (workspace + board + enabled card-scoped)
+  // Get displayable fields (workspace + board + enabled card-scoped), sorted by position
   const displayableFieldDefs = useMemo(() => {
-    return getDisplayableFieldsForCard(cardFieldValues, customFieldDefs);
+    const fields = getDisplayableFieldsForCard(cardFieldValues, customFieldDefs);
+    return fields.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
   }, [cardFieldValues, customFieldDefs]);
 
   // Get available card-scoped fields that haven't been added yet
