@@ -6,7 +6,7 @@ import { useThemeStore } from './lib/stores/theme';
 import ToastContainer from './components/Toast';
 import { ErrorBoundary, BoardErrorBoundary } from './components/ErrorBoundary';
 import { SkipLinks } from './components/SkipLinks';
-import { PWAUpdatePrompt, OfflineIndicator, PWAInstallPrompt } from './components/PWAPrompt';
+import { PWAUpdatePrompt, OfflineIndicator, PWAInstallPrompt, useVersionCheck } from './components/PWAPrompt';
 import { SessionExpiryWarning } from './components/SessionExpiryWarning';
 import MentionToastContainer from './components/MentionToastContainer';
 import GlobalWorkspaceSubscription from './components/GlobalWorkspaceSubscription';
@@ -142,6 +142,9 @@ function AuthRedirect({ children }: { children: React.ReactNode }) {
 
 // Root layout with common elements
 function RootLayout() {
+  // Check for new versions - will auto-reload if new version detected
+  useVersionCheck();
+
   return (
     <>
       <SkipLinks />

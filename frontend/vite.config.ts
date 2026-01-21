@@ -1,7 +1,27 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import compression from 'vite-plugin-compression'
+import { writeFileSync } from 'fs'
+import { resolve } from 'path'
+
+// Plugin to generate version.json on build for cache busting detection
+function generateVersionPlugin(): Plugin {
+  return {
+    name: 'generate-version',
+    writeBundle() {
+      const version = {
+        version: Date.now().toString(),
+        buildTime: new Date().toISOString(),
+      };
+      writeFileSync(
+        resolve(__dirname, 'dist', 'version.json'),
+        JSON.stringify(version)
+      );
+      console.log(`Generated version.json: ${version.version}`);
+    },
+  };
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -93,36 +113,12 @@ export default defineConfig({
           /^\/sites\//,     // Sites files
         ],
         runtimeCaching: [
+          // IMPORTANT: Do NOT cache JS/CSS files via service worker!
+          // Vite adds content hashes to filenames (e.g., index-abc123.js)
+          // This means browser caching is sufficient and safe.
+          // Service worker caching of JS/CSS causes stale code issues.
           {
-            // API calls - always prefer network, fallback to cache
-            urlPattern: /^https:\/\/(boxtasks2\.ddev\.site|tasks\.boxraft\.com)\/jsonapi\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              networkTimeoutSeconds: 10, // Fallback to cache after 10s
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          {
-            // JS/CSS assets - use NetworkFirst to always get latest, with cache fallback for offline
-            urlPattern: /\.(?:js|css)$/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'static-assets',
-              networkTimeoutSeconds: 5, // Fallback to cache after 5s if network slow
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours (reduced from 7 days)
-              },
-            },
-          },
-          {
+            // Only cache Google Fonts (safe to cache long-term)
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
@@ -133,6 +129,33 @@ export default defineConfig({
               },
               cacheableResponse: {
                 statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // Cache font files
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-webfonts',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // Cache images only (safe to cache)
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
               },
             },
           },
@@ -154,5 +177,7 @@ export default defineConfig({
       algorithm: 'brotliCompress',
       ext: '.br',
     }),
+    // Generate version.json for cache busting detection
+    generateVersionPlugin(),
   ],
 })

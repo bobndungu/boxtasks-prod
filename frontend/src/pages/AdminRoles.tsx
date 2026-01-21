@@ -220,6 +220,11 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   mindMapCreate: 'none',
   mindMapEdit: 'none',
   mindMapDelete: 'none',
+  // Template permissions
+  templateView: 'any',
+  templateCreate: 'none',
+  templateEdit: 'own',
+  templateDelete: 'own',
 };
 
 export default function AdminRoles() {

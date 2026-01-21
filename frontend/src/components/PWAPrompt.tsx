@@ -1,12 +1,86 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { RefreshCw, X, Wifi, WifiOff } from 'lucide-react';
 
 // Update check interval in milliseconds (30 seconds for faster detection)
 const UPDATE_CHECK_INTERVAL = 30 * 1000;
 
+// Version check interval (60 seconds) - separate from SW updates
+const VERSION_CHECK_INTERVAL = 60 * 1000;
+
 // Auto-update mode: 'prompt' shows a notification, 'auto' updates silently
 const AUTO_UPDATE_MODE: 'prompt' | 'auto' = 'auto';
+
+// Version check that bypasses service worker cache
+// This is the most reliable way to detect new deployments
+export function useVersionCheck() {
+  const currentVersionRef = useRef<string | null>(null);
+  const [newVersionAvailable, setNewVersionAvailable] = useState(false);
+
+  useEffect(() => {
+    // Only run in production
+    if (import.meta.env.DEV) return;
+
+    const checkVersion = async () => {
+      try {
+        // Fetch version.json with cache bypass headers
+        const response = await fetch('/version.json', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const serverVersion = data.version;
+
+        if (!currentVersionRef.current) {
+          // First load - store the version
+          currentVersionRef.current = serverVersion;
+          console.log('[Version Check] Current version:', serverVersion);
+        } else if (serverVersion !== currentVersionRef.current) {
+          // New version detected!
+          console.log('[Version Check] New version detected:', serverVersion, 'Current:', currentVersionRef.current);
+          setNewVersionAvailable(true);
+
+          // Force hard refresh to get new code
+          // Clear all caches first
+          if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+            console.log('[Version Check] Cleared all caches');
+          }
+
+          // Unregister service workers
+          if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map(reg => reg.unregister()));
+            console.log('[Version Check] Unregistered service workers');
+          }
+
+          // Force reload with cache bypass
+          window.location.reload();
+        }
+      } catch (error) {
+        // Silently ignore version check errors
+        console.log('[Version Check] Error:', error);
+      }
+    };
+
+    // Check immediately on mount
+    checkVersion();
+
+    // Then check periodically
+    const interval = setInterval(checkVersion, VERSION_CHECK_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return { newVersionAvailable };
+}
 
 export function PWAUpdatePrompt() {
   const {
