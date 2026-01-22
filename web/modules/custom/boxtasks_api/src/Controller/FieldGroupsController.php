@@ -61,6 +61,13 @@ class FieldGroupsController extends ControllerBase {
       return new JsonResponse(['error' => 'Board not found'], 404);
     }
 
+    // Check if the custom_field_group content type exists
+    // If it doesn't, return an empty array (field groups feature not configured yet)
+    $node_type_storage = $this->entityTypeManager->getStorage('node_type');
+    if (!$node_type_storage->load('custom_field_group')) {
+      return new JsonResponse([]);
+    }
+
     // Get workspace ID from board
     $workspace_id = NULL;
     if ($board->hasField('field_board_workspace') && !$board->get('field_board_workspace')->isEmpty()) {
@@ -70,18 +77,30 @@ class FieldGroupsController extends ControllerBase {
       }
     }
 
+    // Check if the required fields exist on the content type
+    // If field_cfg_board doesn't exist, the feature isn't fully configured
+    $field_storage_definitions = \Drupal::service('entity_field.manager')
+      ->getFieldStorageDefinitions('node');
+    if (!isset($field_storage_definitions['field_cfg_board'])) {
+      return new JsonResponse([]);
+    }
+
     // Query for field groups
     $query = $node_storage->getQuery()
       ->condition('type', 'custom_field_group')
       ->condition('status', 1)
-      ->accessCheck(FALSE)
-      ->sort('field_cfg_position');
+      ->accessCheck(FALSE);
+
+    // Only sort by position if the field exists
+    if (isset($field_storage_definitions['field_cfg_position'])) {
+      $query->sort('field_cfg_position');
+    }
 
     // Get groups for this board OR this workspace (with no board)
     $or = $query->orConditionGroup()
       ->condition('field_cfg_board', $board->id());
 
-    if ($workspace_id) {
+    if ($workspace_id && isset($field_storage_definitions['field_cfg_workspace'])) {
       $workspace_condition = $query->andConditionGroup()
         ->condition('field_cfg_workspace', $workspace_id)
         ->notExists('field_cfg_board');
