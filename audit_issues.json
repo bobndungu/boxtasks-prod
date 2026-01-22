@@ -1,19 +1,20 @@
 {
   "auditInfo": {
     "startedAt": "2026-01-22T14:21:00Z",
-    "lastUpdated": "2026-01-22T15:15:00Z",
+    "lastUpdated": "2026-01-22T15:25:00Z",
     "auditor": "Claude Code Audit Agent",
     "version": "1.0.0",
-    "status": "in_progress"
+    "status": "completed"
   },
   "summary": {
     "totalIssues": 7,
     "critical": 0,
-    "high": 1,
-    "medium": 2,
+    "high": 0,
+    "medium": 0,
     "low": 0,
     "info": 0,
-    "fixed": 4,
+    "fixed": 5,
+    "verified": 1,
     "misdiagnosed": 1
   },
   "categories": {
@@ -80,7 +81,7 @@
           "id": "CACHE-002",
           "title": "TanStack Query staleTime of 5 minutes may cause data freshness issues",
           "severity": "medium",
-          "status": "confirmed",
+          "status": "fixed",
           "description": "TanStack Query is configured with a 5-minute staleTime. This means data won't be refetched for 5 minutes even if changed on the server, unless manually invalidated.",
           "stepsToReproduce": [
             "User A views a board",
@@ -101,13 +102,14 @@
             "environment": "dev"
           },
           "foundAt": "2026-01-22T14:25:00Z",
-          "notes": "Line 103: staleTime: 1000 * 60 * 5 (5 minutes)"
+          "fixedAt": "2026-01-22T15:20:00Z",
+          "notes": "FIXED: Reduced staleTime from 5 minutes to 1 minute. Added refetchOnWindowFocus: true and refetchOnReconnect: true. Added gcTime: 5 minutes for garbage collection."
         },
         {
           "id": "CACHE-003",
           "title": "version.json needs to be dynamically generated during build",
           "severity": "medium",
-          "status": "open",
+          "status": "verified",
           "description": "The version.json file contains static 'development' values. Need to verify it's being updated during production builds to enable proper cache invalidation.",
           "stepsToReproduce": [
             "Check frontend/public/version.json",
@@ -115,7 +117,7 @@
             "Verify version.json in dist/ has dynamic values"
           ],
           "expectedBehavior": "Production builds should generate version.json with build timestamp or git hash",
-          "actualBehavior": "Unknown - needs testing in production build",
+          "actualBehavior": "Production build correctly generates version.json with timestamp and ISO date",
           "affectedFiles": [
             "frontend/public/version.json",
             "frontend/vite.config.ts"
@@ -123,12 +125,13 @@
           "suggestedFix": "Add a Vite plugin or build script to generate version.json with: { version: git-hash-or-timestamp, buildTime: ISO-date }",
           "screenshotPath": null,
           "testedOn": {
-            "browser": "Code review",
+            "browser": "Verified via npm run build",
             "device": "N/A",
             "environment": "dev"
           },
           "foundAt": "2026-01-22T14:25:00Z",
-          "notes": "Current content: { version: 'development', buildTime: 'development' }"
+          "verifiedAt": "2026-01-22T15:25:00Z",
+          "notes": "VERIFIED WORKING: The generateVersionPlugin() in vite.config.ts already generates version.json during build with dynamic values. Tested build output: {\"version\":\"1769084701534\",\"buildTime\":\"2026-01-22T12:25:01.534Z\"}. In development, versionedStorage.ts returns 'dev' as version (doesn't use the static file)."
         }
       ]
     },
