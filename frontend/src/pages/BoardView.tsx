@@ -83,6 +83,7 @@ import TimelineView from '../components/TimelineView';
 import TableView from '../components/TableView';
 import DashboardView from '../components/DashboardView';
 import { formatDateShort } from '../lib/utils/date';
+import { versionedStorage } from '../lib/utils/versionedStorage';
 import { AutomationRules } from '../components/AutomationRules';
 import { MindMapsPanel } from '../components/MindMapsPanel';
 import { AdvancedFilters, DEFAULT_FILTER_STATE, matchesFilters, type FilterState } from '../components/AdvancedFilters';
@@ -212,18 +213,13 @@ export default function BoardView() {
   const [savedViews, setSavedViews] = useState<SavedView[]>([]);
 
   // Field visibility settings (using imported type and defaults)
-  // Version 2 key resets all users to new defaults (customFields: false)
+  // Uses versionedStorage which auto-clears on new deployments
   const [fieldVisibility, setFieldVisibility] = useState<CardFieldVisibility>(() => {
     if (!id) return DEFAULT_FIELD_VISIBILITY;
-    const stored = localStorage.getItem(`boxtasks_field_visibility_v2_${id}`);
+    const stored = versionedStorage.get<CardFieldVisibility | null>(`field_visibility_${id}`, null);
     if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        // Merge with defaults to handle missing properties
-        return { ...DEFAULT_FIELD_VISIBILITY, ...parsed };
-      } catch {
-        return DEFAULT_FIELD_VISIBILITY;
-      }
+      // Merge with defaults to handle missing properties
+      return { ...DEFAULT_FIELD_VISIBILITY, ...stored };
     }
     return DEFAULT_FIELD_VISIBILITY;
   });
@@ -233,10 +229,10 @@ export default function BoardView() {
   const [showSavedViewsPanel, setShowSavedViewsPanel] = useState(false);
   const [showTemplatesManager, setShowTemplatesManager] = useState(false);
 
-  // Save field visibility to localStorage (v2 key)
+  // Save field visibility to versionedStorage (auto-clears on deployments)
   useEffect(() => {
     if (id) {
-      localStorage.setItem(`boxtasks_field_visibility_v2_${id}`, JSON.stringify(fieldVisibility));
+      versionedStorage.set(`field_visibility_${id}`, fieldVisibility);
     }
   }, [fieldVisibility, id]);
 
@@ -244,25 +240,19 @@ export default function BoardView() {
   useEffect(() => {
     if (!id) return;
 
-    // Load saved views from localStorage
-    const savedViewsKey = `boxtasks_saved_views_${id}`;
-    const storedViews = localStorage.getItem(savedViewsKey);
+    // Load saved views from versionedStorage
+    const storedViews = versionedStorage.get<SavedView[] | null>(`saved_views_${id}`, null);
     if (storedViews) {
-      try {
-        const views = JSON.parse(storedViews) as SavedView[];
-        setSavedViews(views);
+      setSavedViews(storedViews);
 
-        // Apply default view if exists and no URL params
-        const urlParams = new URLSearchParams(window.location.search);
-        if (!urlParams.has('view')) {
-          const defaultView = views.find((v) => v.isDefault);
-          if (defaultView) {
-            setCurrentView(defaultView.viewType);
-            setViewSettings(defaultView.settings);
-          }
+      // Apply default view if exists and no URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      if (!urlParams.has('view')) {
+        const defaultView = storedViews.find((v) => v.isDefault);
+        if (defaultView) {
+          setCurrentView(defaultView.viewType);
+          setViewSettings(defaultView.settings);
         }
-      } catch (e) {
-        console.error('Failed to parse saved views:', e);
       }
     }
 
@@ -288,11 +278,10 @@ export default function BoardView() {
     }
   }, [id]);
 
-  // Save views to localStorage when changed
+  // Save views to versionedStorage when changed
   useEffect(() => {
     if (!id || savedViews.length === 0) return;
-    const savedViewsKey = `boxtasks_saved_views_${id}`;
-    localStorage.setItem(savedViewsKey, JSON.stringify(savedViews));
+    versionedStorage.set(`saved_views_${id}`, savedViews);
   }, [id, savedViews]);
 
   // Handlers for saved views

@@ -2,6 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { initVersionedStorage } from './lib/utils/versionedStorage'
+
+// Initialize versioned storage to clear stale localStorage on new deployments
+initVersionedStorage().catch(console.error);
 
 // In development, unregister any existing service workers to prevent caching issues
 // This ensures code changes are immediately visible without manual cache clearing
