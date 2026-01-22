@@ -1,11 +1,16 @@
 import { create } from 'zustand';
 import type { Board } from '../api/boards';
 
+// Staleness threshold in milliseconds (1 minute)
+const STALE_THRESHOLD = 60 * 1000;
+
 interface BoardState {
   boards: Board[];
   currentBoard: Board | null;
   starredBoards: Board[];
   recentBoards: Board[];
+  starredBoardsLastFetched: number | null;
+  recentBoardsLastFetched: number | null;
   isLoading: boolean;
   error: string | null;
   setBoards: (boards: Board[]) => void;
@@ -17,13 +22,18 @@ interface BoardState {
   setRecentBoards: (boards: Board[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  isStarredBoardsStale: () => boolean;
+  isRecentBoardsStale: () => boolean;
+  invalidateBoardsCache: () => void;
 }
 
-export const useBoardStore = create<BoardState>()((set) => ({
+export const useBoardStore = create<BoardState>()((set, get) => ({
   boards: [],
   currentBoard: null,
   starredBoards: [],
   recentBoards: [],
+  starredBoardsLastFetched: null,
+  recentBoardsLastFetched: null,
   isLoading: false,
   error: null,
   setBoards: (boards) => set({ boards, isLoading: false }),
@@ -53,8 +63,19 @@ export const useBoardStore = create<BoardState>()((set) => ({
       recentBoards: state.recentBoards.filter((b) => b.id !== id),
     })),
   setCurrentBoard: (currentBoard) => set({ currentBoard }),
-  setStarredBoards: (starredBoards) => set({ starredBoards }),
-  setRecentBoards: (recentBoards) => set({ recentBoards }),
+  setStarredBoards: (starredBoards) => set({ starredBoards, starredBoardsLastFetched: Date.now() }),
+  setRecentBoards: (recentBoards) => set({ recentBoards, recentBoardsLastFetched: Date.now() }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
+  isStarredBoardsStale: () => {
+    const { starredBoardsLastFetched } = get();
+    if (!starredBoardsLastFetched) return true;
+    return Date.now() - starredBoardsLastFetched > STALE_THRESHOLD;
+  },
+  isRecentBoardsStale: () => {
+    const { recentBoardsLastFetched } = get();
+    if (!recentBoardsLastFetched) return true;
+    return Date.now() - recentBoardsLastFetched > STALE_THRESHOLD;
+  },
+  invalidateBoardsCache: () => set({ starredBoardsLastFetched: null, recentBoardsLastFetched: null }),
 }));

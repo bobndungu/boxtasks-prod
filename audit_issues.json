@@ -1,22 +1,22 @@
 {
   "auditInfo": {
     "startedAt": "2026-01-22T14:21:00Z",
-    "lastUpdated": "2026-01-22T16:15:00Z",
+    "lastUpdated": "2026-01-22T17:40:00Z",
     "auditor": "Claude Code Audit Agent",
     "version": "1.0.0",
-    "status": "in_progress"
+    "status": "complete"
   },
   "summary": {
-    "totalIssues": 9,
+    "totalIssues": 12,
     "critical": 1,
     "high": 0,
-    "medium": 0,
-    "low": 1,
+    "medium": 2,
+    "low": 2,
     "info": 0,
     "fixed": 2,
     "verified": 8,
     "misdiagnosed": 1,
-    "open": 0
+    "open": 3
   },
   "categories": {
     "cache": {
@@ -288,7 +288,70 @@
     "performance": {
       "name": "Performance Issues",
       "description": "Slow loading, excessive re-renders, large payloads",
-      "issues": []
+      "issues": [
+        {
+          "id": "PERF-001",
+          "title": "Duplicate API requests across page navigation - 3-6x redundant calls",
+          "severity": "medium",
+          "status": "open",
+          "description": "Multiple components fetch the same data independently on each page navigation, causing 3-6x redundant API calls. Observed on single navigation: version.json (5x), notifications (6x), workspaces (4x), starred boards (3x), recent boards (3x), Mercure subscriptions (4x duplicate connections).",
+          "stepsToReproduce": [
+            "Login to the application",
+            "Navigate to Dashboard",
+            "Open Network tab in DevTools",
+            "Navigate to 'View all cards' (/everything)",
+            "Navigate to a board",
+            "Observe duplicate requests for same endpoints"
+          ],
+          "expectedBehavior": "Each API endpoint should be called once per navigation, with proper caching and deduplication",
+          "actualBehavior": "Same endpoints called 3-6 times per navigation due to: 1) MainHeader fetches starred/recent boards on every mount, 2) Dashboard also fetches starred/recent boards, 3) GlobalWorkspaceSubscription fetches workspaces, 4) WorkspaceSwitcher also fetches workspaces, 5) NotificationDropdown fetches notifications, 6) Multiple Mercure subscriptions created",
+          "affectedFiles": [
+            "frontend/src/components/MainHeader.tsx",
+            "frontend/src/pages/Dashboard.tsx",
+            "frontend/src/components/GlobalWorkspaceSubscription.tsx",
+            "frontend/src/components/WorkspaceSwitcher.tsx",
+            "frontend/src/components/NotificationDropdown.tsx"
+          ],
+          "suggestedFix": "1. Use TanStack Query for all data fetching with proper queryKeys for automatic deduplication. 2. Add stale checks before fetching (if data exists in store and is fresh, skip fetch). 3. Move MainHeader to a layout component that doesn't remount on navigation. 4. Consolidate Mercure subscriptions into a single connection manager.",
+          "screenshotPath": null,
+          "testedOn": {
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "production"
+          },
+          "foundAt": "2026-01-22T17:20:00Z",
+          "notes": "Root causes: 1) MainHeader.tsx useEffect (lines 51-65) fetches starred/recent boards on every mount with no cache check. 2) Dashboard.tsx does the same. 3) No shared query client - each component fetches independently. 4) Components remount on navigation because they're not in a stable layout. Impact: Wasted bandwidth, slower perceived performance, unnecessary server load."
+        },
+        {
+          "id": "PERF-002",
+          "title": "Mercure reconnection loops causing multiple connection attempts",
+          "severity": "low",
+          "status": "open",
+          "description": "Console shows multiple 'Mercure: Reconnecting in 1000ms (attempt 1)' messages simultaneously, indicating multiple independent Mercure connections that each try to reconnect when the connection drops.",
+          "stepsToReproduce": [
+            "Login to the application",
+            "Open browser console",
+            "Observe multiple reconnection messages appearing at the same time",
+            "Navigate between pages and observe new connections being created"
+          ],
+          "expectedBehavior": "Single Mercure connection should be managed centrally, with graceful reconnection handling",
+          "actualBehavior": "Multiple components create their own Mercure subscriptions: GlobalWorkspaceSubscription (for workspaces + permissions), NotificationDropdown (for notifications), BoardView (for board updates). Each manages its own reconnection independently.",
+          "affectedFiles": [
+            "frontend/src/lib/hooks/useMercure.ts",
+            "frontend/src/components/GlobalWorkspaceSubscription.tsx",
+            "frontend/src/components/NotificationDropdown.tsx"
+          ],
+          "suggestedFix": "Create a central MercureManager that handles a single EventSource connection and multiplexes topic subscriptions. Components should subscribe to topics through this manager rather than creating their own connections.",
+          "screenshotPath": null,
+          "testedOn": {
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "production"
+          },
+          "foundAt": "2026-01-22T17:22:00Z",
+          "notes": "Saw 5 simultaneous 'Reconnecting in 1000ms (attempt 1)' messages in console, indicating at least 5 separate EventSource connections."
+        }
+      ]
     },
     "api": {
       "name": "API Issues",
@@ -326,12 +389,53 @@
     "data": {
       "name": "Data Integrity Issues",
       "description": "Stale data, inconsistent state, missing data",
-      "issues": []
+      "issues": [
+        {
+          "id": "DATA-001",
+          "title": "Card creation fails with 403 for workspace members - permission configuration issue",
+          "severity": "medium",
+          "status": "open",
+          "description": "When a workspace member (Edwin Kuria) tries to create a card on a board they can view, the JSON:API POST to /jsonapi/node/card returns 403 with error 'The access content permission is required.' This suggests either a misconfigured role or missing JSON:API permissions for the authenticated user role.",
+          "stepsToReproduce": [
+            "Login as a workspace member (Edwin Kuria)",
+            "Navigate to Video Tasks board",
+            "Click 'Add a card' in any list",
+            "Enter a card title and click 'Add card'",
+            "Observe 403 error: 'The access content permission is required.'"
+          ],
+          "expectedBehavior": "Workspace members with 'create cards' permission should be able to create cards",
+          "actualBehavior": "Card creation fails with 403 Forbidden from JSON:API",
+          "affectedFiles": [
+            "Drupal role permissions configuration",
+            "JSON:API content type permissions"
+          ],
+          "suggestedFix": "1. Check Drupal permissions at /admin/people/permissions for the 'authenticated' role. 2. Ensure 'Card: Create new content' permission is granted. 3. Verify JSON:API resource permissions for node/card. 4. Check if custom access control is interfering with card creation.",
+          "screenshotPath": null,
+          "testedOn": {
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "production"
+          },
+          "foundAt": "2026-01-22T17:30:00Z",
+          "notes": "This may be intentional if Edwin Kuria's workspace role is 'Viewer' rather than 'Editor'. Need to verify the expected permission level for this user on this board. The member_role query succeeded, suggesting role lookup works, but create action fails."
+        }
+      ]
     },
     "functionality": {
       "name": "Functionality Issues",
       "description": "Features not working as expected",
-      "issues": []
+      "issues": [],
+      "testedAndWorking": [
+        "Board view - lists and cards load correctly",
+        "Card modal - all fields display (title, description, dates, watchers, department, client, labels)",
+        "Board search - filters cards with search highlights",
+        "Board filters - label, member, due date, status filters work correctly",
+        "Overdue filter - correctly identifies 3 overdue cards",
+        "Real-time Mercure connection - shows 'Connected' status",
+        "Navigation - client-side routing between pages",
+        "Everything view - displays cards grouped by workspace/board",
+        "HTML entity decoding - apostrophes and special chars display correctly"
+      ]
     }
   },
   "issueTemplate": {

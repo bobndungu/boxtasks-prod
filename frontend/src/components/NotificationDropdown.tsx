@@ -98,6 +98,9 @@ interface NotificationDropdownProps {
   className?: string;
 }
 
+// Staleness threshold in milliseconds (1 minute)
+const NOTIFICATION_STALE_THRESHOLD = 60 * 1000;
+
 export default function NotificationDropdown({ className = '' }: NotificationDropdownProps) {
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -107,6 +110,7 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
   const [isLoading, setIsLoading] = useState(false);
   const [hasNewNotification, setHasNewNotification] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const lastFetchedRef = useRef<number | null>(null);
 
   // Handle real-time notification via Mercure
   const handleRealtimeNotification = useCallback((notification: unknown) => {
@@ -142,8 +146,13 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
   // Subscribe to real-time notifications via Mercure
   const { connected: mercureConnected } = useUserNotifications(user?.id, handleRealtimeNotification);
 
-  const loadNotifications = useCallback(async () => {
+  const loadNotifications = useCallback(async (force = false) => {
     if (!user?.id) return;
+
+    // Skip if data is fresh (within 1 minute) unless forced
+    if (!force && lastFetchedRef.current && Date.now() - lastFetchedRef.current < NOTIFICATION_STALE_THRESHOLD) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -153,6 +162,7 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
       ]);
       setNotifications(notifs);
       setUnreadCount(count);
+      lastFetchedRef.current = Date.now();
     } catch (error) {
       console.error('Failed to load notifications:', error);
     } finally {
@@ -160,7 +170,7 @@ export default function NotificationDropdown({ className = '' }: NotificationDro
     }
   }, [user?.id]);
 
-  // Load notifications on mount and when user changes
+  // Load notifications on mount and when user changes - only if stale
   useEffect(() => {
     loadNotifications();
   }, [loadNotifications]);

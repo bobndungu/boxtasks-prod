@@ -8,7 +8,7 @@ import { useUserWorkspaceUpdates } from '../lib/hooks/useMercure';
 
 export default function WorkspaceSwitcher() {
   const navigate = useNavigate();
-  const { workspaces, currentWorkspace, setWorkspaces, setCurrentWorkspace } = useWorkspaceStore();
+  const { workspaces, currentWorkspace, setWorkspaces, setCurrentWorkspace, isWorkspacesStale } = useWorkspaceStore();
   const { user } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,11 +64,13 @@ export default function WorkspaceSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Load workspaces if not already loaded
+  // Load workspaces if not already loaded or stale
   useEffect(() => {
-    if (workspaces.length === 0) {
+    // Only fetch if workspaces are missing or stale (older than 1 minute)
+    if (workspaces.length === 0 || isWorkspacesStale()) {
       loadWorkspaces();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadWorkspaces = async () => {

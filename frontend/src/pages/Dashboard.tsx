@@ -300,7 +300,7 @@ function ActivityDiffDisplay({ type, data, boardId }: { type: ActivityType; data
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
   const { workspaces } = useWorkspaceStore();
-  const { addBoard, starredBoards, recentBoards, setStarredBoards, setRecentBoards } = useBoardStore();
+  const { addBoard, starredBoards, recentBoards, setStarredBoards, setRecentBoards, isStarredBoardsStale, isRecentBoardsStale } = useBoardStore();
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
   const [showCreateBoardModal, setShowCreateBoardModal] = useState(false);
@@ -312,22 +312,32 @@ export default function Dashboard() {
   const recentDropdownRef = useRef<HTMLDivElement>(null);
   const starredDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load starred and recent boards on mount
+  // Load starred and recent boards on mount - only if data is stale or missing
   useEffect(() => {
     const loadBoardData = async () => {
+      // Skip fetch if data is fresh (within 1 minute)
+      const starredStale = isStarredBoardsStale();
+      const recentStale = isRecentBoardsStale();
+
+      if (!starredStale && !recentStale) {
+        return; // Data is fresh, no need to fetch
+      }
+
       try {
-        const [starred, recent] = await Promise.all([
-          fetchStarredBoards(),
-          fetchRecentBoards(5),
-        ]);
-        setStarredBoards(starred);
-        setRecentBoards(recent);
+        const promises: Promise<unknown>[] = [];
+        if (starredStale) {
+          promises.push(fetchStarredBoards().then(setStarredBoards));
+        }
+        if (recentStale) {
+          promises.push(fetchRecentBoards(5).then(setRecentBoards));
+        }
+        await Promise.all(promises);
       } catch (error) {
         console.error('Failed to load board data:', error);
       }
     };
     loadBoardData();
-  }, [setStarredBoards, setRecentBoards]);
+  }, [setStarredBoards, setRecentBoards, isStarredBoardsStale, isRecentBoardsStale]);
 
   // Load recent activities from boards
   useEffect(() => {
