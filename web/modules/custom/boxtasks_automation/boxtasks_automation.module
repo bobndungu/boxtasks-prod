@@ -55,6 +55,140 @@ function boxtasks_automation_automation_rule_presave(EntityInterface $entity): v
 }
 
 /**
+ * Implements hook_ENTITY_TYPE_insert() for automation_rule entities.
+ *
+ * Triggers retroactive execution when a new rule is created with
+ * apply_retroactively enabled.
+ */
+function boxtasks_automation_automation_rule_insert(EntityInterface $entity): void {
+  _boxtasks_automation_maybe_run_retroactive($entity);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for automation_rule entities.
+ *
+ * Triggers retroactive execution when a rule is enabled with
+ * apply_retroactively enabled and retroactive_executed is FALSE.
+ */
+function boxtasks_automation_automation_rule_update(EntityInterface $entity): void {
+  $original = $entity->original;
+
+  // Check if the rule was just enabled.
+  $current_enabled = (bool) $entity->get('enabled')->value;
+  $original_enabled = (bool) $original->get('enabled')->value;
+
+  if ($current_enabled && !$original_enabled) {
+    // Rule was just enabled, check if we should run retroactively.
+    _boxtasks_automation_maybe_run_retroactive($entity);
+  }
+}
+
+/**
+ * Runs retroactive execution if conditions are met.
+ *
+ * @param \Drupal\Core\Entity\EntityInterface $rule
+ *   The automation rule entity.
+ */
+function _boxtasks_automation_maybe_run_retroactive(EntityInterface $rule): void {
+  // Check if rule should apply retroactively.
+  $apply_retroactively = (bool) $rule->get('apply_retroactively')->value;
+  $retroactive_executed = (bool) $rule->get('retroactive_executed')->value;
+  $enabled = (bool) $rule->get('enabled')->value;
+
+  if (!$apply_retroactively || $retroactive_executed || !$enabled) {
+    return;
+  }
+
+  // Get the board ID.
+  $board_id = $rule->get('board_id')->target_id;
+  if (!$board_id) {
+    return;
+  }
+
+  // Get all cards on this board.
+  $cards = _boxtasks_automation_get_board_cards($board_id);
+
+  if (empty($cards)) {
+    // Mark as executed even if no cards found.
+    $rule->set('retroactive_executed', TRUE);
+    $rule->save();
+    return;
+  }
+
+  // Get the executor service.
+  $executor = \Drupal::service('boxtasks_automation.executor');
+
+  // Execute the rule for each card.
+  foreach ($cards as $card) {
+    $trigger_data = [
+      'card_id' => $card->id(),
+      'card' => [
+        'id' => $card->id(),
+        'uuid' => $card->uuid(),
+        'title' => $card->getTitle(),
+        'list_id' => $card->get('field_card_list')->target_id,
+        'labels' => _boxtasks_automation_get_labels($card),
+        'due_date' => $card->get('field_card_due_date')->value,
+        'completed' => (bool) $card->get('field_card_completed')->value,
+        'approved_by' => $card->hasField('field_card_approved_by') ? $card->get('field_card_approved_by')->target_id : NULL,
+        'rejected_by' => $card->hasField('field_card_rejected_by') ? $card->get('field_card_rejected_by')->target_id : NULL,
+        'department_id' => $card->hasField('field_card_department') ? $card->get('field_card_department')->target_id : NULL,
+        'client_id' => $card->hasField('field_card_client') ? $card->get('field_card_client')->target_id : NULL,
+      ],
+      'is_retroactive' => TRUE,
+    ];
+
+    // Execute the rule - it will check conditions.
+    $executor->executeRule($rule, 'retroactive', $trigger_data);
+  }
+
+  // Mark retroactive execution as complete.
+  $rule->set('retroactive_executed', TRUE);
+  $rule->save();
+
+  \Drupal::logger('boxtasks_automation')->info('Retroactive execution completed for rule @id on @count cards.', [
+    '@id' => $rule->id(),
+    '@count' => count($cards),
+  ]);
+}
+
+/**
+ * Gets all cards on a board.
+ *
+ * @param int $board_id
+ *   The board node ID.
+ *
+ * @return \Drupal\node\NodeInterface[]
+ *   Array of card nodes.
+ */
+function _boxtasks_automation_get_board_cards(int $board_id): array {
+  // Get all lists on the board.
+  $list_ids = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->condition('type', 'board_list')
+    ->condition('field_list_board', $board_id)
+    ->accessCheck(FALSE)
+    ->execute();
+
+  if (empty($list_ids)) {
+    return [];
+  }
+
+  // Get all cards on those lists.
+  $card_ids = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
+    ->condition('type', 'card')
+    ->condition('field_card_list', $list_ids, 'IN')
+    ->condition('field_card_archived', FALSE)
+    ->accessCheck(FALSE)
+    ->execute();
+
+  if (empty($card_ids)) {
+    return [];
+  }
+
+  return \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($card_ids);
+}
+
+/**
  * Implements hook_ENTITY_TYPE_insert() for node entities.
  *
  * Fires the 'card_created' trigger when a new card is created.

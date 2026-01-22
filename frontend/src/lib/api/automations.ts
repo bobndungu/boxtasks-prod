@@ -41,6 +41,7 @@ export interface AutomationRule {
   conditions: AutomationCondition[];
   actions: AutomationAction[];
   enabled: boolean;
+  applyRetroactively: boolean;
   executionCount: number;
   lastExecuted: string | null;
   createdAt: string;
@@ -206,6 +207,7 @@ function transformRuleFromApi(data: any): AutomationRule {
     actions: attrs.actions ?
       (typeof attrs.actions === 'string' ? JSON.parse(attrs.actions) : attrs.actions) : [],
     enabled: attrs.enabled ?? true,
+    applyRetroactively: attrs.apply_retroactively ?? attrs.applyRetroactively ?? true,
     executionCount: attrs.execution_count || attrs.executionCount || 0,
     lastExecuted: attrs.last_executed || attrs.lastExecuted,
     createdAt: attrs.created,
@@ -255,6 +257,7 @@ export async function createAutomationRule(
     conditions?: AutomationCondition[];
     actions: AutomationAction[];
     enabled?: boolean;
+    applyRetroactively?: boolean;
   }
 ): Promise<AutomationRule> {
   const response = await apiRequest<{ data: any }>(
@@ -271,6 +274,7 @@ export async function createAutomationRule(
             conditions: JSON.stringify(rule.conditions || []),
             actions: JSON.stringify(rule.actions),
             enabled: rule.enabled ?? true,
+            apply_retroactively: rule.applyRetroactively ?? true,
           },
           relationships: {
             board_id: {
@@ -296,6 +300,7 @@ export async function updateAutomationRule(
     conditions: AutomationCondition[];
     actions: AutomationAction[];
     enabled: boolean;
+    applyRetroactively: boolean;
   }>
 ): Promise<AutomationRule> {
   const attributes: Record<string, unknown> = {};
@@ -306,6 +311,7 @@ export async function updateAutomationRule(
   if (updates.conditions !== undefined) attributes.conditions = JSON.stringify(updates.conditions);
   if (updates.actions !== undefined) attributes.actions = JSON.stringify(updates.actions);
   if (updates.enabled !== undefined) attributes.enabled = updates.enabled;
+  if (updates.applyRetroactively !== undefined) attributes.apply_retroactively = updates.applyRetroactively;
 
   const response = await apiRequest<{ data: any }>(
     `/jsonapi/automation_rule/automation_rule/${ruleId}`,

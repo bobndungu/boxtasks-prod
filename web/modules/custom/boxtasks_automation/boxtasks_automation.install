@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the boxtasks_automation module.
+ */
+
+use Drupal\Core\Field\BaseFieldDefinition;
+
+/**
+ * Add apply_retroactively and retroactive_executed fields to automation_rule.
+ */
+function boxtasks_automation_update_9001() {
+  $entity_type_id = 'automation_rule';
+  $definition_manager = \Drupal::entityDefinitionUpdateManager();
+
+  // Add apply_retroactively field.
+  $apply_retroactively = BaseFieldDefinition::create('boolean')
+    ->setLabel(t('Apply Retroactively'))
+    ->setDescription(t('Whether this rule should apply to existing cards when created or enabled.'))
+    ->setDefaultValue(TRUE)
+    ->setDisplayOptions('view', [
+      'label' => 'above',
+      'type' => 'boolean',
+      'weight' => 5,
+    ])
+    ->setDisplayOptions('form', [
+      'type' => 'boolean_checkbox',
+      'weight' => 5,
+    ])
+    ->setDisplayConfigurable('form', TRUE)
+    ->setDisplayConfigurable('view', TRUE);
+
+  $definition_manager->installFieldStorageDefinition(
+    'apply_retroactively',
+    $entity_type_id,
+    'boxtasks_automation',
+    $apply_retroactively
+  );
+
+  // Add retroactive_executed field.
+  $retroactive_executed = BaseFieldDefinition::create('boolean')
+    ->setLabel(t('Retroactive Executed'))
+    ->setDescription(t('Whether the retroactive execution has been completed.'))
+    ->setDefaultValue(FALSE)
+    ->setDisplayConfigurable('view', TRUE);
+
+  $definition_manager->installFieldStorageDefinition(
+    'retroactive_executed',
+    $entity_type_id,
+    'boxtasks_automation',
+    $retroactive_executed
+  );
+
+  return t('Added apply_retroactively and retroactive_executed fields to automation_rule entity.');
+}

@@ -180,6 +180,30 @@ class AutomationRule extends ContentEntityBase {
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
+    // Whether the rule should apply retroactively to existing cards.
+    $fields['apply_retroactively'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Apply Retroactively'))
+      ->setDescription(t('Whether this rule should apply to existing cards when created or enabled.'))
+      ->setDefaultValue(TRUE)
+      ->setDisplayOptions('view', [
+        'label' => 'above',
+        'type' => 'boolean',
+        'weight' => 5,
+      ])
+      ->setDisplayOptions('form', [
+        'type' => 'boolean_checkbox',
+        'weight' => 5,
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
+    // Whether retroactive execution has been completed.
+    $fields['retroactive_executed'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Retroactive Executed'))
+      ->setDescription(t('Whether the retroactive execution has been completed.'))
+      ->setDefaultValue(FALSE)
+      ->setDisplayConfigurable('view', TRUE);
+
     // User who created the rule.
     $fields['author_id'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Author'))
@@ -335,6 +359,46 @@ class AutomationRule extends ContentEntityBase {
    */
   public function isEnabled(): bool {
     return (bool) $this->get('enabled')->value;
+  }
+
+  /**
+   * Checks if this rule should apply retroactively.
+   *
+   * @return bool
+   *   TRUE if should apply retroactively, FALSE otherwise.
+   */
+  public function shouldApplyRetroactively(): bool {
+    return (bool) $this->get('apply_retroactively')->value;
+  }
+
+  /**
+   * Checks if retroactive execution has been completed.
+   *
+   * @return bool
+   *   TRUE if retroactive execution completed, FALSE otherwise.
+   */
+  public function isRetroactiveExecuted(): bool {
+    return (bool) $this->get('retroactive_executed')->value;
+  }
+
+  /**
+   * Marks retroactive execution as completed.
+   *
+   * @return $this
+   */
+  public function markRetroactiveExecuted(): static {
+    $this->set('retroactive_executed', TRUE);
+    return $this;
+  }
+
+  /**
+   * Resets retroactive execution flag (for when rule is re-enabled).
+   *
+   * @return $this
+   */
+  public function resetRetroactiveExecuted(): static {
+    $this->set('retroactive_executed', FALSE);
+    return $this;
   }
 
   /**
