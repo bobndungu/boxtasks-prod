@@ -252,6 +252,19 @@ export async function login(username: string, password: string): Promise<OAuthTo
 // Refresh the access token
 let isRefreshing = false;
 let refreshPromise: Promise<OAuthTokenResponse | null> | null = null;
+// Queue of callbacks waiting for token refresh to complete
+let refreshSubscribers: ((token: string | null) => void)[] = [];
+
+// Subscribe to token refresh completion
+const subscribeToTokenRefresh = (callback: (token: string | null) => void) => {
+  refreshSubscribers.push(callback);
+};
+
+// Notify all subscribers when refresh completes
+const onTokenRefreshed = (token: string | null) => {
+  refreshSubscribers.forEach(callback => callback(token));
+  refreshSubscribers = [];
+};
 
 export async function refreshAccessToken(): Promise<OAuthTokenResponse | null> {
   // Prevent multiple simultaneous refresh attempts
@@ -287,12 +300,17 @@ export async function refreshAccessToken(): Promise<OAuthTokenResponse | null> {
       // Reschedule the next proactive refresh
       scheduleTokenRefresh();
 
+      // Notify all queued requests that refresh completed
+      onTokenRefreshed(access_token);
+
       return response.data;
     } catch {
       // Refresh token is invalid, clear tokens and stop monitoring
       stopSessionMonitoring();
       setAccessToken(null);
       setRefreshToken(null);
+      // Notify subscribers that refresh failed
+      onTokenRefreshed(null);
       return null;
     } finally {
       isRefreshing = false;
@@ -301,6 +319,32 @@ export async function refreshAccessToken(): Promise<OAuthTokenResponse | null> {
   })();
 
   return refreshPromise;
+}
+
+// Wait for token refresh if one is in progress, or trigger refresh if token is expiring
+async function ensureValidToken(): Promise<string | null> {
+  const token = getAccessToken();
+
+  // No token at all
+  if (!token) return null;
+
+  // If refresh is in progress, wait for it
+  if (isRefreshing) {
+    return new Promise((resolve) => {
+      subscribeToTokenRefresh((newToken) => {
+        resolve(newToken);
+      });
+    });
+  }
+
+  // If token is expired or expiring soon, refresh proactively
+  if (isTokenExpired() || isTokenExpiring()) {
+    const result = await refreshAccessToken();
+    return result?.access_token || null;
+  }
+
+  // Token is valid
+  return token;
 }
 
 // Logout - clear all tokens and stop monitoring
@@ -314,7 +358,9 @@ export function logout(): void {
 // Request interceptor to add auth token and CSRF token
 apiClient.interceptors.request.use(
   async (config) => {
-    const token = getAccessToken();
+    // Ensure we have a valid token before making the request
+    // This will wait for any in-progress refresh or trigger one if needed
+    const token = await ensureValidToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -379,7 +425,8 @@ apiClient.interceptors.response.use(
 // Add the same interceptors to customApiClient for non-JSON:API endpoints
 customApiClient.interceptors.request.use(
   async (config) => {
-    const token = getAccessToken();
+    // Ensure we have a valid token before making the request
+    const token = await ensureValidToken();
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
@@ -513,15 +560,17 @@ export async function deleteJsonApi(endpoint: string, id: string): Promise<void>
 
 // CSRF-aware fetch wrapper for use in API files that use raw fetch
 // This adds CSRF token to state-changing requests (POST, PATCH, PUT, DELETE)
+// Also handles token refresh and 401 retry
 export async function fetchWithCsrf(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  _retried = false
 ): Promise<Response> {
   const method = options.method?.toUpperCase() || 'GET';
   const headers = new Headers(options.headers);
 
-  // Add Authorization header if we have a token
-  const token = getAccessToken();
+  // Ensure we have a valid token before making the request
+  const token = await ensureValidToken();
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
@@ -539,6 +588,17 @@ export async function fetchWithCsrf(
     headers,
     cache: 'no-store', // Bypass service worker caching for API requests
   });
+
+  // Handle 401 errors - try to refresh token and retry once
+  if (response.status === 401 && !_retried) {
+    const newTokens = await refreshAccessToken();
+    if (newTokens) {
+      // Retry with new token
+      return fetchWithCsrf(url, options, true);
+    }
+    // Refresh failed - emit session expired event
+    emitSessionEvent('expired', 'Your session has expired. Please log in again.');
+  }
 
   // If we get a 403 with CSRF error, retry with fresh token
   if (response.status === 403) {
