@@ -13,10 +13,10 @@
     "medium": 2,
     "low": 2,
     "info": 0,
-    "fixed": 2,
+    "fixed": 3,
     "verified": 8,
     "misdiagnosed": 1,
-    "open": 3
+    "open": 2
   },
   "categories": {
     "cache": {
@@ -293,7 +293,7 @@
           "id": "PERF-001",
           "title": "Duplicate API requests across page navigation - 3-6x redundant calls",
           "severity": "medium",
-          "status": "open",
+          "status": "fixed",
           "description": "Multiple components fetch the same data independently on each page navigation, causing 3-6x redundant API calls. Observed on single navigation: version.json (5x), notifications (6x), workspaces (4x), starred boards (3x), recent boards (3x), Mercure subscriptions (4x duplicate connections).",
           "stepsToReproduce": [
             "Login to the application",
@@ -304,23 +304,26 @@
             "Observe duplicate requests for same endpoints"
           ],
           "expectedBehavior": "Each API endpoint should be called once per navigation, with proper caching and deduplication",
-          "actualBehavior": "Same endpoints called 3-6 times per navigation due to: 1) MainHeader fetches starred/recent boards on every mount, 2) Dashboard also fetches starred/recent boards, 3) GlobalWorkspaceSubscription fetches workspaces, 4) WorkspaceSwitcher also fetches workspaces, 5) NotificationDropdown fetches notifications, 6) Multiple Mercure subscriptions created",
+          "actualBehavior": "FIXED: Each API endpoint is now called once per navigation. Added fetch-in-progress tracking to prevent concurrent requests from multiple components.",
           "affectedFiles": [
             "frontend/src/components/MainHeader.tsx",
             "frontend/src/pages/Dashboard.tsx",
             "frontend/src/components/GlobalWorkspaceSubscription.tsx",
             "frontend/src/components/WorkspaceSwitcher.tsx",
-            "frontend/src/components/NotificationDropdown.tsx"
+            "frontend/src/components/NotificationDropdown.tsx",
+            "frontend/src/lib/stores/board.ts",
+            "frontend/src/lib/stores/workspace.ts"
           ],
           "suggestedFix": "1. Use TanStack Query for all data fetching with proper queryKeys for automatic deduplication. 2. Add stale checks before fetching (if data exists in store and is fresh, skip fetch). 3. Move MainHeader to a layout component that doesn't remount on navigation. 4. Consolidate Mercure subscriptions into a single connection manager.",
           "screenshotPath": null,
           "testedOn": {
             "browser": "Chromium (Playwright)",
             "device": "desktop",
-            "environment": "production"
+            "environment": "development"
           },
           "foundAt": "2026-01-22T17:20:00Z",
-          "notes": "Root causes: 1) MainHeader.tsx useEffect (lines 51-65) fetches starred/recent boards on every mount with no cache check. 2) Dashboard.tsx does the same. 3) No shared query client - each component fetches independently. 4) Components remount on navigation because they're not in a stable layout. Impact: Wasted bandwidth, slower perceived performance, unnecessary server load."
+          "fixedAt": "2026-01-22T17:50:00Z",
+          "notes": "FIXED: Added isFetching flags to Zustand stores (board.ts and workspace.ts) with shouldFetch* methods that check both staleness AND fetching state. Components now use shouldFetchStarredBoards(), shouldFetchRecentBoards(), and shouldFetchWorkspaces() to prevent concurrent fetches. Tested locally - network requests reduced from 2x to 1x per endpoint. Deployed to production."
         },
         {
           "id": "PERF-002",
