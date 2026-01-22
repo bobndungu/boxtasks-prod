@@ -212,9 +212,10 @@ export default function BoardView() {
   const [savedViews, setSavedViews] = useState<SavedView[]>([]);
 
   // Field visibility settings (using imported type and defaults)
+  // Version 2 key resets all users to new defaults (customFields: false)
   const [fieldVisibility, setFieldVisibility] = useState<CardFieldVisibility>(() => {
     if (!id) return DEFAULT_FIELD_VISIBILITY;
-    const stored = localStorage.getItem(`boxtasks_field_visibility_${id}`);
+    const stored = localStorage.getItem(`boxtasks_field_visibility_v2_${id}`);
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -232,10 +233,10 @@ export default function BoardView() {
   const [showSavedViewsPanel, setShowSavedViewsPanel] = useState(false);
   const [showTemplatesManager, setShowTemplatesManager] = useState(false);
 
-  // Save field visibility to localStorage
+  // Save field visibility to localStorage (v2 key)
   useEffect(() => {
     if (id) {
-      localStorage.setItem(`boxtasks_field_visibility_${id}`, JSON.stringify(fieldVisibility));
+      localStorage.setItem(`boxtasks_field_visibility_v2_${id}`, JSON.stringify(fieldVisibility));
     }
   }, [fieldVisibility, id]);
 
