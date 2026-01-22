@@ -394,6 +394,23 @@ class AutomationExecutor {
         }
         return (string) $approved_by === (string) $required_user;
 
+      case 'list_card_count_exceeds':
+        $max_cards = (int) ($config['max_cards'] ?? 25);
+        // For card_moved trigger, use to_list_id; otherwise use the card's current list.
+        $target_list_id = $trigger_data['to_list_id'] ?? $trigger_data['card']['list_id'] ?? NULL;
+        if (!$target_list_id) {
+          return FALSE;
+        }
+        // Count non-archived cards in the target list.
+        $count = $this->entityTypeManager->getStorage('node')->getQuery()
+          ->condition('type', 'card')
+          ->condition('field_card_list', $target_list_id)
+          ->condition('field_card_archived', 0)
+          ->accessCheck(FALSE)
+          ->count()
+          ->execute();
+        return (int) $count > $max_cards;
+
       default:
         // Unknown condition type, skip (return TRUE to not block).
         return TRUE;
@@ -480,6 +497,10 @@ class AutomationExecutor {
 
         case 'clear_approval':
           $result = $this->executeClearApproval($config, $trigger_data);
+          break;
+
+        case 'archive_last_card_in_list':
+          $result = $this->executeArchiveLastCardInList($config, $trigger_data);
           break;
 
         default:
@@ -1135,6 +1156,64 @@ class AutomationExecutor {
     $card->save();
 
     return ['success' => TRUE, 'cleared' => TRUE];
+  }
+
+  /**
+   * Executes archive last card in list action.
+   *
+   * Archives the card with the highest position in the target list,
+   * excluding the card that triggered the automation.
+   */
+  protected function executeArchiveLastCardInList(array $config, array $trigger_data): array {
+    // Get the target list from trigger data.
+    $target_list_id = $trigger_data['to_list_id'] ?? $trigger_data['card']['list_id'] ?? NULL;
+    if (!$target_list_id) {
+      return ['success' => FALSE, 'error' => 'No target list ID'];
+    }
+
+    // Get the card that triggered the automation (to exclude from archiving).
+    $moved_card_id = $trigger_data['card_id'] ?? NULL;
+
+    // Find the non-archived card with the highest position in this list.
+    $query = $this->entityTypeManager->getStorage('node')->getQuery()
+      ->condition('type', 'card')
+      ->condition('field_card_list', $target_list_id)
+      ->condition('field_card_archived', 0)
+      ->sort('field_card_position', 'DESC')
+      ->range(0, 1)
+      ->accessCheck(FALSE);
+
+    // Exclude the just-moved card so it doesn't get immediately archived.
+    if ($moved_card_id) {
+      $query->condition('nid', $moved_card_id, '<>');
+    }
+
+    $card_ids = $query->execute();
+    if (empty($card_ids)) {
+      return ['success' => FALSE, 'error' => 'No card to archive in the list'];
+    }
+
+    $card_id = reset($card_ids);
+    $card = $this->entityTypeManager->getStorage('node')->load($card_id);
+    if (!$card) {
+      return ['success' => FALSE, 'error' => 'Card not found'];
+    }
+
+    $card_title = $card->getTitle();
+    $card->set('field_card_archived', TRUE);
+    $card->save();
+
+    $this->logger->info('Automation archived card "@title" (ID: @id) from list @list_id due to list card count limit.', [
+      '@title' => $card_title,
+      '@id' => $card_id,
+      '@list_id' => $target_list_id,
+    ]);
+
+    return [
+      'success' => TRUE,
+      'archived_card_id' => $card_id,
+      'archived_card_title' => $card_title,
+    ];
   }
 
 }

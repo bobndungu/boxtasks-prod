@@ -142,6 +142,7 @@ export const CONDITION_TYPES = [
   { id: 'card_is_rejected', label: 'Card Is Rejected', description: 'Card has been rejected', configFields: [] },
   { id: 'card_has_no_approval', label: 'No Approval Status', description: 'Card has not been approved or rejected', configFields: [] },
   { id: 'card_approved_by', label: 'Approved By User', description: 'Card was approved by a specific user', configFields: ['user_id'] },
+  { id: 'list_card_count_exceeds', label: 'List Card Count Exceeds', description: 'Target list has more than N cards', configFields: ['max_cards'] },
 ] as const;
 
 // Available action types
@@ -164,6 +165,7 @@ export const ACTION_TYPES = [
   { id: 'approve_card', label: 'Approve Card', description: 'Automatically approve the card', configFields: ['user_id'] },
   { id: 'reject_card', label: 'Reject Card', description: 'Automatically reject the card', configFields: ['user_id'] },
   { id: 'clear_approval', label: 'Clear Approval', description: 'Clear approval/rejection status', configFields: [] },
+  { id: 'archive_last_card_in_list', label: 'Archive Last Card in List', description: 'Archive the bottom card in the target list', configFields: [] },
 ] as const;
 
 // Email recipient types for send_email action

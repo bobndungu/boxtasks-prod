@@ -912,6 +912,26 @@ function RuleEditor({ rule, lists, labels, members, departments, clients, custom
                     </div>
                   )}
 
+                  {condition.type === 'list_card_count_exceeds' && (
+                    <div className="flex-1 flex gap-2 items-center">
+                      <input
+                        type="number"
+                        min="1"
+                        value={(condition.config.max_cards as number) ?? 25}
+                        onChange={e =>
+                          updateCondition(index, {
+                            config: { ...condition.config, max_cards: parseInt(e.target.value) || 25 },
+                          })
+                        }
+                        placeholder="25"
+                        className="w-20 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm"
+                      />
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        cards (archives bottom card when exceeded)
+                      </span>
+                    </div>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => removeCondition(index)}
