@@ -13,10 +13,10 @@
     "medium": 0,
     "low": 1,
     "info": 0,
-    "fixed": 0,
-    "verified": 6,
+    "fixed": 1,
+    "verified": 7,
     "misdiagnosed": 1,
-    "open": 2
+    "open": 1
   },
   "categories": {
     "cache": {
@@ -184,7 +184,7 @@
           "id": "PERM-001",
           "title": "CRITICAL: BoardDataController bypasses access control - any authenticated user can access any board",
           "severity": "critical",
-          "status": "open",
+          "status": "verified",
           "description": "The BoardDataController (/api/board/{uuid}/data endpoint) only checks if the user is authenticated but does NOT verify if the user has permission to view the board. The code comment says 'Access control is handled at the workspace membership level' but NO workspace membership check is actually implemented. This means any authenticated user can access complete board data including all cards, lists, members, and custom fields for ANY board in the system.",
           "stepsToReproduce": [
             "Login as any authenticated user (e.g., 'User' account)",
@@ -194,7 +194,7 @@
             "The custom endpoint bypasses the access control that JSON:API enforces"
           ],
           "expectedBehavior": "BoardDataController should verify the user has workspace membership or board membership before returning board data. Users without proper permissions should receive 403 Forbidden.",
-          "actualBehavior": "BoardDataController returns complete board data to ANY authenticated user, regardless of workspace/board membership. The only check is authentication (line 129-131), with no permission verification despite the comment claiming otherwise.",
+          "actualBehavior": "FIXED: BoardDataController now returns 403 Access Denied for unauthorized users. Authorized workspace/board members can still access board data normally.",
           "affectedFiles": [
             "web/modules/custom/boxtasks_board/src/Controller/BoardDataController.php"
           ],
@@ -206,7 +206,9 @@
             "environment": "production"
           },
           "foundAt": "2026-01-22T16:10:00Z",
-          "notes": "SECURITY VULNERABILITY: This is a data exposure vulnerability. Verified on https://tasks.boxraft.com - User 'User' who is NOT a workspace member can view the Editorial Tasks board via the custom API endpoint while JSON:API correctly returns 403. The GlobalViewsController properly uses filterViewableBoards() for access control, but BoardDataController does not."
+          "fixedAt": "2026-01-22T16:40:00Z",
+          "verifiedAt": "2026-01-22T16:55:00Z",
+          "notes": "FIXED AND VERIFIED ON PRODUCTION: Injected PermissionChecker service into BoardDataController. Added canViewBoard() check after loading the board entity. Test results: (1) testeditor (not Video Team member) accessing Video Tasks board -> 403 Forbidden ✓ (2) EdwinK (Video Team member) accessing Video Tasks board -> 200 OK with board data ✓. Commit: security(PERM-001): add permission check to BoardDataController"
         }
       ]
     },
