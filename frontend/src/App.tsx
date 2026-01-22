@@ -100,8 +100,11 @@ function RouteErrorBoundary() {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 1, // 1 minute - balance between freshness and performance
+      gcTime: 1000 * 60 * 5, // 5 minutes garbage collection (previously cacheTime)
       retry: 1,
+      refetchOnWindowFocus: true, // Refresh data when user returns to tab
+      refetchOnReconnect: true, // Refresh when network reconnects
     },
   },
 });
