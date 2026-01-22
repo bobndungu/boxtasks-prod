@@ -36,8 +36,8 @@ import {
   type MindMap,
   type MindMapNode,
 } from '../lib/api/mindmaps';
-import { fetchBoard, type Board } from '../lib/api/boards';
-import { fetchListsByBoard, type BoardList } from '../lib/api/lists';
+import { fetchBoard, fetchBoardData, type Board } from '../lib/api/boards';
+import { type BoardList } from '../lib/api/lists';
 import { toast } from '../lib/stores/toast';
 
 // Color palette for nodes
@@ -309,15 +309,29 @@ export default function MindMapView() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [mindMapData, boardData, listsData] = await Promise.all([
+        const [mindMapData, boardData, consolidatedData] = await Promise.all([
           fetchMindMap(mindMapId),
           fetchBoard(boardId),
-          fetchListsByBoard(boardId),
+          fetchBoardData(boardId),
         ]);
 
         setMindMap(mindMapData);
         setBoard(boardData);
-        setLists(listsData);
+        setLists(consolidatedData.lists
+          .filter(l => !l.archived)
+          .sort((a, b) => a.position - b.position)
+          .map(l => ({
+            id: l.id,
+            title: l.title,
+            boardId: l.boardId,
+            position: l.position,
+            archived: l.archived,
+            wipLimit: 0,
+            color: null,
+            createdAt: '',
+            updatedAt: '',
+          }))
+        );
 
         // Convert to React Flow format
         setNodes(convertToFlowNodes(mindMapData.nodes));
