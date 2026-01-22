@@ -4,8 +4,14 @@ status: true
 dependencies:
   config:
     - filter.format.basic_html
+    - node.type.board
+    - node.type.card
+    - node.type.card_comment
     - node.type.card_custom_field_value
+    - node.type.checklist
+    - node.type.checklist_item
     - node.type.custom_field_definition
+    - node.type.workspace
   module:
     - comment
     - file
@@ -25,12 +31,26 @@ permissions:
   - 'access content'
   - 'access shortcuts'
   - 'access user profiles'
+  - 'create board content'
+  - 'create card content'
+  - 'create card_comment content'
   - 'create card_custom_field_value content'
+  - 'create checklist content'
+  - 'create checklist_item content'
   - 'create custom_field_definition content'
+  - 'create workspace content'
+  - 'delete any card content'
+  - 'delete any card_comment content'
   - 'delete any card_custom_field_value content'
+  - 'delete any checklist content'
+  - 'delete any checklist_item content'
   - 'delete any custom_field_definition content'
   - 'delete own files'
+  - 'edit any card content'
+  - 'edit any card_comment content'
   - 'edit any card_custom_field_value content'
+  - 'edit any checklist content'
+  - 'edit any checklist_item content'
   - 'edit any custom_field_definition content'
   - 'post comments'
   - 'search content'
