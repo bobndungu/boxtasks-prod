@@ -961,32 +961,37 @@ export default function BoardView() {
 
   // Custom collision detection that prioritizes list droppables for cross-list card moves
   const customCollisionDetection: CollisionDetection = useCallback((args) => {
-    // Use closestCorners for precise card-to-card positioning
-    const closestCollisions = closestCorners(args);
-
-    // Check if closestCorners found a card (not a list or list-droppable)
-    const cardCollision = closestCollisions.find(collision => {
-      const id = collision.id.toString();
-      return !id.startsWith('list-droppable-') && !lists.some(l => l.id === id);
-    });
-
-    // If we found a card collision, prioritize it (enables same-list reordering)
-    if (cardCollision) {
-      return [cardCollision];
-    }
-
-    // Otherwise, check pointer collisions for list droppables (empty list areas, cross-list moves)
+    // Step 1: Use pointerWithin to determine which list area the pointer is in
     const pointerCollisions = pointerWithin(args);
-    const listDroppableCollisions = pointerCollisions.filter(
+    const listDroppableCollision = pointerCollisions.find(
       collision => collision.id.toString().startsWith('list-droppable-')
     );
 
-    if (listDroppableCollisions.length > 0) {
-      return listDroppableCollisions;
+    // Step 2: Use closestCorners for precise card positioning
+    const closestCollisions = closestCorners(args);
+
+    if (listDroppableCollision) {
+      // Pointer is inside a specific list area - constrain to cards in that list only
+      const listId = listDroppableCollision.id.toString().replace('list-droppable-', '');
+      const cardsInList = cardsByList.get(listId) || [];
+      const cardIdsInList = new Set(cardsInList.map(c => c.id));
+
+      // Find the closest card that belongs to THIS list
+      const cardInList = closestCollisions.find(collision =>
+        cardIdsInList.has(collision.id.toString())
+      );
+
+      if (cardInList) {
+        return [cardInList];
+      }
+
+      // No card found in this list (empty area or gap) - return the list droppable
+      return [listDroppableCollision];
     }
 
+    // Pointer is not in any list area - use closestCorners for edge cases
     return closestCollisions;
-  }, [lists]);
+  }, [lists, cardsByList]);
 
   useEffect(() => {
     if (id) {
@@ -2142,12 +2147,13 @@ export default function BoardView() {
         if (!cardToMove) return;
 
         const pinnedCount = destCards.filter(c => c.pinned).length;
-        const newSourceCards = sourceCards.filter(c => c.id !== activeIdStr);
+        const newSourceCards = sourceCards.filter(c => c.id !== activeIdStr)
+          .map((c, i) => ({ ...c, position: i }));
         const newDestCards = [
           ...destCards.slice(0, pinnedCount),
           { ...cardToMove, listId: targetListId },
           ...destCards.slice(pinnedCount)
-        ];
+        ].map((c, i) => ({ ...c, position: i }));
 
         // Update local state
         setCardsByList((prev) => {
@@ -2203,9 +2209,9 @@ export default function BoardView() {
         const [movedCard] = currentCards.splice(cardIndex, 1);
         // Insert after pinned cards (at position pinnedCount)
         currentCards.splice(pinnedCount, 0, movedCard);
-        newCardOrder = currentCards;
+        newCardOrder = currentCards.map((c, i) => ({ ...c, position: i }));
       } else {
-        newCardOrder = currentCards;
+        newCardOrder = currentCards.map((c, i) => ({ ...c, position: i }));
       }
 
       // Update UI state with the computed order
@@ -2252,7 +2258,12 @@ export default function BoardView() {
       const newIndex = cards.findIndex((c) => c.id === overIdStr);
 
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        const newCards = arrayMove(cards, oldIndex, newIndex);
+        // Reorder and update position field on each card to prevent flickering
+        // when Mercure updates arrive and re-sort by position
+        const newCards = arrayMove(cards, oldIndex, newIndex).map((card, index) => ({
+          ...card,
+          position: index,
+        }));
         const newCardsMap = new Map(cardsByList);
         newCardsMap.set(targetListId!, newCards);
         setCardsByList(newCardsMap);
