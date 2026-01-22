@@ -1,7 +1,7 @@
 {
   "auditInfo": {
     "startedAt": "2026-01-22T14:21:00Z",
-    "lastUpdated": "2026-01-22T17:40:00Z",
+    "lastUpdated": "2026-01-22T17:55:00Z",
     "auditor": "Claude Code Audit Agent",
     "version": "1.0.0",
     "status": "complete"
@@ -13,10 +13,10 @@
     "medium": 2,
     "low": 2,
     "info": 0,
-    "fixed": 3,
+    "fixed": 4,
     "verified": 8,
     "misdiagnosed": 1,
-    "open": 2
+    "open": 1
   },
   "categories": {
     "cache": {
@@ -329,7 +329,7 @@
           "id": "PERF-002",
           "title": "Mercure reconnection loops causing multiple connection attempts",
           "severity": "low",
-          "status": "open",
+          "status": "fixed",
           "description": "Console shows multiple 'Mercure: Reconnecting in 1000ms (attempt 1)' messages simultaneously, indicating multiple independent Mercure connections that each try to reconnect when the connection drops.",
           "stepsToReproduce": [
             "Login to the application",
@@ -338,21 +338,30 @@
             "Navigate between pages and observe new connections being created"
           ],
           "expectedBehavior": "Single Mercure connection should be managed centrally, with graceful reconnection handling",
-          "actualBehavior": "Multiple components create their own Mercure subscriptions: GlobalWorkspaceSubscription (for workspaces + permissions), NotificationDropdown (for notifications), BoardView (for board updates). Each manages its own reconnection independently.",
+          "actualBehavior": "FIXED: Single MercureManager singleton now manages one EventSource connection. Components subscribe through the manager which multiplexes topics. Console shows clean connect/disconnect messages: '[MercureManager] Connected with topics: [...]' and '[MercureManager] Disconnected'.",
           "affectedFiles": [
-            "frontend/src/lib/hooks/useMercure.ts",
+            "frontend/src/lib/mercure/MercureManager.ts",
+            "frontend/src/lib/mercure/index.ts",
             "frontend/src/components/GlobalWorkspaceSubscription.tsx",
-            "frontend/src/components/NotificationDropdown.tsx"
+            "frontend/src/components/NotificationDropdown.tsx",
+            "frontend/src/components/WorkspaceSwitcher.tsx",
+            "frontend/src/pages/BoardView.tsx",
+            "frontend/src/pages/BoardReports.tsx",
+            "frontend/src/pages/WorkspaceReports.tsx",
+            "frontend/src/components/ChatPanel.tsx",
+            "frontend/src/components/MentionToastContainer.tsx",
+            "frontend/src/components/ConnectionStatus.tsx"
           ],
           "suggestedFix": "Create a central MercureManager that handles a single EventSource connection and multiplexes topic subscriptions. Components should subscribe to topics through this manager rather than creating their own connections.",
           "screenshotPath": null,
           "testedOn": {
             "browser": "Chromium (Playwright)",
             "device": "desktop",
-            "environment": "production"
+            "environment": "development"
           },
           "foundAt": "2026-01-22T17:22:00Z",
-          "notes": "Saw 5 simultaneous 'Reconnecting in 1000ms (attempt 1)' messages in console, indicating at least 5 separate EventSource connections."
+          "fixedAt": "2026-01-22T17:55:00Z",
+          "notes": "FIXED: Created MercureManager singleton (frontend/src/lib/mercure/MercureManager.ts) that manages a single EventSource connection. All topic subscriptions are multiplexed through this manager. Created new hook wrappers (frontend/src/lib/mercure/index.ts) that use the manager. Updated 9 files to import from the new centralized module. Tested locally - console shows single connection with proper topic management. Deployed to production."
         }
       ]
     },
