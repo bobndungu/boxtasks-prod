@@ -347,7 +347,7 @@ export function SortableList({
         <div
           ref={virtualContainerRef}
           className="flex-1 overflow-y-auto px-2 pb-2"
-          style={useVirtual ? { contain: 'strict' } : undefined}
+          style={useVirtual ? { contain: 'content' } : undefined}
         >
           {/* Add Card Form - at the top of the list */}
           {addingCardToList === list.id ? (
