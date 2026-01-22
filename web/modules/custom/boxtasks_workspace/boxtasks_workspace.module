@@ -198,3 +198,195 @@ function _boxtasks_workspace_is_board_member(NodeInterface $board, int $user_id)
 
   return FALSE;
 }
+
+/**
+ * Implements hook_node_access_records().
+ *
+ * Define access records for workspace and board nodes.
+ * This is used by entity queries with accessCheck(TRUE).
+ */
+function boxtasks_workspace_node_access_records(NodeInterface $node) {
+  $bundle = $node->bundle();
+
+  // Only handle workspace and board nodes.
+  if (!in_array($bundle, ['workspace', 'board'])) {
+    return [];
+  }
+
+  $grants = [];
+
+  // Always grant access to administrators (gid 0).
+  $grants[] = [
+    'realm' => 'boxtasks_workspace_admin',
+    'gid' => 0,
+    'grant_view' => 1,
+    'grant_update' => 1,
+    'grant_delete' => 1,
+  ];
+
+  if ($bundle === 'workspace') {
+    // For workspaces, create a grant using the workspace node ID.
+    // Users with a member_role for this workspace will get this grant.
+    $grants[] = [
+      'realm' => 'boxtasks_workspace_member',
+      'gid' => (int) $node->id(),
+      'grant_view' => 1,
+      'grant_update' => 0,
+      'grant_delete' => 0,
+    ];
+  }
+  elseif ($bundle === 'board') {
+    // For boards, get the workspace and create a grant based on workspace ID.
+    if ($node->hasField('field_board_workspace') && !$node->get('field_board_workspace')->isEmpty()) {
+      $workspace_ref = $node->get('field_board_workspace');
+      $workspace_id = $workspace_ref->target_id;
+
+      if ($workspace_id) {
+        // Check board visibility.
+        $board_visibility = 'workspace';
+        if ($node->hasField('field_board_visibility') && !$node->get('field_board_visibility')->isEmpty()) {
+          $board_visibility = $node->get('field_board_visibility')->value;
+        }
+
+        if ($board_visibility !== 'private') {
+          // Workspace-visible board: grant access to workspace members.
+          $grants[] = [
+            'realm' => 'boxtasks_workspace_member',
+            'gid' => (int) $workspace_id,
+            'grant_view' => 1,
+            'grant_update' => 0,
+            'grant_delete' => 0,
+          ];
+        }
+        else {
+          // Private board: grant access to board members and owner.
+          // Use a board-specific realm.
+          $grants[] = [
+            'realm' => 'boxtasks_board_member',
+            'gid' => (int) $node->id(),
+            'grant_view' => 1,
+            'grant_update' => 0,
+            'grant_delete' => 0,
+          ];
+
+          // Also grant to workspace members who need basic access.
+          $grants[] = [
+            'realm' => 'boxtasks_workspace_member',
+            'gid' => (int) $workspace_id,
+            'grant_view' => 0,
+            'grant_update' => 0,
+            'grant_delete' => 0,
+          ];
+        }
+      }
+    }
+  }
+
+  return $grants;
+}
+
+/**
+ * Implements hook_node_grants().
+ *
+ * Grant users access based on their workspace memberships.
+ */
+function boxtasks_workspace_node_grants(AccountInterface $account, $op) {
+  $grants = [];
+
+  // Super admin (uid 1) gets admin grant.
+  if ((int) $account->id() === 1) {
+    $grants['boxtasks_workspace_admin'] = [0];
+    return $grants;
+  }
+
+  // Users with 'administer nodes' get admin grant.
+  if ($account->hasPermission('administer nodes')) {
+    $grants['boxtasks_workspace_admin'] = [0];
+    return $grants;
+  }
+
+  // Get workspace memberships for this user via member_role.
+  $workspace_ids = _boxtasks_workspace_get_user_workspace_ids($account->id());
+
+  if (!empty($workspace_ids)) {
+    $grants['boxtasks_workspace_member'] = $workspace_ids;
+  }
+
+  // Get board memberships for private boards.
+  $board_ids = _boxtasks_workspace_get_user_board_ids($account->id());
+  if (!empty($board_ids)) {
+    $grants['boxtasks_board_member'] = $board_ids;
+  }
+
+  return $grants;
+}
+
+/**
+ * Get all workspace IDs that a user is a member of.
+ *
+ * @param int $user_id
+ *   The user ID.
+ *
+ * @return array
+ *   Array of workspace node IDs.
+ */
+function _boxtasks_workspace_get_user_workspace_ids(int $user_id): array {
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+
+  $member_roles = $storage->getQuery()
+    ->condition('type', 'member_role')
+    ->condition('field_member_role_user', $user_id)
+    ->accessCheck(FALSE)
+    ->execute();
+
+  if (empty($member_roles)) {
+    return [];
+  }
+
+  $workspace_ids = [];
+  $nodes = $storage->loadMultiple($member_roles);
+
+  foreach ($nodes as $member_role) {
+    if ($member_role->hasField('field_member_role_workspace') && !$member_role->get('field_member_role_workspace')->isEmpty()) {
+      $workspace_id = $member_role->get('field_member_role_workspace')->target_id;
+      if ($workspace_id) {
+        $workspace_ids[] = (int) $workspace_id;
+      }
+    }
+  }
+
+  return array_unique($workspace_ids);
+}
+
+/**
+ * Get all private board IDs that a user is a member of (or owner of).
+ *
+ * @param int $user_id
+ *   The user ID.
+ *
+ * @return array
+ *   Array of board node IDs.
+ */
+function _boxtasks_workspace_get_user_board_ids(int $user_id): array {
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+
+  // Get boards where user is in field_board_members.
+  $member_boards = $storage->getQuery()
+    ->condition('type', 'board')
+    ->condition('field_board_visibility', 'private')
+    ->condition('field_board_members', $user_id)
+    ->accessCheck(FALSE)
+    ->execute();
+
+  // Get boards where user is the owner.
+  $owner_boards = $storage->getQuery()
+    ->condition('type', 'board')
+    ->condition('field_board_visibility', 'private')
+    ->condition('uid', $user_id)
+    ->accessCheck(FALSE)
+    ->execute();
+
+  $board_ids = array_merge(array_values($member_boards), array_values($owner_boards));
+
+  return array_map('intval', array_unique($board_ids));
+}
