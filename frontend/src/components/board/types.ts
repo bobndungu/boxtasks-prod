@@ -20,7 +20,7 @@ export const DEFAULT_FIELD_VISIBILITY: CardFieldVisibility = {
   startDate: true,
   dueDate: true,
   members: true,
-  customFields: true,
+  customFields: false,
   expanded: false,
   checklists: true,
   comments: true,
