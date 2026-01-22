@@ -961,30 +961,32 @@ export default function BoardView() {
 
   // Custom collision detection that prioritizes list droppables for cross-list card moves
   const customCollisionDetection: CollisionDetection = useCallback((args) => {
-    // First, check if pointer is within any droppable
-    const pointerCollisions = pointerWithin(args);
+    // Use closestCorners for precise card-to-card positioning
+    const closestCollisions = closestCorners(args);
 
-    // Look for list droppable collisions (these have IDs starting with "list-droppable-")
+    // Check if closestCorners found a card (not a list or list-droppable)
+    const cardCollision = closestCollisions.find(collision => {
+      const id = collision.id.toString();
+      return !id.startsWith('list-droppable-') && !lists.some(l => l.id === id);
+    });
+
+    // If we found a card collision, prioritize it (enables same-list reordering)
+    if (cardCollision) {
+      return [cardCollision];
+    }
+
+    // Otherwise, check pointer collisions for list droppables (empty list areas, cross-list moves)
+    const pointerCollisions = pointerWithin(args);
     const listDroppableCollisions = pointerCollisions.filter(
       collision => collision.id.toString().startsWith('list-droppable-')
     );
 
-    // If we're over a list droppable, prioritize it
     if (listDroppableCollisions.length > 0) {
       return listDroppableCollisions;
     }
 
-    // Otherwise, fall back to closest corners for card-to-card positioning
-    const closestCollisions = closestCorners(args);
-
-    // If we have pointer collisions but no list droppables, still prefer pointer collisions
-    // This helps with dropping on cards within a list
-    if (pointerCollisions.length > 0) {
-      return pointerCollisions;
-    }
-
     return closestCollisions;
-  }, []);
+  }, [lists]);
 
   useEffect(() => {
     if (id) {
