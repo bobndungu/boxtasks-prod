@@ -1,7 +1,7 @@
 {
   "auditInfo": {
     "startedAt": "2026-01-22T14:21:00Z",
-    "lastUpdated": "2026-01-22T15:02:00Z",
+    "lastUpdated": "2026-01-22T15:15:00Z",
     "auditor": "Claude Code Audit Agent",
     "version": "1.0.0",
     "status": "in_progress"
@@ -9,11 +9,11 @@
   "summary": {
     "totalIssues": 7,
     "critical": 0,
-    "high": 3,
+    "high": 1,
     "medium": 2,
     "low": 0,
     "info": 0,
-    "fixed": 2,
+    "fixed": 4,
     "misdiagnosed": 1
   },
   "categories": {
@@ -182,7 +182,7 @@
           "id": "AUTH-001",
           "title": "Token refresh race condition causes 401 errors on page navigation",
           "severity": "high",
-          "status": "confirmed",
+          "status": "fixed",
           "description": "When navigating to a board, multiple API requests fail with 401 before token refresh completes. The token refresh mechanism is reactive rather than proactive, causing a burst of failed requests.",
           "stepsToReproduce": [
             "Login to the application",
@@ -203,7 +203,8 @@
             "environment": "dev"
           },
           "foundAt": "2026-01-22T14:30:00Z",
-          "notes": "Observed 7+ 401 errors before token refresh succeeded"
+          "fixedAt": "2026-01-22T15:10:00Z",
+          "notes": "FIXED: Added ensureValidToken() function that checks token validity before requests. Implemented request queuing during token refresh using subscriber pattern. Added 401 retry logic to fetchWithCsrf(). All requests now wait for valid token before being sent."
         }
       ]
     },
@@ -225,7 +226,7 @@
           "id": "API-001",
           "title": "Field groups endpoint returns 500 error",
           "severity": "high",
-          "status": "confirmed",
+          "status": "fixed",
           "description": "The /api/boards/{boardId}/field-groups endpoint returns a 500 Internal Server Error",
           "stepsToReproduce": [
             "Navigate to any board",
@@ -234,7 +235,7 @@
           "expectedBehavior": "Endpoint should return field group configuration for the board",
           "actualBehavior": "Returns 500 Internal Server Error",
           "affectedFiles": [
-            "web/modules/custom/boxtasks_api/src/Controller/*.php"
+            "web/modules/custom/boxtasks_api/src/Controller/FieldGroupsController.php"
           ],
           "suggestedFix": "Debug the Drupal endpoint to identify the server-side error. Check Drupal logs at /admin/reports/dblog",
           "screenshotPath": null,
@@ -244,7 +245,8 @@
             "environment": "dev"
           },
           "foundAt": "2026-01-22T14:30:00Z",
-          "notes": "Endpoint: GET /api/boards/6d3dc48a-9177-4452-ae0f-539691797778/field-groups"
+          "fixedAt": "2026-01-22T15:15:00Z",
+          "notes": "FIXED: Root cause was 'custom_field_group' content type and 'field_cfg_board' field don't exist yet. Modified FieldGroupsController::getGroups() to check if the content type and fields exist before querying, returning an empty array if not configured. Endpoint now returns 200 with [] instead of 500 error."
         }
       ]
     },
