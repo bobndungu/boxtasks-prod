@@ -3,7 +3,7 @@ import { useAuthStore } from '../lib/stores/auth';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { fetchWorkspaces } from '../lib/api/workspaces';
 import { invalidatePermissionCache } from '../lib/api/roles';
-import { useUserWorkspaceUpdates, useUserPermissionUpdates } from '../lib/hooks/useMercure';
+import { useUserWorkspaceUpdates, useUserPermissionUpdates } from '../lib/mercure';
 
 /**
  * Global component that handles workspace and permission subscriptions.

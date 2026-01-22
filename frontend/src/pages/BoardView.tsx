@@ -64,7 +64,7 @@ import { createChecklist, createChecklistItem } from '../lib/api/checklists';
 import { createNotification } from '../lib/api/notifications';
 import { type WorkspaceMember } from '../lib/api/workspaces';
 import { useKeyboardShortcuts } from '../lib/hooks/useKeyboardShortcuts';
-import { useBoardUpdates, type ActivityCreatedData } from '../lib/hooks/useMercure';
+import { useBoardUpdates, type ActivityCreatedData } from '../lib/mercure';
 import { usePresence } from '../lib/hooks/usePresence';
 import { useOptimistic } from '../lib/hooks/useOptimistic';
 import { usePermissions } from '../lib/hooks/usePermissions';

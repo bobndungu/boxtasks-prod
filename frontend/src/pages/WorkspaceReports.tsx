@@ -16,7 +16,7 @@ import {
   Ban,
 } from 'lucide-react';
 import { fetchDashboardData, type DashboardData } from '../lib/api/dashboard';
-import { useMercure } from '../lib/hooks/useMercure';
+import { useMercure } from '../lib/mercure';
 import { formatDate, formatTime } from '../lib/utils/date';
 
 export default function WorkspaceReports() {

@@ -1,5 +1,5 @@
 import { Wifi, WifiOff, Loader2 } from 'lucide-react';
-import type { MercureConnectionState } from '../lib/hooks/useMercure';
+import type { MercureConnectionState } from '../lib/mercure';
 
 interface ConnectionStatusProps {
   state: MercureConnectionState;

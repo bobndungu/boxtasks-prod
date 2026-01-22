@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, AtSign, ExternalLink } from 'lucide-react';
 import { useMentionToastStore, type MentionToast } from '../lib/stores/mentionToasts';
 import { useAuthStore } from '../lib/stores/auth';
-import { useUserNotifications } from '../lib/hooks/useMercure';
+import { useUserNotifications } from '../lib/mercure';
 import {
   fetchNotifications,
   markNotificationRead,

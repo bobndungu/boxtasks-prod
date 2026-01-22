@@ -28,7 +28,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
-import { useUserNotifications } from '../lib/hooks/useMercure';
+import { useUserNotifications } from '../lib/mercure';
 import {
   fetchNotifications,
   fetchUnreadCount,

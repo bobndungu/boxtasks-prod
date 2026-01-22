@@ -9,7 +9,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useAuthStore } from '../lib/stores/auth';
-import { useChatSubscription, type ChatMessageData, type TypingData } from '../lib/hooks/useMercure';
+import { useChatSubscription, type ChatMessageData, type TypingData } from '../lib/mercure';
 import {
   fetchMessages,
   sendMessage,

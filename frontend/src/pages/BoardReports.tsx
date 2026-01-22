@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { formatDate, formatTime } from '../lib/utils/date';
 import { fetchBoardReportData, type BoardReportData, type BoardListStats, type BoardMemberStats, type ActivityItem } from '../lib/api/dashboard';
-import { useMercure } from '../lib/hooks/useMercure';
+import { useMercure } from '../lib/mercure';
 import MainHeader from '../components/MainHeader';
 
 export default function BoardReports() {

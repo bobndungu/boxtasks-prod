@@ -4,7 +4,7 @@ import { ChevronDown, Check, Plus, Settings, Loader2 } from 'lucide-react';
 import { useWorkspaceStore } from '../lib/stores/workspace';
 import { fetchWorkspaces, type Workspace } from '../lib/api/workspaces';
 import { useAuthStore } from '../lib/stores/auth';
-import { useUserWorkspaceUpdates } from '../lib/hooks/useMercure';
+import { useUserWorkspaceUpdates } from '../lib/mercure';
 
 export default function WorkspaceSwitcher() {
   const navigate = useNavigate();
