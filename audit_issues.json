@@ -1,21 +1,22 @@
 {
   "auditInfo": {
     "startedAt": "2026-01-22T14:21:00Z",
-    "lastUpdated": "2026-01-22T15:50:00Z",
+    "lastUpdated": "2026-01-22T16:15:00Z",
     "auditor": "Claude Code Audit Agent",
     "version": "1.0.0",
-    "status": "completed"
+    "status": "in_progress"
   },
   "summary": {
-    "totalIssues": 7,
-    "critical": 0,
+    "totalIssues": 9,
+    "critical": 1,
     "high": 0,
     "medium": 0,
-    "low": 0,
+    "low": 1,
     "info": 0,
     "fixed": 0,
     "verified": 6,
-    "misdiagnosed": 1
+    "misdiagnosed": 1,
+    "open": 2
   },
   "categories": {
     "cache": {
@@ -178,7 +179,36 @@
     "permissions": {
       "name": "Permission & Access Control Issues",
       "description": "Issues with role-based access, workspace/board permissions",
-      "issues": []
+      "issues": [
+        {
+          "id": "PERM-001",
+          "title": "CRITICAL: BoardDataController bypasses access control - any authenticated user can access any board",
+          "severity": "critical",
+          "status": "open",
+          "description": "The BoardDataController (/api/board/{uuid}/data endpoint) only checks if the user is authenticated but does NOT verify if the user has permission to view the board. The code comment says 'Access control is handled at the workspace membership level' but NO workspace membership check is actually implemented. This means any authenticated user can access complete board data including all cards, lists, members, and custom fields for ANY board in the system.",
+          "stepsToReproduce": [
+            "Login as any authenticated user (e.g., 'User' account)",
+            "Navigate to /board/{any-board-uuid} - the board loads successfully",
+            "Check network requests: /api/board/{uuid}/data returns 200",
+            "Compare with JSON:API: /jsonapi/node/board/{uuid} returns 403 'User is not a member of the board workspace'",
+            "The custom endpoint bypasses the access control that JSON:API enforces"
+          ],
+          "expectedBehavior": "BoardDataController should verify the user has workspace membership or board membership before returning board data. Users without proper permissions should receive 403 Forbidden.",
+          "actualBehavior": "BoardDataController returns complete board data to ANY authenticated user, regardless of workspace/board membership. The only check is authentication (line 129-131), with no permission verification despite the comment claiming otherwise.",
+          "affectedFiles": [
+            "web/modules/custom/boxtasks_board/src/Controller/BoardDataController.php"
+          ],
+          "suggestedFix": "Add permission check in getBoardData() method after loading the board:\n1. Inject the PermissionChecker service\n2. After loading the board (line 147), add: if (!$this->permissionChecker->canViewBoard($board, $this->authenticatedUser->id())) { throw new AccessDeniedHttpException('Access denied to this board.'); }\n3. Similar checks should be added to any other methods that return board data",
+          "screenshotPath": null,
+          "testedOn": {
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "production"
+          },
+          "foundAt": "2026-01-22T16:10:00Z",
+          "notes": "SECURITY VULNERABILITY: This is a data exposure vulnerability. Verified on https://tasks.boxraft.com - User 'User' who is NOT a workspace member can view the Editorial Tasks board via the custom API endpoint while JSON:API correctly returns 403. The GlobalViewsController properly uses filterViewableBoards() for access control, but BoardDataController does not."
+        }
+      ]
     },
     "auth": {
       "name": "Authentication Issues",
@@ -218,7 +248,35 @@
     "ui": {
       "name": "UI/UX Issues",
       "description": "Visual bugs, responsiveness, accessibility issues",
-      "issues": []
+      "issues": [
+        {
+          "id": "UI-001",
+          "title": "HTML entities not decoded in card titles - shows &#039; instead of apostrophe",
+          "severity": "low",
+          "status": "open",
+          "description": "Card titles containing apostrophes display the HTML entity &#039; instead of the decoded character. This affects readability of card titles throughout the application.",
+          "stepsToReproduce": [
+            "Navigate to any board with cards containing apostrophes in titles",
+            "Observe card titles like 'Nyoro&#039;s' instead of 'Nyoro's'",
+            "Also visible in 'Taalam&#039;s', 'Ng&#039;ang&#039;a', 'Girls&#039; Education'"
+          ],
+          "expectedBehavior": "Card titles should display properly decoded text with apostrophes showing as '",
+          "actualBehavior": "HTML entities like &#039; are displayed literally instead of being decoded to apostrophes",
+          "affectedFiles": [
+            "frontend/src/components/board/CardItem.tsx",
+            "frontend/src/pages/EverythingView.tsx"
+          ],
+          "suggestedFix": "Use a HTML entity decoder when rendering card titles, or ensure the API returns properly decoded text. React's dangerouslySetInnerHTML could be used but a safer approach is to decode entities before rendering using a library like 'he' (html-entities) or built-in DOMParser.",
+          "screenshotPath": ".playwright-mcp/audit-ui-html-entities.png",
+          "testedOn": {
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "production"
+          },
+          "foundAt": "2026-01-22T16:20:00Z",
+          "notes": "Verified on production. Multiple card titles affected. Mobile responsiveness is working correctly - board columns scroll horizontally on small screens."
+        }
+      ]
     },
     "performance": {
       "name": "Performance Issues",
