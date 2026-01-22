@@ -71,6 +71,9 @@ ssh "$PROD_USER@$PROD_HOST" << 'ENDSSH'
     echo "  -> Importing configuration..."
     ./vendor/drush/drush/drush cim -y || true
 
+    echo "  -> Rebuilding node access permissions..."
+    ./vendor/drush/drush/drush php-eval "node_access_rebuild();"
+
     echo "  -> Building frontend..."
     cd frontend
     npm ci --production=false

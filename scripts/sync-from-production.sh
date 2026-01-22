@@ -32,12 +32,16 @@ fi
 echo "Step 2: Pulling latest changes from origin/main..."
 git pull origin main
 
-# Step 4: Clear Drupal cache
+# Step 4: Clear Drupal cache and rebuild node access
 echo "Step 3: Clearing Drupal cache..."
 if command -v ddev &> /dev/null; then
     ddev drush cr
+    echo "Step 3b: Importing config changes..."
+    ddev drush cim -y || true
+    echo "Step 3c: Rebuilding node access permissions..."
+    ddev drush php-eval "node_access_rebuild();"
 else
-    echo "DDEV not found. Skipping Drupal cache clear."
+    echo "DDEV not found. Skipping Drupal operations."
 fi
 
 # Step 5: Rebuild frontend
