@@ -415,6 +415,53 @@ export function useBoards(workspaceId: string) {
 }
 ```
 
+### Versioned Storage Pattern (CRITICAL)
+
+**IMPORTANT: Always use `versionedStorage` instead of direct `localStorage` for app settings.**
+
+When storing user preferences or settings in localStorage, the settings can become stale across deployments. The `versionedStorage` utility automatically clears stale settings when a new version is deployed.
+
+**Location:** `frontend/src/lib/utils/versionedStorage.ts`
+
+**How it works:**
+1. On app startup, `initVersionedStorage()` is called in `main.tsx`
+2. It compares the current build version (from `version.json`) with the stored version
+3. If different, all `boxtasks_*` localStorage keys are cleared (except persistent ones like auth tokens)
+4. Users get fresh defaults automatically after each deployment
+
+**Usage:**
+```typescript
+import { versionedStorage } from '../lib/utils/versionedStorage';
+
+// Get a value (with default)
+const settings = versionedStorage.get<MySettings>('my_settings', defaultSettings);
+
+// Set a value
+versionedStorage.set('my_settings', newSettings);
+
+// Remove a value
+versionedStorage.remove('my_settings');
+
+// Check if exists
+if (versionedStorage.has('my_settings')) { ... }
+```
+
+**Persistent Keys (won't be cleared on version change):**
+- `boxtasks_auth_token`
+- `boxtasks_refresh_token`
+- `boxtasks_user`
+- `boxtasks_theme`
+
+**When to use versionedStorage:**
+- Field visibility settings
+- Saved views
+- UI preferences that have defaults
+- Any setting where you want users to get new defaults after deployment
+
+**When NOT to use versionedStorage:**
+- Auth tokens (already in persistent list)
+- Data that must persist (offline queue, etc.)
+
 ---
 
 ## Data Freshness Pattern (CRITICAL)
