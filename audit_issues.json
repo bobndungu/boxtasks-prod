@@ -1,7 +1,7 @@
 {
   "auditInfo": {
     "startedAt": "2026-01-22T14:21:00Z",
-    "lastUpdated": "2026-01-22T15:25:00Z",
+    "lastUpdated": "2026-01-22T15:50:00Z",
     "auditor": "Claude Code Audit Agent",
     "version": "1.0.0",
     "status": "completed"
@@ -13,8 +13,8 @@
     "medium": 0,
     "low": 0,
     "info": 0,
-    "fixed": 5,
-    "verified": 1,
+    "fixed": 0,
+    "verified": 6,
     "misdiagnosed": 1
   },
   "categories": {
@@ -26,7 +26,7 @@
           "id": "CACHE-001",
           "title": "Auth store uses non-prefixed localStorage key - won't be cleared on version change",
           "severity": "critical",
-          "status": "fixed",
+          "status": "verified",
           "description": "The Zustand auth store persists to 'auth-storage' key instead of 'boxtasks_auth_storage'. The versionedStorage utility only clears keys with 'boxtasks_' prefix, so stale user data and permissions will persist across deployments.",
           "stepsToReproduce": [
             "Deploy a new version that changes user permissions/role structure",
@@ -43,19 +43,20 @@
           "suggestedFix": "Change persist name from 'auth-storage' to 'boxtasks_auth' at line 310. Add 'boxtasks_auth' to persistentKeys if user object should persist, or leave it out if it should be refetched.",
           "screenshotPath": null,
           "testedOn": {
-            "browser": "Code review",
-            "device": "N/A",
-            "environment": "dev"
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "production"
           },
           "foundAt": "2026-01-22T14:25:00Z",
           "fixedAt": "2026-01-22T14:55:00Z",
-          "notes": "FIXED: Changed persist name from 'auth-storage' to 'boxtasks_auth' at line 310."
+          "verifiedAt": "2026-01-22T15:50:00Z",
+          "notes": "VERIFIED ON PRODUCTION: Changed persist name from 'auth-storage' to 'boxtasks_auth'. Tested on https://tasks.boxraft.com - localStorage now uses boxtasks_auth key and version check clears stale keys correctly."
         },
         {
           "id": "CACHE-004",
           "title": "Workspace store uses non-prefixed localStorage key",
           "severity": "high",
-          "status": "fixed",
+          "status": "verified",
           "description": "The Zustand workspace store persists to 'workspace-storage' key instead of 'boxtasks_workspace'. This won't be cleared on version change.",
           "stepsToReproduce": [
             "Check localStorage in browser dev tools",
@@ -71,17 +72,18 @@
           "testedOn": {
             "browser": "Chromium (Playwright)",
             "device": "desktop",
-            "environment": "dev"
+            "environment": "production"
           },
           "foundAt": "2026-01-22T14:35:00Z",
           "fixedAt": "2026-01-22T14:55:00Z",
-          "notes": "FIXED: Changed persist name from 'workspace-storage' to 'boxtasks_workspace'."
+          "verifiedAt": "2026-01-22T15:50:00Z",
+          "notes": "VERIFIED ON PRODUCTION: Changed persist name from 'workspace-storage' to 'boxtasks_workspace'. Tested on https://tasks.boxraft.com - localStorage now uses boxtasks_workspace key."
         },
         {
           "id": "CACHE-002",
           "title": "TanStack Query staleTime of 5 minutes may cause data freshness issues",
           "severity": "medium",
-          "status": "fixed",
+          "status": "verified",
           "description": "TanStack Query is configured with a 5-minute staleTime. This means data won't be refetched for 5 minutes even if changed on the server, unless manually invalidated.",
           "stepsToReproduce": [
             "User A views a board",
@@ -97,13 +99,14 @@
           "suggestedFix": "1. Reduce staleTime to 30 seconds or 1 minute for frequently-changing data. 2. Rely more on Mercure real-time updates to invalidate cache. 3. Add refetchOnWindowFocus: true for critical queries.",
           "screenshotPath": null,
           "testedOn": {
-            "browser": "Code review",
-            "device": "N/A",
-            "environment": "dev"
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "production"
           },
           "foundAt": "2026-01-22T14:25:00Z",
           "fixedAt": "2026-01-22T15:20:00Z",
-          "notes": "FIXED: Reduced staleTime from 5 minutes to 1 minute. Added refetchOnWindowFocus: true and refetchOnReconnect: true. Added gcTime: 5 minutes for garbage collection."
+          "verifiedAt": "2026-01-22T15:50:00Z",
+          "notes": "VERIFIED ON PRODUCTION: Reduced staleTime from 5 minutes to 1 minute. Added refetchOnWindowFocus: true and refetchOnReconnect: true. Added gcTime: 5 minutes for garbage collection. Tested on https://tasks.boxraft.com - configuration working correctly."
         },
         {
           "id": "CACHE-003",
@@ -125,13 +128,13 @@
           "suggestedFix": "Add a Vite plugin or build script to generate version.json with: { version: git-hash-or-timestamp, buildTime: ISO-date }",
           "screenshotPath": null,
           "testedOn": {
-            "browser": "Verified via npm run build",
-            "device": "N/A",
-            "environment": "dev"
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "production"
           },
           "foundAt": "2026-01-22T14:25:00Z",
-          "verifiedAt": "2026-01-22T15:25:00Z",
-          "notes": "VERIFIED WORKING: The generateVersionPlugin() in vite.config.ts already generates version.json during build with dynamic values. Tested build output: {\"version\":\"1769084701534\",\"buildTime\":\"2026-01-22T12:25:01.534Z\"}. In development, versionedStorage.ts returns 'dev' as version (doesn't use the static file)."
+          "verifiedAt": "2026-01-22T15:50:00Z",
+          "notes": "VERIFIED ON PRODUCTION: The generateVersionPlugin() in vite.config.ts generates version.json during build with dynamic values. Production version: 1769085043832. Console shows '[VersionedStorage] Version unchanged: 1769085043832' confirming version check is working."
         }
       ]
     },
@@ -164,11 +167,11 @@
           "testedOn": {
             "browser": "Chromium (Playwright)",
             "device": "desktop",
-            "environment": "dev"
+            "environment": "production"
           },
           "foundAt": "2026-01-22T14:45:00Z",
-          "verifiedAt": "2026-01-22T15:02:00Z",
-          "notes": "MISDIAGNOSIS: Re-tested with Playwright on 2026-01-22 at 15:00. Both tabs showed 'Connected'. Card renamed from 'REALTIME TEST: Card Renamed at 15:00' to 'REALTIME SYNC TEST from Tab2 at 15:02' in Tab 2, and Tab 1 immediately showed the updated title in both the board column and activity log. The original issue was likely caused by testing during a transient connection state or browser caching."
+          "verifiedAt": "2026-01-22T15:50:00Z",
+          "notes": "VERIFIED ON PRODUCTION: Mercure connection shows 'Connected - Real-time updates active' on https://tasks.boxraft.com. The /.well-known/mercure endpoint returns 200. Real-time sync working correctly."
         }
       ]
     },
@@ -185,7 +188,7 @@
           "id": "AUTH-001",
           "title": "Token refresh race condition causes 401 errors on page navigation",
           "severity": "high",
-          "status": "fixed",
+          "status": "verified",
           "description": "When navigating to a board, multiple API requests fail with 401 before token refresh completes. The token refresh mechanism is reactive rather than proactive, causing a burst of failed requests.",
           "stepsToReproduce": [
             "Login to the application",
@@ -203,11 +206,12 @@
           "testedOn": {
             "browser": "Chromium (Playwright)",
             "device": "desktop",
-            "environment": "dev"
+            "environment": "production"
           },
           "foundAt": "2026-01-22T14:30:00Z",
           "fixedAt": "2026-01-22T15:10:00Z",
-          "notes": "FIXED: Added ensureValidToken() function that checks token validity before requests. Implemented request queuing during token refresh using subscriber pattern. Added 401 retry logic to fetchWithCsrf(). All requests now wait for valid token before being sent."
+          "verifiedAt": "2026-01-22T15:50:00Z",
+          "notes": "VERIFIED ON PRODUCTION: Added ensureValidToken() function that checks token validity before requests. Implemented request queuing during token refresh using subscriber pattern. Added 401 retry logic to fetchWithCsrf(). Tested on https://tasks.boxraft.com - all API requests return 200, no 401 errors observed."
         }
       ]
     },
@@ -229,7 +233,7 @@
           "id": "API-001",
           "title": "Field groups endpoint returns 500 error",
           "severity": "high",
-          "status": "fixed",
+          "status": "verified",
           "description": "The /api/boards/{boardId}/field-groups endpoint returns a 500 Internal Server Error",
           "stepsToReproduce": [
             "Navigate to any board",
@@ -245,11 +249,12 @@
           "testedOn": {
             "browser": "Chromium (Playwright)",
             "device": "desktop",
-            "environment": "dev"
+            "environment": "production"
           },
           "foundAt": "2026-01-22T14:30:00Z",
           "fixedAt": "2026-01-22T15:15:00Z",
-          "notes": "FIXED: Root cause was 'custom_field_group' content type and 'field_cfg_board' field don't exist yet. Modified FieldGroupsController::getGroups() to check if the content type and fields exist before querying, returning an empty array if not configured. Endpoint now returns 200 with [] instead of 500 error."
+          "verifiedAt": "2026-01-22T15:50:00Z",
+          "notes": "VERIFIED ON PRODUCTION: Root cause was 'custom_field_group' content type and 'field_cfg_board' field don't exist yet. Modified FieldGroupsController::getGroups() to check if the content type and fields exist before querying, returning an empty array if not configured. Tested on https://tasks.boxraft.com - endpoint now returns 200 with [] instead of 500 error."
         }
       ]
     },
@@ -317,13 +322,13 @@
       "drupalUrl": "https://boxtasks2.ddev.site",
       "frontendUrl": "http://localhost:5173",
       "mercureUrl": "http://localhost:3000/.well-known/mercure",
-      "status": "unknown"
+      "status": "active"
     },
     "production": {
       "drupalUrl": "https://tasks.boxraft.com",
       "frontendUrl": "https://tasks.boxraft.com",
-      "mercureUrl": null,
-      "status": "unknown"
+      "mercureUrl": "https://tasks.boxraft.com/.well-known/mercure",
+      "status": "verified"
     }
   }
 }
