@@ -1,0 +1,200 @@
+<?php
+
+/**
+ * @file
+ * BoxTasks Workspace module.
+ *
+ * Provides workspace management and access control for BoxTasks.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_node_access().
+ *
+ * Restricts workspace access to only members of the workspace.
+ * Restricts board access to members of the parent workspace.
+ */
+function boxtasks_workspace_node_access(NodeInterface $node, $op, AccountInterface $account) {
+  // Only check view operations.
+  if ($op !== 'view') {
+    return AccessResult::neutral();
+  }
+
+  $bundle = $node->bundle();
+
+  // Handle workspace access.
+  if ($bundle === 'workspace') {
+    return _boxtasks_workspace_check_workspace_access($node, $account);
+  }
+
+  // Handle board access.
+  if ($bundle === 'board') {
+    return _boxtasks_workspace_check_board_access($node, $account);
+  }
+
+  return AccessResult::neutral();
+}
+
+/**
+ * Check if a user has access to view a workspace.
+ *
+ * @param \Drupal\node\NodeInterface $workspace
+ *   The workspace node.
+ * @param \Drupal\Core\Session\AccountInterface $account
+ *   The user account.
+ *
+ * @return \Drupal\Core\Access\AccessResultInterface
+ *   The access result.
+ */
+function _boxtasks_workspace_check_workspace_access(NodeInterface $workspace, AccountInterface $account) {
+  // Super admin (uid 1) can always access.
+  if ((int) $account->id() === 1) {
+    return AccessResult::allowed()->addCacheableDependency($account);
+  }
+
+  // Users with 'administer nodes' permission can access all workspaces.
+  if ($account->hasPermission('administer nodes')) {
+    return AccessResult::allowed()->addCacheableDependency($account);
+  }
+
+  // Check if user has a member_role for this workspace.
+  $has_membership = _boxtasks_workspace_user_has_workspace_membership($workspace->id(), $account->id());
+
+  if ($has_membership) {
+    return AccessResult::allowed()
+      ->addCacheableDependency($workspace)
+      ->addCacheableDependency($account)
+      ->addCacheTags(['node_list:member_role']);
+  }
+
+  return AccessResult::forbidden('User is not a member of this workspace.')
+    ->addCacheableDependency($workspace)
+    ->addCacheableDependency($account)
+    ->addCacheTags(['node_list:member_role']);
+}
+
+/**
+ * Check if a user has access to view a board.
+ *
+ * @param \Drupal\node\NodeInterface $board
+ *   The board node.
+ * @param \Drupal\Core\Session\AccountInterface $account
+ *   The user account.
+ *
+ * @return \Drupal\Core\Access\AccessResultInterface
+ *   The access result.
+ */
+function _boxtasks_workspace_check_board_access(NodeInterface $board, AccountInterface $account) {
+  // Super admin (uid 1) can always access.
+  if ((int) $account->id() === 1) {
+    return AccessResult::allowed()->addCacheableDependency($account);
+  }
+
+  // Users with 'administer nodes' permission can access all boards.
+  if ($account->hasPermission('administer nodes')) {
+    return AccessResult::allowed()->addCacheableDependency($account);
+  }
+
+  // Get the workspace from the board.
+  if (!$board->hasField('field_board_workspace') || $board->get('field_board_workspace')->isEmpty()) {
+    return AccessResult::forbidden('Board has no workspace.');
+  }
+
+  $workspace = $board->get('field_board_workspace')->entity;
+  if (!$workspace) {
+    return AccessResult::forbidden('Board workspace not found.');
+  }
+
+  // Check if user has a member_role for this workspace.
+  $has_membership = _boxtasks_workspace_user_has_workspace_membership($workspace->id(), $account->id());
+
+  if (!$has_membership) {
+    return AccessResult::forbidden('User is not a member of the board workspace.')
+      ->addCacheableDependency($board)
+      ->addCacheableDependency($workspace)
+      ->addCacheableDependency($account)
+      ->addCacheTags(['node_list:member_role']);
+  }
+
+  // Check board visibility for private boards.
+  $board_visibility = 'workspace';
+  if ($board->hasField('field_board_visibility') && !$board->get('field_board_visibility')->isEmpty()) {
+    $board_visibility = $board->get('field_board_visibility')->value;
+  }
+
+  // For workspace-visible boards, workspace membership is enough.
+  if ($board_visibility !== 'private') {
+    return AccessResult::allowed()
+      ->addCacheableDependency($board)
+      ->addCacheableDependency($workspace)
+      ->addCacheableDependency($account)
+      ->addCacheTags(['node_list:member_role']);
+  }
+
+  // For private boards, check if user is a board member or owner.
+  $is_board_member = _boxtasks_workspace_is_board_member($board, $account->id());
+  $is_owner = (int) $board->getOwnerId() === (int) $account->id();
+
+  if ($is_board_member || $is_owner) {
+    return AccessResult::allowed()
+      ->addCacheableDependency($board)
+      ->addCacheableDependency($account);
+  }
+
+  return AccessResult::forbidden('User does not have access to this private board.')
+    ->addCacheableDependency($board)
+    ->addCacheableDependency($account);
+}
+
+/**
+ * Check if a user has a member_role for a workspace.
+ *
+ * @param int $workspace_id
+ *   The workspace node ID.
+ * @param int $user_id
+ *   The user ID.
+ *
+ * @return bool
+ *   TRUE if the user has a member_role for the workspace.
+ */
+function _boxtasks_workspace_user_has_workspace_membership(int $workspace_id, int $user_id): bool {
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+
+  $member_roles = $storage->getQuery()
+    ->condition('type', 'member_role')
+    ->condition('field_member_role_workspace', $workspace_id)
+    ->condition('field_member_role_user', $user_id)
+    ->accessCheck(FALSE)
+    ->range(0, 1)
+    ->execute();
+
+  return !empty($member_roles);
+}
+
+/**
+ * Check if a user is a member of a board.
+ *
+ * @param \Drupal\node\NodeInterface $board
+ *   The board node.
+ * @param int $user_id
+ *   The user ID.
+ *
+ * @return bool
+ *   TRUE if the user is in the board's member list.
+ */
+function _boxtasks_workspace_is_board_member(NodeInterface $board, int $user_id): bool {
+  if (!$board->hasField('field_board_members')) {
+    return FALSE;
+  }
+
+  foreach ($board->get('field_board_members') as $member_ref) {
+    if ($member_ref->target_id && (int) $member_ref->target_id === $user_id) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
