@@ -13,10 +13,10 @@
     "medium": 0,
     "low": 1,
     "info": 0,
-    "fixed": 1,
-    "verified": 7,
+    "fixed": 2,
+    "verified": 8,
     "misdiagnosed": 1,
-    "open": 1
+    "open": 0
   },
   "categories": {
     "cache": {
@@ -255,7 +255,7 @@
           "id": "UI-001",
           "title": "HTML entities not decoded in card titles - shows &#039; instead of apostrophe",
           "severity": "low",
-          "status": "open",
+          "status": "verified",
           "description": "Card titles containing apostrophes display the HTML entity &#039; instead of the decoded character. This affects readability of card titles throughout the application.",
           "stepsToReproduce": [
             "Navigate to any board with cards containing apostrophes in titles",
@@ -263,10 +263,13 @@
             "Also visible in 'Taalam&#039;s', 'Ng&#039;ang&#039;a', 'Girls&#039; Education'"
           ],
           "expectedBehavior": "Card titles should display properly decoded text with apostrophes showing as '",
-          "actualBehavior": "HTML entities like &#039; are displayed literally instead of being decoded to apostrophes",
+          "actualBehavior": "FIXED: Card titles now display properly decoded text with apostrophes and other special characters.",
           "affectedFiles": [
-            "frontend/src/components/board/CardItem.tsx",
-            "frontend/src/pages/EverythingView.tsx"
+            "frontend/src/lib/utils/htmlEntities.ts",
+            "frontend/src/lib/api/boards.ts",
+            "frontend/src/lib/api/globalViews.ts",
+            "frontend/src/lib/api/search.ts",
+            "frontend/src/lib/api/dashboard.ts"
           ],
           "suggestedFix": "Use a HTML entity decoder when rendering card titles, or ensure the API returns properly decoded text. React's dangerouslySetInnerHTML could be used but a safer approach is to decode entities before rendering using a library like 'he' (html-entities) or built-in DOMParser.",
           "screenshotPath": ".playwright-mcp/audit-ui-html-entities.png",
@@ -276,7 +279,9 @@
             "environment": "production"
           },
           "foundAt": "2026-01-22T16:20:00Z",
-          "notes": "Verified on production. Multiple card titles affected. Mobile responsiveness is working correctly - board columns scroll horizontally on small screens."
+          "fixedAt": "2026-01-22T17:10:00Z",
+          "verifiedAt": "2026-01-22T17:15:00Z",
+          "notes": "FIXED AND VERIFIED ON PRODUCTION: Created centralized htmlEntities.ts utility. Applied decoding at API layer in fetchBoardData(), fetchEverythingView(), fetchMyCards(), search functions, and dashboard. Card titles, descriptions, board titles, and list titles are all decoded. Tested on https://tasks.boxraft.com - card titles display correctly without HTML entities."
         }
       ]
     },
