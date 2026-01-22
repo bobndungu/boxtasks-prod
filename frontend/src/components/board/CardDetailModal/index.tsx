@@ -36,8 +36,8 @@ import {
   Star,
   ArrowRight,
 } from 'lucide-react';
-import { fetchAllBoards, type Board, NotFoundError, ForbiddenError } from '../../../lib/api/boards';
-import { fetchListsByBoard, type BoardList } from '../../../lib/api/lists';
+import { fetchAllBoards, fetchBoardData, type Board, NotFoundError, ForbiddenError } from '../../../lib/api/boards';
+import { type BoardList } from '../../../lib/api/lists';
 import { formatDateForInput, type Card, type CardLabel, type CardMember } from '../../../lib/api/cards';
 import {
   updateCard,
@@ -735,6 +735,33 @@ function CardDetailModal({
     try {
       const boards = await fetchAllBoards();
       setAvailableBoards(boards);
+      // Auto-select the current board and load its lists
+      if (boardId) {
+        setSelectedBoardId(boardId);
+        setIsLoadingLists(true);
+        try {
+          const boardData = await fetchBoardData(boardId);
+          const lists: BoardList[] = boardData.lists
+            .filter(l => !l.archived)
+            .sort((a, b) => a.position - b.position)
+            .map(l => ({
+              id: l.id,
+              title: l.title,
+              boardId: l.boardId,
+              position: l.position,
+              archived: l.archived,
+              wipLimit: 0,
+              color: null,
+              createdAt: '',
+              updatedAt: '',
+            }));
+          setAvailableLists(lists);
+        } catch (err) {
+          console.error('Failed to load lists for current board:', err);
+        } finally {
+          setIsLoadingLists(false);
+        }
+      }
     } catch (err) {
       console.error('Failed to load boards:', err);
     } finally {
@@ -751,7 +778,21 @@ function CardDetailModal({
 
     setIsLoadingLists(true);
     try {
-      const lists = await fetchListsByBoard(boardId);
+      const boardData = await fetchBoardData(boardId);
+      const lists: BoardList[] = boardData.lists
+        .filter(l => !l.archived)
+        .sort((a, b) => a.position - b.position)
+        .map(l => ({
+          id: l.id,
+          title: l.title,
+          boardId: l.boardId,
+          position: l.position,
+          archived: l.archived,
+          wipLimit: 0,
+          color: null,
+          createdAt: '',
+          updatedAt: '',
+        }));
       setAvailableLists(lists);
     } catch (err) {
       console.error('Failed to load lists:', err);
