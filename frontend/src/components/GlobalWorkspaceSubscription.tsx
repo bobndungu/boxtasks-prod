@@ -16,7 +16,7 @@ import { useUserWorkspaceUpdates, useUserPermissionUpdates } from '../lib/hooks/
  */
 export default function GlobalWorkspaceSubscription() {
   const { user } = useAuthStore();
-  const { setWorkspaces, setCurrentWorkspace, currentWorkspace, workspaces, isWorkspacesStale } = useWorkspaceStore();
+  const { setWorkspaces, setCurrentWorkspace, currentWorkspace, workspaces, setFetchingWorkspaces, shouldFetchWorkspaces } = useWorkspaceStore();
   const hasInitialFetch = useRef(false);
   const lastFetchTime = useRef<number>(0);
 
@@ -77,16 +77,17 @@ export default function GlobalWorkspaceSubscription() {
   });
 
   // Fetch workspaces on initial mount (when user becomes authenticated)
-  // Only fetch if data is stale or missing
+  // Only fetch if data is stale AND not currently fetching
   useEffect(() => {
     if (user?.id && !hasInitialFetch.current) {
       hasInitialFetch.current = true;
-      // Only fetch if workspaces are stale or empty
-      if (isWorkspacesStale() || workspaces.length === 0) {
+      // Only fetch if workspaces should be fetched (stale AND not currently fetching)
+      if (shouldFetchWorkspaces()) {
+        setFetchingWorkspaces(true);
         refreshWorkspaces();
       }
     }
-  }, [user?.id, refreshWorkspaces, isWorkspacesStale, workspaces.length]);
+  }, [user?.id, refreshWorkspaces, shouldFetchWorkspaces, setFetchingWorkspaces]);
 
   // Reset initial fetch flag when user changes (e.g., logout then login as different user)
   useEffect(() => {

@@ -34,7 +34,7 @@ interface MainHeaderProps {
 
 export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
   const { user, logout } = useAuthStore();
-  const { addBoard, starredBoards, recentBoards, setStarredBoards, setRecentBoards, currentBoard, isStarredBoardsStale, isRecentBoardsStale } = useBoardStore();
+  const { addBoard, starredBoards, recentBoards, setStarredBoards, setRecentBoards, setFetchingStarredBoards, setFetchingRecentBoards, currentBoard, shouldFetchStarredBoards, shouldFetchRecentBoards } = useBoardStore();
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
   const [showCreateBoardModal, setShowCreateBoardModal] = useState(false);
@@ -47,32 +47,37 @@ export default function MainHeader({ onCreateBoard }: MainHeaderProps) {
   // Show reports if no workspace context (we're on a page without a board) or if user has permission
   const showReports = !currentBoard?.workspaceId || canViewAnyReport();
 
-  // Load starred and recent boards on mount - only if data is stale or missing
+  // Load starred and recent boards on mount - only if data is stale and not currently fetching
   useEffect(() => {
     const loadBoardData = async () => {
-      // Skip fetch if data is fresh (within 1 minute)
-      const starredStale = isStarredBoardsStale();
-      const recentStale = isRecentBoardsStale();
+      // Check if we should fetch (stale AND not currently fetching)
+      const shouldFetchStarred = shouldFetchStarredBoards();
+      const shouldFetchRecent = shouldFetchRecentBoards();
 
-      if (!starredStale && !recentStale) {
-        return; // Data is fresh, no need to fetch
+      if (!shouldFetchStarred && !shouldFetchRecent) {
+        return; // Data is fresh or already being fetched
       }
 
       try {
         const promises: Promise<unknown>[] = [];
-        if (starredStale) {
+        if (shouldFetchStarred) {
+          setFetchingStarredBoards(true);
           promises.push(fetchStarredBoards().then(setStarredBoards));
         }
-        if (recentStale) {
+        if (shouldFetchRecent) {
+          setFetchingRecentBoards(true);
           promises.push(fetchRecentBoards(5).then(setRecentBoards));
         }
         await Promise.all(promises);
       } catch (error) {
         console.error('Failed to load board data:', error);
+        // Reset fetching flags on error
+        setFetchingStarredBoards(false);
+        setFetchingRecentBoards(false);
       }
     };
     loadBoardData();
-  }, [setStarredBoards, setRecentBoards, isStarredBoardsStale, isRecentBoardsStale]);
+  }, [setStarredBoards, setRecentBoards, setFetchingStarredBoards, setFetchingRecentBoards, shouldFetchStarredBoards, shouldFetchRecentBoards]);
 
   // Keyboard shortcut for search (Cmd+K or Ctrl+K)
   useEffect(() => {

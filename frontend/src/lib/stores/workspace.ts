@@ -9,6 +9,7 @@ interface WorkspaceState {
   workspaces: Workspace[];
   currentWorkspace: Workspace | null;
   workspacesLastFetched: number | null;
+  isFetchingWorkspaces: boolean;
   isLoading: boolean;
   error: string | null;
   setWorkspaces: (workspaces: Workspace[]) => void;
@@ -16,10 +17,12 @@ interface WorkspaceState {
   updateWorkspace: (workspace: Workspace) => void;
   removeWorkspace: (id: string) => void;
   setCurrentWorkspace: (workspace: Workspace | null) => void;
+  setFetchingWorkspaces: (isFetching: boolean) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearWorkspaces: () => void;
   isWorkspacesStale: () => boolean;
+  shouldFetchWorkspaces: () => boolean;
   invalidateWorkspacesCache: () => void;
 }
 
@@ -29,9 +32,10 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       workspaces: [],
       currentWorkspace: null,
       workspacesLastFetched: null,
+      isFetchingWorkspaces: false,
       isLoading: false,
       error: null,
-      setWorkspaces: (workspaces) => set({ workspaces, isLoading: false, workspacesLastFetched: Date.now() }),
+      setWorkspaces: (workspaces) => set({ workspaces, isLoading: false, workspacesLastFetched: Date.now(), isFetchingWorkspaces: false }),
       addWorkspace: (workspace) =>
         set((state) => ({ workspaces: [...state.workspaces, workspace] })),
       updateWorkspace: (workspace) =>
@@ -51,12 +55,20 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             state.currentWorkspace?.id === id ? null : state.currentWorkspace,
         })),
       setCurrentWorkspace: (currentWorkspace) => set({ currentWorkspace }),
+      setFetchingWorkspaces: (isFetching) => set({ isFetchingWorkspaces: isFetching }),
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
       // Clear all workspaces (used on logout)
-      clearWorkspaces: () => set({ workspaces: [], currentWorkspace: null, workspacesLastFetched: null }),
+      clearWorkspaces: () => set({ workspaces: [], currentWorkspace: null, workspacesLastFetched: null, isFetchingWorkspaces: false }),
       isWorkspacesStale: () => {
         const { workspacesLastFetched } = get();
+        if (!workspacesLastFetched) return true;
+        return Date.now() - workspacesLastFetched > STALE_THRESHOLD;
+      },
+      // Check if we should fetch: stale AND not currently fetching
+      shouldFetchWorkspaces: () => {
+        const { workspacesLastFetched, isFetchingWorkspaces } = get();
+        if (isFetchingWorkspaces) return false;
         if (!workspacesLastFetched) return true;
         return Date.now() - workspacesLastFetched > STALE_THRESHOLD;
       },
