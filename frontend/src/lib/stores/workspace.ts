@@ -50,7 +50,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       clearWorkspaces: () => set({ workspaces: [], currentWorkspace: null }),
     }),
     {
-      name: 'workspace-storage',
+      name: 'boxtasks_workspace',
       partialize: (state) => ({
         currentWorkspace: state.currentWorkspace,
       }),

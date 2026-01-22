@@ -1,0 +1,324 @@
+{
+  "auditInfo": {
+    "startedAt": "2026-01-22T14:21:00Z",
+    "lastUpdated": "2026-01-22T15:02:00Z",
+    "auditor": "Claude Code Audit Agent",
+    "version": "1.0.0",
+    "status": "in_progress"
+  },
+  "summary": {
+    "totalIssues": 7,
+    "critical": 0,
+    "high": 3,
+    "medium": 2,
+    "low": 0,
+    "info": 0,
+    "fixed": 2,
+    "misdiagnosed": 1
+  },
+  "categories": {
+    "cache": {
+      "name": "Cache & Storage Issues",
+      "description": "Issues related to browser cache, localStorage, service workers, and data freshness",
+      "issues": [
+        {
+          "id": "CACHE-001",
+          "title": "Auth store uses non-prefixed localStorage key - won't be cleared on version change",
+          "severity": "critical",
+          "status": "fixed",
+          "description": "The Zustand auth store persists to 'auth-storage' key instead of 'boxtasks_auth_storage'. The versionedStorage utility only clears keys with 'boxtasks_' prefix, so stale user data and permissions will persist across deployments.",
+          "stepsToReproduce": [
+            "Deploy a new version that changes user permissions/role structure",
+            "User's browser has old auth data in localStorage",
+            "User loads the app - versionedStorage clears boxtasks_* keys",
+            "auth-storage key is NOT cleared",
+            "User sees stale permissions/roles"
+          ],
+          "expectedBehavior": "All app storage including auth should be cleared when version changes (except tokens)",
+          "actualBehavior": "Auth store data persists across version changes because it uses 'auth-storage' key",
+          "affectedFiles": [
+            "frontend/src/lib/stores/auth.ts"
+          ],
+          "suggestedFix": "Change persist name from 'auth-storage' to 'boxtasks_auth' at line 310. Add 'boxtasks_auth' to persistentKeys if user object should persist, or leave it out if it should be refetched.",
+          "screenshotPath": null,
+          "testedOn": {
+            "browser": "Code review",
+            "device": "N/A",
+            "environment": "dev"
+          },
+          "foundAt": "2026-01-22T14:25:00Z",
+          "fixedAt": "2026-01-22T14:55:00Z",
+          "notes": "FIXED: Changed persist name from 'auth-storage' to 'boxtasks_auth' at line 310."
+        },
+        {
+          "id": "CACHE-004",
+          "title": "Workspace store uses non-prefixed localStorage key",
+          "severity": "high",
+          "status": "fixed",
+          "description": "The Zustand workspace store persists to 'workspace-storage' key instead of 'boxtasks_workspace'. This won't be cleared on version change.",
+          "stepsToReproduce": [
+            "Check localStorage in browser dev tools",
+            "Observe 'workspace-storage' key exists"
+          ],
+          "expectedBehavior": "All app storage should use 'boxtasks_' prefix for consistent cache invalidation",
+          "actualBehavior": "workspace-storage key persists across version changes",
+          "affectedFiles": [
+            "frontend/src/lib/stores/workspace.ts"
+          ],
+          "suggestedFix": "Change persist name from 'workspace-storage' to 'boxtasks_workspace'",
+          "screenshotPath": null,
+          "testedOn": {
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "dev"
+          },
+          "foundAt": "2026-01-22T14:35:00Z",
+          "fixedAt": "2026-01-22T14:55:00Z",
+          "notes": "FIXED: Changed persist name from 'workspace-storage' to 'boxtasks_workspace'."
+        },
+        {
+          "id": "CACHE-002",
+          "title": "TanStack Query staleTime of 5 minutes may cause data freshness issues",
+          "severity": "medium",
+          "status": "confirmed",
+          "description": "TanStack Query is configured with a 5-minute staleTime. This means data won't be refetched for 5 minutes even if changed on the server, unless manually invalidated.",
+          "stepsToReproduce": [
+            "User A views a board",
+            "User B makes changes to the board (not via Mercure)",
+            "User A navigates away and back within 5 minutes",
+            "User A sees stale data because query cache is still 'fresh'"
+          ],
+          "expectedBehavior": "Data should feel real-time and refresh more frequently",
+          "actualBehavior": "Cached data can be up to 5 minutes stale",
+          "affectedFiles": [
+            "frontend/src/App.tsx"
+          ],
+          "suggestedFix": "1. Reduce staleTime to 30 seconds or 1 minute for frequently-changing data. 2. Rely more on Mercure real-time updates to invalidate cache. 3. Add refetchOnWindowFocus: true for critical queries.",
+          "screenshotPath": null,
+          "testedOn": {
+            "browser": "Code review",
+            "device": "N/A",
+            "environment": "dev"
+          },
+          "foundAt": "2026-01-22T14:25:00Z",
+          "notes": "Line 103: staleTime: 1000 * 60 * 5 (5 minutes)"
+        },
+        {
+          "id": "CACHE-003",
+          "title": "version.json needs to be dynamically generated during build",
+          "severity": "medium",
+          "status": "open",
+          "description": "The version.json file contains static 'development' values. Need to verify it's being updated during production builds to enable proper cache invalidation.",
+          "stepsToReproduce": [
+            "Check frontend/public/version.json",
+            "Run production build",
+            "Verify version.json in dist/ has dynamic values"
+          ],
+          "expectedBehavior": "Production builds should generate version.json with build timestamp or git hash",
+          "actualBehavior": "Unknown - needs testing in production build",
+          "affectedFiles": [
+            "frontend/public/version.json",
+            "frontend/vite.config.ts"
+          ],
+          "suggestedFix": "Add a Vite plugin or build script to generate version.json with: { version: git-hash-or-timestamp, buildTime: ISO-date }",
+          "screenshotPath": null,
+          "testedOn": {
+            "browser": "Code review",
+            "device": "N/A",
+            "environment": "dev"
+          },
+          "foundAt": "2026-01-22T14:25:00Z",
+          "notes": "Current content: { version: 'development', buildTime: 'development' }"
+        }
+      ]
+    },
+    "realtime": {
+      "name": "Real-time Update Issues",
+      "description": "Issues with Mercure subscriptions, data synchronization, and live updates",
+      "issues": [
+        {
+          "id": "REALTIME-001",
+          "title": "Mercure connection fails to establish in second browser tab - real-time sync broken",
+          "severity": "info",
+          "status": "misdiagnosed",
+          "description": "MISDIAGNOSIS: Originally reported that Mercure connections fail in second browser tabs. Re-testing confirmed that real-time sync works correctly across multiple tabs.",
+          "stepsToReproduce": [
+            "Open a board in Tab 1 - wait for 'Connected' status",
+            "Open a new tab (Tab 2) and navigate to the same board",
+            "Both tabs show 'Connected - Real-time updates active'",
+            "Rename a card in Tab 2",
+            "Tab 1 immediately shows the updated card title in the board column",
+            "Tab 1 activity log updates in real-time"
+          ],
+          "expectedBehavior": "Both tabs should establish Mercure connections and changes should sync in real-time between them",
+          "actualBehavior": "WORKING CORRECTLY: Both tabs establish connections. Card renames, activity log updates, and board changes sync in real-time between tabs.",
+          "affectedFiles": [
+            "frontend/src/lib/hooks/useMercure.ts",
+            ".ddev/docker-compose.mercure.yaml"
+          ],
+          "suggestedFix": "No fix needed - real-time sync is working correctly.",
+          "screenshotPath": ".playwright-mcp/audit-04-realtime-sync-failed.png",
+          "testedOn": {
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "dev"
+          },
+          "foundAt": "2026-01-22T14:45:00Z",
+          "verifiedAt": "2026-01-22T15:02:00Z",
+          "notes": "MISDIAGNOSIS: Re-tested with Playwright on 2026-01-22 at 15:00. Both tabs showed 'Connected'. Card renamed from 'REALTIME TEST: Card Renamed at 15:00' to 'REALTIME SYNC TEST from Tab2 at 15:02' in Tab 2, and Tab 1 immediately showed the updated title in both the board column and activity log. The original issue was likely caused by testing during a transient connection state or browser caching."
+        }
+      ]
+    },
+    "permissions": {
+      "name": "Permission & Access Control Issues",
+      "description": "Issues with role-based access, workspace/board permissions",
+      "issues": []
+    },
+    "auth": {
+      "name": "Authentication Issues",
+      "description": "Issues with login, logout, OAuth, session management",
+      "issues": [
+        {
+          "id": "AUTH-001",
+          "title": "Token refresh race condition causes 401 errors on page navigation",
+          "severity": "high",
+          "status": "confirmed",
+          "description": "When navigating to a board, multiple API requests fail with 401 before token refresh completes. The token refresh mechanism is reactive rather than proactive, causing a burst of failed requests.",
+          "stepsToReproduce": [
+            "Login to the application",
+            "Wait for token to be close to expiry (or clear token manually)",
+            "Navigate to a board",
+            "Observe network requests"
+          ],
+          "expectedBehavior": "Token should be refreshed proactively before expiry. All API requests should succeed without 401 errors.",
+          "actualBehavior": "Multiple 401 errors occur on: /api/presence/*, /api/board/*/data, /api/presence/announce. Token then refreshes and subsequent requests succeed.",
+          "affectedFiles": [
+            "frontend/src/lib/api/client.ts"
+          ],
+          "suggestedFix": "1. Increase the proactive refresh buffer from 5 minutes to 10 minutes. 2. Implement request queuing during token refresh. 3. Add retry logic for 401 responses that waits for refresh to complete.",
+          "screenshotPath": ".playwright-mcp/audit-02-board-with-401-errors.png",
+          "testedOn": {
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "dev"
+          },
+          "foundAt": "2026-01-22T14:30:00Z",
+          "notes": "Observed 7+ 401 errors before token refresh succeeded"
+        }
+      ]
+    },
+    "ui": {
+      "name": "UI/UX Issues",
+      "description": "Visual bugs, responsiveness, accessibility issues",
+      "issues": []
+    },
+    "performance": {
+      "name": "Performance Issues",
+      "description": "Slow loading, excessive re-renders, large payloads",
+      "issues": []
+    },
+    "api": {
+      "name": "API Issues",
+      "description": "Backend errors, incorrect responses, missing endpoints",
+      "issues": [
+        {
+          "id": "API-001",
+          "title": "Field groups endpoint returns 500 error",
+          "severity": "high",
+          "status": "confirmed",
+          "description": "The /api/boards/{boardId}/field-groups endpoint returns a 500 Internal Server Error",
+          "stepsToReproduce": [
+            "Navigate to any board",
+            "Observe network requests"
+          ],
+          "expectedBehavior": "Endpoint should return field group configuration for the board",
+          "actualBehavior": "Returns 500 Internal Server Error",
+          "affectedFiles": [
+            "web/modules/custom/boxtasks_api/src/Controller/*.php"
+          ],
+          "suggestedFix": "Debug the Drupal endpoint to identify the server-side error. Check Drupal logs at /admin/reports/dblog",
+          "screenshotPath": null,
+          "testedOn": {
+            "browser": "Chromium (Playwright)",
+            "device": "desktop",
+            "environment": "dev"
+          },
+          "foundAt": "2026-01-22T14:30:00Z",
+          "notes": "Endpoint: GET /api/boards/6d3dc48a-9177-4452-ae0f-539691797778/field-groups"
+        }
+      ]
+    },
+    "data": {
+      "name": "Data Integrity Issues",
+      "description": "Stale data, inconsistent state, missing data",
+      "issues": []
+    },
+    "functionality": {
+      "name": "Functionality Issues",
+      "description": "Features not working as expected",
+      "issues": []
+    }
+  },
+  "issueTemplate": {
+    "id": "ISSUE-XXX",
+    "title": "Brief description",
+    "category": "cache|realtime|permissions|auth|ui|performance|api|data|functionality",
+    "severity": "critical|high|medium|low|info",
+    "status": "open|in_review|confirmed|wont_fix",
+    "description": "Detailed description of the issue",
+    "stepsToReproduce": ["Step 1", "Step 2"],
+    "expectedBehavior": "What should happen",
+    "actualBehavior": "What actually happens",
+    "affectedFiles": ["file1.ts", "file2.ts"],
+    "suggestedFix": "How to fix this",
+    "screenshotPath": null,
+    "testedOn": {
+      "browser": "Chrome/Safari/Firefox",
+      "device": "desktop/mobile/tablet",
+      "environment": "dev/production"
+    },
+    "foundAt": "ISO timestamp",
+    "notes": ""
+  },
+  "testAccounts": {
+    "admin": {
+      "username": null,
+      "role": "Super Admin (uid=1)",
+      "permissions": "All permissions"
+    },
+    "workspaceAdmin": {
+      "username": null,
+      "role": "Workspace Admin",
+      "permissions": "Full workspace access"
+    },
+    "editor": {
+      "username": null,
+      "role": "Editor",
+      "permissions": "Can edit cards/lists, limited admin"
+    },
+    "viewer": {
+      "username": null,
+      "role": "Viewer",
+      "permissions": "Read-only access"
+    },
+    "nonMember": {
+      "username": null,
+      "role": "Non-member",
+      "permissions": "Should have no access"
+    }
+  },
+  "testEnvironments": {
+    "dev": {
+      "drupalUrl": "https://boxtasks2.ddev.site",
+      "frontendUrl": "http://localhost:5173",
+      "mercureUrl": "http://localhost:3000/.well-known/mercure",
+      "status": "unknown"
+    },
+    "production": {
+      "drupalUrl": "https://tasks.boxraft.com",
+      "frontendUrl": "https://tasks.boxraft.com",
+      "mercureUrl": null,
+      "status": "unknown"
+    }
+  }
+}
