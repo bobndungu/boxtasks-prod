@@ -2,6 +2,7 @@
 
 namespace Drupal\boxtasks_board\Controller;
 
+use Drupal\boxtasks_role\Service\PermissionChecker;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -39,11 +40,19 @@ class BoardDataController extends ControllerBase {
   protected $authenticatedUser;
 
   /**
+   * The permission checker service.
+   *
+   * @var \Drupal\boxtasks_role\Service\PermissionChecker
+   */
+  protected $permissionChecker;
+
+  /**
    * Constructs a BoardDataController object.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, AccountInterface $current_user) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, AccountInterface $current_user, PermissionChecker $permission_checker) {
     $this->entityTypeManager = $entity_type_manager;
     $this->currentUser = $current_user;
+    $this->permissionChecker = $permission_checker;
   }
 
   /**
@@ -52,7 +61,8 @@ class BoardDataController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity_type.manager'),
-      $container->get('current_user')
+      $container->get('current_user'),
+      $container->get('boxtasks_role.permission_checker')
     );
   }
 
@@ -146,11 +156,11 @@ class BoardDataController extends ControllerBase {
 
     $board = reset($boards);
 
-    // Note: We skip Drupal's entity access check because:
-    // 1. We've already verified the user is authenticated above
-    // 2. The GlobalViewsController also uses accessCheck(FALSE) for consistency
-    // 3. Drupal's node access system can deny access even for authenticated users
-    // Access control is handled at the workspace membership level.
+    // Check if user has permission to view this board.
+    // This verifies workspace membership and board visibility settings.
+    if (!$this->permissionChecker->canViewBoard($board, (int) $this->authenticatedUser->id())) {
+      throw new AccessDeniedHttpException('Access denied to this board.');
+    }
 
     // Build board data.
     $board_data = $this->formatBoard($board);
