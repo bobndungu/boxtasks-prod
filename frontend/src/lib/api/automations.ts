@@ -127,7 +127,7 @@ export const SCHEDULE_SCOPES = [
 export const CONDITION_TYPES = [
   { id: 'card_has_label', label: 'Card Has Label', description: 'Card has a specific label', configFields: ['label'] },
   { id: 'card_in_list', label: 'Card In List', description: 'Card is in a specific list', configFields: ['list_id'] },
-  { id: 'card_has_due_date', label: 'Card Has Due Date', description: 'Card has a due date set', configFields: [] },
+  { id: 'card_has_due_date', label: 'Card Due Date', description: 'Check card due date with comparison', configFields: ['operator', 'relative_value', 'relative_unit'] },
   { id: 'card_is_overdue', label: 'Card Is Overdue', description: 'Card is past its due date', configFields: [] },
   { id: 'card_title_contains', label: 'Title Contains', description: 'Card title contains text', configFields: ['text'] },
   { id: 'card_has_department', label: 'Card Has Department', description: 'Card has a specific department', configFields: ['department_id'] },
@@ -171,6 +171,24 @@ export const EMAIL_RECIPIENT_TYPES = [
   { id: 'watchers', label: 'Card Watchers', description: 'Send to all watchers' },
   { id: 'creator', label: 'Card Creator', description: 'Send to the card creator' },
   { id: 'specific', label: 'Specific Emails', description: 'Send to specific email addresses' },
+] as const;
+
+// Due date comparison operators
+export const DUE_DATE_OPERATORS = [
+  { id: 'is_set', label: 'Is Set', description: 'Has any due date' },
+  { id: 'is_not_set', label: 'Is Not Set', description: 'Has no due date' },
+  { id: 'is_before', label: 'Is Before', description: 'Due date is before relative date' },
+  { id: 'is_after', label: 'Is After', description: 'Due date is after relative date' },
+  { id: 'is_on_or_before', label: 'Is On or Before', description: 'Due date is on or before relative date' },
+  { id: 'is_on_or_after', label: 'Is On or After', description: 'Due date is on or after relative date' },
+  { id: 'equals', label: 'Equals', description: 'Due date is exactly on relative date' },
+] as const;
+
+// Relative time units for due date comparison
+export const RELATIVE_TIME_UNITS = [
+  { id: 'days', label: 'Days' },
+  { id: 'weeks', label: 'Weeks' },
+  { id: 'months', label: 'Months' },
 ] as const;
 
 function transformRuleFromApi(data: any): AutomationRule {

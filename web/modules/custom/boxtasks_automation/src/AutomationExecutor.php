@@ -228,7 +228,60 @@ class AutomationExecutor {
         return (string) $card_list_id === (string) $required_list_id;
 
       case 'card_has_due_date':
-        return !empty($trigger_data['card']['due_date']);
+        $due_date = $trigger_data['card']['due_date'] ?? '';
+        $operator = $config['operator'] ?? 'is_set';
+
+        // Handle simple is_set / is_not_set operators
+        if ($operator === 'is_set') {
+          return !empty($due_date);
+        }
+        if ($operator === 'is_not_set') {
+          return empty($due_date);
+        }
+
+        // For comparison operators, we need a due date
+        if (empty($due_date)) {
+          return FALSE;
+        }
+
+        // Calculate the comparison date based on relative value and unit
+        $relative_value = (int) ($config['relative_value'] ?? 0);
+        $relative_unit = $config['relative_unit'] ?? 'days';
+
+        // Build the relative date string
+        $unit_map = [
+          'days' => 'days',
+          'weeks' => 'weeks',
+          'months' => 'months',
+        ];
+        $unit = $unit_map[$relative_unit] ?? 'days';
+
+        // Calculate comparison timestamp (from now)
+        if ($relative_value >= 0) {
+          $comparison_date = strtotime("+{$relative_value} {$unit}");
+        } else {
+          $abs_value = abs($relative_value);
+          $comparison_date = strtotime("-{$abs_value} {$unit}");
+        }
+
+        // Normalize to start of day for date-only comparisons
+        $due_timestamp = strtotime(date('Y-m-d', strtotime($due_date)));
+        $comparison_timestamp = strtotime(date('Y-m-d', $comparison_date));
+
+        switch ($operator) {
+          case 'is_before':
+            return $due_timestamp < $comparison_timestamp;
+          case 'is_after':
+            return $due_timestamp > $comparison_timestamp;
+          case 'is_on_or_before':
+            return $due_timestamp <= $comparison_timestamp;
+          case 'is_on_or_after':
+            return $due_timestamp >= $comparison_timestamp;
+          case 'equals':
+            return $due_timestamp === $comparison_timestamp;
+          default:
+            return !empty($due_date);
+        }
 
       case 'card_is_overdue':
         $due_date = $trigger_data['card']['due_date'] ?? '';

@@ -26,6 +26,8 @@ import {
   TRIGGER_TYPES,
   CONDITION_TYPES,
   ACTION_TYPES,
+  DUE_DATE_OPERATORS,
+  RELATIVE_TIME_UNITS,
   getAutomationRules,
   createAutomationRule,
   updateAutomationRule,
@@ -835,6 +837,56 @@ function RuleEditor({ rule, lists, labels, members, departments, clients, custom
                           label: f.title,
                         }))}
                       />
+                    </div>
+                  )}
+
+                  {condition.type === 'card_has_due_date' && (
+                    <div className="flex-1 flex gap-2 flex-wrap">
+                      <Select
+                        value={(condition.config.operator as string) || 'is_set'}
+                        onChange={e =>
+                          updateCondition(index, {
+                            config: { ...condition.config, operator: e.target.value },
+                          })
+                        }
+                        size="sm"
+                        options={DUE_DATE_OPERATORS.map(op => ({
+                          value: op.id,
+                          label: op.label,
+                        }))}
+                      />
+                      {/* Show relative time inputs for comparison operators */}
+                      {!['is_set', 'is_not_set'].includes((condition.config.operator as string) || 'is_set') && (
+                        <>
+                          <input
+                            type="number"
+                            value={(condition.config.relative_value as number) ?? 0}
+                            onChange={e =>
+                              updateCondition(index, {
+                                config: { ...condition.config, relative_value: parseInt(e.target.value) || 0 },
+                              })
+                            }
+                            placeholder="0"
+                            className="w-20 px-2 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 text-sm"
+                          />
+                          <Select
+                            value={(condition.config.relative_unit as string) || 'days'}
+                            onChange={e =>
+                              updateCondition(index, {
+                                config: { ...condition.config, relative_unit: e.target.value },
+                              })
+                            }
+                            size="sm"
+                            options={RELATIVE_TIME_UNITS.map(unit => ({
+                              value: unit.id,
+                              label: unit.label,
+                            }))}
+                          />
+                          <span className="text-xs text-gray-500 dark:text-gray-400 self-center">
+                            from now (use negative for past)
+                          </span>
+                        </>
+                      )}
                     </div>
                   )}
 
