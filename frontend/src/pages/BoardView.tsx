@@ -1700,17 +1700,8 @@ export default function BoardView() {
       setSelectedCard(null);
       setSearchParams((params) => { params.delete('card'); return params; }, { replace: true });
 
-      // Create activity record for archiving
-      try {
-        await createActivity({
-          type: 'card_archived',
-          description: `${currentUser?.displayName || 'User'} archived "${card.title}" from ${listName}`,
-          cardId: card.id,
-          boardId: id || undefined,
-        });
-      } catch (activityErr) {
-        console.error('Failed to create archive activity:', activityErr);
-      }
+      // Activity is automatically created by Drupal's hook_ENTITY_TYPE_update()
+      // when field_card_archived changes, so no need to call createActivity() here.
 
       // Send notifications to card members and watchers (excluding current user)
       const usersToNotify = new Set<string>();
@@ -1796,17 +1787,8 @@ export default function BoardView() {
       newCardsMap.set(card.listId, [{ ...restoredCard, archived: false }, ...listCards]);
       setCardsByList(newCardsMap);
 
-      // Create activity record for restoring
-      try {
-        await createActivity({
-          type: 'card_restored',
-          description: `${currentUser?.displayName || 'User'} restored "${card.title}" to ${listName}`,
-          cardId: card.id,
-          boardId: id || undefined,
-        });
-      } catch (activityErr) {
-        console.error('Failed to create restore activity:', activityErr);
-      }
+      // Activity is automatically created by Drupal's hook_ENTITY_TYPE_update()
+      // when field_card_archived changes, so no need to call createActivity() here.
 
       // Show success message
       toast.success(`Card "${card.title}" restored to "${listName}"`);
@@ -2195,22 +2177,8 @@ export default function BoardView() {
           const toList = lists.find(l => l.id === targetListId);
           if (cardToMove && fromList && toList) {
             toast.info(`Card "${cardToMove.title}" moved from "${fromList.title}" to "${toList.title}"`, 3000);
-
-            // Create activity record for card moved
-            try {
-              await createActivity({
-                type: 'card_moved',
-                description: `${currentUser?.displayName || 'User'} moved "${cardToMove.title}" from "${fromList.title}" to "${toList.title}"`,
-                cardId: cardToMove.id,
-                boardId: id || undefined,
-                data: {
-                  from_list: fromList.title,
-                  to_list: toList.title,
-                },
-              });
-            } catch (activityErr) {
-              console.error('Failed to create card moved activity:', activityErr);
-            }
+            // Activity is automatically created by Drupal's hook_ENTITY_TYPE_update()
+            // when field_card_list changes, so no need to call createActivity() here.
           }
         } catch {
           setError('Failed to move card');
@@ -2269,22 +2237,8 @@ export default function BoardView() {
         const toList = lists.find(l => l.id === targetListId);
         if (movedCard && fromList && toList) {
           toast.info(`Card "${movedCard.title}" moved from "${fromList.title}" to "${toList.title}"`, 3000);
-
-          // Create activity record for card moved
-          try {
-            await createActivity({
-              type: 'card_moved',
-              description: `${currentUser?.displayName || 'User'} moved "${movedCard.title}" from "${fromList.title}" to "${toList.title}"`,
-              cardId: movedCard.id,
-              boardId: id || undefined,
-              data: {
-                from_list: fromList.title,
-                to_list: toList.title,
-              },
-            });
-          } catch (activityErr) {
-            console.error('Failed to create card moved activity:', activityErr);
-          }
+          // Activity is automatically created by Drupal's hook_ENTITY_TYPE_update()
+          // when field_card_list changes, so no need to call createActivity() here.
         }
       } catch {
         setError('Failed to move card');

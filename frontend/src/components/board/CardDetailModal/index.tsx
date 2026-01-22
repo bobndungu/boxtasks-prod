@@ -794,18 +794,13 @@ function CardDetailModal({
           members: updatedCard.members,
         });
         setIsWatching(false);
-        // Create activity for stopped watching and refresh activities
+        // Activity is automatically created by Drupal's hook_ENTITY_TYPE_update()
+        // when field_card_watchers changes. Refresh to show the new activity.
         try {
-          await createActivity({
-            type: 'watcher_removed',
-            description: `${currentUser?.displayName || 'User'} stopped watching "${card.title}"`,
-            cardId: card.id,
-            boardId: boardId || undefined,
-          });
           const cardActivities = await fetchActivitiesByCard(card.id);
           setActivities(cardActivities);
         } catch (activityErr) {
-          console.error('Failed to create watcher activity:', activityErr);
+          console.error('Failed to refresh activities:', activityErr);
         }
       } else {
         const updatedCard = await watchCard(card.id, currentUser.id);
@@ -817,18 +812,13 @@ function CardDetailModal({
           members: updatedCard.members,
         });
         setIsWatching(true);
-        // Create activity for started watching and refresh activities
+        // Activity is automatically created by Drupal's hook_ENTITY_TYPE_update()
+        // when field_card_watchers changes. Refresh to show the new activity.
         try {
-          await createActivity({
-            type: 'watcher_added',
-            description: `${currentUser?.displayName || 'User'} started watching "${card.title}"`,
-            cardId: card.id,
-            boardId: boardId || undefined,
-          });
           const cardActivities = await fetchActivitiesByCard(card.id);
           setActivities(cardActivities);
         } catch (activityErr) {
-          console.error('Failed to create watcher activity:', activityErr);
+          console.error('Failed to refresh activities:', activityErr);
         }
       }
     } catch (err) {
@@ -859,20 +849,13 @@ function CardDetailModal({
       // Sync local state with server response
       setCardWatcherIds(updatedCard.watcherIds || []);
       toast.success(`${userName} added as watcher`);
-      // Create activity for watcher added and refresh activities
+      // Backend hook creates the activity automatically when the card entity is updated
+      // Just refresh activities list to show the new activity
       try {
-        await createActivity({
-          type: 'watcher_added',
-          description: `added a watcher`,
-          cardId: card.id,
-          boardId: boardId || undefined,
-          data: { watcher_name: userName },
-        });
-        // Refresh activities list
         const cardActivities = await fetchActivitiesByCard(card.id);
         setActivities(cardActivities);
       } catch (activityErr) {
-        console.error('Failed to create watcher activity:', activityErr);
+        console.error('Failed to refresh activities:', activityErr);
       }
     } catch (err) {
       console.error('Failed to add watcher:', err);
@@ -905,20 +888,13 @@ function CardDetailModal({
       // Sync local state with server response
       setCardWatcherIds(updatedCard.watcherIds || []);
       toast.success(`${userName} removed as watcher`);
-      // Create activity for watcher removed and refresh activities
+      // Backend hook creates the activity automatically when the card entity is updated
+      // Just refresh activities list to show the new activity
       try {
-        await createActivity({
-          type: 'watcher_removed',
-          description: `removed a watcher`,
-          cardId: card.id,
-          boardId: boardId || undefined,
-          data: { watcher_name: userName },
-        });
-        // Refresh activities list
         const cardActivities = await fetchActivitiesByCard(card.id);
         setActivities(cardActivities);
       } catch (activityErr) {
-        console.error('Failed to create watcher activity:', activityErr);
+        console.error('Failed to refresh activities:', activityErr);
       }
     } catch (err) {
       console.error('Failed to remove watcher:', err);
