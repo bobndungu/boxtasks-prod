@@ -1,4 +1,5 @@
 import { fetchWithCsrf, getAccessToken } from './client';
+import { decodeHtmlEntities } from '../utils/htmlEntities';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -123,7 +124,18 @@ export async function fetchEverythingView(
     throw new Error('Failed to fetch everything view');
   }
 
-  return response.json();
+  const data: EverythingViewResponse = await response.json();
+
+  // Decode HTML entities in card titles and descriptions
+  if (data.cards) {
+    data.cards = data.cards.map(card => ({
+      ...card,
+      title: decodeHtmlEntities(card.title),
+      description: card.description ? decodeHtmlEntities(card.description) : card.description,
+    }));
+  }
+
+  return data;
 }
 
 /**
@@ -161,5 +173,16 @@ export async function fetchMyCards(
     throw new Error('Failed to fetch my cards');
   }
 
-  return response.json();
+  const data: MyCardsResponse = await response.json();
+
+  // Decode HTML entities in card titles and descriptions
+  if (data.cards) {
+    data.cards = data.cards.map(card => ({
+      ...card,
+      title: decodeHtmlEntities(card.title),
+      description: card.description ? decodeHtmlEntities(card.description) : card.description,
+    }));
+  }
+
+  return data;
 }

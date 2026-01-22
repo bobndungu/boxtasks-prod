@@ -1,4 +1,5 @@
 import { getAccessToken } from './client';
+import { decodeHtmlEntities } from '../utils/htmlEntities';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -78,11 +79,28 @@ export async function fetchDashboardData(workspaceId: string): Promise<Dashboard
 
   const data = await response.json();
 
-  // The server returns data in the exact format we need
+  // Decode HTML entities in activity descriptions and titles
+  const recentActivity = (data.recentActivity || []).map((activity: ActivityItem) => ({
+    ...activity,
+    description: activity.description ? decodeHtmlEntities(activity.description) : activity.description,
+    cardTitle: activity.cardTitle ? decodeHtmlEntities(activity.cardTitle) : activity.cardTitle,
+    boardTitle: activity.boardTitle ? decodeHtmlEntities(activity.boardTitle) : activity.boardTitle,
+  }));
+
+  // Decode board and list titles
+  const boards = (data.boards || []).map((board: BoardStats) => ({
+    ...board,
+    title: decodeHtmlEntities(board.title),
+    lists: (board.lists || []).map((list: ListStats) => ({
+      ...list,
+      title: decodeHtmlEntities(list.title),
+    })),
+  }));
+
   return {
     stats: data.stats,
-    boards: data.boards,
-    recentActivity: data.recentActivity,
+    boards,
+    recentActivity,
     teamStats: data.teamStats,
     cardsByDueDate: data.cardsByDueDate,
     completionTrend: data.completionTrend,

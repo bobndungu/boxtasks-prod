@@ -1,4 +1,5 @@
 import { getAccessToken, fetchWithCsrf, customApiClient, NotFoundError, ForbiddenError } from './client';
+import { decodeHtmlEntities } from '../utils/htmlEntities';
 
 // Re-export error classes for consumers
 export { NotFoundError, ForbiddenError };
@@ -510,10 +511,38 @@ export interface ConsolidatedBoardData {
  * Fetch all board data in a single API call.
  * This is the optimized endpoint that reduces 9 API calls to 1.
  * Uses apiClient for automatic token refresh on 401 errors.
+ *
+ * Note: Decodes HTML entities in card titles and descriptions since
+ * Drupal returns HTML-encoded text (e.g., &#039; for apostrophes).
  */
 export async function fetchBoardData(boardId: string): Promise<ConsolidatedBoardData> {
   const response = await customApiClient.get<ConsolidatedBoardData>(
     `/api/board/${boardId}/data`
   );
-  return response.data;
+
+  // Decode HTML entities in card titles and descriptions
+  const data = response.data;
+  if (data.cards) {
+    data.cards = data.cards.map(card => ({
+      ...card,
+      title: decodeHtmlEntities(card.title),
+      description: card.description ? decodeHtmlEntities(card.description) : card.description,
+    }));
+  }
+
+  // Also decode list titles and board title/description
+  if (data.lists) {
+    data.lists = data.lists.map(list => ({
+      ...list,
+      title: decodeHtmlEntities(list.title),
+    }));
+  }
+  if (data.board) {
+    data.board.title = decodeHtmlEntities(data.board.title);
+    if (data.board.description) {
+      data.board.description = decodeHtmlEntities(data.board.description);
+    }
+  }
+
+  return data;
 }

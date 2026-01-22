@@ -1,4 +1,5 @@
 import { getAccessToken } from './client';
+import { decodeHtmlEntities } from '../utils/htmlEntities';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -86,16 +87,17 @@ export async function searchCards(query: string, workspaceId?: string): Promise<
       return null as unknown as SearchResult;
     }
 
+    const rawDescription = (attrs.body as { value?: string })?.value || (attrs.field_card_description as { value?: string })?.value || undefined;
     return {
       id: item.id as string,
-      title: attrs.title as string,
+      title: decodeHtmlEntities(attrs.title as string),
       type: 'card',
       // Production uses 'body' instead of 'field_card_description'
-      description: (attrs.body as { value?: string })?.value || (attrs.field_card_description as { value?: string })?.value || undefined,
+      description: rawDescription ? decodeHtmlEntities(rawDescription) : undefined,
       listId: listRef?.id || undefined,
-      listTitle: (listAttrs?.title as string) || undefined,
+      listTitle: listAttrs?.title ? decodeHtmlEntities(listAttrs.title as string) : undefined,
       boardId: boardRef?.id || undefined,
-      boardTitle: (boardAttrs?.title as string) || undefined,
+      boardTitle: boardAttrs?.title ? decodeHtmlEntities(boardAttrs.title as string) : undefined,
       workspaceId: workspaceRef?.id || undefined,
       workspaceName: (workspaceAttrs?.title as string) || undefined,
     };
@@ -151,9 +153,9 @@ export async function searchBoards(query: string, workspaceId?: string): Promise
 
     return {
       id: item.id as string,
-      title: attrs.title as string,
+      title: decodeHtmlEntities(attrs.title as string),
       type: 'board',
-      description: (attrs.field_board_description as string) || undefined,
+      description: attrs.field_board_description ? decodeHtmlEntities(attrs.field_board_description as string) : undefined,
       workspaceId: workspaceRef?.id || undefined,
       workspaceName: (workspaceAttrs?.title as string) || undefined,
     };
@@ -214,19 +216,21 @@ export async function searchComments(query: string, _workspaceId?: string): Prom
     const boardAttrs = board?.attributes as Record<string, unknown> | undefined;
 
     // Get comment text (comment uses field_comment_text)
-    const body = (attrs.field_comment_text as { value?: string })?.value || '';
+    const rawBody = (attrs.field_comment_text as { value?: string })?.value || '';
+    const body = decodeHtmlEntities(rawBody);
     const preview = body.substring(0, 100) + (body.length > 100 ? '...' : '');
+    const cardTitle = cardAttrs?.title ? decodeHtmlEntities(cardAttrs.title as string) : 'card';
 
     return {
       id: item.id as string,
-      title: `Comment on "${(cardAttrs?.title as string) || 'card'}"`,
+      title: `Comment on "${cardTitle}"`,
       type: 'comment',
       description: preview,
       matchedText: preview,
       cardId: cardRef?.id || undefined,
-      cardTitle: (cardAttrs?.title as string) || undefined,
+      cardTitle: cardTitle !== 'card' ? cardTitle : undefined,
       boardId: boardRef?.id || undefined,
-      boardTitle: (boardAttrs?.title as string) || undefined,
+      boardTitle: boardAttrs?.title ? decodeHtmlEntities(boardAttrs.title as string) : undefined,
     };
   }).filter((r) => r.cardId); // Only show comments with valid cards
 }
@@ -284,12 +288,12 @@ export async function searchChecklists(query: string, _workspaceId?: string): Pr
 
     return {
       id: item.id as string,
-      title: attrs.title as string,
+      title: decodeHtmlEntities(attrs.title as string),
       type: 'checklist',
       cardId: cardRef?.id || undefined,
-      cardTitle: (cardAttrs?.title as string) || undefined,
+      cardTitle: cardAttrs?.title ? decodeHtmlEntities(cardAttrs.title as string) : undefined,
       boardId: boardRef?.id || undefined,
-      boardTitle: (boardAttrs?.title as string) || undefined,
+      boardTitle: boardAttrs?.title ? decodeHtmlEntities(boardAttrs.title as string) : undefined,
     };
   }).filter((r) => r.cardId); // Only show checklists with valid cards
 }
