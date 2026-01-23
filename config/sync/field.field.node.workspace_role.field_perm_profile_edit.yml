@@ -1,3 +1,4 @@
+uuid: ea58ccda-a8a9-4ccf-acf6-9f9d14934efa
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission to edit user profiles. Own = only your own profile. Any
 required: false
 translatable: false
 default_value:
-  - value: 'own'
+  -
+    value: own
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

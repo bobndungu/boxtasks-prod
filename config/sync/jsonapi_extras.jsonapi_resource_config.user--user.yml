@@ -1,4 +1,4 @@
-uuid: null
+uuid: 9f8a7b6c-5d4e-3f2a-1b0c-d9e8f7a6b5c4
 langcode: en
 status: true
 dependencies: {  }
@@ -89,5 +89,35 @@ resourceFields:
     disabled: false
     fieldName: field_pending_approval
     publicName: field_pending_approval
+    enhancer:
+      id: ''
+  field_is_premium:
+    disabled: false
+    fieldName: field_is_premium
+    publicName: field_is_premium
+    enhancer:
+      id: ''
+  field_email_verified:
+    disabled: false
+    fieldName: field_email_verified
+    publicName: field_email_verified
+    enhancer:
+      id: ''
+  field_notif_prefs:
+    disabled: false
+    fieldName: field_notif_prefs
+    publicName: field_notif_prefs
+    enhancer:
+      id: ''
+  field_original_uuid:
+    disabled: true
+    fieldName: field_original_uuid
+    publicName: field_original_uuid
+    enhancer:
+      id: ''
+  field_timezone:
+    disabled: false
+    fieldName: field_timezone
+    publicName: field_timezone
     enhancer:
       id: ''

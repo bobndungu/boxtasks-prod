@@ -40,8 +40,10 @@ hidden:
   field_bio: true
   field_display_name: true
   field_email_verified: true
+  field_first_name: true
   field_is_premium: true
   field_job_title: true
+  field_last_name: true
   field_notif_prefs: true
   field_original_uuid: true
   field_pending_approval: true

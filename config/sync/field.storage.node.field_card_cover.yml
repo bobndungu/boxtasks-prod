@@ -13,6 +13,9 @@ field_name: field_card_cover
 entity_type: node
 type: image
 settings:
+  target_type: file
+  display_field: false
+  display_default: true
   uri_scheme: public
   default_image:
     uuid: null
@@ -20,9 +23,6 @@ settings:
     title: ''
     width: null
     height: null
-  target_type: file
-  display_default: true
-  display_field: false
 module: image
 locked: false
 cardinality: 1

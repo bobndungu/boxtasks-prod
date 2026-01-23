@@ -1,3 +1,4 @@
+uuid: 1527667a-0dd6-46da-8a51-bb62076af738
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission to delete user accounts. Own = only your own account. A
 required: false
 translatable: false
 default_value:
-  - value: 'none'
+  -
+    value: none
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

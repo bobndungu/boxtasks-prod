@@ -1,3 +1,4 @@
+uuid: c7a58bff-cc62-41f3-a3cb-137c2e3c2d87
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission to view user profiles. Own = only your own profile. Any
 required: false
 translatable: false
 default_value:
-  - value: 'own'
+  -
+    value: own
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string
