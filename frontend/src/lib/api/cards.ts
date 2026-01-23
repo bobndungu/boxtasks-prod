@@ -354,7 +354,6 @@ function transformCard(
     // Production uses 'field_labels' as entity references - handle both formats
     labels: (attrs.field_card_labels as CardLabel[]) || [],
     archived: (attrs.field_card_archived as boolean) || (attrs.field_archived as boolean) || false,
-    // Production doesn't have field_card_completed - default to false
     completed: (attrs.field_card_completed as boolean) || false,
     // Production uses 'field_pinned' instead of 'field_card_pinned'
     pinned: (attrs.field_pinned as boolean) || (attrs.field_card_pinned as boolean) || false,
@@ -577,6 +576,7 @@ export async function updateCard(id: string, data: Partial<CreateCardData> & { a
     attributes.field_card_due_date = formatDateForDrupal(data.dueDate);
   }
   if (data.archived !== undefined) attributes.field_card_archived = data.archived;
+  if (data.completed !== undefined) attributes.field_card_completed = data.completed;
   // Production uses 'field_pinned' instead of 'field_card_pinned'
   if (data.pinned !== undefined) attributes.field_pinned = data.pinned;
   // Estimate fields

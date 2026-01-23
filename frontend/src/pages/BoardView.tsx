@@ -1855,13 +1855,14 @@ export default function BoardView() {
       },
       apiCall: () => updateCard(card.id, { completed: newCompleted }),
       onSuccess: (updated) => {
-        // Update with real server data
+        // Merge server response with original card to preserve member names
+        // (JSON:API PATCH response doesn't include user data)
         setCardsByList((prev) => {
           const newMap = new Map(prev);
           const listCards = newMap.get(card.listId) || [];
           newMap.set(
             card.listId,
-            listCards.map((c) => (c.id === card.id ? updated : c))
+            listCards.map((c) => (c.id === card.id ? { ...card, ...updated, members: card.members, watchers: card.watchers } : c))
           );
           return newMap;
         });

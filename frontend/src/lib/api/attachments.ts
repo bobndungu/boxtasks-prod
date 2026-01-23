@@ -2,6 +2,91 @@ import { getAccessToken, fetchWithCsrf } from './client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
+// Image compression settings
+const MAX_IMAGE_DIMENSION = 2048; // Max width/height in pixels
+const JPEG_QUALITY = 0.8; // 80% quality for JPEG compression
+const COMPRESSIBLE_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
+
+/**
+ * Compress an image file using Canvas API.
+ * Resizes if larger than MAX_IMAGE_DIMENSION and re-encodes as JPEG.
+ * PNG files with transparency are kept as PNG but still resized if needed.
+ */
+export async function compressImage(file: File): Promise<File> {
+  if (!COMPRESSIBLE_IMAGE_TYPES.includes(file.type)) {
+    return file;
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      let { width, height } = img;
+
+      // Calculate new dimensions if image is too large
+      if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
+        const ratio = Math.min(MAX_IMAGE_DIMENSION / width, MAX_IMAGE_DIMENSION / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(file); // Fallback to original
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Always output as JPEG for compression (PNG with transparency would need special handling)
+      const outputType = 'image/jpeg';
+      const outputExtension = '.jpg';
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob || blob.size >= file.size) {
+            // If compressed is larger than original, use original
+            resolve(file);
+            return;
+          }
+
+          // Create new file with compressed data
+          const baseName = file.name.replace(/\.[^.]+$/, '');
+          const compressedFile = new window.File(
+            [blob],
+            baseName + outputExtension,
+            { type: outputType, lastModified: Date.now() }
+          );
+          resolve(compressedFile);
+        },
+        outputType,
+        JPEG_QUALITY
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image for compression'));
+    };
+
+    img.src = url;
+  });
+}
+
+/**
+ * Check if a file is a compressible image type.
+ */
+export function isCompressibleImage(file: File): boolean {
+  return COMPRESSIBLE_IMAGE_TYPES.includes(file.type);
+}
+
 export interface CardAttachment {
   id: string;
   name: string;
@@ -83,6 +168,17 @@ export async function fetchAttachmentsByCard(cardId: string): Promise<CardAttach
 
 // Upload a file and create an attachment using custom API endpoint
 export async function createAttachment(cardId: string, file: File): Promise<CardAttachment> {
+  // Compress image files before upload
+  let fileToUpload = file;
+  if (isCompressibleImage(file)) {
+    try {
+      fileToUpload = await compressImage(file);
+    } catch (err) {
+      console.warn('Image compression failed, uploading original:', err);
+      fileToUpload = file;
+    }
+  }
+
   // Use custom endpoint that handles both file upload and attachment creation
   const response = await fetchWithCsrf(
     `${API_URL}/api/cards/${cardId}/attachments`,
@@ -91,9 +187,9 @@ export async function createAttachment(cardId: string, file: File): Promise<Card
       headers: {
         'Content-Type': 'application/octet-stream',
         'Accept': 'application/json',
-        'Content-Disposition': `file; filename="${encodeURIComponent(file.name)}"`,
+        'Content-Disposition': `file; filename="${encodeURIComponent(fileToUpload.name)}"`,
       },
-      body: file,
+      body: fileToUpload,
     }
   );
 

@@ -123,12 +123,21 @@ class FileUploadController extends ControllerBase {
         ], 500);
       }
 
+      // Compress PDF files using Ghostscript if available
+      if ($extension === 'pdf') {
+        $this->compressPdf($uri);
+      }
+
+      // Get actual file size after potential compression
+      $real_path = $this->fileSystem->realpath($uri);
+      $actual_size = $real_path ? filesize($real_path) : strlen($content);
+
       // Create file entity
       $file = File::create([
         'uri' => $uri,
         'filename' => $safe_filename,
         'filemime' => mime_content_type($this->fileSystem->realpath($uri)) ?: 'application/octet-stream',
-        'filesize' => strlen($content),
+        'filesize' => $actual_size,
         'status' => 1,
         'uid' => $this->currentUser()->id(),
       ]);
@@ -157,6 +166,65 @@ class FileUploadController extends ControllerBase {
       return new JsonResponse([
         'error' => 'Failed to upload file: ' . $e->getMessage(),
       ], 500);
+    }
+  }
+
+  /**
+   * Compress a PDF file using Ghostscript.
+   *
+   * Uses the /ebook preset which provides good quality at reduced file size.
+   * Only replaces the original if the compressed version is smaller.
+   *
+   * @param string $uri
+   *   The file URI (e.g., public://card-attachments/2026-01/file.pdf).
+   */
+  protected function compressPdf(string $uri): void {
+    $gs_path = '/usr/bin/gs';
+    if (!file_exists($gs_path)) {
+      return;
+    }
+
+    $real_path = $this->fileSystem->realpath($uri);
+    if (!$real_path || !file_exists($real_path)) {
+      return;
+    }
+
+    $original_size = filesize($real_path);
+    $temp_output = $real_path . '.compressed.pdf';
+
+    // Run Ghostscript with /ebook settings (150 dpi, good quality/size balance)
+    $command = sprintf(
+      '%s -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile=%s %s 2>&1',
+      escapeshellarg($gs_path),
+      escapeshellarg($temp_output),
+      escapeshellarg($real_path)
+    );
+
+    exec($command, $output, $return_code);
+
+    if ($return_code === 0 && file_exists($temp_output)) {
+      $compressed_size = filesize($temp_output);
+
+      // Only use compressed version if it's actually smaller
+      if ($compressed_size < $original_size) {
+        rename($temp_output, $real_path);
+        \Drupal::logger('boxtasks_api')->info('PDF compressed: @original -> @compressed bytes (@percent% reduction)', [
+          '@original' => $original_size,
+          '@compressed' => $compressed_size,
+          '@percent' => round((1 - $compressed_size / $original_size) * 100),
+        ]);
+      }
+      else {
+        // Compressed is larger or same, keep original
+        @unlink($temp_output);
+      }
+    }
+    else {
+      // Compression failed, clean up temp file
+      if (file_exists($temp_output)) {
+        @unlink($temp_output);
+      }
+      \Drupal::logger('boxtasks_api')->warning('PDF compression failed for: @path', ['@path' => $real_path]);
     }
   }
 

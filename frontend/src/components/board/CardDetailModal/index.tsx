@@ -167,6 +167,7 @@ function CardDetailModal({
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [previewImage, setPreviewImage] = useState<CardAttachment | null>(null);
   const [coverImageUrl, setCoverImageUrl] = useState(card.coverImageUrl || '');
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [isLoadingChecklists, setIsLoadingChecklists] = useState(true);
@@ -2889,12 +2890,27 @@ function CardDetailModal({
                     {attachments.map((attachment) => (
                       <div
                         key={attachment.id}
-                        className="flex items-center justify-between bg-gray-50 rounded-lg p-3 hover:bg-gray-100"
+                        className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-750"
                       >
-                        <div className="flex items-center flex-1 min-w-0">
-                          {getFileIcon(attachment.mimeType)}
+                        <div
+                          className={`flex items-center flex-1 min-w-0 ${attachment.mimeType.startsWith('image/') ? 'cursor-pointer' : ''}`}
+                          onClick={() => {
+                            if (attachment.mimeType.startsWith('image/')) {
+                              setPreviewImage(attachment);
+                            }
+                          }}
+                        >
+                          {attachment.mimeType.startsWith('image/') ? (
+                            <img
+                              src={attachment.fileUrl}
+                              alt={attachment.name}
+                              className="w-10 h-10 object-cover rounded flex-shrink-0"
+                            />
+                          ) : (
+                            getFileIcon(attachment.mimeType)
+                          )}
                           <div className="ml-3 flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-800 truncate">{attachment.name}</p>
+                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{attachment.name}</p>
                             <p className="text-xs text-gray-500">{formatFileSize(attachment.fileSize)}</p>
                           </div>
                         </div>
@@ -4363,6 +4379,41 @@ function CardDetailModal({
         )}
 
         <ConfirmDialog />
+
+        {/* Image Preview Modal */}
+        {previewImage && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80"
+            onClick={() => setPreviewImage(null)}
+          >
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-4 right-4 p-2 text-white/80 hover:text-white bg-black/50 rounded-full"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <div className="max-w-[90vw] max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
+              <img
+                src={previewImage.fileUrl}
+                alt={previewImage.name}
+                className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+              />
+              <div className="mt-3 text-center">
+                <p className="text-white text-sm font-medium">{previewImage.name}</p>
+                <p className="text-white/60 text-xs mt-1">{formatFileSize(previewImage.fileSize)}</p>
+                <a
+                  href={previewImage.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 mt-2 px-3 py-1 bg-white/20 hover:bg-white/30 text-white text-xs rounded-full transition-colors"
+                >
+                  <Download className="h-3 w-3" />
+                  Download
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
