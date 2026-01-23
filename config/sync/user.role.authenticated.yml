@@ -1,17 +1,19 @@
-uuid: 2d0896a6-a483-4107-9c36-06e217d01512
+uuid: edbad30f-dc36-419c-81f2-0ce136c18cf6
 langcode: en
 status: true
 dependencies:
   config:
     - filter.format.basic_html
+    - node.type.activity
     - node.type.board
+    - node.type.board_list
     - node.type.card
-    - node.type.card_comment
+    - node.type.card_attachment
     - node.type.card_custom_field_value
     - node.type.checklist
     - node.type.checklist_item
     - node.type.custom_field_definition
-    - node.type.workspace
+    - node.type.notification
   module:
     - comment
     - file
@@ -31,27 +33,34 @@ permissions:
   - 'access content'
   - 'access shortcuts'
   - 'access user profiles'
+  - 'create activity content'
   - 'create board content'
+  - 'create board_list content'
   - 'create card content'
-  - 'create card_comment content'
   - 'create card_custom_field_value content'
   - 'create checklist content'
   - 'create checklist_item content'
   - 'create custom_field_definition content'
-  - 'create workspace content'
+  - 'create notification content'
+  - 'delete any board_list content'
   - 'delete any card content'
-  - 'delete any card_comment content'
+  - 'delete any card_attachment content'
   - 'delete any card_custom_field_value content'
   - 'delete any checklist content'
   - 'delete any checklist_item content'
   - 'delete any custom_field_definition content'
+  - 'delete own board_list content'
+  - 'delete own card content'
   - 'delete own files'
+  - 'edit any board_list content'
   - 'edit any card content'
-  - 'edit any card_comment content'
   - 'edit any card_custom_field_value content'
   - 'edit any checklist content'
   - 'edit any checklist_item content'
   - 'edit any custom_field_definition content'
+  - 'edit any notification content'
+  - 'edit own board_list content'
+  - 'edit own card content'
   - 'post comments'
   - 'search content'
   - 'skip comment approval'
