@@ -225,6 +225,10 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   templateCreate: 'none',
   templateEdit: 'own',
   templateDelete: 'own',
+  // Profile permissions
+  profileView: 'own',
+  profileEdit: 'own',
+  profileDelete: 'none',
 };
 
 export default function AdminRoles() {
