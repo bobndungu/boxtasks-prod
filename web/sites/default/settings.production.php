@@ -161,7 +161,7 @@ if (getenv('REDIS_HOST') && extension_loaded('redis')) {
  * OAuth / Simple OAuth settings.
  */
 $settings['simple_oauth.settings'] = [
-  'access_token_expiration' => (int) (getenv('OAUTH_ACCESS_TOKEN_EXPIRATION') ?: 3600),
+  'access_token_expiration' => (int) (getenv('OAUTH_ACCESS_TOKEN_EXPIRATION') ?: 604800),
   'refresh_token_expiration' => (int) (getenv('OAUTH_REFRESH_TOKEN_EXPIRATION') ?: 86400 * 14),
 ];
 

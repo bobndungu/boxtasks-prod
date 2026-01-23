@@ -39,6 +39,7 @@ let csrfToken: string | null = null;
 let tokenExpiresAt: number | null = null;
 let tokenRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 let sessionHeartbeatTimer: ReturnType<typeof setInterval> | null = null;
+let visibilityChangeHandler: (() => void) | null = null;
 
 // Session event callbacks
 type SessionEventCallback = (event: 'refreshed' | 'expiring' | 'expired' | 'error', message?: string) => void;
@@ -189,6 +190,31 @@ export const startSessionMonitoring = () => {
     }
   }, SESSION_HEARTBEAT_INTERVAL_MS);
 
+  // Handle tab visibility changes - when user returns to a backgrounded tab,
+  // setTimeout/setInterval may have been throttled, so check token immediately
+  if (visibilityChangeHandler) {
+    document.removeEventListener('visibilitychange', visibilityChangeHandler);
+  }
+  visibilityChangeHandler = () => {
+    if (document.visibilityState === 'visible' && getAccessToken()) {
+      if (isTokenExpired() || isTokenExpiring()) {
+        refreshAccessToken().then((result) => {
+          if (result) {
+            emitSessionEvent('refreshed', 'Session refreshed successfully');
+          } else {
+            emitSessionEvent('expired', 'Your session has expired. Please log in again.');
+          }
+        }).catch(() => {
+          emitSessionEvent('expired', 'Your session has expired. Please log in again.');
+        });
+      } else {
+        // Token is still valid, reschedule the refresh timer since it may have drifted
+        scheduleTokenRefresh();
+      }
+    }
+  };
+  document.addEventListener('visibilitychange', visibilityChangeHandler);
+
   // Also schedule the proactive refresh
   scheduleTokenRefresh();
 };
@@ -202,6 +228,10 @@ export const stopSessionMonitoring = () => {
   if (sessionHeartbeatTimer) {
     clearInterval(sessionHeartbeatTimer);
     sessionHeartbeatTimer = null;
+  }
+  if (visibilityChangeHandler) {
+    document.removeEventListener('visibilitychange', visibilityChangeHandler);
+    visibilityChangeHandler = null;
   }
 };
 
@@ -391,8 +421,11 @@ apiClient.interceptors.response.use(
 
     // Handle CSRF token errors (403 with CSRF message)
     if (error.response?.status === 403 && !originalRequest._csrfRetry) {
-      const errorData = error.response.data as { message?: string } | undefined;
-      if (errorData?.message?.toLowerCase().includes('csrf')) {
+      const errorData = error.response.data as { message?: string; errors?: Array<{ detail?: string }> } | undefined;
+      const errorMessage = errorData?.message?.toLowerCase() || '';
+      const errorDetail = errorData?.errors?.[0]?.detail?.toLowerCase() || '';
+
+      if (errorMessage.includes('csrf') || errorDetail.includes('csrf')) {
         originalRequest._csrfRetry = true;
         clearCsrfToken();
 
@@ -402,6 +435,17 @@ apiClient.interceptors.response.use(
           originalRequest.headers['X-CSRF-Token'] = freshCsrf;
           return apiClient(originalRequest);
         }
+      } else if (!originalRequest._retry && (errorMessage.includes('permission') || errorDetail.includes('permission') || errorDetail.includes('access'))) {
+        // Drupal returns 403 (not 401) when OAuth token is expired because
+        // the request falls back to anonymous, which lacks permissions
+        originalRequest._retry = true;
+        const newTokens = await refreshAccessToken();
+        if (newTokens) {
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers.Authorization = `Bearer ${newTokens.access_token}`;
+          return apiClient(originalRequest);
+        }
+        emitSessionEvent('expired', 'Your session has expired. Please log in again.');
       }
     }
 
@@ -465,8 +509,20 @@ customApiClient.interceptors.response.use(
       return Promise.reject(new NotFoundError('The requested resource was not found'));
     }
 
-    // Handle 403 errors - forbidden
-    if (error.response?.status === 403) {
+    // Handle 403 errors - could be permission error or expired token
+    if (error.response?.status === 403 && !originalRequest._retry) {
+      // Drupal returns 403 (not 401) when OAuth token is expired because
+      // the request falls back to anonymous, which lacks permissions.
+      // Try refreshing the token first before treating as a true 403.
+      originalRequest._retry = true;
+      const newTokens = await refreshAccessToken();
+      if (newTokens) {
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${newTokens.access_token}`;
+        return customApiClient(originalRequest);
+      }
+      // Refresh failed - it's a genuine permission error or session expired
+      emitSessionEvent('expired', 'Your session has expired. Please log in again.');
       return Promise.reject(new ForbiddenError('You do not have permission to access this resource'));
     }
 
