@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import MainHeader from '../components/MainHeader';
 import { useAuthStore } from '../lib/stores/auth';
+import { useWorkspaceStore } from '../lib/stores/workspace';
+import { usePermissions } from '../lib/hooks/usePermissions';
 import { useConfirmDialog } from '../lib/hooks/useConfirmDialog';
 import {
   fetchUsers,
@@ -61,6 +63,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
 export default function AdminUsers() {
   const { user: currentUser } = useAuthStore();
+  const { currentWorkspace } = useWorkspaceStore();
+  const { canProfile } = usePermissions(currentWorkspace?.id);
+  const canEditOtherProfiles = canProfile('edit', false);
+  const canDeleteOtherProfiles = canProfile('delete', false);
   const { confirm, ConfirmDialog } = useConfirmDialog();
   const [users, setUsers] = useState<DrupalUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -850,13 +856,15 @@ export default function AdminUsers() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => openEditModal(user)}
-                              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                              title="Edit user"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </button>
+                            {(canEditOtherProfiles || user.id === currentUser?.id) && (
+                              <button
+                                onClick={() => openEditModal(user)}
+                                className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                                title="Edit user"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </button>
+                            )}
                             <button
                               onClick={() => openRoleModal(user)}
                               className="p-2 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
@@ -864,18 +872,20 @@ export default function AdminUsers() {
                             >
                               <Shield className="h-4 w-4" />
                             </button>
-                            <button
-                              onClick={() => handleToggleStatus(user)}
-                              className={`p-2 rounded-lg ${
-                                user.status
-                                  ? 'text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                  : 'text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                              }`}
-                              title={user.status ? 'Block user' : 'Unblock user'}
-                            >
-                              {user.status ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                            </button>
-                            {user.uid > 1 && user.id !== currentUser?.id && (
+                            {canEditOtherProfiles && (
+                              <button
+                                onClick={() => handleToggleStatus(user)}
+                                className={`p-2 rounded-lg ${
+                                  user.status
+                                    ? 'text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                    : 'text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                }`}
+                                title={user.status ? 'Block user' : 'Unblock user'}
+                              >
+                                {user.status ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                              </button>
+                            )}
+                            {canDeleteOtherProfiles && user.uid > 1 && user.id !== currentUser?.id && (
                               <button
                                 onClick={() => handleDeleteUser(user)}
                                 className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"

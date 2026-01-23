@@ -30,7 +30,7 @@ interface PermissionConfig {
   key: PermissionKey;
   label: string;
   description: string;
-  category: 'card' | 'list' | 'board' | 'workspace' | 'member' | 'board_member' | 'report' | 'admin' | 'custom_field' | 'automation' | 'card_fields_visibility' | 'saved_views' | 'mind_map' | 'template' | 'other';
+  category: 'card' | 'list' | 'board' | 'workspace' | 'member' | 'board_member' | 'report' | 'admin' | 'custom_field' | 'automation' | 'card_fields_visibility' | 'saved_views' | 'mind_map' | 'template' | 'profile' | 'other';
   allowOwn: boolean;
 }
 
@@ -103,6 +103,10 @@ const PERMISSION_CONFIG: PermissionConfig[] = [
   { key: 'templateCreate', label: 'Create Templates', description: 'Can create new card templates', category: 'template', allowOwn: false },
   { key: 'templateEdit', label: 'Edit Templates', description: 'Can edit card templates', category: 'template', allowOwn: true },
   { key: 'templateDelete', label: 'Delete Templates', description: 'Can delete card templates', category: 'template', allowOwn: true },
+  // Profile permissions
+  { key: 'profileView', label: 'View Profiles', description: 'Can view user profiles', category: 'profile', allowOwn: true },
+  { key: 'profileEdit', label: 'Edit Profiles', description: 'Can edit user profiles', category: 'profile', allowOwn: true },
+  { key: 'profileDelete', label: 'Delete Profiles', description: 'Can delete user accounts', category: 'profile', allowOwn: true },
   // Other permissions
   { key: 'memberManage', label: 'Manage Members (Legacy)', description: 'Legacy permission - use granular member permissions above', category: 'other', allowOwn: false },
   { key: 'commentEdit', label: 'Edit Comments', description: 'Can edit comments', category: 'other', allowOwn: true },
@@ -125,6 +129,7 @@ const CATEGORIES = [
   { key: 'saved_views', label: 'Saved Views', color: 'sky' },
   { key: 'mind_map', label: 'Mind Maps', color: 'fuchsia' },
   { key: 'template', label: 'Templates', color: 'lime' },
+  { key: 'profile', label: 'Profiles', color: 'rose' },
   { key: 'other', label: 'Other', color: 'gray' },
 ] as const;
 
@@ -196,6 +201,10 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
   templateCreate: 'any',
   templateEdit: 'own',
   templateDelete: 'own',
+  // Profile permissions
+  profileView: 'own',
+  profileEdit: 'own',
+  profileDelete: 'none',
 });
 
 export default function RoleManagement() {

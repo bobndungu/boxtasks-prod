@@ -160,6 +160,10 @@ class WorkspaceRolesController extends ControllerBase {
           'templateCreate' => $this->getFieldValue($role, 'field_perm_template_create', 'none'),
           'templateEdit' => $this->getFieldValue($role, 'field_perm_template_edit', 'none'),
           'templateDelete' => $this->getFieldValue($role, 'field_perm_template_delete', 'none'),
+          // Profile permissions
+          'profileView' => $this->getFieldValue($role, 'field_perm_profile_view', 'own'),
+          'profileEdit' => $this->getFieldValue($role, 'field_perm_profile_edit', 'own'),
+          'profileDelete' => $this->getFieldValue($role, 'field_perm_profile_delete', 'none'),
         ],
       ];
     }
@@ -308,6 +312,10 @@ class WorkspaceRolesController extends ControllerBase {
         'templateCreate' => $this->getFieldValue($role, 'field_perm_template_create', 'none'),
         'templateEdit' => $this->getFieldValue($role, 'field_perm_template_edit', 'none'),
         'templateDelete' => $this->getFieldValue($role, 'field_perm_template_delete', 'none'),
+        // Profile permissions
+        'profileView' => $this->getFieldValue($role, 'field_perm_profile_view', 'own'),
+        'profileEdit' => $this->getFieldValue($role, 'field_perm_profile_edit', 'own'),
+        'profileDelete' => $this->getFieldValue($role, 'field_perm_profile_delete', 'none'),
       ],
     ];
   }
@@ -420,6 +428,9 @@ class WorkspaceRolesController extends ControllerBase {
         'templateCreate' => 'field_perm_template_create',
         'templateEdit' => 'field_perm_template_edit',
         'templateDelete' => 'field_perm_template_delete',
+        'profileView' => 'field_perm_profile_view',
+        'profileEdit' => 'field_perm_profile_edit',
+        'profileDelete' => 'field_perm_profile_delete',
       ];
 
       foreach ($data['permissions'] as $key => $value) {
@@ -545,6 +556,9 @@ class WorkspaceRolesController extends ControllerBase {
         'templateCreate' => 'field_perm_template_create',
         'templateEdit' => 'field_perm_template_edit',
         'templateDelete' => 'field_perm_template_delete',
+        'profileView' => 'field_perm_profile_view',
+        'profileEdit' => 'field_perm_profile_edit',
+        'profileDelete' => 'field_perm_profile_delete',
       ];
 
       foreach ($data['permissions'] as $key => $value) {

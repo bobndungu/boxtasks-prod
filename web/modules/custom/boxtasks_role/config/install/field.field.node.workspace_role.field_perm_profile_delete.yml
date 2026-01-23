@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_profile_delete
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_profile_delete
+field_name: field_perm_profile_delete
+entity_type: node
+bundle: workspace_role
+label: 'Delete Profiles'
+description: 'Permission to delete user accounts. Own = only your own account. Any = any user account.'
+required: false
+translatable: false
+default_value:
+  - value: 'none'
+default_value_callback: ''
+settings: {}
+field_type: list_string

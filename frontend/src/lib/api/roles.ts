@@ -109,6 +109,10 @@ export interface WorkspaceRole {
     templateCreate: PermissionLevel;
     templateEdit: PermissionLevel;
     templateDelete: PermissionLevel;
+    // Profile permissions
+    profileView: PermissionLevel;
+    profileEdit: PermissionLevel;
+    profileDelete: PermissionLevel;
   };
 }
 
@@ -205,6 +209,10 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       templateCreate: (attrs.field_perm_template_create as PermissionLevel) || 'none',
       templateEdit: (attrs.field_perm_template_edit as PermissionLevel) || 'none',
       templateDelete: (attrs.field_perm_template_delete as PermissionLevel) || 'none',
+      // Profile permissions
+      profileView: (attrs.field_perm_profile_view as PermissionLevel) || 'own',
+      profileEdit: (attrs.field_perm_profile_edit as PermissionLevel) || 'own',
+      profileDelete: (attrs.field_perm_profile_delete as PermissionLevel) || 'none',
     },
   };
 }

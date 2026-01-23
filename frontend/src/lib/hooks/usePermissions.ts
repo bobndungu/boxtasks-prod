@@ -12,6 +12,7 @@ export type CustomFieldAction = 'view' | 'create' | 'edit' | 'delete';
 export type AutomationAction = 'view' | 'create' | 'edit' | 'delete';
 export type MindMapAction = 'view' | 'create' | 'edit' | 'delete';
 export type TemplateAction = 'view' | 'create' | 'edit' | 'delete';
+export type ProfileAction = 'view' | 'edit' | 'delete';
 
 interface UsePermissionsReturn {
   permissions: WorkspaceRole['permissions'] | null;
@@ -48,6 +49,8 @@ interface UsePermissionsReturn {
   canMindMap: (action: MindMapAction, isOwner?: boolean) => boolean;
   // Template permissions
   canTemplate: (action: TemplateAction, isOwner?: boolean) => boolean;
+  // Profile permissions
+  canProfile: (action: ProfileAction, isOwner?: boolean) => boolean;
   refetch: () => Promise<void>;
 }
 
@@ -120,6 +123,10 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   templateCreate: 'any',
   templateEdit: 'own',
   templateDelete: 'own',
+  // Profile permissions
+  profileView: 'own',
+  profileEdit: 'own',
+  profileDelete: 'none',
 };
 
 // Check if error is an abort error (navigation/unmount)
@@ -667,6 +674,28 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     return canPerformAction(permission, isOwner);
   }, [permissions, user]);
 
+  // Profile permission check
+  const canProfile = useCallback((action: ProfileAction, isOwner: boolean = false): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return action === 'view' && isOwner; // Allow viewing own profile while loading
+
+    let permission: PermissionLevel;
+    switch (action) {
+      case 'view':
+        permission = permissions.profileView;
+        break;
+      case 'edit':
+        permission = permissions.profileEdit;
+        break;
+      case 'delete':
+        permission = permissions.profileDelete;
+        break;
+    }
+
+    return canPerformAction(permission, isOwner);
+  }, [permissions, user]);
+
   return {
     permissions,
     roleId,
@@ -702,6 +731,8 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canMindMap,
     // Template permissions
     canTemplate,
+    // Profile permissions
+    canProfile,
     refetch,
   };
 }

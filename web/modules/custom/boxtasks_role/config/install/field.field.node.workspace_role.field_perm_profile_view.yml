@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_profile_view
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_profile_view
+field_name: field_perm_profile_view
+entity_type: node
+bundle: workspace_role
+label: 'View Profiles'
+description: 'Permission to view user profiles. Own = only your own profile. Any = all user profiles.'
+required: false
+translatable: false
+default_value:
+  - value: 'own'
+default_value_callback: ''
+settings: {}
+field_type: list_string
