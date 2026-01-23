@@ -884,15 +884,39 @@ export async function unwatchCard(cardId: string, userId: string): Promise<Card>
   return fetchCard(cardId);
 }
 
+// Fetch current member IDs for a card directly from the server
+// Uses the JSON:API relationship endpoint for a lightweight fetch
+async function fetchCurrentMemberIds(cardId: string): Promise<string[]> {
+  const response = await fetch(
+    `${API_URL}/jsonapi/node/card/${cardId}/relationships/field_card_members`,
+    {
+      headers: {
+        'Accept': 'application/vnd.api+json',
+        'Authorization': `Bearer ${getAccessToken()}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch current members');
+  }
+
+  const result = await response.json();
+  const data = result.data;
+  if (!Array.isArray(data)) return [];
+  return data.map((ref: { id: string }) => ref.id);
+}
+
 // Assign a member to a card
-// Accepts optional currentMemberIds to skip the initial fetch
+// Always fetches fresh member data from server to prevent race conditions
 export async function assignMember(
   cardId: string,
   userId: string,
-  currentMemberIds?: string[]
+  _currentMemberIds?: string[]
 ): Promise<{ memberIds: string[] }> {
-  // Use provided memberIds or fetch if not provided
-  const existingMembers = currentMemberIds ?? [];
+  // Always fetch fresh member IDs from server to avoid race conditions
+  // where stale local state could overwrite concurrent member changes
+  const existingMembers = await fetchCurrentMemberIds(cardId);
 
   // Add user if not already assigned
   if (existingMembers.includes(userId)) {
@@ -925,19 +949,18 @@ export async function assignMember(
     throw new Error(error.errors?.[0]?.detail || 'Failed to assign member');
   }
 
-  // Return the new member IDs directly - caller can do optimistic update
   return { memberIds: newMembers };
 }
 
 // Unassign a member from a card
-// Accepts optional currentMemberIds to skip the initial fetch
+// Always fetches fresh member data from server to prevent race conditions
 export async function unassignMember(
   cardId: string,
   userId: string,
-  currentMemberIds?: string[]
+  _currentMemberIds?: string[]
 ): Promise<{ memberIds: string[] }> {
-  // Use provided memberIds or empty array
-  const existingMembers = currentMemberIds ?? [];
+  // Always fetch fresh member IDs from server to avoid race conditions
+  const existingMembers = await fetchCurrentMemberIds(cardId);
 
   // Remove user if assigned
   if (!existingMembers.includes(userId)) {
@@ -972,7 +995,6 @@ export async function unassignMember(
     throw new Error(error.errors?.[0]?.detail || 'Failed to unassign member');
   }
 
-  // Return the new member IDs directly - caller can do optimistic update
   return { memberIds: newMembers };
 }
 

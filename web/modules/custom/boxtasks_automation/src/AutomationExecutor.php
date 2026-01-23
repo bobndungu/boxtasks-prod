@@ -358,7 +358,24 @@ class AutomationExecutor {
         if (empty($required_member)) {
           return !empty($card_members);
         }
-        $member_ids = array_column($card_members, 'id');
+        // Members can be a flat array of IDs or an array of objects with 'id' key.
+        // Handle both formats for compatibility.
+        if (!empty($card_members) && is_array(reset($card_members))) {
+          $member_ids = array_column($card_members, 'id');
+        }
+        else {
+          $member_ids = $card_members;
+        }
+        // The required_member may be a UUID - convert to numeric ID for comparison.
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $required_member)) {
+          $users = $this->entityTypeManager->getStorage('user')->loadByProperties([
+            'uuid' => $required_member,
+          ]);
+          if (!empty($users)) {
+            $user = reset($users);
+            $required_member = $user->id();
+          }
+        }
         return in_array($required_member, $member_ids);
 
       case 'card_is_approved':
