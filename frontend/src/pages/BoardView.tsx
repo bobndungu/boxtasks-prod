@@ -457,6 +457,27 @@ export default function BoardView() {
     onCardUpdated: (cardData) => {
       // Normalize dates from Mercure to ensure correct timezone handling
       const incomingCard = normalizeCardFromMercure(cardData as Record<string, unknown>) as unknown as Card;
+
+      // If the card was archived, remove it from the board view
+      if (incomingCard.archived) {
+        setCardsByList((prev) => {
+          const newMap = new Map(prev);
+          for (const [listId, cards] of newMap.entries()) {
+            const filtered = cards.filter((c) => c.id !== incomingCard.id);
+            if (filtered.length !== cards.length) {
+              newMap.set(listId, filtered);
+              break;
+            }
+          }
+          return newMap;
+        });
+        // Close the card detail if viewing the archived card
+        if (selectedCard?.id === incomingCard.id) {
+          setSelectedCard(null);
+        }
+        return;
+      }
+
       // Check if incoming data has complete member/watcher info (not just IDs with "Unknown User")
       const hasCompleteMemberData = incomingCard.members?.length &&
         incomingCard.members.every(m => m.name && m.name !== 'Unknown User');

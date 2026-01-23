@@ -34,6 +34,7 @@ type ConnectionStateListener = (state: ConnectionState) => void;
 class MercureManagerClass {
   private eventSource: EventSource | null = null;
   private subscriptions: Map<string, TopicSubscription> = new Map();
+  private connectedTopics: Set<string> = new Set();
   private connectionState: ConnectionState = {
     connected: false,
     connecting: false,
@@ -42,6 +43,7 @@ class MercureManagerClass {
   };
   private stateListeners: Set<ConnectionStateListener> = new Set();
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  private pendingConnect: ReturnType<typeof setTimeout> | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private baseReconnectDelay = 1000;
@@ -61,14 +63,9 @@ class MercureManagerClass {
 
     subscription.handlers.add(handler);
 
-    // If we have an active connection and this is a new topic, we need to reconnect
-    // to include the new topic in the subscription
-    if (this.eventSource && !this.hasTopicInConnection(topic)) {
-      this.reconnect();
-    } else if (!this.eventSource && this.subscriptions.size > 0) {
-      // No connection but we have subscriptions - connect
-      this.connect();
-    }
+    // Schedule a connection sync on next microtask to batch multiple
+    // subscribe/unsubscribe calls from the same React render cycle
+    this.scheduleConnectionSync();
 
     // Return unsubscribe function
     return () => {
@@ -88,25 +85,53 @@ class MercureManagerClass {
     // If no more handlers for this topic, remove the subscription
     if (subscription.handlers.size === 0) {
       this.subscriptions.delete(topic);
-
-      // If no more subscriptions at all, disconnect
-      if (this.subscriptions.size === 0) {
-        this.disconnect();
-      } else {
-        // Otherwise reconnect without this topic
-        this.reconnect();
-      }
     }
+
+    // Debounce the connection change - don't reconnect immediately.
+    // This prevents race conditions when React useEffect cleanup/re-run
+    // cycles unsubscribe and immediately resubscribe the same topic.
+    this.scheduleConnectionSync();
   }
 
   /**
-   * Check if a topic is included in the current connection
+   * Schedule a connection sync on next microtask.
+   * Batches multiple subscribe/unsubscribe calls from the same render cycle.
    */
-  private hasTopicInConnection(_topic: string): boolean {
-    if (!this.eventSource) return false;
-    // We can't easily check what topics are subscribed in EventSource,
-    // so we'll track this separately if needed
-    return true; // For now, assume we need to reconnect for new topics
+  private scheduleConnectionSync(): void {
+    if (this.pendingConnect) return;
+
+    this.pendingConnect = setTimeout(() => {
+      this.pendingConnect = null;
+      this.syncConnection();
+    }, 0);
+  }
+
+  /**
+   * Sync the EventSource connection to match current subscriptions.
+   * Creates, reconnects, or disconnects as needed.
+   */
+  private syncConnection(): void {
+    // No subscriptions - disconnect if connected
+    if (this.subscriptions.size === 0) {
+      if (this.eventSource) {
+        this.disconnect();
+      }
+      return;
+    }
+
+    // Check if current connection matches desired topics
+    if (this.eventSource) {
+      const desiredTopics = new Set(this.subscriptions.keys());
+      const topicsMatch =
+        this.connectedTopics.size === desiredTopics.size &&
+        Array.from(desiredTopics).every(t => this.connectedTopics.has(t));
+
+      if (!topicsMatch) {
+        this.reconnect();
+      }
+    } else {
+      this.connect();
+    }
   }
 
   /**
@@ -153,9 +178,10 @@ class MercureManagerClass {
     this.isIntentionalDisconnect = false;
     this.setConnectionState({ connecting: true, error: null });
 
-    // Build URL with all topics
+    // Build URL with all topics and track what we're connecting with
     const url = new URL(MERCURE_HUB_URL);
-    this.subscriptions.forEach((_, topic) => {
+    this.connectedTopics = new Set(this.subscriptions.keys());
+    this.connectedTopics.forEach(topic => {
       url.searchParams.append('topic', topic);
     });
 
@@ -256,11 +282,17 @@ class MercureManagerClass {
       this.reconnectTimeout = null;
     }
 
+    if (this.pendingConnect) {
+      clearTimeout(this.pendingConnect);
+      this.pendingConnect = null;
+    }
+
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
     }
 
+    this.connectedTopics.clear();
     this.setConnectionState({
       connected: false,
       connecting: false,
@@ -270,12 +302,29 @@ class MercureManagerClass {
   }
 
   /**
-   * Reconnect with updated topics
+   * Reconnect with updated topics.
+   * Closes old connection without triggering state listeners to avoid
+   * React re-render cascades that could cause useEffect cleanup races.
    */
   private reconnect(): void {
     this.reconnectAttempts = 0;
-    this.disconnect();
+
+    // Close existing connection silently (no state notification)
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+
+    if (this.eventSource) {
+      this.isIntentionalDisconnect = true;
+      this.eventSource.close();
+      this.eventSource = null;
+    }
+
+    this.connectedTopics.clear();
     this.isIntentionalDisconnect = false;
+
+    // Connect with current subscriptions
     this.connect();
   }
 
