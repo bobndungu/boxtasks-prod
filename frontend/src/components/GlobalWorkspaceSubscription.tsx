@@ -19,18 +19,46 @@ export default function GlobalWorkspaceSubscription() {
   const { setWorkspaces, setCurrentWorkspace, currentWorkspace, workspaces, setFetchingWorkspaces, shouldFetchWorkspaces } = useWorkspaceStore();
   const hasInitialFetch = useRef(false);
   const lastFetchTime = useRef<number>(0);
+  const retryCount = useRef(0);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const MAX_RETRIES = 5;
+  const BASE_RETRY_DELAY = 3000; // 3 seconds
 
-  // Refresh workspaces from the server
-  const refreshWorkspaces = useCallback(async () => {
-    // Prevent rapid successive fetches (debounce 2 seconds)
+  // Cleanup retry timer on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimer.current) {
+        clearTimeout(retryTimer.current);
+      }
+    };
+  }, []);
+
+  // Refresh workspaces from the server with retry logic
+  const refreshWorkspaces = useCallback(async (isRetry = false) => {
+    // Prevent rapid successive fetches (debounce 2 seconds) - but allow retries
     const now = Date.now();
-    if (now - lastFetchTime.current < 2000) {
+    if (!isRetry && now - lastFetchTime.current < 2000) {
       return;
     }
     lastFetchTime.current = now;
 
     try {
       const data = await fetchWorkspaces();
+
+      // If we got empty data but user is authenticated, it might be a transient
+      // issue (e.g., server restarting during deployment). Retry with backoff.
+      if (data.length === 0 && retryCount.current < MAX_RETRIES) {
+        retryCount.current++;
+        const delay = BASE_RETRY_DELAY * Math.pow(2, retryCount.current - 1);
+        console.warn(`[GlobalWorkspaceSubscription] Got 0 workspaces, retrying in ${delay}ms (attempt ${retryCount.current}/${MAX_RETRIES})`);
+        retryTimer.current = setTimeout(() => {
+          refreshWorkspaces(true);
+        }, delay);
+        return;
+      }
+
+      // Success - reset retry counter
+      retryCount.current = 0;
       setWorkspaces(data);
 
       // Handle workspace changes
@@ -49,6 +77,16 @@ export default function GlobalWorkspaceSubscription() {
       }
     } catch (error) {
       console.error('Failed to refresh workspaces:', error);
+
+      // Retry on error (network failure, server restart, etc.)
+      if (retryCount.current < MAX_RETRIES) {
+        retryCount.current++;
+        const delay = BASE_RETRY_DELAY * Math.pow(2, retryCount.current - 1);
+        console.warn(`[GlobalWorkspaceSubscription] Fetch failed, retrying in ${delay}ms (attempt ${retryCount.current}/${MAX_RETRIES})`);
+        retryTimer.current = setTimeout(() => {
+          refreshWorkspaces(true);
+        }, delay);
+      }
     }
   }, [currentWorkspace, setWorkspaces, setCurrentWorkspace]);
 

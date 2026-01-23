@@ -14,6 +14,8 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/vnd.api+json',
     'Accept': 'application/vnd.api+json',
+    'Cache-Control': 'no-cache, no-store',
+    'Pragma': 'no-cache',
   },
   withCredentials: true,
 });
@@ -25,6 +27,8 @@ export const customApiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'Cache-Control': 'no-cache, no-store',
+    'Pragma': 'no-cache',
   },
   withCredentials: true,
 });

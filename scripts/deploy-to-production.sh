@@ -77,9 +77,12 @@ ssh "$PROD_USER@$PROD_HOST" << 'ENDSSH'
     npm run build
     cd ..
 
-    echo "  -> Restarting services..."
-    systemctl restart php-fpm
-    systemctl restart nginx
+    echo "  -> Reloading services (graceful - no downtime)..."
+    systemctl reload php-fpm || systemctl restart php-fpm
+    systemctl reload nginx || systemctl restart nginx
+
+    echo "  -> Waiting for services to stabilize..."
+    sleep 3
 
     echo "  -> Final cache clear (ensure no stale access caches)..."
     ./vendor/drush/drush/drush cr
