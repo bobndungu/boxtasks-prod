@@ -118,7 +118,29 @@ function _boxtasks_automation_maybe_run_retroactive(EntityInterface $rule): void
   // Get the executor service.
   $executor = \Drupal::service('boxtasks_automation.executor');
 
-  // Execute the rule for each card.
+  // Get the trigger type for this rule to filter cards appropriately.
+  $trigger_type = $rule->get('trigger_type')->value;
+
+  // Filter cards to only those matching the trigger type's implied state.
+  // This prevents retroactive execution from acting on cards that don't
+  // match the trigger's intent (e.g., a card_rejected trigger should only
+  // affect cards that are actually rejected).
+  $cards = array_filter($cards, function ($card) use ($trigger_type) {
+    return _boxtasks_automation_card_matches_trigger_state($card, $trigger_type);
+  });
+
+  if (empty($cards)) {
+    // Mark as executed even if no cards matched.
+    $rule->set('retroactive_executed', TRUE);
+    $rule->save();
+    \Drupal::logger('boxtasks_automation')->info('Retroactive execution completed for rule @id: no cards matched trigger state @trigger.', [
+      '@id' => $rule->id(),
+      '@trigger' => $trigger_type,
+    ]);
+    return;
+  }
+
+  // Execute the rule for each matching card.
   foreach ($cards as $card) {
     $trigger_data = [
       'card_id' => $card->id(),
@@ -186,6 +208,68 @@ function _boxtasks_automation_get_board_cards(int $board_id): array {
   }
 
   return \Drupal::entityTypeManager()->getStorage('node')->loadMultiple($card_ids);
+}
+
+/**
+ * Checks if a card's current state matches a trigger type's implied condition.
+ *
+ * When running retroactively, we need to filter cards to only those whose
+ * current state matches what the trigger type would naturally select.
+ * For example, a 'card_rejected' trigger should only retroactively apply
+ * to cards that are actually rejected.
+ *
+ * @param \Drupal\node\NodeInterface $card
+ *   The card node.
+ * @param string $trigger_type
+ *   The trigger type of the rule.
+ *
+ * @return bool
+ *   TRUE if the card matches the trigger's implied state.
+ */
+function _boxtasks_automation_card_matches_trigger_state(NodeInterface $card, string $trigger_type): bool {
+  switch ($trigger_type) {
+    case 'card_rejected':
+      // Only cards that are currently rejected (rejected_by set, approved_by empty).
+      $rejected_by = $card->hasField('field_card_rejected_by') ? $card->get('field_card_rejected_by')->target_id : NULL;
+      $approved_by = $card->hasField('field_card_approved_by') ? $card->get('field_card_approved_by')->target_id : NULL;
+      return !empty($rejected_by) && empty($approved_by);
+
+    case 'card_approved':
+      // Only cards that are currently approved (approved_by set, rejected_by empty).
+      $approved_by = $card->hasField('field_card_approved_by') ? $card->get('field_card_approved_by')->target_id : NULL;
+      $rejected_by = $card->hasField('field_card_rejected_by') ? $card->get('field_card_rejected_by')->target_id : NULL;
+      return !empty($approved_by) && empty($rejected_by);
+
+    case 'card_completed':
+      // Only cards that are currently completed.
+      return (bool) $card->get('field_card_completed')->value;
+
+    case 'label_added':
+      // Cannot determine retroactively which label was "just added",
+      // so match all cards that have any labels.
+      $labels = _boxtasks_automation_get_labels($card);
+      return !empty($labels);
+
+    case 'card_moved':
+    case 'card_created':
+    case 'due_date_approaching':
+    case 'member_added':
+    case 'watcher_added':
+    case 'watcher_removed':
+    case 'department_changed':
+    case 'client_changed':
+    case 'comment_added':
+    case 'custom_field_changed':
+    case 'checklist_completed':
+    case 'card_approval_cleared':
+    case 'label_removed':
+    case 'scheduled':
+    case 'retroactive':
+    default:
+      // For triggers that don't imply a specific card state,
+      // or for unknown triggers, allow all cards.
+      return TRUE;
+  }
 }
 
 /**
