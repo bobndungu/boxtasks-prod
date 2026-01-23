@@ -128,6 +128,14 @@ const PERMISSION_CATEGORIES = {
       { key: 'automationDelete', label: 'Delete automations' },
     ],
   },
+  profiles: {
+    label: 'Profiles',
+    permissions: [
+      { key: 'profileView', label: 'View profiles' },
+      { key: 'profileEdit', label: 'Edit profiles' },
+      { key: 'profileDelete', label: 'Delete profiles' },
+    ],
+  },
   cardFieldsVisibility: {
     label: 'Card Fields Visibility',
     permissions: [
