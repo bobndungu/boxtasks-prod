@@ -9,7 +9,7 @@ use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\social_auth\Event\LoginEvent;
 use Drupal\social_auth\Event\SocialAuthEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\Core\Routing\TrustedRedirectResponse;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
@@ -152,7 +152,7 @@ class SocialAuthEmailVerificationSubscriber implements EventSubscriberInterface 
   public function onResponse(ResponseEvent $event): void {
     if ($this->emailMismatchDetected) {
       $frontend_url = getenv('FRONTEND_URL') ?: 'https://tasks.boxraft.com';
-      $event->setResponse(new RedirectResponse($frontend_url . '/register?error=email_mismatch'));
+      $event->setResponse(new TrustedRedirectResponse($frontend_url . '/register?error=email_mismatch'));
       $this->emailMismatchDetected = FALSE;
     }
   }

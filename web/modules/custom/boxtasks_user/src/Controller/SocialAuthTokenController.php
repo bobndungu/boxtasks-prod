@@ -15,7 +15,7 @@ use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\Core\Routing\TrustedRedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -90,22 +90,22 @@ class SocialAuthTokenController extends ControllerBase {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request.
    *
-   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   * @return \Drupal\Core\Routing\TrustedRedirectResponse
    *   Redirect to frontend with token.
    */
-  public function generateToken(Request $request): RedirectResponse {
+  public function generateToken(Request $request): TrustedRedirectResponse {
     $frontend_url = getenv('FRONTEND_URL') ?: 'https://tasks.boxraft.com';
 
     // Check if user is authenticated.
     if ($this->currentUser()->isAnonymous()) {
-      return new RedirectResponse($frontend_url . '/login?error=not_authenticated');
+      return new TrustedRedirectResponse($frontend_url . '/login?error=not_authenticated');
     }
 
     try {
       // Load the user entity.
       $user = $this->entityTypeManager()->getStorage('user')->load($this->currentUser()->id());
       if (!$user) {
-        return new RedirectResponse($frontend_url . '/login?error=user_not_found');
+        return new TrustedRedirectResponse($frontend_url . '/login?error=user_not_found');
       }
 
       // Check if user is blocked (pending approval).
@@ -125,7 +125,7 @@ class SocialAuthTokenController extends ControllerBase {
         if ($email) {
           $redirect_url .= '&email=' . urlencode($email);
         }
-        return new RedirectResponse($redirect_url);
+        return new TrustedRedirectResponse($redirect_url);
       }
 
       // Find the OAuth consumer (client) to use for token generation.
@@ -139,7 +139,7 @@ class SocialAuthTokenController extends ControllerBase {
 
       if (empty($consumers)) {
         $this->getLogger('boxtasks_user')->error('No OAuth consumer found for social auth token generation.');
-        return new RedirectResponse($frontend_url . '/login?error=no_consumer');
+        return new TrustedRedirectResponse($frontend_url . '/login?error=no_consumer');
       }
 
       /** @var \Drupal\consumers\Entity\Consumer $consumer */
@@ -154,7 +154,7 @@ class SocialAuthTokenController extends ControllerBase {
 
       if (!$client_entity) {
         $this->getLogger('boxtasks_user')->error('Could not load client entity for consumer.');
-        return new RedirectResponse($frontend_url . '/login?error=no_client');
+        return new TrustedRedirectResponse($frontend_url . '/login?error=no_client');
       }
 
       // Get scopes.
@@ -207,13 +207,13 @@ class SocialAuthTokenController extends ControllerBase {
         '@uid' => $user->id(),
       ]);
 
-      return new RedirectResponse($redirect_url);
+      return new TrustedRedirectResponse($redirect_url);
     }
     catch (\Exception $e) {
       $this->getLogger('boxtasks_user')->error('Error generating social auth token: @message', [
         '@message' => $e->getMessage(),
       ]);
-      return new RedirectResponse($frontend_url . '/login?error=token_generation_failed');
+      return new TrustedRedirectResponse($frontend_url . '/login?error=token_generation_failed');
     }
   }
 
