@@ -1,0 +1,26 @@
+uuid: 272701b8-f962-4366-b842-a6b9dbd4c9a3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_email_verified
+  module:
+    - user
+_core:
+  default_config_hash: e0vRnFH6KKi__zrUSl0fSmIFil36XNMjc9mQyEbfeBU
+id: user.user.field_email_verified
+field_name: field_email_verified
+entity_type: user
+bundle: user
+label: 'Email Verified'
+description: 'Whether the user has verified their email address.'
+required: false
+translatable: false
+default_value:
+  -
+    value: false
+default_value_callback: ''
+settings:
+  on_label: Verified
+  off_label: 'Not Verified'
+field_type: boolean

@@ -1,0 +1,25 @@
+uuid: 6a372aec-b6e9-4faf-b2bd-d6e6dd4c485b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_is_premium
+    - node.type.workspace
+_core:
+  default_config_hash: 5XHKX5CiHR-59IZSQv7CJVFgpoZw9pB717KOhkgsZMk
+id: node.workspace.field_is_premium
+field_name: field_is_premium
+entity_type: node
+bundle: workspace
+label: Premium
+description: 'Whether this workspace has a premium subscription.'
+required: false
+translatable: false
+default_value:
+  -
+    value: false
+default_value_callback: ''
+settings:
+  on_label: Premium
+  off_label: Free
+field_type: boolean

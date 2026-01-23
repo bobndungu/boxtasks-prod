@@ -1,10 +1,12 @@
-uuid: abc9a380-17e3-4946-bd0e-9f7c42ef9443
+uuid: 31d3146a-bd62-4fcc-af38-b0a4c9608da5
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
+_core:
+  default_config_hash: atLml5s5aWGMUQ06lLNj7kEqpjfjZ7dq7xYSL9-7PN0
 id: node.field_perm_member_manage
 field_name: field_perm_member_manage
 entity_type: node
@@ -14,6 +16,9 @@ settings:
     -
       value: any
       label: Any
+    -
+      value: own
+      label: Own
     -
       value: none
       label: None

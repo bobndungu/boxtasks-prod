@@ -1,0 +1,19 @@
+uuid: 027f3ad8-d3bf-4f6f-b83b-3ed1e0dce1a5
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_template_custom_fields
+field_name: field_template_custom_fields
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

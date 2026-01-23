@@ -1,9 +1,11 @@
-uuid: bbeca671-d98b-40d7-8631-10ea689e3298
+uuid: 393a3053-14e5-4e6e-a49e-d302e02e2983
 langcode: en
 status: true
 dependencies:
   module:
     - node
+_core:
+  default_config_hash: muLx-9Acld8cuvGmw0WJo9CBgA9UDnx17s2r4pWeXyo
 id: node.field_list_position
 field_name: field_list_position
 entity_type: node

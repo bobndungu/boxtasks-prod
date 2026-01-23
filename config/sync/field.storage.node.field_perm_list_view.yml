@@ -1,10 +1,12 @@
-uuid: 622a14e8-0e08-4e70-944c-454808855954
+uuid: 53ec843c-da59-4210-9d58-1e05f95b83f5
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
+_core:
+  default_config_hash: M4HjHxlRW4bQdf1vZzidwrl6dQyU04o8fpjsPRJdvCs
 id: node.field_perm_list_view
 field_name: field_perm_list_view
 entity_type: node

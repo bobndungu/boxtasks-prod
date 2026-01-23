@@ -1,4 +1,4 @@
-uuid: d8eebbfa-209a-49cf-b6d7-64ee790ddce1
+uuid: a675be15-b612-4b87-a446-1e49ff345954
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_report_tasks
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_report_tasks
 field_name: field_perm_report_tasks
 entity_type: node
 bundle: workspace_role
-label: 'View Tasks Reports'
-description: 'Permission level for View Tasks Reports.'
+label: 'View Task Reports'
+description: 'Permission level for viewing task reports.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

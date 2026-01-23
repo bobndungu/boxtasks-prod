@@ -41,12 +41,12 @@ module:
   contextual: 0
   datetime: 0
   dblog: 0
+  dynamic_page_cache: 0
   editor: 0
   field: 0
   field_ui: 0
   file: 0
   filter: 0
-  gin_toolbar: 0
   help: 0
   history: 0
   image: 0
@@ -62,8 +62,10 @@ module:
   mysql: 0
   node: 0
   options: 0
+  page_cache: 0
   path: 0
   path_alias: 0
+  redis: 0
   rest: 0
   restui: 0
   search: 0
@@ -71,6 +73,7 @@ module:
   shortcut: 0
   simple_oauth: 0
   simple_oauth_password_grant: 0
+  smtp: 0
   social_api: 0
   social_auth: 0
   social_auth_entra_id: 0

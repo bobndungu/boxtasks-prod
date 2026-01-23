@@ -1,0 +1,29 @@
+uuid: ad82e18d-0346-4dad-905c-c23b24bc6f4f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_card_custom_fields
+    - node.type.card
+    - node.type.custom_field_definition
+id: node.card.field_card_custom_fields
+field_name: field_card_custom_fields
+entity_type: node
+bundle: card
+label: 'Enabled Custom Fields'
+description: 'Custom fields enabled on this card (for template-only and manual visibility modes)'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      custom_field_definition: custom_field_definition
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

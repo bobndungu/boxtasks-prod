@@ -1,4 +1,4 @@
-uuid: 3224a5ba-431d-4589-ad5a-39350c482dda
+uuid: 9266230a-a1f9-440e-8023-a7ba7537f8e0
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_report_activity
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_report_activity
 field_name: field_perm_report_activity
 entity_type: node
 bundle: workspace_role
 label: 'View Activity Reports'
-description: 'Permission level for View Activity Reports.'
+description: 'Permission level for viewing activity reports.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

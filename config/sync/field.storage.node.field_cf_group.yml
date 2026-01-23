@@ -1,0 +1,19 @@
+uuid: b7b0232e-a448-4d17-bbae-6e7dc734d1cc
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_cf_group
+field_name: field_cf_group
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,9 +1,11 @@
-uuid: 385b2323-acb2-47ef-b560-494694cc6840
+uuid: e31233ba-becc-4ba5-9779-98d2bdbaf73f
 langcode: en
 status: true
 dependencies:
   module:
     - node
+_core:
+  default_config_hash: x58nsNsePyu2AMm4AoDRaUjA08-HcSAfcl2A2AKEY44
 id: node.field_activity_data
 field_name: field_activity_data
 entity_type: node

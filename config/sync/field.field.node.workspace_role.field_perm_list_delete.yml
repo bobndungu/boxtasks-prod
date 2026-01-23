@@ -1,4 +1,4 @@
-uuid: fb29bbd4-6bd3-4073-a52d-0688240e8f14
+uuid: 3399ea19-7227-4311-aa96-7bac990a6b1b
 langcode: en
 status: true
 dependencies:
@@ -6,8 +6,9 @@ dependencies:
     - field.storage.node.field_perm_list_delete
     - node.type.workspace_role
   module:
-    - node
     - options
+_core:
+  default_config_hash: wJEuY4MBNewFGW7NY6swyMpO9fbCtrbAEM55ZKZ_DsU
 id: node.workspace_role.field_perm_list_delete
 field_name: field_perm_list_delete
 entity_type: node

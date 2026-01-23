@@ -1,4 +1,4 @@
-uuid: 74f2b578-279d-402f-9dae-a7987d84dfc1
+uuid: 608f0c8b-ea85-4bed-b707-183dc62f8abe
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_email_templates
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_email_templates
 field_name: field_perm_email_templates
 entity_type: node
 bundle: workspace_role
 label: 'Manage Email Templates'
-description: 'Permission level for Manage Email Templates.'
+description: 'Permission level for managing email templates.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

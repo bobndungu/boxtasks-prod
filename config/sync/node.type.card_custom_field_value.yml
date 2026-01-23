@@ -1,9 +1,9 @@
-uuid: 39298499-32dc-45c0-b8bc-17730ec82f20
+uuid: f45ef7ac-0551-42ff-826e-9e6141db4b6d
 langcode: en
 status: true
-dependencies:
-  module:
-    - boxtasks_customfield
+dependencies: {  }
+_core:
+  default_config_hash: _96awv0wkntKw7OfZWviBmJWjgIFnkWntyqNejGmsC4
 name: 'Card Custom Field Value'
 type: card_custom_field_value
 description: 'Stores the value of a custom field for a specific card'

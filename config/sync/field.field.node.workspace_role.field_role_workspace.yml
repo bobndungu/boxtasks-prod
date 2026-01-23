@@ -1,4 +1,4 @@
-uuid: c1cef70c-297c-46d1-8de8-4951e7cd98af
+uuid: 7abe7ede-719e-449d-9106-dcfb812796a6
 langcode: en
 status: true
 dependencies:
@@ -6,8 +6,8 @@ dependencies:
     - field.storage.node.field_role_workspace
     - node.type.workspace
     - node.type.workspace_role
-  module:
-    - node
+_core:
+  default_config_hash: vGOm0ZAJ1d21xhb85Uyhc-d4wnn7wICpeZfvQSv3XbY
 id: node.workspace_role.field_role_workspace
 field_name: field_role_workspace
 entity_type: node

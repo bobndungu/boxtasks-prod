@@ -1,10 +1,12 @@
-uuid: 2466155c-721a-4ddd-bddc-f2955f0055d3
+uuid: ec29165b-c02e-4d51-8d3b-19cdebb3fcba
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - user
+_core:
+  default_config_hash: xD9GpuQc4BRtwxPs8yKq7K23V_gzQef7TeHVHu_XpmQ
 id: node.field_card_watchers
 field_name: field_card_watchers
 entity_type: node

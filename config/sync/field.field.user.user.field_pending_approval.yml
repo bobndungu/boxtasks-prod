@@ -1,4 +1,4 @@
-uuid: a3b7c2d9-6e8f-4a1b-8c5d-9f0e1a2b3c4d
+uuid: 7285d09d-5928-41f6-8584-cdf0d2dac839
 langcode: en
 status: true
 dependencies:
@@ -11,14 +11,12 @@ field_name: field_pending_approval
 entity_type: user
 bundle: user
 label: 'Pending Approval'
-description: 'User is awaiting admin approval'
+description: 'Whether the user account is pending admin approval'
 required: false
-translatable: false
-default_value:
-  -
-    value: 0
+translatable: true
+default_value: {  }
 default_value_callback: ''
 settings:
-  on_label: 'On'
-  off_label: 'Off'
+  on_label: Pending
+  off_label: Approved
 field_type: boolean

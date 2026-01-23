@@ -1,4 +1,4 @@
-uuid: 96e7ee2b-236e-4fe5-8048-19f917162aeb
+uuid: 1633a035-e99d-4792-a538-432901aa415f
 langcode: en
 status: true
 dependencies:
@@ -7,6 +7,8 @@ dependencies:
     - node.type.custom_field_definition
   module:
     - options
+_core:
+  default_config_hash: gSTfeRBeKhTfAqlTGWhXp58PqdXcy58FZPUseVNvjgE
 id: node.custom_field_definition.field_cf_display_loc
 field_name: field_cf_display_loc
 entity_type: node

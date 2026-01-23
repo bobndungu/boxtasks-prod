@@ -1,4 +1,4 @@
-uuid: 3142d303-c81c-48f5-bc50-f27f39997cd6
+uuid: bd232ce8-7438-47bd-a4e8-88c47e95d7c8
 langcode: en
 status: true
 dependencies:
@@ -7,6 +7,8 @@ dependencies:
     - node.type.card
   module:
     - datetime
+_core:
+  default_config_hash: b0L6zFKMluyzvKin1Z-_SRCGSf_zak28chJWhEeuMIw
 id: node.card.field_card_start_date
 field_name: field_card_start_date
 entity_type: node

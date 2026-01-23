@@ -1,10 +1,12 @@
-uuid: 8936c1f7-ae63-42d3-8805-01a5dc9d8225
+uuid: 6ea54b2e-6323-4dce-ac5a-fd458ae63d7a
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
+_core:
+  default_config_hash: JQo0DBkaoUhfjwDDrqCqmdxqpehKlRcyuHxgpUUIzC8
 id: node.field_perm_workspace_delete
 field_name: field_perm_workspace_delete
 entity_type: node
@@ -14,6 +16,9 @@ settings:
     -
       value: any
       label: Any
+    -
+      value: own
+      label: Own
     -
       value: none
       label: None

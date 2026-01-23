@@ -1,4 +1,4 @@
-uuid: ca516740-74ea-4b74-951c-b45390231cdf
+uuid: 1c71556a-f550-4828-982f-80537b72fdfb
 langcode: en
 status: true
 dependencies:
@@ -14,6 +14,9 @@ settings:
     -
       value: any
       label: Any
+    -
+      value: own
+      label: Own
     -
       value: none
       label: None

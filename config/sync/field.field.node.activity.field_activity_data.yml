@@ -1,10 +1,12 @@
-uuid: 39394a34-d49f-44d1-a5fb-e5b8f191094c
+uuid: 4d55322d-ef30-4471-a30a-db14082ade21
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_activity_data
     - node.type.activity
+_core:
+  default_config_hash: TV_nNXGo4Q63XrJnM4sZuREXrq3xuYorTqRj5aMDNMw
 id: node.activity.field_activity_data
 field_name: field_activity_data
 entity_type: node
@@ -12,7 +14,7 @@ bundle: activity
 label: 'Activity Data'
 description: 'Additional JSON data for the activity'
 required: false
-translatable: true
+translatable: false
 default_value: {  }
 default_value_callback: ''
 settings: {  }

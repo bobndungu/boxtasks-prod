@@ -1,4 +1,4 @@
-uuid: 6deea5d6-ddf0-4ef3-af01-0e3dcbfb78f7
+uuid: 079afc1f-beb5-4110-8313-ceb1c5a110ac
 langcode: en
 status: true
 dependencies:
@@ -12,14 +12,14 @@ type: list_string
 settings:
   allowed_values:
     -
-      value: any
-      label: any
+      value: none
+      label: None
     -
       value: own
-      label: own
+      label: Own
     -
-      value: none
-      label: none
+      value: any
+      label: Any
   allowed_values_function: ''
 module: options
 locked: false

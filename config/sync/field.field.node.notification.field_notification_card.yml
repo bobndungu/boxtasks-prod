@@ -1,4 +1,4 @@
-uuid: 0c2eaf10-43d8-4052-b497-b83f6029b0a3
+uuid: edb97952-6835-47c3-a247-fcb8cf45a461
 langcode: en
 status: true
 dependencies:
@@ -10,7 +10,7 @@ id: node.notification.field_notification_card
 field_name: field_notification_card
 entity_type: node
 bundle: notification
-label: 'Related Card'
+label: Card
 description: ''
 required: false
 translatable: true

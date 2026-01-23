@@ -1,0 +1,29 @@
+uuid: 2a7342f2-f9a4-425a-868f-264bb7ab1c34
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cfg_board
+    - node.type.board
+    - node.type.custom_field_group
+id: node.custom_field_group.field_cfg_board
+field_name: field_cfg_board
+entity_type: node
+bundle: custom_field_group
+label: Board
+description: 'The board this field group belongs to (optional if workspace-level)'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      board: board
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

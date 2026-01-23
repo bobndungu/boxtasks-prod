@@ -1,4 +1,4 @@
-uuid: 35cfdc3b-71b8-453f-93bd-654dd6bff8e2
+uuid: 5d36f430-486d-41f7-9eb9-85da90dc5282
 langcode: en
 status: true
 dependencies:
@@ -6,6 +6,8 @@ dependencies:
     - field.storage.node.field_card_list
     - node.type.board_list
     - node.type.card
+_core:
+  default_config_hash: XyF-JTCDGq6luLvpw7PoJffVm2rcqHg-OCjzBGkLr2s
 id: node.card.field_card_list
 field_name: field_card_list
 entity_type: node

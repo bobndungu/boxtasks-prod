@@ -1,9 +1,11 @@
-uuid: 75305fe8-6d18-444c-80b1-c33b62a997de
+uuid: 3163101d-f9e0-4bae-9e55-52957ab9d03b
 langcode: en
 status: true
 dependencies:
   module:
     - node
+_core:
+  default_config_hash: FhErzgBWrOimHcbgpm9KVEL2HXfUWVY7BiiAd1A_R1s
 id: node.field_list_wip_limit
 field_name: field_list_wip_limit
 entity_type: node

@@ -1,4 +1,4 @@
-uuid: f5f49e26-ee5b-4d3c-aee5-16609302dd65
+uuid: 9e35fc5a-8f0a-4d73-ae0f-68aebfeb04ee
 langcode: en
 status: true
 dependencies:
@@ -6,7 +6,6 @@ dependencies:
     - field.storage.node.field_perm_board_archive
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_board_archive
 field_name: field_perm_board_archive
@@ -15,7 +14,7 @@ bundle: workspace_role
 label: 'Archive Boards'
 description: 'Permission level for Archive Boards.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: own

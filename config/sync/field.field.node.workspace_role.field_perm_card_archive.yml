@@ -1,4 +1,4 @@
-uuid: ea499917-17ca-4924-9abe-e56f938a39ee
+uuid: 6a122ee8-db9b-42c6-bff8-774b1934bb5a
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_card_archive
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_card_archive
 field_name: field_perm_card_archive
 entity_type: node
 bundle: workspace_role
 label: 'Archive Cards'
-description: 'Permission level for Archive Cards.'
+description: 'Permission to archive cards. Own = only cards created by you. Any = all cards.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: own

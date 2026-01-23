@@ -1,0 +1,29 @@
+uuid: a1b73be8-2f41-42b3-beee-199d0782b2fa
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cf_roles
+    - node.type.custom_field_definition
+    - node.type.workspace_role
+id: node.custom_field_definition.field_cf_roles
+field_name: field_cf_roles
+entity_type: node
+bundle: custom_field_definition
+label: 'Visible to Roles'
+description: 'Roles that can see this field. Leave empty for all roles to see.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      workspace_role: workspace_role
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

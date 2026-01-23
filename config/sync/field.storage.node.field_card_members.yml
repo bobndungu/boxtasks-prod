@@ -1,10 +1,12 @@
-uuid: 2aebcde2-dd28-498d-9bc2-a4b98eff7e17
+uuid: bd9d090b-0337-4bc0-91ae-33c49ce564b8
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - user
+_core:
+  default_config_hash: _wxFf0kRy7i5rj21Yx7DF38D10d5YaGAimYU8fxty3A
 id: node.field_card_members
 field_name: field_card_members
 entity_type: node
@@ -14,7 +16,7 @@ settings:
 module: core
 locked: false
 cardinality: -1
-translatable: true
+translatable: false
 indexes: {  }
 persist_with_no_fields: false
 custom_storage: false

@@ -1,4 +1,4 @@
-uuid: ecdd38e5-fe72-493a-8ef9-64d6f9ff4b76
+uuid: b513d665-1828-4ba0-8d4b-b016e009bb69
 langcode: en
 status: true
 dependencies:
@@ -11,7 +11,7 @@ id: node.workspace_role.field_perm_template_edit
 field_name: field_perm_template_edit
 entity_type: node
 bundle: workspace_role
-label: 'Permission: Template Edit'
+label: 'Edit Templates'
 description: ''
 required: false
 translatable: true

@@ -1,4 +1,4 @@
-uuid: 773b8cbe-2323-4692-a8ad-a72a23150437
+uuid: ce9b78a7-0d58-4286-896f-7218a192bca7
 langcode: en
 status: true
 dependencies:
@@ -11,8 +11,8 @@ id: node.workspace_role.field_perm_board_role_view
 field_name: field_perm_board_role_view
 entity_type: node
 bundle: workspace_role
-label: 'View Board Member Roles'
-description: 'Permission to view what role each board member has.'
+label: 'Board Role View Permission'
+description: 'Permission to view the roles assigned to board members'
 required: false
 translatable: true
 default_value:

@@ -1,4 +1,4 @@
-uuid: 60713414-fba0-41ad-b09e-fa1cf98a3756
+uuid: 3b1b1ac3-fe14-4926-a2a4-ee665741881c
 langcode: en
 status: true
 dependencies:
@@ -6,8 +6,9 @@ dependencies:
     - field.storage.node.field_perm_member_manage
     - node.type.workspace_role
   module:
-    - node
     - options
+_core:
+  default_config_hash: SE0zyjFyOpa-g8BnBw-pY1YWeO0fo3aOU_JTrPpHEo8
 id: node.workspace_role.field_perm_member_manage
 field_name: field_perm_member_manage
 entity_type: node

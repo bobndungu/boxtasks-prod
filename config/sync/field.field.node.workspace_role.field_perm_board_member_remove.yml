@@ -1,4 +1,4 @@
-uuid: 2a3b4c5d-6e7f-8901-bcde-f12345678906
+uuid: 26051d90-bca3-4a92-8893-2f78a48092e7
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_board_member_remove
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_board_member_remove
 field_name: field_perm_board_member_remove
 entity_type: node
 bundle: workspace_role
 label: 'Remove Board Members'
-description: 'Permission to remove members from boards.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

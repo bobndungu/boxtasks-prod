@@ -1,4 +1,4 @@
-uuid: 0dabedf2-f2b2-4afe-9186-3dee221dd462
+uuid: 056a0fd2-7483-481c-bec1-0a460b882bb2
 langcode: en
 status: true
 dependencies:
@@ -6,7 +6,6 @@ dependencies:
     - field.storage.node.field_perm_list_archive
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_list_archive
 field_name: field_perm_list_archive
@@ -15,7 +14,7 @@ bundle: workspace_role
 label: 'Archive Lists'
 description: 'Permission level for Archive Lists.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: own

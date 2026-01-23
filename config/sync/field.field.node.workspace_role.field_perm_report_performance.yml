@@ -1,4 +1,4 @@
-uuid: 32d00a4a-f197-4a69-8896-a02dbd42b97c
+uuid: 6271a7ee-ecc4-4ce4-95fd-281242877055
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_report_performance
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_report_performance
 field_name: field_perm_report_performance
 entity_type: node
 bundle: workspace_role
 label: 'View Performance Reports'
-description: 'Permission level for View Performance Reports.'
+description: 'Permission level for viewing performance reports.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

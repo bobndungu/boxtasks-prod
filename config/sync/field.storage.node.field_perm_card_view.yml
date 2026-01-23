@@ -1,9 +1,12 @@
+uuid: 8130b746-f653-4b21-80a3-9a461ea3f3fa
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
+_core:
+  default_config_hash: YLYUuJF9qzCcA_QiuoXral2Yw3Q9s8cVLn8Cf4_9nkw
 id: node.field_perm_card_view
 field_name: field_perm_card_view
 entity_type: node

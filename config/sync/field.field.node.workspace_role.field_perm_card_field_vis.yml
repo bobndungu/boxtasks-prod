@@ -1,4 +1,4 @@
-uuid: d3ea0bef-9f1e-431d-8161-da494a287141
+uuid: bdcce64e-958d-47ee-8f43-2cd9fc260faa
 langcode: en
 status: true
 dependencies:
@@ -15,7 +15,9 @@ label: 'Manage Card Fields Visibility'
 description: ''
 required: false
 translatable: true
-default_value: {  }
+default_value:
+  -
+    value: any
 default_value_callback: ''
 settings: {  }
 field_type: list_string

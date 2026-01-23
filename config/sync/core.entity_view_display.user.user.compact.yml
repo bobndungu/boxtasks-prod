@@ -1,4 +1,4 @@
-uuid: 4aab65ec-01a4-4dda-bd8f-ef7e2e0ff63d
+uuid: a15f8c26-3a0f-4f79-8df8-3381d538f588
 langcode: en
 status: true
 dependencies:
@@ -6,10 +6,12 @@ dependencies:
     - core.entity_view_mode.user.compact
     - field.field.user.user.field_bio
     - field.field.user.user.field_display_name
-    - field.field.user.user.field_first_name
+    - field.field.user.user.field_email_verified
+    - field.field.user.user.field_is_premium
     - field.field.user.user.field_job_title
-    - field.field.user.user.field_last_name
     - field.field.user.user.field_notif_prefs
+    - field.field.user.user.field_original_uuid
+    - field.field.user.user.field_pending_approval
     - field.field.user.user.field_timezone
     - field.field.user.user.user_picture
     - image.style.thumbnail
@@ -37,9 +39,11 @@ content:
 hidden:
   field_bio: true
   field_display_name: true
-  field_first_name: true
+  field_email_verified: true
+  field_is_premium: true
   field_job_title: true
-  field_last_name: true
   field_notif_prefs: true
+  field_original_uuid: true
+  field_pending_approval: true
   field_timezone: true
   member_for: true

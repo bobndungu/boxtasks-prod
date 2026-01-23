@@ -1,4 +1,4 @@
-uuid: 2a3b4c5d-6e7f-8901-bcde-f12345678907
+uuid: 93087eba-cb81-401f-8010-cee02f0840ad
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_role_view
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_role_view
 field_name: field_perm_role_view
 entity_type: node
 bundle: workspace_role
 label: 'View Roles'
-description: 'Permission to view workspace roles configuration.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

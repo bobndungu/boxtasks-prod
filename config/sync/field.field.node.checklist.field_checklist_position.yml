@@ -1,0 +1,27 @@
+uuid: f350639b-0788-4366-b451-b5c4f495f758
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_checklist_position
+    - node.type.checklist
+_core:
+  default_config_hash: dIMzlveIGE2Ewbtzb45FjKxsRfyvUN3b_V6SnEU5NcA
+id: node.checklist.field_checklist_position
+field_name: field_checklist_position
+entity_type: node
+bundle: checklist
+label: Position
+description: 'Order position of this checklist within the card.'
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: ''
+  max: ''
+  prefix: ''
+  suffix: ''
+field_type: integer

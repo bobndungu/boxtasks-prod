@@ -1,4 +1,4 @@
-uuid: 029632c0-3d98-42af-b39e-6850d0174fa9
+uuid: da2182d6-d608-4688-9faa-0997be8108ac
 langcode: en
 status: true
 dependencies:
@@ -6,8 +6,9 @@ dependencies:
     - field.storage.node.field_perm_card_delete
     - node.type.workspace_role
   module:
-    - node
     - options
+_core:
+  default_config_hash: h7HwFQBSoq1S8wd2vRP9qjwPPvILgpXTAyCzavbkdto
 id: node.workspace_role.field_perm_card_delete
 field_name: field_perm_card_delete
 entity_type: node

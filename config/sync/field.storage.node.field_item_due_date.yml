@@ -1,10 +1,12 @@
-uuid: c3b4ba19-2f5a-4243-b4cd-b298796ee4d8
+uuid: 9b8d2d37-29ba-4fff-97f3-59e7bcf5e753
 langcode: en
 status: true
 dependencies:
   module:
     - datetime
     - node
+_core:
+  default_config_hash: VqQ8Vy3xlS6wq_QL54sNdVHbAoLABd1vSnkGAbFL5RA
 id: node.field_item_due_date
 field_name: field_item_due_date
 entity_type: node
@@ -14,7 +16,7 @@ settings:
 module: datetime
 locked: false
 cardinality: 1
-translatable: true
+translatable: false
 indexes: {  }
 persist_with_no_fields: false
 custom_storage: false

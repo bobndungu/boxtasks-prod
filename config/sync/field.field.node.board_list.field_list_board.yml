@@ -1,4 +1,4 @@
-uuid: 73cddd64-7fb8-4fcd-b4d1-091028ef73a6
+uuid: 08a96396-a5d8-46ad-9685-3b47290a719a
 langcode: en
 status: true
 dependencies:
@@ -6,6 +6,8 @@ dependencies:
     - field.storage.node.field_list_board
     - node.type.board
     - node.type.board_list
+_core:
+  default_config_hash: 8eQYofz5V22Mzd55W1n7hHFQ1_PV4JPQhLcfJCglsSw
 id: node.board_list.field_list_board
 field_name: field_list_board
 entity_type: node

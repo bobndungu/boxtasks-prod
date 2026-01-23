@@ -1,13 +1,12 @@
-uuid: fcec116e-5752-4d3b-90eb-396c8985e012
+uuid: b340169e-6c8d-4e22-a45a-b8c7eef0225a
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_member_role_user
     - node.type.member_role
-  module:
-    - node
-    - user
+_core:
+  default_config_hash: Tvm0BIj33RcGu_Hu5b5ejTpETyAfiqIw6pgP72HhH9k
 id: node.member_role.field_member_role_user
 field_name: field_member_role_user
 entity_type: node
@@ -21,11 +20,11 @@ default_value_callback: ''
 settings:
   handler: 'default:user'
   handler_settings:
+    include_anonymous: false
+    filter:
+      type: _none
     sort:
       field: name
       direction: ASC
     auto_create: false
-    filter:
-      type: _none
-    include_anonymous: false
 field_type: entity_reference

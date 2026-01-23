@@ -1,12 +1,10 @@
-uuid: d4e5f6a7-b8c9-0123-defa-400000000001
+uuid: 1697a499-041b-4cc4-9f0b-061fb18b231c
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_card_rejected_by
     - node.type.card
-  module:
-    - user
 id: node.card.field_card_rejected_by
 field_name: field_card_rejected_by
 entity_type: node
@@ -14,7 +12,7 @@ bundle: card
 label: 'Rejected By'
 description: 'The user who rejected this card'
 required: false
-translatable: false
+translatable: true
 default_value: {  }
 default_value_callback: ''
 settings:

@@ -1,4 +1,4 @@
-uuid: 379bc05e-8e78-47e2-ab4f-790e485dc0f7
+uuid: b43ac8a7-d5e3-4b8d-ba40-64a6db51a42d
 langcode: en
 status: true
 dependencies:
@@ -11,7 +11,7 @@ id: node.workspace_role.field_perm_template_delete
 field_name: field_perm_template_delete
 entity_type: node
 bundle: workspace_role
-label: 'Permission: Template Delete'
+label: 'Delete Templates'
 description: ''
 required: false
 translatable: true

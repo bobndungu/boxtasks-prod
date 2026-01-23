@@ -1,4 +1,4 @@
-uuid: 7dea8d60-2dc9-4c96-9901-e6c137100037
+uuid: 7304962d-25cb-4c3e-a547-e732ae90c149
 langcode: en
 status: true
 dependencies:
@@ -9,9 +9,9 @@ id: node.notification.field_notification_type
 field_name: field_notification_type
 entity_type: node
 bundle: notification
-label: 'Notification Type'
+label: Type
 description: ''
-required: true
+required: false
 translatable: true
 default_value: {  }
 default_value_callback: ''

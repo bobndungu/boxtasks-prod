@@ -1,4 +1,4 @@
-uuid: bd4c06ce-3dda-4ed0-ad38-239c2ea2d02a
+uuid: 13b2f3aa-f830-48a0-9b7c-56c06e1c1a12
 langcode: en
 status: true
 dependencies:
@@ -11,13 +11,13 @@ id: node.workspace_role.field_perm_template_view
 field_name: field_perm_template_view
 entity_type: node
 bundle: workspace_role
-label: 'Permission: Template View'
+label: 'View Templates'
 description: ''
 required: false
 translatable: true
 default_value:
   -
-    value: any
+    value: none
 default_value_callback: ''
 settings: {  }
 field_type: list_string

@@ -1,9 +1,11 @@
-uuid: fbf3ac37-d42b-4753-823e-c94a8fbc2742
+uuid: 539d091c-abe3-45cf-a972-abe408259bbf
 langcode: en
 status: true
 dependencies:
   module:
     - node
+_core:
+  default_config_hash: Ngqe98D5aNuGUdUlCBrk_dntN5duh4TwoMek96qKTbs
 id: node.field_cfv_card
 field_name: field_cfv_card
 entity_type: node

@@ -1,18 +1,20 @@
-uuid: ff609ca3-2b4a-437f-8ff5-b8692844865c
+uuid: 23beaa8c-d171-43d0-a67b-62136f62bad5
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_item_parent
     - node.type.checklist_item
+_core:
+  default_config_hash: TbBZvjPFA6qlf6AK0GAVQv-rIVNBxYBZMTeAbbakK4k
 id: node.checklist_item.field_item_parent
 field_name: field_item_parent
 entity_type: node
 bundle: checklist_item
 label: 'Parent Item'
-description: ''
+description: 'The parent checklist item for nested items'
 required: false
-translatable: true
+translatable: false
 default_value: {  }
 default_value_callback: ''
 settings:
@@ -20,4 +22,8 @@ settings:
   handler_settings:
     target_bundles:
       checklist_item: checklist_item
+    sort:
+      field: field_item_position
+      direction: ASC
+    auto_create: false
 field_type: entity_reference

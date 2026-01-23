@@ -1,9 +1,11 @@
-uuid: adcfc948-af2e-42a4-a456-126d53983ae9
+uuid: 05b39023-91ee-42c4-a509-d9fbd0cddfa8
 langcode: en
 status: true
 dependencies:
   module:
     - node
+_core:
+  default_config_hash: n6s505YujGBlQLbADi3C-XpXYmdDsLBDxoFtYfM7KT4
 id: node.field_item_parent
 field_name: field_item_parent
 entity_type: node
@@ -13,7 +15,7 @@ settings:
 module: core
 locked: false
 cardinality: 1
-translatable: true
+translatable: false
 indexes: {  }
 persist_with_no_fields: false
 custom_storage: false

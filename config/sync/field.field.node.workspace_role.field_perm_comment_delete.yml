@@ -1,4 +1,4 @@
-uuid: 3e7425a4-ea86-4025-9533-493df4e50a39
+uuid: 90b81284-659b-4e74-9fad-454a1e9196cf
 langcode: en
 status: true
 dependencies:
@@ -6,8 +6,9 @@ dependencies:
     - field.storage.node.field_perm_comment_delete
     - node.type.workspace_role
   module:
-    - node
     - options
+_core:
+  default_config_hash: V5XPwLHjnNUAUyLoEQeOtGv-yClSeTDI-iNP50H0Lmw
 id: node.workspace_role.field_perm_comment_delete
 field_name: field_perm_comment_delete
 entity_type: node

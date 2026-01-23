@@ -1,4 +1,4 @@
-uuid: fa276d53-cfea-478e-9d66-078edb277b1f
+uuid: 9aa2ce07-3913-4a4f-b95a-0b02559a5fbe
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_user_management
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_user_management
 field_name: field_perm_user_management
 entity_type: node
 bundle: workspace_role
 label: 'User Management'
-description: 'Permission level for User Management.'
+description: 'Permission level for user management.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

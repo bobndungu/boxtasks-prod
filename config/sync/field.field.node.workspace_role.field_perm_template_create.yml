@@ -1,4 +1,4 @@
-uuid: 1f6227b7-6425-44bb-8aec-093b93a7e516
+uuid: eebd29fc-459e-4fa0-ac56-64944faa6124
 langcode: en
 status: true
 dependencies:
@@ -11,7 +11,7 @@ id: node.workspace_role.field_perm_template_create
 field_name: field_perm_template_create
 entity_type: node
 bundle: workspace_role
-label: 'Permission: Template Create'
+label: 'Create Templates'
 description: ''
 required: false
 translatable: true

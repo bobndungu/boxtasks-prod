@@ -1,4 +1,4 @@
-uuid: 04e231ca-758f-422b-9d81-96f4566251ae
+uuid: f19b81c4-25d5-4c34-b1bd-f3342a7d85d8
 langcode: en
 status: true
 dependencies:
@@ -11,7 +11,7 @@ field_name: field_template_workspace
 entity_type: node
 bundle: card_template
 label: Workspace
-description: 'The workspace this template belongs to. If empty, the template is global.'
+description: ''
 required: false
 translatable: true
 default_value: {  }

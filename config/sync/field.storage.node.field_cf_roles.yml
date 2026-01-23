@@ -1,0 +1,19 @@
+uuid: a33fe431-ca16-4ecb-ba71-ac92ddf37478
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_cf_roles
+field_name: field_cf_roles
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,10 +1,12 @@
-uuid: 9b23f1ac-7a0d-48bb-bae8-6f19826dda81
+uuid: 9d90e475-3bec-4017-abd7-622795bea0a5
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_list_wip_limit
     - node.type.board_list
+_core:
+  default_config_hash: U0p2y83X0GMFPGRYiNMvt6zPMQykYqgbv1BhQ_ZkXoM
 id: node.board_list.field_list_wip_limit
 field_name: field_list_wip_limit
 entity_type: node

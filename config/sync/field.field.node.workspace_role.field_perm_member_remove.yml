@@ -1,4 +1,4 @@
-uuid: 2a3b4c5d-6e7f-8901-bcde-f12345678903
+uuid: 732a6746-62b6-4414-a15c-6d495fb77501
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_member_remove
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_member_remove
 field_name: field_perm_member_remove
 entity_type: node
 bundle: workspace_role
 label: 'Remove Members'
-description: 'Permission to remove members from the workspace.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

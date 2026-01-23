@@ -1,4 +1,4 @@
-uuid: 598955bd-49d2-4465-bbfa-f33c65afbcbe
+uuid: 075d2fcf-f135-4ec9-a7a8-84d0f6ec7783
 langcode: en
 status: true
 dependencies:
@@ -6,7 +6,6 @@ dependencies:
     - field.storage.node.field_perm_comment_archive
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_comment_archive
 field_name: field_perm_comment_archive
@@ -15,7 +14,7 @@ bundle: workspace_role
 label: 'Archive Comments'
 description: 'Permission level for Archive Comments.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: own

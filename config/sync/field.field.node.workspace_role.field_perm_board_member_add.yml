@@ -1,4 +1,4 @@
-uuid: 2a3b4c5d-6e7f-8901-bcde-f12345678905
+uuid: a036bd80-019e-48e4-b6cc-209133286e9e
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_board_member_add
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_board_member_add
 field_name: field_perm_board_member_add
 entity_type: node
 bundle: workspace_role
 label: 'Add Board Members'
-description: 'Permission to add members to boards.'
+description: ''
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

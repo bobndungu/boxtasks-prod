@@ -1,10 +1,12 @@
-uuid: 46f85bf0-1ec7-4269-bb45-b73f42f9fb47
+uuid: 8adb6f81-d324-4e66-867e-cb3c44231489
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
+_core:
+  default_config_hash: bLytUI9QbCbgmCoAlzLjczBAZ2ES9IRjWFnqH32u76M
 id: node.field_perm_comment_delete
 field_name: field_perm_comment_delete
 entity_type: node

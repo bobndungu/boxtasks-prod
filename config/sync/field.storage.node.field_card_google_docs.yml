@@ -1,12 +1,15 @@
-uuid: 7717f9d1-fd96-43b5-b390-f159214750e4
+uuid: 9dbf2286-464f-4356-99f7-9cfe205492f2
 langcode: en
 status: true
 dependencies:
   module:
     - link
+    - node
   enforced:
     module:
       - boxtasks_card
+_core:
+  default_config_hash: 5RiIcvHC2OOf9bpR7LXhgMEXPvCMLZhW4LG5dI6_g-k
 id: node.field_card_google_docs
 field_name: field_card_google_docs
 entity_type: node

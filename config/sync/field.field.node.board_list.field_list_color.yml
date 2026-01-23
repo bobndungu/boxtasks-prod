@@ -1,10 +1,12 @@
-uuid: 0de437f9-f659-474e-9caf-33d4ebfe1a95
+uuid: d372027c-a84a-4add-880b-b42f0d530658
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_list_color
     - node.type.board_list
+_core:
+  default_config_hash: 5z-v8q0byj1dPVm_3gjdSOHX9ZBOQqN5ZKM8GAuh8jU
 id: node.board_list.field_list_color
 field_name: field_list_color
 entity_type: node

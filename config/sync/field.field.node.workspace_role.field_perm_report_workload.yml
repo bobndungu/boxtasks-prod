@@ -1,4 +1,4 @@
-uuid: cdc43f6f-d580-495a-8c5c-9a8958e65b0d
+uuid: 11127b94-5cc6-4df4-9785-5977a06e05b5
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_report_workload
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_report_workload
 field_name: field_perm_report_workload
 entity_type: node
 bundle: workspace_role
 label: 'View Workload Reports'
-description: 'Permission level for View Workload Reports.'
+description: 'Permission level for viewing workload reports.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

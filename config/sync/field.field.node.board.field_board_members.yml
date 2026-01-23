@@ -1,4 +1,4 @@
-uuid: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+uuid: 4b3d4847-761d-4533-8082-f7c9b7ae85e7
 langcode: en
 status: true
 dependencies:
@@ -10,19 +10,13 @@ field_name: field_board_members
 entity_type: node
 bundle: board
 label: 'Board Members'
-description: 'Users who are members of this board. If empty, inherits from workspace.'
+description: 'Users who have access to this board when using custom member setup'
 required: false
-translatable: false
+translatable: true
 default_value: {  }
 default_value_callback: ''
 settings:
   handler: 'default:user'
   handler_settings:
-    target_bundles: null
-    sort:
-      field: _none
-    auto_create: false
-    filter:
-      type: _none
     include_anonymous: false
 field_type: entity_reference

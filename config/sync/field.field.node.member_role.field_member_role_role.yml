@@ -1,4 +1,4 @@
-uuid: 722cd752-dc19-4981-a4dc-d3a0cd9b1df3
+uuid: 230e48eb-ccd6-4b8a-80d7-161f088ff569
 langcode: en
 status: true
 dependencies:
@@ -6,8 +6,8 @@ dependencies:
     - field.storage.node.field_member_role_role
     - node.type.member_role
     - node.type.workspace_role
-  module:
-    - node
+_core:
+  default_config_hash: j9dvcJvK0hPUURjdUG3GvCb2QijHevCkRKYLNaZGkuM
 id: node.member_role.field_member_role_role
 field_name: field_member_role_role
 entity_type: node

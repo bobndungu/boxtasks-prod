@@ -1,4 +1,4 @@
-uuid: 4fc56276-5453-471b-86a8-1298ee346878
+uuid: 3c9b703e-b6fa-47ea-af77-110ff66e5304
 langcode: en
 status: true
 dependencies:
@@ -6,16 +6,15 @@ dependencies:
     - field.storage.node.field_perm_report_export
     - node.type.workspace_role
   module:
-    - node
     - options
 id: node.workspace_role.field_perm_report_export
 field_name: field_perm_report_export
 entity_type: node
 bundle: workspace_role
 label: 'Export Reports'
-description: 'Permission level for Export Reports.'
+description: 'Permission level for exporting reports.'
 required: false
-translatable: false
+translatable: true
 default_value:
   -
     value: none

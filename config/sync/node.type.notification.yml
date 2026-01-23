@@ -1,11 +1,11 @@
-uuid: 31386c55-606d-415d-acd2-5fcb6a503f08
+uuid: 6224faaa-2c96-47c6-84b4-cb7b2193ddc3
 langcode: en
 status: true
 dependencies: {  }
 name: Notification
 type: notification
-description: 'User notifications for various events'
+description: 'User notifications for activity tracking'
 help: null
-new_revision: true
-preview_mode: 1
-display_submitted: true
+new_revision: false
+preview_mode: 0
+display_submitted: false

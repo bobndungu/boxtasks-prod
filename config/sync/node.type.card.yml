@@ -1,7 +1,9 @@
-uuid: badbcd3b-2074-431f-ae8f-b9d780bbdd80
+uuid: a03a34b8-8213-4c52-8ed8-05ff77c1874d
 langcode: en
 status: true
 dependencies: {  }
+_core:
+  default_config_hash: eE0a5R-BllHRT495MjkUzsCBcvvaK2zdGuMvAQZwRNQ
 name: Card
 type: card
 description: 'A task card within a board list'

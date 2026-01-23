@@ -1,10 +1,12 @@
-uuid: 9952ff9b-5ed4-4377-bc4c-59036b546bbe
+uuid: 59d69277-2f1c-4cc0-92b4-02608e1e70e6
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_customfield_required
     - node.type.custom_field_definition
+_core:
+  default_config_hash: sUzRXxXCgkZnLU2vFpcA5ztZP4a059RGMJV1mf9VfZ4
 id: node.custom_field_definition.field_customfield_required
 field_name: field_customfield_required
 entity_type: node

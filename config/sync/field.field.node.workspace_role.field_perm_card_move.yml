@@ -1,4 +1,4 @@
-uuid: 0c2a9b09-1ee5-42ab-9e22-47134fc0ee23
+uuid: a31ec16a-f8ee-4073-8e4b-78a9a78d7202
 langcode: en
 status: true
 dependencies:
@@ -6,8 +6,9 @@ dependencies:
     - field.storage.node.field_perm_card_move
     - node.type.workspace_role
   module:
-    - node
     - options
+_core:
+  default_config_hash: 3WQu-aSHv_RkuE8_TfZj-MPMKHBqaBw5Fr9nIZOVzVU
 id: node.workspace_role.field_perm_card_move
 field_name: field_perm_card_move
 entity_type: node

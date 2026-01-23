@@ -1,4 +1,4 @@
-uuid: b2c3d4e5-f6a7-8901-bcde-f23456789012
+uuid: f9ce3af8-c82d-470c-b9cc-1fdfe70fa762
 langcode: en
 status: true
 dependencies:
@@ -16,15 +16,15 @@ settings:
       label: 'Inherit from workspace'
     -
       value: just_me
-      label: 'Just me'
+      label: 'Start with just me'
     -
       value: custom
-      label: 'Custom selection'
+      label: 'Custom members'
   allowed_values_function: ''
 module: options
 locked: false
 cardinality: 1
-translatable: false
+translatable: true
 indexes: {  }
 persist_with_no_fields: false
 custom_storage: false
