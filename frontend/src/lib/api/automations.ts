@@ -237,10 +237,14 @@ function transformLogFromApi(data: any): AutomationLog {
 }
 
 export async function getAutomationRules(boardId: string): Promise<AutomationRule[]> {
+  // Fetch all rules and filter client-side by board UUID.
+  // JSON:API filtering on entity_reference fields doesn't work reliably
+  // for custom entity types, so we filter after fetching.
   const response = await apiRequest<{ data: any[] }>(
-    `/jsonapi/automation_rule/automation_rule?filter[board_id.id]=${boardId}&sort=-created`
+    `/jsonapi/automation_rule/automation_rule?sort=-created`
   );
-  return response.data.map(transformRuleFromApi);
+  const allRules = response.data.map(transformRuleFromApi);
+  return allRules.filter(rule => rule.boardId === boardId);
 }
 
 export async function getAutomationRule(ruleId: string): Promise<AutomationRule> {
@@ -345,18 +349,30 @@ export async function getAutomationLogs(
   boardId: string,
   options?: { ruleId?: string; limit?: number }
 ): Promise<AutomationLog[]> {
-  let url = `/jsonapi/automation_log/automation_log?filter[board_id.id]=${boardId}&sort=-created`;
-
-  if (options?.ruleId) {
-    url += `&filter[rule_id.id]=${options.ruleId}`;
-  }
+  // Fetch all logs and filter client-side (same entity_reference filter issue as rules)
+  let url = `/jsonapi/automation_log/automation_log?sort=-created`;
 
   if (options?.limit) {
-    url += `&page[limit]=${options.limit}`;
+    url += `&page[limit]=${options.limit * 5}`; // Fetch extra to account for client-side filtering
   }
 
   const response = await apiRequest<{ data: any[] }>(url);
-  return response.data.map(transformLogFromApi);
+  let logs = response.data.map(transformLogFromApi);
+
+  // Filter by board
+  logs = logs.filter(log => log.boardId === boardId);
+
+  // Filter by rule if specified
+  if (options?.ruleId) {
+    logs = logs.filter(log => log.ruleId === options.ruleId);
+  }
+
+  // Apply limit after filtering
+  if (options?.limit) {
+    logs = logs.slice(0, options.limit);
+  }
+
+  return logs;
 }
 
 export async function getRuleExecutionStats(ruleId: string): Promise<{
