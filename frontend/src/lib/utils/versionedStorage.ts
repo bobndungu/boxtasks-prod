@@ -20,6 +20,7 @@ interface StorageConfig {
 const config: StorageConfig = {
   // These keys will NOT be cleared on version change
   persistentKeys: [
+    'boxtasks_auth', // Zustand auth store (contains tokens and user)
     'boxtasks_auth_token',
     'boxtasks_refresh_token',
     'boxtasks_user',
