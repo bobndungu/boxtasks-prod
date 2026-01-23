@@ -1086,7 +1086,7 @@ export default function BoardView() {
           startDate: normalizeDateFromDrupal(cardData.startDate),
           dueDate: normalizeDateFromDrupal(cardData.dueDate),
           labels: cardData.labels as CardLabel[],
-          completed: false,
+          completed: cardData.completed || false,
           pinned: false,
           watcherIds: (cardData.watchers || []).map(w => w.id),
           watchers: (cardData.watchers || []).map(w => ({

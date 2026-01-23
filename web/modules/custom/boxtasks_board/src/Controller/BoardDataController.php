@@ -585,6 +585,7 @@ class BoardDataController extends ControllerBase {
       'listId' => $list_id,
       'position' => $card->hasField('field_card_position') ? (int) $card->get('field_card_position')->value : 0,
       'archived' => $card->hasField('field_card_archived') ? (bool) $card->get('field_card_archived')->value : FALSE,
+      'completed' => $card->hasField('field_card_completed') ? (bool) $card->get('field_card_completed')->value : FALSE,
       'startDate' => $start_date,
       'dueDate' => $due_date,
       'priority' => $card->hasField('field_card_priority') ? $card->get('field_card_priority')->value : NULL,

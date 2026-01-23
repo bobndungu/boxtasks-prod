@@ -27,6 +27,7 @@ parameters:
       - OPTIONS
     # Allow React frontend (any localhost port for development)
     allowedOrigins:
+      - 'https://tasks.boxraft.com'
       - 'https://boxtasks2.ddev.site'
     allowedOriginsPatterns:
       - '/^http:\/\/localhost:\d+$/'

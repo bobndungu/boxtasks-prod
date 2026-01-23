@@ -600,19 +600,32 @@ export async function fetchWithCsrf(
     emitSessionEvent('expired', 'Your session has expired. Please log in again.');
   }
 
-  // If we get a 403 with CSRF error, retry with fresh token
-  if (response.status === 403) {
+  // If we get a 403, check if it's a CSRF error or an expired token issue
+  if (response.status === 403 && !_retried) {
     const clonedResponse = response.clone();
     try {
       const errorData = await clonedResponse.json();
-      if (errorData?.message?.toLowerCase().includes('csrf') ||
-          errorData?.errors?.[0]?.detail?.toLowerCase().includes('csrf')) {
+      const errorDetail = errorData?.errors?.[0]?.detail?.toLowerCase() || '';
+      const errorMessage = errorData?.message?.toLowerCase() || '';
+
+      if (errorMessage.includes('csrf') || errorDetail.includes('csrf')) {
+        // CSRF token error - retry with fresh CSRF token
         clearCsrfToken();
         const freshCsrf = await getCsrfToken();
         if (freshCsrf) {
           headers.set('X-CSRF-Token', freshCsrf);
           return fetch(url, { ...options, headers, cache: 'no-store' });
         }
+      } else if (errorDetail.includes('permission') || errorMessage.includes('permission')) {
+        // Permission error likely means expired/invalid OAuth token
+        // Drupal returns 403 (not 401) when token is expired because
+        // anonymous users lack required permissions
+        const newTokens = await refreshAccessToken();
+        if (newTokens) {
+          return fetchWithCsrf(url, options, true);
+        }
+        // Refresh failed - emit session expired event
+        emitSessionEvent('expired', 'Your session has expired. Please log in again.');
       }
     } catch {
       // Not JSON, return original response

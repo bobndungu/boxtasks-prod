@@ -442,6 +442,7 @@ export interface BoardCardData {
   listId: string;
   position: number;
   archived: boolean;
+  completed: boolean;
   startDate: string | null;
   dueDate: string | null;
   priority: string | null;
