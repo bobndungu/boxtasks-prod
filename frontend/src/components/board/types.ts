@@ -94,6 +94,8 @@ export interface CardDetailModalProps {
   onClearStatus: (cardId: string) => Promise<void>;
   onGoogleDocAdd: (cardId: string, url: string, title: string) => Promise<void>;
   onGoogleDocRemove: (cardId: string, url: string) => Promise<void>;
+  onSharePointDocAdd: (cardId: string, url: string, title: string) => Promise<void>;
+  onSharePointDocRemove: (cardId: string, url: string) => Promise<void>;
 }
 
 export interface CardDragOverlayProps {

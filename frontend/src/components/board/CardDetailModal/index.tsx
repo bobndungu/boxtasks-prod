@@ -67,6 +67,7 @@ import { renderWordDiff } from '../../../lib/utils/diff';
 import { renderTextWithMentions } from '../../../lib/utils/highlight';
 import { EstimateEditor } from '../../EstimateEditor';
 import { GoogleDocsEmbed } from '../../GoogleDocsEmbed';
+import { SharePointDocsEmbed } from '../../SharePointDocsEmbed';
 import MemberDropdown from '../../MemberDropdown';
 import CardRelationships from '../../CardRelationships';
 import { LABEL_COLORS } from '../constants';
@@ -101,6 +102,8 @@ function CardDetailModal({
   onClearStatus,
   onGoogleDocAdd,
   onGoogleDocRemove,
+  onSharePointDocAdd,
+  onSharePointDocRemove,
   newMercureComment,
   deletedMercureCommentId,
   newMercureActivity,
@@ -136,6 +139,8 @@ function CardDetailModal({
   onClearStatus: (cardId: string) => Promise<void>;
   onGoogleDocAdd: (cardId: string, url: string, title: string) => Promise<void>;
   onGoogleDocRemove: (cardId: string, url: string) => Promise<void>;
+  onSharePointDocAdd: (cardId: string, url: string, title: string) => Promise<void>;
+  onSharePointDocRemove: (cardId: string, url: string) => Promise<void>;
   // Real-time comment from Mercure
   newMercureComment?: CardComment | null;
   // Deleted comment ID from Mercure
@@ -2954,6 +2959,18 @@ function CardDetailModal({
                 }}
                 onRemove={async (url) => {
                   await onGoogleDocRemove(card.id, url);
+                }}
+                canEdit={canEditCard}
+              />
+
+              {/* SharePoint Docs */}
+              <SharePointDocsEmbed
+                docs={card.sharePointDocs || []}
+                onAdd={async (url, title) => {
+                  await onSharePointDocAdd(card.id, url, title);
+                }}
+                onRemove={async (url) => {
+                  await onSharePointDocRemove(card.id, url);
                 }}
                 canEdit={canEditCard}
               />

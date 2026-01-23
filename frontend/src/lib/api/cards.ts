@@ -158,6 +158,8 @@ export interface Card {
   complexity?: 'trivial' | 'low' | 'medium' | 'high' | 'very_high';
   // Google Docs
   googleDocs: { url: string; title: string }[];
+  // SharePoint Docs
+  sharePointDocs: { url: string; title: string }[];
   // Enabled custom fields for visibility modes
   enabledCustomFieldIds: string[];
 }
@@ -390,6 +392,13 @@ function transformCard(
       ? (attrs.field_card_google_docs as { uri: string; title: string }[]).map((doc) => ({
           url: doc.uri,
           title: doc.title || 'Google Document',
+        }))
+      : [],
+    // SharePoint Docs
+    sharePointDocs: Array.isArray(attrs.field_card_sharepoint_docs)
+      ? (attrs.field_card_sharepoint_docs as { uri: string; title: string }[]).map((doc) => ({
+          url: doc.uri,
+          title: doc.title || 'SharePoint Document',
         }))
       : [],
     // Enabled custom fields for visibility modes
@@ -1161,6 +1170,92 @@ export async function removeGoogleDoc(cardId: string, url: string): Promise<Card
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.errors?.[0]?.detail || 'Failed to remove Google Doc');
+  }
+
+  return fetchCard(cardId);
+}
+
+// Add a SharePoint Doc to a card
+export async function addSharePointDoc(cardId: string, url: string, title: string): Promise<Card> {
+  // First fetch current SharePoint Docs
+  const card = await fetchCard(cardId);
+  const currentDocs = card.sharePointDocs || [];
+
+  // Check if already exists
+  if (currentDocs.some(doc => doc.url === url)) {
+    return card;
+  }
+
+  // Add the new doc
+  const newDocs = [...currentDocs, { url, title }];
+
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        attributes: {
+          field_card_sharepoint_docs: newDocs.map(doc => ({
+            uri: doc.url,
+            title: doc.title,
+          })),
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to add SharePoint Doc');
+  }
+
+  return fetchCard(cardId);
+}
+
+// Remove a SharePoint Doc from a card
+export async function removeSharePointDoc(cardId: string, url: string): Promise<Card> {
+  // First fetch current SharePoint Docs
+  const card = await fetchCard(cardId);
+  const currentDocs = card.sharePointDocs || [];
+
+  // Check if exists
+  if (!currentDocs.some(doc => doc.url === url)) {
+    return card;
+  }
+
+  // Remove the doc
+  const newDocs = currentDocs.filter(doc => doc.url !== url);
+
+  const response = await fetchWithCsrf(`${API_URL}/jsonapi/node/card/${cardId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'node--card',
+        id: cardId,
+        attributes: {
+          field_card_sharepoint_docs: newDocs.length > 0
+            ? newDocs.map(doc => ({
+                uri: doc.url,
+                title: doc.title,
+              }))
+            : [],
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.errors?.[0]?.detail || 'Failed to remove SharePoint Doc');
   }
 
   return fetchCard(cardId);

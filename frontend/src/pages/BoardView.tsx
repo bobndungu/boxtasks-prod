@@ -55,7 +55,7 @@ import {
 import { useBoardStore } from '../lib/stores/board';
 import { updateBoard, toggleBoardStar, fetchBoardData, NotFoundError, ForbiddenError } from '../lib/api/boards';
 import { createList, updateList, deleteList, archiveList, type BoardList } from '../lib/api/lists';
-import { createCard, updateCard, deleteCard, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, addGoogleDoc, removeGoogleDoc, normalizeDateFromDrupal, normalizeCardFromMercure, formatDateForApi, type Card, type CardLabel } from '../lib/api/cards';
+import { createCard, updateCard, deleteCard, updateCardDepartment, updateCardClient, approveCard, rejectCard, clearApprovalStatus, restoreCard, fetchArchivedCardsByBoard, addGoogleDoc, removeGoogleDoc, addSharePointDoc, removeSharePointDoc, normalizeDateFromDrupal, normalizeCardFromMercure, formatDateForApi, type Card, type CardLabel } from '../lib/api/cards';
 import { type CardComment } from '../lib/api/comments';
 import { type TaxonomyTerm } from '../lib/api/taxonomies';
 import { fetchActivitiesByBoard, getActivityDisplay, createActivity, type Activity } from '../lib/api/activities';
@@ -1153,6 +1153,7 @@ export default function BoardView() {
           rejectedAt: cardData.rejectedAt || undefined,
           estimate: cardData.estimatedHours || undefined,
           googleDocs: [],
+          sharePointDocs: [],
           authorId: cardData.authorId || undefined,
           enabledCustomFieldIds: (cardData as { enabledCustomFieldIds?: string[] }).enabledCustomFieldIds || [],
         };
@@ -1375,6 +1376,7 @@ export default function BoardView() {
       isApproved: false,
       isRejected: false,
       googleDocs: [],
+      sharePointDocs: [],
       enabledCustomFieldIds: [],
     };
 
@@ -3552,6 +3554,32 @@ export default function BoardView() {
               return newMap;
             });
             setSelectedCard((prev) => prev ? { ...prev, googleDocs: updatedCard.googleDocs } : null);
+          }}
+          onSharePointDocAdd={async (cardId, url, title) => {
+            const updatedCard = await addSharePointDoc(cardId, url, title);
+            setCardsByList((prev) => {
+              const newMap = new Map(prev);
+              const listCards = newMap.get(updatedCard.listId) || [];
+              const updatedCards = listCards.map((c) =>
+                c.id === cardId ? { ...c, sharePointDocs: updatedCard.sharePointDocs } : c
+              );
+              newMap.set(updatedCard.listId, updatedCards);
+              return newMap;
+            });
+            setSelectedCard((prev) => prev ? { ...prev, sharePointDocs: updatedCard.sharePointDocs } : null);
+          }}
+          onSharePointDocRemove={async (cardId, url) => {
+            const updatedCard = await removeSharePointDoc(cardId, url);
+            setCardsByList((prev) => {
+              const newMap = new Map(prev);
+              const listCards = newMap.get(updatedCard.listId) || [];
+              const updatedCards = listCards.map((c) =>
+                c.id === cardId ? { ...c, sharePointDocs: updatedCard.sharePointDocs } : c
+              );
+              newMap.set(updatedCard.listId, updatedCards);
+              return newMap;
+            });
+            setSelectedCard((prev) => prev ? { ...prev, sharePointDocs: updatedCard.sharePointDocs } : null);
           }}
           newMercureComment={newMercureComment}
           deletedMercureCommentId={deletedMercureCommentId}

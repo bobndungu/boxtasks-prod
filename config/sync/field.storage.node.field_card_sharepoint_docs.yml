@@ -1,0 +1,19 @@
+uuid: f8e2dedf-24c3-467e-9ee9-ce6e1d5aa6e7
+langcode: en
+status: true
+dependencies:
+  module:
+    - link
+    - node
+id: node.field_card_sharepoint_docs
+field_name: field_card_sharepoint_docs
+entity_type: node
+type: link
+settings: {  }
+module: link
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
