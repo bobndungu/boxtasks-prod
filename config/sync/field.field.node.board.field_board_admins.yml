@@ -1,0 +1,30 @@
+uuid: c2d3e4f5-a6b7-8901-cdef-234567890123
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_board_admins
+    - node.type.board
+  module:
+    - user
+id: node.board.field_board_admins
+field_name: field_board_admins
+entity_type: node
+bundle: board
+label: 'Board Admins'
+description: 'Users who have admin rights on this board.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings:
+    target_bundles: null
+    sort:
+      field: _none
+    auto_create: false
+    filter:
+      type: _none
+    include_anonymous: false
+field_type: entity_reference
