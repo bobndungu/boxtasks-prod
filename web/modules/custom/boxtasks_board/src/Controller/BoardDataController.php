@@ -145,16 +145,21 @@ class BoardDataController extends ControllerBase {
     $term_storage = $this->entityTypeManager->getStorage('taxonomy_term');
 
     // Load the board.
-    $boards = $node_storage->loadByProperties([
-      'type' => 'board',
-      'uuid' => $board_id,
-    ]);
+    // Use accessCheck(FALSE) because this controller performs its own access
+    // checks via PermissionChecker. Node access table may be temporarily
+    // unavailable during node_access_rebuild() in deployments.
+    $board_ids = $node_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'board')
+      ->condition('uuid', $board_id)
+      ->range(0, 1)
+      ->execute();
 
-    if (empty($boards)) {
+    if (empty($board_ids)) {
       throw new NotFoundHttpException('Board not found.');
     }
 
-    $board = reset($boards);
+    $board = $node_storage->load(reset($board_ids));
 
     // Check if user has permission to view this board.
     // This verifies workspace membership and board visibility settings.
@@ -174,12 +179,14 @@ class BoardDataController extends ControllerBase {
       }
     }
 
-    // Fetch lists.
-    $lists = $node_storage->loadByProperties([
-      'type' => 'board_list',
-      'field_list_board' => $board->id(),
-      'field_list_archived' => 0,
-    ]);
+    // Fetch lists - access already verified via canViewBoard() above.
+    $list_ids_query = $node_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'board_list')
+      ->condition('field_list_board', $board->id())
+      ->condition('field_list_archived', 0)
+      ->execute();
+    $lists = !empty($list_ids_query) ? $node_storage->loadMultiple($list_ids_query) : [];
 
     // Sort lists by position.
     uasort($lists, function ($a, $b) {
@@ -199,7 +206,7 @@ class BoardDataController extends ControllerBase {
     $cards_data = [];
     if (!empty($list_ids)) {
       $cards = $node_storage->getQuery()
-        ->accessCheck(TRUE)
+        ->accessCheck(FALSE)
         ->condition('type', 'card')
         ->condition('field_card_list', $list_ids, 'IN')
         ->condition('field_card_archived', 0)
@@ -215,10 +222,12 @@ class BoardDataController extends ControllerBase {
     }
 
     // Fetch custom field definitions for this board.
-    $custom_fields = $node_storage->loadByProperties([
-      'type' => 'custom_field_definition',
-      'field_customfield_board' => $board->id(),
-    ]);
+    $cf_ids = $node_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'custom_field_definition')
+      ->condition('field_customfield_board', $board->id())
+      ->execute();
+    $custom_fields = !empty($cf_ids) ? $node_storage->loadMultiple($cf_ids) : [];
 
     $custom_field_defs = [];
     $custom_field_ids = [];
@@ -233,7 +242,7 @@ class BoardDataController extends ControllerBase {
       $card_nids = array_column($cards_data, 'drupal_id');
       if (!empty($card_nids)) {
         $cfv_query = $node_storage->getQuery()
-          ->accessCheck(TRUE)
+          ->accessCheck(FALSE)
           ->condition('type', 'card_custom_field_value')
           ->condition('field_cfv_card', $card_nids, 'IN')
           ->execute();
@@ -295,20 +304,24 @@ class BoardDataController extends ControllerBase {
       // Default: inherit from workspace.
       // Get members from member_role nodes instead of field_workspace_members.
       if ($workspace_id) {
-        $workspace_nodes = $node_storage->loadByProperties([
-          'type' => 'workspace',
-          'uuid' => $workspace_id,
-        ]);
+        $ws_ids = $node_storage->getQuery()
+          ->accessCheck(FALSE)
+          ->condition('type', 'workspace')
+          ->condition('uuid', $workspace_id)
+          ->range(0, 1)
+          ->execute();
 
-        if (!empty($workspace_nodes)) {
-          $workspace = reset($workspace_nodes);
+        if (!empty($ws_ids)) {
+          $workspace = $node_storage->load(reset($ws_ids));
           $workspace_nid = $workspace->id();
 
           // Query member_role nodes for this workspace.
-          $member_roles = $node_storage->loadByProperties([
-            'type' => 'member_role',
-            'field_member_role_workspace' => $workspace_nid,
-          ]);
+          $mr_ids = $node_storage->getQuery()
+            ->accessCheck(FALSE)
+            ->condition('type', 'member_role')
+            ->condition('field_member_role_workspace', $workspace_nid)
+            ->execute();
+          $member_roles = !empty($mr_ids) ? $node_storage->loadMultiple($mr_ids) : [];
 
           // Track which users we've added to avoid duplicates.
           $added_user_ids = [];

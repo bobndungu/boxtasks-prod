@@ -222,6 +222,39 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
   }
 
   /**
+   * Load a node by type and UUID, bypassing node access checking.
+   *
+   * This subscriber performs its own access checks via PermissionChecker,
+   * so entity loading must not be subject to Drupal's node_access table.
+   * During node_access_rebuild(), the table can be temporarily empty,
+   * which would cause all loadByProperties() calls with access checking
+   * to return empty results.
+   *
+   * @param string $type
+   *   The node bundle type.
+   * @param string $uuid
+   *   The node UUID.
+   *
+   * @return \Drupal\node\NodeInterface|null
+   *   The loaded node or NULL if not found.
+   */
+  protected function loadNodeByUuid(string $type, string $uuid) {
+    $storage = $this->entityTypeManager->getStorage('node');
+    $ids = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', $type)
+      ->condition('uuid', $uuid)
+      ->range(0, 1)
+      ->execute();
+
+    if (empty($ids)) {
+      return NULL;
+    }
+
+    return $storage->load(reset($ids));
+  }
+
+  /**
    * Check if the current user can view a JSON:API item.
    *
    * @param array $item
@@ -240,25 +273,15 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
     }
 
     try {
-      $storage = $this->entityTypeManager->getStorage('node');
-
       if ($type === 'board') {
-        $nodes = $storage->loadByProperties([
-          'type' => 'board',
-          'uuid' => $uuid,
-        ]);
-        $node = reset($nodes);
+        $node = $this->loadNodeByUuid('board', $uuid);
         if (!$node) {
           return FALSE;
         }
         return $this->permissionChecker->canViewBoard($node);
       }
       elseif ($type === 'workspace') {
-        $nodes = $storage->loadByProperties([
-          'type' => 'workspace',
-          'uuid' => $uuid,
-        ]);
-        $node = reset($nodes);
+        $node = $this->loadNodeByUuid('workspace', $uuid);
         if (!$node) {
           return FALSE;
         }
@@ -294,20 +317,11 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
    *   TRUE if user can view the notification.
    */
   protected function canViewNotification(array $item): bool {
-    $storage = $this->entityTypeManager->getStorage('node');
-
     // Check if notification has a card reference.
     $card_rel = $item['relationships']['field_notification_card']['data'] ?? NULL;
     if ($card_rel && isset($card_rel['id'])) {
-      $card_uuid = $card_rel['id'];
-      $cards = $storage->loadByProperties([
-        'type' => 'card',
-        'uuid' => $card_uuid,
-      ]);
-      $card = reset($cards);
-
+      $card = $this->loadNodeByUuid('card', $card_rel['id']);
       if ($card) {
-        // Get the board from the card's list.
         $board = $this->getBoardFromCard($card);
         if ($board) {
           return $this->permissionChecker->canViewBoard($board);
@@ -318,12 +332,7 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
     // Check if notification has a board reference.
     $board_rel = $item['relationships']['field_notification_board']['data'] ?? NULL;
     if ($board_rel && isset($board_rel['id'])) {
-      $board_uuid = $board_rel['id'];
-      $boards = $storage->loadByProperties([
-        'type' => 'board',
-        'uuid' => $board_uuid,
-      ]);
-      $board = reset($boards);
+      $board = $this->loadNodeByUuid('board', $board_rel['id']);
       if ($board) {
         return $this->permissionChecker->canViewBoard($board);
       }
@@ -332,12 +341,7 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
     // Check if notification has a workspace reference.
     $workspace_rel = $item['relationships']['field_notification_workspace']['data'] ?? NULL;
     if ($workspace_rel && isset($workspace_rel['id'])) {
-      $workspace_uuid = $workspace_rel['id'];
-      $workspaces = $storage->loadByProperties([
-        'type' => 'workspace',
-        'uuid' => $workspace_uuid,
-      ]);
-      $workspace = reset($workspaces);
+      $workspace = $this->loadNodeByUuid('workspace', $workspace_rel['id']);
       if ($workspace) {
         return $this->permissionChecker->canViewWorkspace($workspace);
       }
@@ -360,20 +364,11 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
    *   TRUE if user can view the activity.
    */
   protected function canViewActivity(array $item): bool {
-    $storage = $this->entityTypeManager->getStorage('node');
-
     // Check if activity has a card reference.
     $card_rel = $item['relationships']['field_activity_card']['data'] ?? NULL;
     if ($card_rel && isset($card_rel['id'])) {
-      $card_uuid = $card_rel['id'];
-      $cards = $storage->loadByProperties([
-        'type' => 'card',
-        'uuid' => $card_uuid,
-      ]);
-      $card = reset($cards);
-
+      $card = $this->loadNodeByUuid('card', $card_rel['id']);
       if ($card) {
-        // Get the board from the card's list.
         $board = $this->getBoardFromCard($card);
         if ($board) {
           return $this->permissionChecker->canViewBoard($board);
@@ -384,12 +379,7 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
     // Check if activity has a board reference.
     $board_rel = $item['relationships']['field_activity_board']['data'] ?? NULL;
     if ($board_rel && isset($board_rel['id'])) {
-      $board_uuid = $board_rel['id'];
-      $boards = $storage->loadByProperties([
-        'type' => 'board',
-        'uuid' => $board_uuid,
-      ]);
-      $board = reset($boards);
+      $board = $this->loadNodeByUuid('board', $board_rel['id']);
       if ($board) {
         return $this->permissionChecker->canViewBoard($board);
       }
@@ -398,12 +388,7 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
     // Check if activity has a workspace reference.
     $workspace_rel = $item['relationships']['field_activity_workspace']['data'] ?? NULL;
     if ($workspace_rel && isset($workspace_rel['id'])) {
-      $workspace_uuid = $workspace_rel['id'];
-      $workspaces = $storage->loadByProperties([
-        'type' => 'workspace',
-        'uuid' => $workspace_uuid,
-      ]);
-      $workspace = reset($workspaces);
+      $workspace = $this->loadNodeByUuid('workspace', $workspace_rel['id']);
       if ($workspace) {
         return $this->permissionChecker->canViewWorkspace($workspace);
       }
@@ -459,12 +444,13 @@ class JsonApiFilterSubscriber implements EventSubscriberInterface {
       return FALSE;
     }
 
-    $storage = $this->entityTypeManager->getStorage('node');
-    $nodes = $storage->loadByProperties([
-      'type' => $type,
-      'uuid' => $uuid,
-    ]);
-    $node = reset($nodes);
+    // Map JSON:API type to Drupal bundle name.
+    $bundle = $type;
+    if ($type === 'list') {
+      $bundle = 'board_list';
+    }
+
+    $node = $this->loadNodeByUuid($bundle, $uuid);
     if (!$node) {
       return FALSE;
     }

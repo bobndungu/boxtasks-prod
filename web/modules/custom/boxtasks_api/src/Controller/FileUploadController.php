@@ -244,31 +244,38 @@ class FileUploadController extends ControllerBase {
       $file_uuid = $upload_data['data']['id'];
       $filename = $upload_data['data']['attributes']['filename'];
 
-      // Load the card to verify it exists
-      $cards = \Drupal::entityTypeManager()
-        ->getStorage('node')
-        ->loadByProperties(['type' => 'card', 'uuid' => $card_id]);
+      // Load the card to verify it exists - bypass access check for internal loading.
+      $node_storage = \Drupal::entityTypeManager()->getStorage('node');
+      $card_ids = $node_storage->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('type', 'card')
+        ->condition('uuid', $card_id)
+        ->range(0, 1)
+        ->execute();
 
-      if (empty($cards)) {
+      if (empty($card_ids)) {
         return new JsonResponse([
           'error' => 'Card not found',
         ], 404);
       }
 
-      $card = reset($cards);
+      $card = $node_storage->load(reset($card_ids));
 
       // Load the file entity
-      $files = \Drupal::entityTypeManager()
-        ->getStorage('file')
-        ->loadByProperties(['uuid' => $file_uuid]);
+      $file_storage = \Drupal::entityTypeManager()->getStorage('file');
+      $file_ids = $file_storage->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('uuid', $file_uuid)
+        ->range(0, 1)
+        ->execute();
 
-      if (empty($files)) {
+      if (empty($file_ids)) {
         return new JsonResponse([
           'error' => 'File entity not found',
         ], 500);
       }
 
-      $file = reset($files);
+      $file = $file_storage->load(reset($file_ids));
 
       // Create the attachment node
       $attachment = Node::create([

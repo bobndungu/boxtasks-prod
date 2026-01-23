@@ -53,9 +53,14 @@ class FieldGroupsController extends ControllerBase {
   public function getGroups(string $board_id): JsonResponse {
     $node_storage = $this->entityTypeManager->getStorage('node');
 
-    // Load the board to get its workspace
-    $boards = $node_storage->loadByProperties(['uuid' => $board_id, 'type' => 'board']);
-    $board = reset($boards);
+    // Load the board to get its workspace - bypass access check for internal loading.
+    $board_ids = $node_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('uuid', $board_id)
+      ->condition('type', 'board')
+      ->range(0, 1)
+      ->execute();
+    $board = !empty($board_ids) ? $node_storage->load(reset($board_ids)) : NULL;
 
     if (!$board) {
       return new JsonResponse(['error' => 'Board not found'], 404);
@@ -145,8 +150,13 @@ class FieldGroupsController extends ControllerBase {
 
     // Set board reference if provided
     if (isset($data['boardId']) && $data['boardId']) {
-      $boards = $node_storage->loadByProperties(['uuid' => $data['boardId'], 'type' => 'board']);
-      $board = reset($boards);
+      $bid = $node_storage->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('uuid', $data['boardId'])
+        ->condition('type', 'board')
+        ->range(0, 1)
+        ->execute();
+      $board = !empty($bid) ? $node_storage->load(reset($bid)) : NULL;
       if ($board && $group->hasField('field_cfg_board')) {
         $group->set('field_cfg_board', $board->id());
       }
@@ -154,8 +164,13 @@ class FieldGroupsController extends ControllerBase {
 
     // Set workspace reference if provided
     if (isset($data['workspaceId']) && $data['workspaceId']) {
-      $workspaces = $node_storage->loadByProperties(['uuid' => $data['workspaceId'], 'type' => 'workspace']);
-      $workspace = reset($workspaces);
+      $wsid = $node_storage->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('uuid', $data['workspaceId'])
+        ->condition('type', 'workspace')
+        ->range(0, 1)
+        ->execute();
+      $workspace = !empty($wsid) ? $node_storage->load(reset($wsid)) : NULL;
       if ($workspace && $group->hasField('field_cfg_workspace')) {
         $group->set('field_cfg_workspace', $workspace->id());
       }
@@ -165,8 +180,13 @@ class FieldGroupsController extends ControllerBase {
     if (isset($data['roleIds']) && is_array($data['roleIds']) && $group->hasField('field_cfg_roles')) {
       $role_ids = [];
       foreach ($data['roleIds'] as $role_uuid) {
-        $roles = $node_storage->loadByProperties(['uuid' => $role_uuid, 'type' => 'workspace_role']);
-        $role = reset($roles);
+        $rid = $node_storage->getQuery()
+          ->accessCheck(FALSE)
+          ->condition('uuid', $role_uuid)
+          ->condition('type', 'workspace_role')
+          ->range(0, 1)
+          ->execute();
+        $role = !empty($rid) ? $node_storage->load(reset($rid)) : NULL;
         if ($role) {
           $role_ids[] = $role->id();
         }
@@ -198,9 +218,14 @@ class FieldGroupsController extends ControllerBase {
   public function updateGroup(string $group_id, Request $request): JsonResponse {
     $node_storage = $this->entityTypeManager->getStorage('node');
 
-    // Load by UUID
-    $groups = $node_storage->loadByProperties(['uuid' => $group_id, 'type' => 'custom_field_group']);
-    $group = reset($groups);
+    // Load by UUID - bypass access check for internal loading.
+    $gids = $node_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('uuid', $group_id)
+      ->condition('type', 'custom_field_group')
+      ->range(0, 1)
+      ->execute();
+    $group = !empty($gids) ? $node_storage->load(reset($gids)) : NULL;
 
     if (!$group) {
       return new JsonResponse(['error' => 'Field group not found'], 404);
@@ -220,8 +245,13 @@ class FieldGroupsController extends ControllerBase {
     if (isset($data['roleIds']) && is_array($data['roleIds']) && $group->hasField('field_cfg_roles')) {
       $role_ids = [];
       foreach ($data['roleIds'] as $role_uuid) {
-        $roles = $node_storage->loadByProperties(['uuid' => $role_uuid, 'type' => 'workspace_role']);
-        $role = reset($roles);
+        $rid = $node_storage->getQuery()
+          ->accessCheck(FALSE)
+          ->condition('uuid', $role_uuid)
+          ->condition('type', 'workspace_role')
+          ->range(0, 1)
+          ->execute();
+        $role = !empty($rid) ? $node_storage->load(reset($rid)) : NULL;
         if ($role) {
           $role_ids[] = $role->id();
         }
@@ -251,9 +281,14 @@ class FieldGroupsController extends ControllerBase {
   public function deleteGroup(string $group_id): JsonResponse {
     $node_storage = $this->entityTypeManager->getStorage('node');
 
-    // Load by UUID
-    $groups = $node_storage->loadByProperties(['uuid' => $group_id, 'type' => 'custom_field_group']);
-    $group = reset($groups);
+    // Load by UUID - bypass access check for internal loading.
+    $gids = $node_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('uuid', $group_id)
+      ->condition('type', 'custom_field_group')
+      ->range(0, 1)
+      ->execute();
+    $group = !empty($gids) ? $node_storage->load(reset($gids)) : NULL;
 
     if (!$group) {
       return new JsonResponse(['error' => 'Field group not found'], 404);

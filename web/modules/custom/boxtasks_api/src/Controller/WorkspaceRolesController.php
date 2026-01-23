@@ -330,9 +330,14 @@ class WorkspaceRolesController extends ControllerBase {
 
     $node_storage = $this->entityTypeManager->getStorage('node');
 
-    // Load by UUID.
-    $nodes = $node_storage->loadByProperties(['uuid' => $role_id, 'type' => 'workspace_role']);
-    $role = reset($nodes);
+    // Load by UUID - bypass access check since this controller has its own checks.
+    $role_ids = $node_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('uuid', $role_id)
+      ->condition('type', 'workspace_role')
+      ->range(0, 1)
+      ->execute();
+    $role = !empty($role_ids) ? $node_storage->load(reset($role_ids)) : NULL;
 
     if (!$role) {
       return new JsonResponse(['error' => 'Role not found'], 404);
@@ -462,8 +467,13 @@ class WorkspaceRolesController extends ControllerBase {
 
     // Set workspace reference if provided.
     if (isset($data['workspaceId']) && $data['workspaceId']) {
-      $workspace_nodes = $node_storage->loadByProperties(['uuid' => $data['workspaceId'], 'type' => 'workspace']);
-      $workspace = reset($workspace_nodes);
+      $ws_ids = $node_storage->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('uuid', $data['workspaceId'])
+        ->condition('type', 'workspace')
+        ->range(0, 1)
+        ->execute();
+      $workspace = !empty($ws_ids) ? $node_storage->load(reset($ws_ids)) : NULL;
       if ($workspace && $role->hasField('field_role_workspace')) {
         $role->set('field_role_workspace', $workspace->id());
       }
@@ -568,9 +578,14 @@ class WorkspaceRolesController extends ControllerBase {
 
     $node_storage = $this->entityTypeManager->getStorage('node');
 
-    // Load by UUID.
-    $nodes = $node_storage->loadByProperties(['uuid' => $role_id, 'type' => 'workspace_role']);
-    $role = reset($nodes);
+    // Load by UUID - bypass access check since this controller has its own checks.
+    $role_ids = $node_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('uuid', $role_id)
+      ->condition('type', 'workspace_role')
+      ->range(0, 1)
+      ->execute();
+    $role = !empty($role_ids) ? $node_storage->load(reset($role_ids)) : NULL;
 
     if (!$role) {
       return new JsonResponse(['error' => 'Role not found'], 404);

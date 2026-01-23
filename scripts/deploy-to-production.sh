@@ -71,9 +71,6 @@ ssh "$PROD_USER@$PROD_HOST" << 'ENDSSH'
     echo "  -> Importing configuration..."
     ./vendor/drush/drush/drush cim -y || true
 
-    echo "  -> Rebuilding node access permissions..."
-    ./vendor/drush/drush/drush php-eval "node_access_rebuild();"
-
     echo "  -> Building frontend..."
     cd frontend
     npm ci --production=false
@@ -83,6 +80,9 @@ ssh "$PROD_USER@$PROD_HOST" << 'ENDSSH'
     echo "  -> Restarting services..."
     systemctl restart php-fpm
     systemctl restart nginx
+
+    echo "  -> Final cache clear (ensure no stale access caches)..."
+    ./vendor/drush/drush/drush cr
 
     echo "  -> Deployment complete!"
 ENDSSH

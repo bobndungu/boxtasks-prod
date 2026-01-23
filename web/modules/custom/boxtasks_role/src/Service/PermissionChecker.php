@@ -66,25 +66,40 @@ class PermissionChecker {
 
     $storage = $this->entityTypeManager->getStorage('node');
 
-    // First, find the workspace node by UUID.
-    $workspace_nodes = $storage->loadByProperties([
-      'type' => 'workspace',
-      'uuid' => $workspace_id,
-    ]);
-    $workspace = reset($workspace_nodes);
+    // Find the workspace node by UUID.
+    // Use accessCheck(FALSE) because this service IS the access control
+    // mechanism. It must not be subject to its own access checking, which
+    // depends on the node_access table that can be temporarily empty during
+    // node_access_rebuild().
+    $workspace_ids = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'workspace')
+      ->condition('uuid', $workspace_id)
+      ->range(0, 1)
+      ->execute();
 
+    if (empty($workspace_ids)) {
+      $this->roleCache[$cache_key] = NULL;
+      return NULL;
+    }
+
+    $workspace = $storage->load(reset($workspace_ids));
     if (!$workspace) {
       $this->roleCache[$cache_key] = NULL;
       return NULL;
     }
 
     // Find user's member_role for this workspace.
-    $member_roles = $storage->loadByProperties([
-      'type' => 'member_role',
-      'field_member_role_workspace' => $workspace->id(),
-      'field_member_role_user' => $user_id,
-    ]);
-    $member_role = reset($member_roles);
+    // Use accessCheck(FALSE) for the same reason as above.
+    $member_role_ids = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'member_role')
+      ->condition('field_member_role_workspace', $workspace->id())
+      ->condition('field_member_role_user', $user_id)
+      ->range(0, 1)
+      ->execute();
+
+    $member_role = !empty($member_role_ids) ? $storage->load(reset($member_role_ids)) : NULL;
 
     if ($member_role && $member_role->hasField('field_member_role_role')) {
       $role_ref = $member_role->get('field_member_role_role')->entity;

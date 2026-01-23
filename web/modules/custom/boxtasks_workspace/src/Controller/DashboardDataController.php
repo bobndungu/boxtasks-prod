@@ -161,19 +161,25 @@ class DashboardDataController extends ControllerBase {
     $user_storage = $this->entityTypeManager->getStorage('user');
 
     // Load the workspace.
-    $workspaces = $node_storage->loadByProperties([
-      'type' => 'workspace',
-      'uuid' => $workspace_id,
-    ]);
+    // Use accessCheck(FALSE) because this controller performs its own access
+    // checks. The node_access table can be temporarily empty during rebuilds.
+    $ws_ids = $node_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'workspace')
+      ->condition('uuid', $workspace_id)
+      ->range(0, 1)
+      ->execute();
 
-    if (empty($workspaces)) {
+    if (empty($ws_ids)) {
       throw new NotFoundHttpException('Workspace not found.');
     }
 
-    $workspace = reset($workspaces);
+    $workspace = $node_storage->load(reset($ws_ids));
 
-    // Check access using the authenticated user.
-    if (!$workspace->access('view', $this->authenticatedUser)) {
+    // Check access using the permission checker directly.
+    // Do NOT use $workspace->access() as it relies on the node_access table
+    // which can be temporarily empty during node_access_rebuild().
+    if (!$this->permissionChecker->canViewWorkspace($workspace, (int) $this->authenticatedUser->id())) {
       throw new AccessDeniedHttpException('Access denied to this workspace.');
     }
 
@@ -181,11 +187,13 @@ class DashboardDataController extends ControllerBase {
     $seven_days_from_now = $now + (7 * 24 * 60 * 60);
 
     // Get all boards for this workspace.
-    $all_boards = $node_storage->loadByProperties([
-      'type' => 'board',
-      'field_board_workspace' => $workspace->id(),
-      'field_board_archived' => FALSE,
-    ]);
+    $board_ids_query = $node_storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'board')
+      ->condition('field_board_workspace', $workspace->id())
+      ->condition('field_board_archived', FALSE)
+      ->execute();
+    $all_boards = !empty($board_ids_query) ? $node_storage->loadMultiple($board_ids_query) : [];
 
     // Filter boards based on user access.
     $user_id = $this->authenticatedUser ? (int) $this->authenticatedUser->id() : NULL;
