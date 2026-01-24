@@ -28,11 +28,15 @@ export default function OAuthCallback() {
       }
 
       try {
-        // Store tokens
+        // Store tokens (this clears any previously persisted user data)
         setTokens(accessToken, refreshToken || undefined);
 
-        // Fetch user data
-        await fetchUser();
+        // Fetch user data - must succeed before navigating
+        const success = await fetchUser();
+        if (!success) {
+          setError('Failed to load user profile. Please try logging in again.');
+          return;
+        }
 
         // Redirect to dashboard
         navigate('/dashboard', { replace: true });

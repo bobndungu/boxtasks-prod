@@ -64,7 +64,9 @@ export const useAuthStore = create<AuthState>()(
       setSessionExpiring: (sessionExpiring, sessionExpiryMessage = null) =>
         set({ sessionExpiring, sessionExpiryMessage }),
       login: async (username: string, password: string) => {
-        set({ isLoading: true, error: null });
+        // Clear any previously stored user data to prevent identity mismatch
+        // if the new login's user fetch fails after token is obtained
+        set({ isLoading: true, error: null, user: null, isAuthenticated: false });
         try {
           await apiLogin(username, password);
           // Fetch user info after successful login using /api/me
@@ -196,11 +198,15 @@ export const useAuthStore = create<AuthState>()(
           }
         }
 
-        // Token exists but we don't have user data - this shouldn't happen often
-        // but if it does, the user is still authenticated
+        // Token exists but we don't have user data - fetch it from the server.
+        // This happens after setTokens clears stale user data, or on first load.
         if (token && !user) {
           startSessionMonitoring();
-          set({ isAuthenticated: true, isLoading: false });
+          const success = await get().fetchUser();
+          if (!success) {
+            // If we can't fetch user data, log out to prevent operating with wrong identity
+            get().logout();
+          }
           return;
         }
 
@@ -254,6 +260,10 @@ export const useAuthStore = create<AuthState>()(
         return unsubscribe;
       },
       setTokens: (accessToken: string, refreshToken?: string, expiresIn: number = 3600) => {
+        // CRITICAL: Clear any previously persisted user data when new tokens are set.
+        // This prevents stale user identity from being used with a new user's token
+        // (e.g., when a different user logs in via social auth on the same browser).
+        set({ user: null, isAuthenticated: false });
         setAccessToken(accessToken, expiresIn);
         if (refreshToken) {
           setRefreshToken(refreshToken);
