@@ -1,4 +1,5 @@
 import { getAccessToken, fetchWithCsrf } from './client';
+import { decodeHtmlEntities } from '../utils/htmlEntities';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://boxtasks2.ddev.site';
 
@@ -345,9 +346,9 @@ function transformCard(
 
   return {
     id: data.id as string,
-    title: attrs.title as string,
+    title: decodeHtmlEntities(attrs.title as string),
     // Card content type uses field_card_description (text_long with format)
-    description: (attrs.field_card_description as { value?: string })?.value || '',
+    description: decodeHtmlEntities((attrs.field_card_description as { value?: string })?.value || ''),
     listId,
     position: (attrs.field_card_position as number) || 0,
     // Use normalizeDateFromDrupal to ensure UTC dates are properly parsed
