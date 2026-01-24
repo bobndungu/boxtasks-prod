@@ -49,6 +49,10 @@ frontend/build/
 # Test coverage
 frontend/coverage/
 
+# Playwright
+frontend/playwright-report/
+frontend/test-results/
+
 # Composer cache
 .composer/
 
