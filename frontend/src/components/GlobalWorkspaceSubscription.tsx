@@ -21,6 +21,7 @@ export default function GlobalWorkspaceSubscription() {
   const lastFetchTime = useRef<number>(0);
   const retryCount = useRef(0);
   const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refreshWorkspacesRef = useRef<(isRetry?: boolean) => Promise<void>>();
   const MAX_RETRIES = 5;
   const BASE_RETRY_DELAY = 3000; // 3 seconds
 
@@ -52,7 +53,7 @@ export default function GlobalWorkspaceSubscription() {
         const delay = BASE_RETRY_DELAY * Math.pow(2, retryCount.current - 1);
         console.warn(`[GlobalWorkspaceSubscription] Got 0 workspaces, retrying in ${delay}ms (attempt ${retryCount.current}/${MAX_RETRIES})`);
         retryTimer.current = setTimeout(() => {
-          refreshWorkspaces(true);
+          refreshWorkspacesRef.current?.(true);
         }, delay);
         return;
       }
@@ -84,11 +85,16 @@ export default function GlobalWorkspaceSubscription() {
         const delay = BASE_RETRY_DELAY * Math.pow(2, retryCount.current - 1);
         console.warn(`[GlobalWorkspaceSubscription] Fetch failed, retrying in ${delay}ms (attempt ${retryCount.current}/${MAX_RETRIES})`);
         retryTimer.current = setTimeout(() => {
-          refreshWorkspaces(true);
+          refreshWorkspacesRef.current?.(true);
         }, delay);
       }
     }
   }, [currentWorkspace, setWorkspaces, setCurrentWorkspace]);
+
+  // Keep ref in sync so retries always call the latest version
+  useEffect(() => {
+    refreshWorkspacesRef.current = refreshWorkspaces;
+  }, [refreshWorkspaces]);
 
   // Subscribe to real-time workspace assignment updates
   useUserWorkspaceUpdates(user?.id, {

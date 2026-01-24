@@ -30,8 +30,7 @@ jobs:
 
       - name: Run ESLint
         working-directory: frontend
-        continue-on-error: true
-        run: npm run lint
+        run: npm run lint --max-warnings 100
 
       - name: Run TypeScript type check
         working-directory: frontend

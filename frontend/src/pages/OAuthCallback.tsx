@@ -3,6 +3,21 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../lib/stores/auth';
 import { Layout, Loader2, AlertCircle } from 'lucide-react';
 
+function getErrorMessage(errorCode: string): string {
+  switch (errorCode) {
+    case 'not_authenticated':
+      return 'Authentication failed. Please try logging in again.';
+    case 'user_not_found':
+      return 'User account not found.';
+    case 'no_consumer':
+      return 'OAuth configuration error. Please contact support.';
+    case 'token_generation_failed':
+      return 'Failed to generate access token. Please try again.';
+    default:
+      return 'An unexpected error occurred. Please try again.';
+  }
+}
+
 export default function OAuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -48,21 +63,6 @@ export default function OAuthCallback() {
 
     processCallback();
   }, [searchParams, setTokens, fetchUser, navigate]);
-
-  const getErrorMessage = (errorCode: string): string => {
-    switch (errorCode) {
-      case 'not_authenticated':
-        return 'Authentication failed. Please try logging in again.';
-      case 'user_not_found':
-        return 'User account not found.';
-      case 'no_consumer':
-        return 'OAuth configuration error. Please contact support.';
-      case 'token_generation_failed':
-        return 'Failed to generate access token. Please try again.';
-      default:
-        return 'An unexpected error occurred. Please try again.';
-    }
-  };
 
   if (error) {
     return (
