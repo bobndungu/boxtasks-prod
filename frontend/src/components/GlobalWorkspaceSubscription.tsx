@@ -21,7 +21,7 @@ export default function GlobalWorkspaceSubscription() {
   const lastFetchTime = useRef<number>(0);
   const retryCount = useRef(0);
   const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const refreshWorkspacesRef = useRef<(isRetry?: boolean) => Promise<void>>();
+  const refreshWorkspacesRef = useRef<((isRetry?: boolean) => Promise<void>) | undefined>(undefined);
   const MAX_RETRIES = 5;
   const BASE_RETRY_DELAY = 3000; // 3 seconds
 
