@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate, Outlet, useRouteError, isRouteErrorResponse } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './lib/queryClient';
 import { useAuthStore } from './lib/stores/auth';
 import { useThemeStore } from './lib/stores/theme';
 import ToastContainer from './components/Toast';
@@ -96,18 +97,7 @@ function RouteErrorBoundary() {
   );
 }
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 1, // 1 minute - balance between freshness and performance
-      gcTime: 1000 * 60 * 5, // 5 minutes garbage collection (previously cacheTime)
-      retry: 1,
-      refetchOnWindowFocus: true, // Refresh data when user returns to tab
-      refetchOnReconnect: true, // Refresh when network reconnects
-    },
-  },
-});
+// QueryClient is imported from ./lib/queryClient singleton for shared access
 
 // Protected route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {

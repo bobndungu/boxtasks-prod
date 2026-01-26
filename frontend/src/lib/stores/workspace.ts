@@ -58,8 +58,19 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       setFetchingWorkspaces: (isFetching) => set({ isFetchingWorkspaces: isFetching }),
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
-      // Clear all workspaces (used on logout)
-      clearWorkspaces: () => set({ workspaces: [], currentWorkspace: null, workspacesLastFetched: null, isFetchingWorkspaces: false }),
+      // Clear all workspaces (used on logout to prevent data leakage)
+      clearWorkspaces: () => {
+        // Clear the persisted storage to ensure no stale data remains
+        localStorage.removeItem('boxtasks_workspace');
+        set({
+          workspaces: [],
+          currentWorkspace: null,
+          workspacesLastFetched: null,
+          isFetchingWorkspaces: false,
+          isLoading: false,
+          error: null,
+        });
+      },
       isWorkspacesStale: () => {
         const { workspacesLastFetched } = get();
         if (!workspacesLastFetched) return true;

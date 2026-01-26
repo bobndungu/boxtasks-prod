@@ -33,7 +33,11 @@ interface BoardState {
   invalidateBoardsCache: () => void;
 }
 
-export const useBoardStore = create<BoardState>()((set, get) => ({
+interface ClearBoardsState {
+  clearBoards: () => void;
+}
+
+export const useBoardStore = create<BoardState & ClearBoardsState>()((set, get) => ({
   boards: [],
   currentBoard: null,
   starredBoards: [],
@@ -44,6 +48,19 @@ export const useBoardStore = create<BoardState>()((set, get) => ({
   isFetchingRecentBoards: false,
   isLoading: false,
   error: null,
+  // Clear all board data (used on logout to prevent data leakage)
+  clearBoards: () => set({
+    boards: [],
+    currentBoard: null,
+    starredBoards: [],
+    recentBoards: [],
+    starredBoardsLastFetched: null,
+    recentBoardsLastFetched: null,
+    isFetchingStarredBoards: false,
+    isFetchingRecentBoards: false,
+    isLoading: false,
+    error: null,
+  }),
   setBoards: (boards) => set({ boards, isLoading: false }),
   addBoard: (board) =>
     set((state) => ({ boards: [...state.boards, board] })),

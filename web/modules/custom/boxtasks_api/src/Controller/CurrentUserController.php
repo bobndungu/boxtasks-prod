@@ -91,7 +91,12 @@ class CurrentUserController extends ControllerBase {
       $data['mention_handle'] = $user->get('field_mention_handle')->value;
     }
 
-    return new JsonResponse($data);
+    $response = new JsonResponse($data);
+    // Prevent caching of user-specific data - critical for security.
+    $response->headers->set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    $response->headers->set('Pragma', 'no-cache');
+    $response->headers->set('Expires', '0');
+    return $response;
   }
 
 }

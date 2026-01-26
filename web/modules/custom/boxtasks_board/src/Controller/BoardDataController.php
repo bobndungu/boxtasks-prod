@@ -67,54 +67,6 @@ class BoardDataController extends ControllerBase {
   }
 
   /**
-   * Authenticate user from OAuth Bearer token (JWT).
-   *
-   * @param \Symfony\Component\HttpFoundation\Request $request
-   *   The request object.
-   *
-   * @return \Drupal\user\Entity\User|null
-   *   The authenticated user or NULL.
-   */
-  protected function authenticateFromOAuthToken(Request $request): ?User {
-    $auth_header = $request->headers->get('Authorization', '');
-    if (!preg_match('/^Bearer\s+(.+)$/i', $auth_header, $matches)) {
-      return NULL;
-    }
-
-    $jwt = $matches[1];
-
-    // Parse the JWT token to extract claims.
-    // JWT format: header.payload.signature
-    $parts = explode('.', $jwt);
-    if (count($parts) !== 3) {
-      return NULL;
-    }
-
-    // Decode the payload (second part).
-    $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), TRUE);
-    if (!$payload) {
-      return NULL;
-    }
-
-    // Check if token is expired.
-    if (isset($payload['exp']) && $payload['exp'] < time()) {
-      return NULL;
-    }
-
-    // Get user ID from the 'sub' claim (subject).
-    if (!isset($payload['sub'])) {
-      return NULL;
-    }
-
-    $user_id = (int) $payload['sub'];
-    if ($user_id <= 0) {
-      return NULL;
-    }
-
-    return User::load($user_id);
-  }
-
-  /**
    * Get complete board data in a single response.
    *
    * @param string $board_id
@@ -126,14 +78,12 @@ class BoardDataController extends ControllerBase {
    *   JSON response with all board data.
    */
   public function getBoardData(string $board_id, Request $request): JsonResponse {
-    // Check authentication - first try current_user, then OAuth token.
+    // Authentication is handled by OAuthAuthenticationSubscriber which runs
+    // before this controller and properly validates JWT signatures.
+    // The current_user service is already set to the authenticated user.
     $this->authenticatedUser = NULL;
     if (!$this->currentUser->isAnonymous()) {
       $this->authenticatedUser = User::load($this->currentUser->id());
-    }
-    else {
-      // Try to authenticate via OAuth token.
-      $this->authenticatedUser = $this->authenticateFromOAuthToken($request);
     }
 
     if (!$this->authenticatedUser) {

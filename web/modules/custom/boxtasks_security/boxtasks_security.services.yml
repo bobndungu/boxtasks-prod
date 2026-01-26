@@ -26,6 +26,11 @@ services:
 
   boxtasks_security.oauth_authentication_subscriber:
     class: Drupal\boxtasks_security\EventSubscriber\OAuthAuthenticationSubscriber
-    arguments: ['@current_user']
+    arguments:
+      - '@current_user'
+      - '@simple_oauth.server.resource_server.factory'
+      - '@entity_type.manager'
+      - '@psr7.http_message_factory'
+      - '@psr7.http_foundation_factory'
     tags:
       - { name: event_subscriber }

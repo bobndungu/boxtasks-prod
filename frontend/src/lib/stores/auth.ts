@@ -14,6 +14,8 @@ import {
   onSessionEvent
 } from '../api/client';
 import { useWorkspaceStore } from './workspace';
+import { useBoardStore } from './board';
+import { clearQueryCache } from '../queryClient';
 
 export interface User {
   id: string;
@@ -143,8 +145,26 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         stopSessionMonitoring();
         apiLogout();
-        // Clear workspace store to prevent stale data on next login
+
+        // CRITICAL: Clear ALL cached data to prevent data leakage between users.
+        // This is essential for security - when a user logs out, the next user
+        // must not see any cached data from the previous user.
+
+        // Clear workspace store
         useWorkspaceStore.getState().clearWorkspaces();
+
+        // Clear board store
+        useBoardStore.getState().clearBoards();
+
+        // Clear React Query cache - this is critical to prevent cached API
+        // responses from being served to a different user
+        clearQueryCache();
+
+        // Clear any other localStorage items that might contain user data
+        // (keeping auth tokens removal to apiLogout())
+        localStorage.removeItem('boxtasks_recently_viewed');
+        localStorage.removeItem('boxtasks_starred_boards');
+
         set({
           user: null,
           isAuthenticated: false,
@@ -260,10 +280,27 @@ export const useAuthStore = create<AuthState>()(
         return unsubscribe;
       },
       setTokens: (accessToken: string, refreshToken?: string, expiresIn: number = 3600) => {
-        // CRITICAL: Clear any previously persisted user data when new tokens are set.
-        // This prevents stale user identity from being used with a new user's token
+        // CRITICAL: Clear ALL user-specific cached data when new tokens are set.
+        // This prevents stale user data from being visible to a different user
         // (e.g., when a different user logs in via social auth on the same browser).
+
+        // Clear user state
         set({ user: null, isAuthenticated: false });
+
+        // Clear workspace store (previous user's workspaces)
+        useWorkspaceStore.getState().clearWorkspaces();
+
+        // Clear board store (previous user's boards)
+        useBoardStore.getState().clearBoards();
+
+        // Clear React Query cache (previous user's API responses)
+        clearQueryCache();
+
+        // Clear localStorage items that might contain previous user's data
+        localStorage.removeItem('boxtasks_recently_viewed');
+        localStorage.removeItem('boxtasks_starred_boards');
+
+        // Now set the new tokens
         setAccessToken(accessToken, expiresIn);
         if (refreshToken) {
           setRefreshToken(refreshToken);
