@@ -464,6 +464,65 @@ if (versionedStorage.has('my_settings')) { ... }
 
 ---
 
+## Force Logout All Users (Security Updates)
+
+**CRITICAL: Use this when a security fix requires all users to re-authenticate.**
+
+The `versionedStorage` utility includes an `AUTH_VERSION` mechanism that forces all users to log out when incremented. This is essential for security updates that require clearing cached user data.
+
+**Location:** `frontend/src/lib/utils/versionedStorage.ts`
+
+### How It Works
+
+1. `CURRENT_AUTH_VERSION` constant is checked on app startup
+2. If it differs from the user's stored `boxtasks_auth_version`, all localStorage is cleared (except theme)
+3. User is redirected to `/login?security_update=1`
+4. User must re-authenticate with fresh session
+
+### How to Force Logout All Users
+
+1. Open `frontend/src/lib/utils/versionedStorage.ts`
+2. Increment `CURRENT_AUTH_VERSION`:
+   ```typescript
+   // INCREMENT THIS NUMBER TO FORCE ALL USERS TO LOG OUT
+   const CURRENT_AUTH_VERSION = 3; // Was 2, increment for new security fix
+   ```
+3. Commit and deploy to production:
+   ```bash
+   git add -A
+   git commit -m "fix(security): force logout all users - [reason]"
+   ./scripts/deploy-to-production.sh
+   ```
+
+### What Gets Cleared
+
+When AUTH_VERSION changes, the following are cleared:
+- `boxtasks_auth` (Zustand auth store with tokens and user)
+- `boxtasks_auth_token`
+- `boxtasks_refresh_token`
+- `boxtasks_user`
+- All other `boxtasks_*` keys
+
+**Preserved:**
+- `boxtasks_theme` (user's theme preference)
+
+### When to Use Force Logout
+
+- JWT signature verification fixes
+- Authentication flow changes
+- User identity/permission bugs
+- Any security vulnerability that could allow user impersonation
+- Cache poisoning issues
+
+### Verification
+
+After deploying, verify the force logout works:
+1. Open browser console on production site
+2. Look for: `[VersionedStorage] AUTH VERSION changed: X -> Y`
+3. Confirm redirect to `/login?security_update=1`
+
+---
+
 ## Data Freshness Pattern (CRITICAL)
 
 **IMPORTANT: Always ensure UI reflects the latest data after any mutation.**
