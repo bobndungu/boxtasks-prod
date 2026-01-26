@@ -175,11 +175,16 @@ export const useAuthStore = create<AuthState>()(
         });
       },
       checkAuth: async () => {
+        // CRITICAL: Immediately clear persisted user data to prevent showing stale identity
+        // while we verify with the server. This fixes the bug where User A's data shows
+        // briefly when User B logs in on the same browser.
+        set({ user: null, isAuthenticated: false, isLoading: true });
+
         const token = getAccessToken();
 
         // No token at all - definitely not authenticated
         if (!token) {
-          set({ user: null, isAuthenticated: false, isLoading: false });
+          set({ isLoading: false });
           return;
         }
 
