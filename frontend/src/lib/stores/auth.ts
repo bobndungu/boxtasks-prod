@@ -349,7 +349,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'boxtasks_auth',
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      // CRITICAL: Only persist authentication state, NOT user data.
+      // User data MUST always be fetched fresh from the server to prevent
+      // identity mismatch issues where User A's data shows for User B.
+      // The token stored separately in localStorage is the source of truth.
+      partialize: () => ({}), // Don't persist anything - always start fresh
     }
   )
 );
