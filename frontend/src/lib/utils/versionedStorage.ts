@@ -10,7 +10,13 @@
  */
 
 const STORAGE_VERSION_KEY = 'boxtasks_storage_version';
+const AUTH_VERSION_KEY = 'boxtasks_auth_version';
 const STORAGE_PREFIX = 'boxtasks_';
+
+// INCREMENT THIS NUMBER TO FORCE ALL USERS TO LOG OUT
+// This should be incremented whenever there's a security fix that requires
+// clearing cached user data across all sessions.
+const CURRENT_AUTH_VERSION = 2; // Incremented for security fix on 2026-01-26
 
 interface StorageConfig {
   // Keys that should persist across versions (e.g., auth tokens)
@@ -18,7 +24,8 @@ interface StorageConfig {
 }
 
 const config: StorageConfig = {
-  // These keys will NOT be cleared on version change
+  // These keys will NOT be cleared on normal version change
+  // But WILL be cleared when AUTH_VERSION changes (security updates)
   persistentKeys: [
     'boxtasks_auth', // Zustand auth store (contains tokens and user)
     'boxtasks_auth_token',
@@ -94,12 +101,63 @@ function clearNonPersistentStorage(): void {
 }
 
 /**
+ * Force clear ALL boxtasks localStorage keys including auth (for security updates)
+ */
+function forceLogoutAllUsers(): void {
+  console.log('[VersionedStorage] SECURITY UPDATE: Forcing logout for all users');
+
+  const keysToRemove: string[] = [];
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(STORAGE_PREFIX)) {
+      // Only keep theme preference, clear everything else including auth
+      if (key !== 'boxtasks_theme') {
+        keysToRemove.push(key);
+      }
+    }
+  }
+
+  // Also clear non-prefixed auth keys
+  ['access_token', 'refresh_token', 'token_expires_at'].forEach(key => {
+    if (localStorage.getItem(key)) {
+      keysToRemove.push(key);
+    }
+  });
+
+  keysToRemove.forEach(key => {
+    console.log('[VersionedStorage] Force clearing:', key);
+    localStorage.removeItem(key);
+  });
+
+  console.log(`[VersionedStorage] Force cleared ${keysToRemove.length} storage keys for security update`);
+}
+
+/**
  * Initialize versioned storage - call this once on app startup
  * This checks if the app version has changed and clears stale storage if needed
  */
 export async function initVersionedStorage(): Promise<void> {
   if (isInitialized) {
     return;
+  }
+
+  // SECURITY CHECK: Check auth version first
+  // If auth version changed, force logout ALL users (clears auth data)
+  const storedAuthVersion = localStorage.getItem(AUTH_VERSION_KEY);
+  const currentAuthVersionStr = CURRENT_AUTH_VERSION.toString();
+
+  if (storedAuthVersion !== currentAuthVersionStr) {
+    console.log(`[VersionedStorage] AUTH VERSION changed: ${storedAuthVersion || 'none'} -> ${currentAuthVersionStr}`);
+    forceLogoutAllUsers();
+    localStorage.setItem(AUTH_VERSION_KEY, currentAuthVersionStr);
+    // After force logout, user will need to re-authenticate
+    // Redirect to login page if not already there
+    if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+      console.log('[VersionedStorage] Redirecting to login after security update');
+      window.location.href = '/login?security_update=1';
+      return;
+    }
   }
 
   const buildVersion = await fetchBuildVersion();
