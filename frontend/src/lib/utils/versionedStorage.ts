@@ -16,7 +16,7 @@ const STORAGE_PREFIX = 'boxtasks_';
 // INCREMENT THIS NUMBER TO FORCE ALL USERS TO LOG OUT
 // This should be incremented whenever there's a security fix that requires
 // clearing cached user data across all sessions.
-const CURRENT_AUTH_VERSION = 8; // Fix OAuth caching - nginx now prevents OAuth response caching
+const CURRENT_AUTH_VERSION = 9; // Disable Drupal page_cache and dynamic_page_cache modules
 
 interface StorageConfig {
   // Keys that should persist across versions (e.g., auth tokens)
