@@ -96,6 +96,23 @@ class SocialAuthTokenController extends ControllerBase {
   public function generateToken(Request $request): TrustedRedirectResponse {
     $frontend_url = getenv('FRONTEND_URL') ?: 'https://tasks.boxraft.com';
 
+    // DEBUG: Log session and current user info to diagnose identity issues.
+    $session_id = session_id();
+    $session_name = session_name();
+    $current_user_id = $this->currentUser()->id();
+    $current_user_name = $this->currentUser()->getAccountName();
+
+    $this->getLogger('boxtasks_user')->debug(
+      'Token generation called: session_id=@sid, session_name=@sname, currentUser=@uid (@name), IP=@ip',
+      [
+        '@sid' => $session_id ?: 'none',
+        '@sname' => $session_name ?: 'none',
+        '@uid' => $current_user_id,
+        '@name' => $current_user_name,
+        '@ip' => $request->getClientIp(),
+      ]
+    );
+
     // Check if user is authenticated.
     if ($this->currentUser()->isAnonymous()) {
       return new TrustedRedirectResponse($frontend_url . '/login?error=not_authenticated');
@@ -107,6 +124,16 @@ class SocialAuthTokenController extends ControllerBase {
       if (!$user) {
         return new TrustedRedirectResponse($frontend_url . '/login?error=user_not_found');
       }
+
+      // DEBUG: Log the loaded user details.
+      $this->getLogger('boxtasks_user')->debug(
+        'User loaded for token: uid=@uid, name=@name, email=@email',
+        [
+          '@uid' => $user->id(),
+          '@name' => $user->getAccountName(),
+          '@email' => $user->getEmail(),
+        ]
+      );
 
       // Check if user is blocked (pending approval).
       // New users created via OAuth are blocked by default.
@@ -207,7 +234,17 @@ class SocialAuthTokenController extends ControllerBase {
         '@uid' => $user->id(),
       ]);
 
-      return new TrustedRedirectResponse($redirect_url);
+      // Create response with no-cache headers to prevent caching.
+      $response = new TrustedRedirectResponse($redirect_url);
+      $response->setMaxAge(0);
+      $response->setPrivate();
+      $response->headers->addCacheControlDirective('no-cache', TRUE);
+      $response->headers->addCacheControlDirective('no-store', TRUE);
+      $response->headers->addCacheControlDirective('must-revalidate', TRUE);
+      $response->headers->set('Pragma', 'no-cache');
+      $response->headers->set('Expires', '0');
+
+      return $response;
     }
     catch (\Exception $e) {
       $this->getLogger('boxtasks_user')->error('Error generating social auth token: @message', [
