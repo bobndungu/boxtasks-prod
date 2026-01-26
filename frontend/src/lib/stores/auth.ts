@@ -76,7 +76,10 @@ export const useAuthStore = create<AuthState>()(
             headers: {
               'Authorization': `Bearer ${getAccessToken()}`,
               'Accept': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
             },
+            cache: 'no-store',
           });
 
           if (!response.ok) {
@@ -307,7 +310,10 @@ export const useAuthStore = create<AuthState>()(
             headers: {
               'Authorization': `Bearer ${token}`,
               'Accept': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
             },
+            cache: 'no-store',
           });
 
           if (!response.ok) {
