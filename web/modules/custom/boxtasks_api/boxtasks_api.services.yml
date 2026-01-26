@@ -1,0 +1,14 @@
+services:
+  # Page cache request policy to exclude auth-related requests.
+  # This prevents OAuth tokens and user-specific data from being cached.
+  boxtasks_api.page_cache.disallow_auth_requests:
+    class: Drupal\boxtasks_api\PageCache\DisallowAuthRequests
+    tags:
+      - { name: page_cache_request_policy }
+
+  # Page cache response policy to exclude auth-related responses.
+  # This works with dynamic_page_cache to prevent caching user-specific responses.
+  boxtasks_api.page_cache.disallow_auth_responses:
+    class: Drupal\boxtasks_api\PageCache\DisallowAuthResponses
+    tags:
+      - { name: page_cache_response_policy }

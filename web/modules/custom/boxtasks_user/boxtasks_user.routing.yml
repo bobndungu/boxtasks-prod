@@ -5,6 +5,9 @@ boxtasks_user.social_auth_token:
     _title: 'Social Auth Token'
   requirements:
     _user_is_logged_in: 'TRUE'
+  options:
+    # CRITICAL: Never cache this route - generates user-specific OAuth tokens
+    no_cache: TRUE
 
 boxtasks_user.register:
   path: '/api/boxtasks/register'

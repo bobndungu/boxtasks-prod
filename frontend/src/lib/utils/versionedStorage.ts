@@ -16,7 +16,7 @@ const STORAGE_PREFIX = 'boxtasks_';
 // INCREMENT THIS NUMBER TO FORCE ALL USERS TO LOG OUT
 // This should be incremented whenever there's a security fix that requires
 // clearing cached user data across all sessions.
-const CURRENT_AUTH_VERSION = 11; // Disable page_cache and dynamic_page_cache (again - they were re-enabled)
+const CURRENT_AUTH_VERSION = 12; // Re-enable page_cache with auth exclusion policies
 
 interface StorageConfig {
   // Keys that should persist across versions (e.g., auth tokens)
