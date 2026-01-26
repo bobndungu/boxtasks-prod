@@ -176,27 +176,11 @@ export const useAuthStore = create<AuthState>()(
       },
       checkAuth: async () => {
         const token = getAccessToken();
-        const { user, isAuthenticated } = get();
 
         // No token at all - definitely not authenticated
         if (!token) {
           set({ user: null, isAuthenticated: false, isLoading: false });
           return;
-        }
-
-        // Token exists and is still valid - keep current auth state
-        if (isTokenValid()) {
-          // If we have persisted user data and valid token, we're good
-          if (user && isAuthenticated) {
-            // Start session monitoring for existing valid session
-            startSessionMonitoring();
-            // If roles are missing, refetch user data to get them
-            if (!user.roles || user.roles.length === 0) {
-              get().fetchUser();
-            }
-            set({ isLoading: false });
-            return;
-          }
         }
 
         // Token is expired or about to expire - try to refresh
@@ -208,9 +192,7 @@ export const useAuthStore = create<AuthState>()(
               get().logout();
               return;
             }
-            // Refresh succeeded - monitoring is started by refreshAccessToken
-            set({ isLoading: false });
-            return;
+            // Refresh succeeded - continue to verify user below
           } catch {
             // Refresh failed - log out
             get().logout();
@@ -218,9 +200,10 @@ export const useAuthStore = create<AuthState>()(
           }
         }
 
-        // Token exists but we don't have user data - fetch it from the server.
-        // This happens after setTokens clears stale user data, or on first load.
-        if (token && !user) {
+        // CRITICAL: Always fetch fresh user data from server to prevent identity mismatch.
+        // Even if we have persisted user data, we MUST verify it matches the current token.
+        // This prevents showing User A's data when User B has logged in.
+        if (isTokenValid()) {
           startSessionMonitoring();
           const success = await get().fetchUser();
           if (!success) {

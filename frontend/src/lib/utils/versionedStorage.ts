@@ -16,7 +16,7 @@ const STORAGE_PREFIX = 'boxtasks_';
 // INCREMENT THIS NUMBER TO FORCE ALL USERS TO LOG OUT
 // This should be incremented whenever there's a security fix that requires
 // clearing cached user data across all sessions.
-const CURRENT_AUTH_VERSION = 3; // Incremented for user identity fix on 2026-01-26
+const CURRENT_AUTH_VERSION = 4; // Incremented for checkAuth identity verification fix on 2026-01-26
 
 interface StorageConfig {
   // Keys that should persist across versions (e.g., auth tokens)
