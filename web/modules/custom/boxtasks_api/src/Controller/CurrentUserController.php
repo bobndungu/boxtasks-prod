@@ -48,6 +48,19 @@ class CurrentUserController extends ControllerBase {
    *   JSON response with user data.
    */
   public function getCurrentUser(): JsonResponse {
+    // DEBUG: Log the current user state to diagnose identity issues.
+    $request = \Drupal::request();
+    $auth_header = $request->headers->get('Authorization', 'none');
+    \Drupal::logger('boxtasks_api')->debug(
+      'API /me called: currentUser ID=@uid, name=@name, isAnonymous=@anon, Auth header=@auth',
+      [
+        '@uid' => $this->currentUser->id(),
+        '@name' => $this->currentUser->getAccountName(),
+        '@anon' => $this->currentUser->isAnonymous() ? 'yes' : 'no',
+        '@auth' => substr($auth_header, 0, 50) . '...',
+      ]
+    );
+
     if ($this->currentUser->isAnonymous()) {
       return new JsonResponse([
         'error' => 'Not authenticated',
