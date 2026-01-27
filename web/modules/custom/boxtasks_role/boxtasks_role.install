@@ -48,8 +48,10 @@ function _boxtasks_role_create_default_roles() {
     // Member management
     'field_perm_member_manage' => 'any',
     // Comment permissions
+    'field_perm_comment_create' => 'any',
     'field_perm_comment_edit' => 'any',
     'field_perm_comment_delete' => 'any',
+    'field_perm_comment_archive' => 'any',
     // Template permissions
     'field_perm_template_view' => 'any',
     'field_perm_template_create' => 'any',
@@ -87,8 +89,10 @@ function _boxtasks_role_create_default_roles() {
     // Member management
     'field_perm_member_manage' => 'none',
     // Comment permissions
+    'field_perm_comment_create' => 'any',
     'field_perm_comment_edit' => 'own',
     'field_perm_comment_delete' => 'own',
+    'field_perm_comment_archive' => 'own',
     // Template permissions
     'field_perm_template_view' => 'any',
     'field_perm_template_create' => 'any',
@@ -125,9 +129,11 @@ function _boxtasks_role_create_default_roles() {
     'field_perm_workspace_delete' => 'none',
     // Member management
     'field_perm_member_manage' => 'none',
-    // Comment permissions - can edit/delete own
+    // Comment permissions - can create and manage own
+    'field_perm_comment_create' => 'any',
     'field_perm_comment_edit' => 'own',
     'field_perm_comment_delete' => 'own',
+    'field_perm_comment_archive' => 'own',
     // Template permissions - view only
     'field_perm_template_view' => 'any',
     'field_perm_template_create' => 'none',
@@ -246,4 +252,63 @@ function boxtasks_role_update_10002() {
   }
 
   return t('Updated @count default workspace roles with template permissions.', ['@count' => count($roles)]);
+}
+
+/**
+ * Set default comment permissions on all workspace roles that don't have them.
+ */
+function boxtasks_role_update_10003() {
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+
+  // Get ALL workspace_role nodes.
+  $query = $storage->getQuery()
+    ->condition('type', 'workspace_role')
+    ->accessCheck(FALSE);
+  $nids = $query->execute();
+
+  if (empty($nids)) {
+    return t('No workspace roles found to update.');
+  }
+
+  $roles = $storage->loadMultiple($nids);
+  $updated = 0;
+
+  foreach ($roles as $role) {
+    $changed = FALSE;
+
+    // Check if comment_create permission is empty/null and set default.
+    if (!$role->hasField('field_perm_comment_create') ||
+        $role->get('field_perm_comment_create')->isEmpty()) {
+      $role->set('field_perm_comment_create', 'any');
+      $changed = TRUE;
+    }
+
+    // Check if comment_edit permission is empty/null and set default.
+    if (!$role->hasField('field_perm_comment_edit') ||
+        $role->get('field_perm_comment_edit')->isEmpty()) {
+      $role->set('field_perm_comment_edit', 'own');
+      $changed = TRUE;
+    }
+
+    // Check if comment_delete permission is empty/null and set default.
+    if (!$role->hasField('field_perm_comment_delete') ||
+        $role->get('field_perm_comment_delete')->isEmpty()) {
+      $role->set('field_perm_comment_delete', 'own');
+      $changed = TRUE;
+    }
+
+    // Check if comment_archive permission is empty/null and set default.
+    if (!$role->hasField('field_perm_comment_archive') ||
+        $role->get('field_perm_comment_archive')->isEmpty()) {
+      $role->set('field_perm_comment_archive', 'own');
+      $changed = TRUE;
+    }
+
+    if ($changed) {
+      $role->save();
+      $updated++;
+    }
+  }
+
+  return t('Updated @count workspace roles with default comment permissions.', ['@count' => $updated]);
 }
