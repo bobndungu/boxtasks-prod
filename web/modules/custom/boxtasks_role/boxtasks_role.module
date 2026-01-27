@@ -196,6 +196,15 @@ function boxtasks_role_check_board_based_access(NodeInterface $node, string $typ
       ->addCacheTags(['node_list:member_role']);
   }
 
+  // Comments: users can always edit/delete their own comments.
+  // This is intuitive behavior - you should always be able to manage your own comments.
+  if ($type === 'card_comment' && (int) $node->getOwnerId() === (int) $account->id()) {
+    return AccessResult::allowed()
+      ->cachePerUser()
+      ->addCacheableDependency($node)
+      ->addCacheableDependency($board);
+  }
+
   // Get workspace from board.
   if (!$board->hasField('field_board_workspace') || $board->get('field_board_workspace')->isEmpty()) {
     return AccessResult::forbidden()
