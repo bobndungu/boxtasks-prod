@@ -24,7 +24,8 @@ class InputSanitizer {
    *   The sanitized string.
    */
   public function sanitizeString(string $input, bool $allowBasicHtml = FALSE): string {
-    // First, decode any HTML entities
+    // First, decode any HTML entities to their actual characters.
+    // This prevents double-encoding issues.
     $input = html_entity_decode($input, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
     if ($allowBasicHtml) {
@@ -35,8 +36,11 @@ class InputSanitizer {
       ]);
     }
 
-    // Remove all HTML tags
-    return Html::escape(strip_tags($input));
+    // Remove all HTML tags but preserve the actual characters.
+    // Do NOT use Html::escape() here - we want to store actual characters
+    // like apostrophes (') not HTML entities (&#039;).
+    // HTML escaping should happen at render time, not storage time.
+    return strip_tags($input);
   }
 
   /**
