@@ -5,8 +5,6 @@ dependencies:
   config:
     - field.storage.node.field_comment_mentions
     - node.type.card_comment
-_core:
-  default_config_hash: UcV3sSdyPj3ENmg4Eb_dg-Nf8Aee30_WlA3-Mj2W3Hk
 id: node.card_comment.field_comment_mentions
 field_name: field_comment_mentions
 entity_type: node

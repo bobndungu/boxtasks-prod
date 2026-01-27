@@ -4,10 +4,10 @@ status: true
 dependencies:
   config:
     - field.storage.node.field_comment_card
-    - node.type.card
     - node.type.card_comment
-_core:
-  default_config_hash: xHsfIlRO84OMmA7oJa4T6pjM2Ddw9v_YdJIps8BxMqE
+    - node.type.card
+  module:
+    - node
 id: node.card_comment.field_comment_card
 field_name: field_comment_card
 entity_type: node

@@ -7,8 +7,6 @@ dependencies:
     - node.type.card_comment
   module:
     - text
-_core:
-  default_config_hash: pN5SoJmfA5K1cyxQZaFYNBpxOgOwJD2OzgZW6eJ5LJk
 id: node.card_comment.field_comment_text
 field_name: field_comment_text
 entity_type: node

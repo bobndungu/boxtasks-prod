@@ -4,8 +4,6 @@ status: true
 dependencies:
   module:
     - node
-_core:
-  default_config_hash: tOFj1Yrud-wR7TgEWdEFs9reTLEiPAp5_Kg_fW52t7E
 id: node.field_comment_mentions
 field_name: field_comment_mentions
 entity_type: node

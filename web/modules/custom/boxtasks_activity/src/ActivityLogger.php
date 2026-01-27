@@ -401,37 +401,43 @@ class ActivityLogger {
 
       case self::TYPE_DEPARTMENT_SET:
         $department = $data['department_name'] ?? 'a department';
-        return $department;
+        return "$user_name set department to \"$department\" on \"$card_title\"";
 
       case self::TYPE_DEPARTMENT_CHANGED:
         $old_dept = $data['old_department_name'] ?? '';
         $new_dept = $data['department_name'] ?? 'a department';
-        return $old_dept ? "$old_dept → $new_dept" : $new_dept;
+        if ($old_dept) {
+          return "$user_name changed department from \"$old_dept\" to \"$new_dept\" on \"$card_title\"";
+        }
+        return "$user_name set department to \"$new_dept\" on \"$card_title\"";
 
       case self::TYPE_DEPARTMENT_REMOVED:
-        $old_dept = $data['old_department_name'] ?? '';
-        return $old_dept ?: "Removed";
+        $old_dept = $data['old_department_name'] ?? 'the department';
+        return "$user_name removed department \"$old_dept\" from \"$card_title\"";
 
       case self::TYPE_CLIENT_SET:
         $client = $data['client_name'] ?? 'a client';
-        return $client;
+        return "$user_name set client to \"$client\" on \"$card_title\"";
 
       case self::TYPE_CLIENT_CHANGED:
         $old_client = $data['old_client_name'] ?? '';
         $new_client = $data['client_name'] ?? 'a client';
-        return $old_client ? "$old_client → $new_client" : $new_client;
+        if ($old_client) {
+          return "$user_name changed client from \"$old_client\" to \"$new_client\" on \"$card_title\"";
+        }
+        return "$user_name set client to \"$new_client\" on \"$card_title\"";
 
       case self::TYPE_CLIENT_REMOVED:
-        $old_client = $data['old_client_name'] ?? '';
-        return $old_client ?: "Removed";
+        $old_client = $data['old_client_name'] ?? 'the client';
+        return "$user_name removed client \"$old_client\" from \"$card_title\"";
 
       case self::TYPE_WATCHER_ADDED:
         $watcher = $data['watcher_name'] ?? 'a watcher';
-        return "$user_name added a watcher";
+        return "$user_name added $watcher as a watcher on \"$card_title\"";
 
       case self::TYPE_WATCHER_REMOVED:
         $watcher = $data['watcher_name'] ?? 'a watcher';
-        return "$user_name removed a watcher";
+        return "$user_name removed $watcher from watchers on \"$card_title\"";
 
       default:
         return "$user_name updated \"$card_title\"";

@@ -5,8 +5,8 @@ dependencies:
   config:
     - field.storage.node.field_original_uuid
     - node.type.card_comment
-_core:
-  default_config_hash: V9K79vvQjWBRLmix6FS-g4F1Xtx3iEFaZN-F0NNFJeA
+  module:
+    - node
 id: node.card_comment.field_original_uuid
 field_name: field_original_uuid
 entity_type: node
