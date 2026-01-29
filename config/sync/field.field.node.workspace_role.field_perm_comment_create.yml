@@ -1,3 +1,4 @@
+uuid: 5967cff1-5d5c-4ca9-8c44-780afd20eae5
 langcode: en
 status: true
 dependencies:
@@ -16,7 +17,8 @@ description: 'Permission to create comments. Any = can create comments on any ca
 required: false
 translatable: false
 default_value:
-  - value: 'any'
+  -
+    value: any
 default_value_callback: ''
-settings: {}
+settings: {  }
 field_type: list_string

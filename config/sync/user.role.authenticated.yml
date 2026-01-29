@@ -14,6 +14,7 @@ dependencies:
     - node.type.checklist_item
     - node.type.custom_field_definition
     - node.type.notification
+    - node.type.time_entry
   module:
     - boxtasks_automation
     - comment
@@ -44,6 +45,7 @@ permissions:
   - 'create checklist_item content'
   - 'create custom_field_definition content'
   - 'create notification content'
+  - 'create time_entry content'
   - 'delete any board_list content'
   - 'delete any card content'
   - 'delete any card_attachment content'
@@ -51,10 +53,12 @@ permissions:
   - 'delete any checklist content'
   - 'delete any checklist_item content'
   - 'delete any custom_field_definition content'
+  - 'delete any time_entry content'
   - 'delete automation rules'
   - 'delete own board_list content'
   - 'delete own card content'
   - 'delete own files'
+  - 'delete own time_entry content'
   - 'edit any board_list content'
   - 'edit any card content'
   - 'edit any card_custom_field_value content'
@@ -62,9 +66,11 @@ permissions:
   - 'edit any checklist_item content'
   - 'edit any custom_field_definition content'
   - 'edit any notification content'
+  - 'edit any time_entry content'
   - 'edit automation rules'
   - 'edit own board_list content'
   - 'edit own card content'
+  - 'edit own time_entry content'
   - 'post comments'
   - 'search content'
   - 'skip comment approval'
