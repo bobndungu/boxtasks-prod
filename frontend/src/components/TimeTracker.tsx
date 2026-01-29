@@ -32,9 +32,20 @@ import { formatDateShort, formatTime } from '../lib/utils/date';
 interface TimeTrackerProps {
   cardId: string;
   cardTitle: string;
+  canView?: boolean;
+  canCreate?: boolean;
+  canEdit?: (isOwner: boolean) => boolean;
+  canDelete?: (isOwner: boolean) => boolean;
 }
 
-export function TimeTracker({ cardId, cardTitle }: TimeTrackerProps) {
+export function TimeTracker({
+  cardId,
+  cardTitle,
+  canView = true,
+  canCreate = true,
+  canEdit = () => true,
+  canDelete = () => true,
+}: TimeTrackerProps) {
   const { confirm, ConfirmDialog } = useConfirmDialog();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +56,7 @@ export function TimeTracker({ cardId, cardTitle }: TimeTrackerProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   // Auth store for current user context
-  useAuthStore();
+  const { user } = useAuthStore();
 
   // Form state for manual entry
   const [manualDate, setManualDate] = useState(new Date().toISOString().split('T')[0]);
@@ -252,6 +263,11 @@ export function TimeTracker({ cardId, cardTitle }: TimeTrackerProps) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  // Don't show if user can't view time entries
+  if (!canView) {
+    return null;
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-4">
@@ -285,53 +301,55 @@ export function TimeTracker({ cardId, cardTitle }: TimeTrackerProps) {
         </div>
       </div>
 
-      {/* Timer Controls */}
-      <div className="flex items-center gap-2 mb-3">
-        {runningEntry ? (
-          <>
-            <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="font-mono text-green-700 dark:text-green-400">
-                {formatElapsed(elapsedTime)}
-              </span>
-            </div>
-            <button
-              onClick={handleStop}
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Square className="w-4 h-4 fill-current" />
-              )}
-              Stop
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              onClick={handleStart}
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Play className="w-4 h-4 fill-current" />
-              )}
-              Start Timer
-            </button>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <Plus className="w-4 h-4" />
-              Add Manual
-            </button>
-          </>
-        )}
-      </div>
+      {/* Timer Controls - only show if user can create time entries */}
+      {canCreate && (
+        <div className="flex items-center gap-2 mb-3">
+          {runningEntry ? (
+            <>
+              <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="font-mono text-green-700 dark:text-green-400">
+                  {formatElapsed(elapsedTime)}
+                </span>
+              </div>
+              <button
+                onClick={handleStop}
+                disabled={saving}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {saving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Square className="w-4 h-4 fill-current" />
+                )}
+                Stop
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleStart}
+                disabled={saving}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {saving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4 fill-current" />
+                )}
+                Start Timer
+              </button>
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                <Plus className="w-4 h-4" />
+                Add Manual
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Manual Entry Form */}
       {showAddForm && (
@@ -513,7 +531,7 @@ export function TimeTracker({ cardId, cardTitle }: TimeTrackerProps) {
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
-                      {entry.endTime && (
+                      {entry.endTime && canEdit(entry.userId === user?.id) && (
                         <button
                           onClick={() => startEditing(entry)}
                           className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
@@ -521,12 +539,14 @@ export function TimeTracker({ cardId, cardTitle }: TimeTrackerProps) {
                           <Edit2 className="w-4 h-4" />
                         </button>
                       )}
-                      <button
-                        onClick={() => handleDelete(entry.id)}
-                        className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {canDelete(entry.userId === user?.id) && (
+                        <button
+                          onClick={() => handleDelete(entry.id)}
+                          className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

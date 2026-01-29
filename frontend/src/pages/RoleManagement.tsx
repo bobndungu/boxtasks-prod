@@ -205,6 +205,11 @@ const getDefaultPermissions = (): WorkspaceRole['permissions'] => ({
   profileView: 'own',
   profileEdit: 'own',
   profileDelete: 'none',
+  // Time entry permissions
+  timeEntryView: 'any',
+  timeEntryCreate: 'any',
+  timeEntryEdit: 'own',
+  timeEntryDelete: 'own',
 });
 
 export default function RoleManagement() {

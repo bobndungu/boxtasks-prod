@@ -96,6 +96,10 @@ function CardDetailModal({
   canDeleteCard,
   canArchiveCard,
   canMoveCard,
+  canViewTimeEntry = true,
+  canCreateTimeEntry = true,
+  canEditTimeEntry = () => true,
+  canDeleteTimeEntry = () => true,
   onMove,
   onApprove,
   onReject,
@@ -132,6 +136,11 @@ function CardDetailModal({
   canDeleteCard: boolean;
   canArchiveCard: boolean;
   canMoveCard: boolean;
+  // Time entry permission checks
+  canViewTimeEntry?: boolean;
+  canCreateTimeEntry?: boolean;
+  canEditTimeEntry?: (isOwner: boolean) => boolean;
+  canDeleteTimeEntry?: (isOwner: boolean) => boolean;
   onMove: (cardId: string, fromListId: string, toListId: string) => void;
   // Approval/Rejection
   onApprove: (cardId: string) => Promise<void>;
@@ -2942,7 +2951,14 @@ function CardDetailModal({
               </div>
 
               {/* Time Tracking */}
-              <TimeTracker cardId={card.id} cardTitle={card.title} />
+              <TimeTracker
+                cardId={card.id}
+                cardTitle={card.title}
+                canView={canViewTimeEntry}
+                canCreate={canCreateTimeEntry}
+                canEdit={canEditTimeEntry}
+                canDelete={canDeleteTimeEntry}
+              />
 
               {/* Estimates */}
               <EstimateEditor

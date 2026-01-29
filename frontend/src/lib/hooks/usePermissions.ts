@@ -13,6 +13,7 @@ export type AutomationAction = 'view' | 'create' | 'edit' | 'delete';
 export type MindMapAction = 'view' | 'create' | 'edit' | 'delete';
 export type TemplateAction = 'view' | 'create' | 'edit' | 'delete';
 export type ProfileAction = 'view' | 'edit' | 'delete';
+export type TimeEntryAction = 'view' | 'create' | 'edit' | 'delete';
 
 interface UsePermissionsReturn {
   permissions: WorkspaceRole['permissions'] | null;
@@ -51,6 +52,8 @@ interface UsePermissionsReturn {
   canTemplate: (action: TemplateAction, isOwner?: boolean) => boolean;
   // Profile permissions
   canProfile: (action: ProfileAction, isOwner?: boolean) => boolean;
+  // Time entry permissions
+  canTimeEntry: (action: TimeEntryAction, isOwner?: boolean) => boolean;
   refetch: () => Promise<void>;
 }
 
@@ -127,6 +130,11 @@ const DEFAULT_PERMISSIONS: WorkspaceRole['permissions'] = {
   profileView: 'own',
   profileEdit: 'own',
   profileDelete: 'none',
+  // Time entry permissions
+  timeEntryView: 'any',
+  timeEntryCreate: 'any',
+  timeEntryEdit: 'own',
+  timeEntryDelete: 'own',
 };
 
 // Check if error is an abort error (navigation/unmount)
@@ -696,6 +704,31 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     return canPerformAction(permission, isOwner);
   }, [permissions, user]);
 
+  // Time entry permission check
+  const canTimeEntry = useCallback((action: TimeEntryAction, isOwner: boolean = false): boolean => {
+    // Super admin (uid=1) bypasses all permission checks
+    if (isSuperAdmin(user)) return true;
+    if (!permissions) return action === 'view'; // Allow view by default while loading
+
+    let permission: PermissionLevel;
+    switch (action) {
+      case 'view':
+        permission = permissions.timeEntryView ?? 'any';
+        break;
+      case 'create':
+        permission = permissions.timeEntryCreate ?? 'any';
+        break;
+      case 'edit':
+        permission = permissions.timeEntryEdit ?? 'own';
+        break;
+      case 'delete':
+        permission = permissions.timeEntryDelete ?? 'own';
+        break;
+    }
+
+    return canPerformAction(permission, isOwner);
+  }, [permissions, user]);
+
   return {
     permissions,
     roleId,
@@ -733,6 +766,8 @@ export function usePermissions(workspaceId: string | undefined): UsePermissionsR
     canTemplate,
     // Profile permissions
     canProfile,
+    // Time entry permissions
+    canTimeEntry,
     refetch,
   };
 }

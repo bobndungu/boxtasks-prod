@@ -111,7 +111,7 @@ export default function BoardView() {
   const { user: currentUser } = useAuthStore();
 
   // Role-based permissions
-  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, canCustomField, canAutomation, canViewAnyReport, canSavedViews, canMindMap, canCardFieldsVisibility, canTemplate, roleId: userRoleId, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
+  const { canView, canCreate, canEdit, canDelete, canArchive, canMove, canViewMembers, canCustomField, canAutomation, canViewAnyReport, canSavedViews, canMindMap, canCardFieldsVisibility, canTemplate, canTimeEntry, roleId: userRoleId, loading: permissionsLoading } = usePermissions(currentBoard?.workspaceId);
 
   // Check if user can view this board (after permissions are loaded)
   // Note: Board ownership is not tracked individually - workspace membership determines access
@@ -3488,6 +3488,10 @@ export default function BoardView() {
           canDeleteCard={canDelete('card', selectedCard.authorId === currentUser?.id)}
           canArchiveCard={canArchive('card', selectedCard.authorId === currentUser?.id)}
           canMoveCard={canMove('card', selectedCard.authorId === currentUser?.id)}
+          canViewTimeEntry={canTimeEntry('view')}
+          canCreateTimeEntry={canTimeEntry('create')}
+          canEditTimeEntry={(isOwner: boolean) => canTimeEntry('edit', isOwner)}
+          canDeleteTimeEntry={(isOwner: boolean) => canTimeEntry('delete', isOwner)}
           onApprove={async (cardId) => {
             if (!currentUser) return;
             const updatedCard = await approveCard(cardId, currentUser.id);

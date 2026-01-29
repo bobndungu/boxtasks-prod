@@ -312,3 +312,97 @@ function boxtasks_role_update_10003() {
 
   return t('Updated @count workspace roles with default comment permissions.', ['@count' => $updated]);
 }
+
+/**
+ * Add time entry permission fields to workspace roles.
+ */
+function boxtasks_role_update_10004() {
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+
+  // Get ALL workspace_role nodes.
+  $query = $storage->getQuery()
+    ->condition('type', 'workspace_role')
+    ->accessCheck(FALSE);
+  $nids = $query->execute();
+
+  if (empty($nids)) {
+    return t('No workspace roles found to update.');
+  }
+
+  $roles = $storage->loadMultiple($nids);
+  $updated = 0;
+
+  foreach ($roles as $role) {
+    $title = $role->getTitle();
+    $changed = FALSE;
+
+    // Determine permission values based on role type.
+    // Admin gets full access, Editor gets own, Viewer gets own for create but view all.
+    $isGlobalRole = $role->get('field_role_workspace')->isEmpty();
+
+    if ($isGlobalRole) {
+      // Global roles (Admin, Editor, Viewer).
+      if ($title === 'Admin') {
+        $createPerm = 'any';
+        $editPerm = 'any';
+        $deletePerm = 'any';
+        $viewPerm = 'any';
+      }
+      elseif ($title === 'Editor') {
+        $createPerm = 'any';
+        $editPerm = 'own';
+        $deletePerm = 'own';
+        $viewPerm = 'any';
+      }
+      else {
+        // Viewer - can track own time, view all.
+        $createPerm = 'own';
+        $editPerm = 'own';
+        $deletePerm = 'own';
+        $viewPerm = 'any';
+      }
+    }
+    else {
+      // Workspace-specific roles - use sensible defaults.
+      $createPerm = 'any';
+      $editPerm = 'own';
+      $deletePerm = 'own';
+      $viewPerm = 'any';
+    }
+
+    // Set time entry create permission if empty.
+    if (!$role->hasField('field_perm_time_entry_create') ||
+        $role->get('field_perm_time_entry_create')->isEmpty()) {
+      $role->set('field_perm_time_entry_create', $createPerm);
+      $changed = TRUE;
+    }
+
+    // Set time entry edit permission if empty.
+    if (!$role->hasField('field_perm_time_entry_edit') ||
+        $role->get('field_perm_time_entry_edit')->isEmpty()) {
+      $role->set('field_perm_time_entry_edit', $editPerm);
+      $changed = TRUE;
+    }
+
+    // Set time entry delete permission if empty.
+    if (!$role->hasField('field_perm_time_entry_delete') ||
+        $role->get('field_perm_time_entry_delete')->isEmpty()) {
+      $role->set('field_perm_time_entry_delete', $deletePerm);
+      $changed = TRUE;
+    }
+
+    // Set time entry view permission if empty.
+    if (!$role->hasField('field_perm_time_entry_view') ||
+        $role->get('field_perm_time_entry_view')->isEmpty()) {
+      $role->set('field_perm_time_entry_view', $viewPerm);
+      $changed = TRUE;
+    }
+
+    if ($changed) {
+      $role->save();
+      $updated++;
+    }
+  }
+
+  return t('Updated @count workspace roles with time entry permissions.', ['@count' => $updated]);
+}

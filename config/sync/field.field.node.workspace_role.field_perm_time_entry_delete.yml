@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_time_entry_delete
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_time_entry_delete
+field_name: field_perm_time_entry_delete
+entity_type: node
+bundle: workspace_role
+label: 'Delete Time Entries'
+description: 'Permission to delete time entries. Own = can only delete your own entries. Any = can delete any entry.'
+required: false
+translatable: false
+default_value:
+  -
+    value: own
+default_value_callback: ''
+settings: {  }
+field_type: list_string

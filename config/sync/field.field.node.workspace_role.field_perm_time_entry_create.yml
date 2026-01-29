@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_perm_time_entry_create
+    - node.type.workspace_role
+  module:
+    - node
+    - options
+id: node.workspace_role.field_perm_time_entry_create
+field_name: field_perm_time_entry_create
+entity_type: node
+bundle: workspace_role
+label: 'Create Time Entries'
+description: 'Permission to create time entries. Any = can track time on any card in the workspace.'
+required: false
+translatable: false
+default_value:
+  -
+    value: any
+default_value_callback: ''
+settings: {  }
+field_type: list_string

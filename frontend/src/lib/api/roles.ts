@@ -113,6 +113,11 @@ export interface WorkspaceRole {
     profileView: PermissionLevel;
     profileEdit: PermissionLevel;
     profileDelete: PermissionLevel;
+    // Time entry permissions
+    timeEntryView: PermissionLevel;
+    timeEntryCreate: PermissionLevel;
+    timeEntryEdit: PermissionLevel;
+    timeEntryDelete: PermissionLevel;
   };
 }
 
@@ -213,6 +218,11 @@ function transformRole(data: Record<string, unknown>): WorkspaceRole {
       profileView: (attrs.field_perm_profile_view as PermissionLevel) || 'own',
       profileEdit: (attrs.field_perm_profile_edit as PermissionLevel) || 'own',
       profileDelete: (attrs.field_perm_profile_delete as PermissionLevel) || 'none',
+      // Time entry permissions
+      timeEntryView: (attrs.field_perm_time_entry_view as PermissionLevel) || 'any',
+      timeEntryCreate: (attrs.field_perm_time_entry_create as PermissionLevel) || 'any',
+      timeEntryEdit: (attrs.field_perm_time_entry_edit as PermissionLevel) || 'own',
+      timeEntryDelete: (attrs.field_perm_time_entry_delete as PermissionLevel) || 'own',
     },
   };
 }
